@@ -1,0 +1,49 @@
+{
+  "name": "budget-visualizer-app",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed",
+    "test:all": "bun run test && bun run test:e2e",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "@solidjs/router": "^0.15.4",
+    "@tanstack/solid-query": "^5.95.2",
+    "axios": "^1.13.6",
+    "d3": "^7.9.0",
+    "katex": "^0.16.40",
+    "luxon": "^3.7.2",
+    "solid-js": "^1.9.11"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.58.2",
+    "@solidjs/testing-library": "^0.8.10",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@types/d3": "^7.4.3",
+    "@types/luxon": "^3.7.1",
+    "@types/node": "^24.12.0",
+    "eslint": "^10.1.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-solid": "^0.14.5",
+    "jsdom": "^26.1.0",
+    "prettier": "^3.8.1",
+    "typescript": "~5.9.3",
+    "typescript-eslint": "^8.57.2",
+    "vite": "^8.0.2",
+    "vite-plugin-solid": "^2.11.11",
+    "vitest": "^4.1.1"
+  }
+}

@@ -1,0 +1,41 @@
+import type { JSX } from 'solid-js'
+import { createEffect } from 'solid-js'
+import type { DailyInterval, SummaryTypeBase } from '@types'
+import { createLineChart } from './createLineChart'
+
+export default function LineChart(props: {
+  summaries: (SummaryTypeBase | DailyInterval)[]
+  handleOnClickSelection: (intervalDate: string) => void
+  dataTestId?: string
+  loading?: boolean
+}): JSX.Element {
+  let svgEl: SVGSVGElement | undefined
+
+  createEffect(() => {
+    const el = svgEl
+    const summaries = props.summaries
+    const loading = props.loading
+    const onClickSelection = props.handleOnClickSelection
+    if (!el || loading || !summaries?.length) {
+      if (el) el.innerHTML = ''
+      return
+    }
+    queueMicrotask(() => {
+      if (svgEl && svgEl.parentElement && svgEl.parentElement.getBoundingClientRect().width > 0) {
+        createLineChart(svgEl, summaries, onClickSelection)
+      }
+    })
+  })
+
+  return (
+    <svg
+      ref={(el) => {
+        svgEl = el
+      }}
+      width={400}
+      height={150}
+      data-testid={`${props.dataTestId ?? 'line-chart'}-svg`}
+      style={{ width: '100%', height: 'auto' }}
+    />
+  )
+}
