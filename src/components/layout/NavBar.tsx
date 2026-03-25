@@ -21,8 +21,17 @@ export default function NavBar() {
         Budget Visualizer
       </A>
 
-      <button type="button" class="navbar-login" onClick={handleLoginLogout} aria-label={authState.isUserAuthenticated ? 'User menu' : 'Log in'}>
-        <div class={`navbar-avatar ${authState.isUserAuthenticated ? 'navbar-avatar--active' : ''}`} role="img" aria-hidden="true">
+      <button
+        type="button"
+        class="navbar-login"
+        onClick={handleLoginLogout}
+        aria-label={authState.isUserAuthenticated ? 'User menu' : 'Log in'}
+      >
+        <div
+          class={`navbar-avatar ${authState.isUserAuthenticated ? 'navbar-avatar--active' : ''}`}
+          role="img"
+          aria-hidden="true"
+        >
           <Show
             when={authState.isUserAuthenticated}
             fallback={

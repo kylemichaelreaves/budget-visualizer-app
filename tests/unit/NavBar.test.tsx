@@ -4,7 +4,7 @@ import { describe, expect, it, beforeEach } from 'vitest'
 import { setAuthState } from '@stores/authStore'
 import NavBar from '@components/layout/NavBar'
 
-function renderNavBar(initialPath = '/') {
+function renderNavBar() {
   return render(() => (
     <MemoryRouter root={() => <NavBar />}>
       <Route path="*" component={() => null} />
@@ -16,7 +16,13 @@ describe('NavBar', () => {
   beforeEach(() => {
     setAuthState('isUserAuthenticated', false)
     setAuthState('user', {
-      id: 0, firstName: '', lastName: '', username: '', email: '', password: '', role: 'guest',
+      id: 0,
+      firstName: '',
+      lastName: '',
+      username: '',
+      email: '',
+      password: '',
+      role: 'guest',
     })
   })
 
