@@ -15,13 +15,14 @@ export default function LineChart(props: {
     const el = svgEl
     const summaries = props.summaries
     const loading = props.loading
+    const onClickSelection = props.handleOnClickSelection
     if (!el || loading || !summaries?.length) {
       if (el) el.innerHTML = ''
       return
     }
     queueMicrotask(() => {
       if (svgEl && svgEl.parentElement && svgEl.parentElement.getBoundingClientRect().width > 0) {
-        createLineChart(svgEl, summaries, props.handleOnClickSelection)
+        createLineChart(svgEl, summaries, onClickSelection)
       }
     })
   })

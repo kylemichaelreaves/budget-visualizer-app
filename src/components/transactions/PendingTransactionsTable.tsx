@@ -1,6 +1,6 @@
 import { A } from '@solidjs/router'
 import type { JSX } from 'solid-js'
-import { createEffect, createMemo, createSignal, For, on, Show } from 'solid-js'
+import { Match, Switch, createEffect, createMemo, createSignal, For, on, Show } from 'solid-js'
 import { formatDate } from '@api/helpers/formatDate'
 import usePendingTransactions from '@api/hooks/transactions/usePendingTransactions'
 import AlertComponent from '@components/shared/AlertComponent'
@@ -242,43 +242,52 @@ export default function PendingTransactionsTable(): JSX.Element {
 }
 
 function Cell(props: { row: PendingTransaction; prop: string }): JSX.Element {
-  const p = props.prop
-  const v = getCell(props.row, p)
+  return (
+    <Switch fallback={<span>{formatCell(getCell(props.row, props.prop))}</span>}>
+      <Match when={props.prop === 'id'}>
+        <PendingTxnIdCell row={props.row} />
+      </Match>
+      <Match when={props.prop === 'transaction_date' || props.prop === 'created_at'}>
+        <span>{formatDate(String(getCell(props.row, props.prop) ?? ''))}</span>
+      </Match>
+      <Match when={props.prop === 'reviewed_at'}>
+        <PendingTxnReviewedAtCell row={props.row} />
+      </Match>
+      <Match when={props.prop === 'memo_name'}>
+        <PendingTxnMemoNameCell row={props.row} />
+      </Match>
+    </Switch>
+  )
+}
 
-  if (p === 'id') {
-    return (
-      <A
-        href={`/budget-visualizer/transactions/pending/${String(v ?? '')}/edit`}
-        data-testid={`pending-transaction-id-${v}`}
-      >
-        {String(v ?? '')}
+function PendingTxnReviewedAtCell(props: { row: PendingTransaction }): JSX.Element {
+  const v = () => getCell(props.row, 'reviewed_at')
+  return <span>{v() ? formatDate(String(v())) : '—'}</span>
+}
+
+function PendingTxnIdCell(props: { row: PendingTransaction }): JSX.Element {
+  const v = () => getCell(props.row, 'id')
+  return (
+    <A
+      href={`/budget-visualizer/transactions/pending/${String(v() ?? '')}/edit`}
+      data-testid={`pending-transaction-id-${v()}`}
+    >
+      {String(v() ?? '')}
+    </A>
+  )
+}
+
+function PendingTxnMemoNameCell(props: { row: PendingTransaction }): JSX.Element {
+  const s = () => String(getCell(props.row, 'memo_name') ?? '')
+  const memoNum = () => Number(s())
+  const isId = () => Number.isFinite(memoNum()) && String(memoNum()) === s().trim()
+  return (
+    <Show when={isId()} fallback={<span>{s()}</span>}>
+      <A href={`/budget-visualizer/memos/${memoNum()}/summary`} data-testid="memo-link">
+        {s()}
       </A>
-    )
-  }
-
-  if (p === 'transaction_date' || p === 'created_at') {
-    return <span>{formatDate(String(v ?? ''))}</span>
-  }
-
-  if (p === 'reviewed_at') {
-    return <span>{v ? formatDate(String(v)) : '—'}</span>
-  }
-
-  if (p === 'memo_name') {
-    const s = String(v ?? '')
-    const memoNum = Number(s)
-    const isId = Number.isFinite(memoNum) && String(memoNum) === s.trim()
-    if (isId) {
-      return (
-        <A href={`/budget-visualizer/memos/${memoNum}/summary`} data-testid="memo-link">
-          {s}
-        </A>
-      )
-    }
-    return <span>{s}</span>
-  }
-
-  return <span>{formatCell(v)}</span>
+    </Show>
+  )
 }
 
 function formatCell(val: unknown): string {

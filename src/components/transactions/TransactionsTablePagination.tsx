@@ -10,7 +10,7 @@ import {
 import type { PendingTransactionStatus } from '@types'
 
 export default function TransactionsTablePagination(props: { status?: PendingTransactionStatus }) {
-  const countQuery = useTransactionsCount(props.status !== undefined ? () => props.status : undefined)
+  const countQuery = useTransactionsCount(() => props.status)
 
   onMount(() => {
     void countQuery.refetch()

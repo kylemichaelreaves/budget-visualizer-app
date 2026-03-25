@@ -1,5 +1,5 @@
 import type { JSX } from 'solid-js'
-import { batch, createEffect, createMemo } from 'solid-js'
+import { batch, createEffect, createMemo, untrack } from 'solid-js'
 import { createStore, reconcile } from 'solid-js/store'
 import { useQueryClient } from '@tanstack/solid-query'
 import type { BudgetCategoryState, PendingTransaction, SplitBudgetCategory, Transaction } from '@types'
@@ -40,8 +40,10 @@ export default function TransactionEditForm(props: {
   const queryClient = useQueryClient()
   const tid = () => props.dataTestId ?? 'transaction-edit-form'
 
-  const [tx, setTx] = createStore<Transaction>({ ...props.transaction })
-  const [budgetState, setBudgetState] = createStore<BudgetCategoryState>(initBudgetState(props.transaction))
+  const [tx, setTx] = createStore<Transaction>(untrack(() => ({ ...props.transaction })))
+  const [budgetState, setBudgetState] = createStore<BudgetCategoryState>(
+    untrack(() => initBudgetState(props.transaction)),
+  )
 
   createEffect(() => {
     const p = props.transaction
@@ -61,13 +63,12 @@ export default function TransactionEditForm(props: {
   const pendMut = mutatePendingTransaction()
 
   const saveTransaction = () => {
-    const state = budgetState
-    const budgetCategory = getBudgetCategory(state)
+    const budgetCategory = getBudgetCategory(budgetState)
 
     const transactionData: Transaction = {
       ...tx,
       budget_category: budgetCategory,
-      is_split: state.mode === 'split',
+      is_split: budgetState.mode === 'split',
     }
 
     if (props.isPending && props.pendingTransactionId != null) {

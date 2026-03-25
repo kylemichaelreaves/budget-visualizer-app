@@ -1,5 +1,5 @@
 import type { JSX } from 'solid-js'
-import { For, Show, createEffect } from 'solid-js'
+import { For, Show, createRenderEffect } from 'solid-js'
 import { createStore } from 'solid-js/store'
 import useTimeframeTypeAndValue from '@api/hooks/timeUnits/useTimeframeTypeAndValue'
 import mutateMemo from '@api/hooks/memos/mutateMemo'
@@ -32,16 +32,16 @@ export default function MemoEditForm(props: {
 }): JSX.Element {
   const tid = () => props.dataTestId ?? 'memo-edit-form'
   const [form, setForm] = createStore<FormState>({
-    id: props.memo.id,
-    name: props.memo.name,
-    recurring: props.memo.recurring,
-    necessary: props.memo.necessary,
-    ambiguous: props.memo.ambiguous,
-    frequency: props.memo.frequency ?? '',
-    budget_category: props.memo.budget_category ?? null,
+    id: 0,
+    name: '',
+    recurring: false,
+    necessary: false,
+    ambiguous: false,
+    frequency: '',
+    budget_category: null,
   })
 
-  createEffect(() => {
+  createRenderEffect(() => {
     const m = props.memo
     setForm({
       id: m.id,

@@ -54,6 +54,7 @@ export default function BudgetCategoryPieChart(props: {
     const arc = d3.arc<d3.PieArcDatum<BudgetCategorySummary>>().innerRadius(0).outerRadius(radius)
 
     const arcG = g.selectAll('.arc').data(pie(parents)).enter().append('g').attr('class', 'arc')
+    const onSliceClick = props.onSliceClick
 
     arcG
       .append('path')
@@ -61,9 +62,9 @@ export default function BudgetCategoryPieChart(props: {
       .attr('fill', (d) => colorMap.get(String(d.data.category_id)) || '#999')
       .attr('stroke', '#fff')
       .attr('stroke-width', 2)
-      .style('cursor', props.onSliceClick ? 'pointer' : 'default')
+      .style('cursor', onSliceClick ? 'pointer' : 'default')
       .on('click', (_event, d) => {
-        props.onSliceClick?.(d.data)
+        onSliceClick?.(d.data)
       })
 
     arcG

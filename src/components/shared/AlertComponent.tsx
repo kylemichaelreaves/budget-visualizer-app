@@ -69,7 +69,7 @@ export default function AlertComponent(props: {
               color: '#95a5a6',
               cursor: 'pointer',
               'font-size': '18px',
-              'line-height': 1,
+              'line-height': '1',
               padding: '4px',
             }}
           >

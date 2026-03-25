@@ -34,7 +34,7 @@ export default function DailyIntervalLineChart(props: {
     return DateTime.now().minus({ months: 1 }).endOf('month').toISODate()
   })
 
-  const chartQuery = useDailyTotalAmountDebit(intervalValue, selectedValue)
+  const chartQuery = useDailyTotalAmountDebit(intervalValue, () => selectedValue())
 
   const shouldShowChart = createMemo(
     () =>

@@ -42,8 +42,6 @@ export default function TransactionCreateForm(props: { onClose?: () => void }): 
     })
   }
 
-  const f = form()
-
   return (
     <div data-testid="transaction-form">
       {createMut.isError && createMut.error ? (
@@ -69,7 +67,7 @@ export default function TransactionCreateForm(props: { onClose?: () => void }): 
         Date
         <input
           type="date"
-          value={f.date}
+          value={form().date}
           data-testid="transaction-input-date"
           onInput={(e) => setForm({ ...form(), date: e.currentTarget.value })}
           style={{ display: 'block', width: '100%', 'margin-top': '4px', padding: '8px' }}
@@ -78,7 +76,7 @@ export default function TransactionCreateForm(props: { onClose?: () => void }): 
       <label style={{ display: 'block', margin: '10px 0', color: '#bdc3c7' }}>
         Description
         <input
-          value={f.description}
+          value={form().description}
           data-testid="transaction-input-description"
           onInput={(e) => setForm({ ...form(), description: e.currentTarget.value })}
           style={{ display: 'block', width: '100%', 'margin-top': '4px', padding: '8px' }}
@@ -87,7 +85,7 @@ export default function TransactionCreateForm(props: { onClose?: () => void }): 
       <label style={{ display: 'block', margin: '10px 0', color: '#bdc3c7' }}>
         Memo
         <input
-          value={f.memo}
+          value={form().memo}
           data-testid="transaction-input-memo"
           onInput={(e) => setForm({ ...form(), memo: e.currentTarget.value })}
           style={{ display: 'block', width: '100%', 'margin-top': '4px', padding: '8px' }}
@@ -96,7 +94,7 @@ export default function TransactionCreateForm(props: { onClose?: () => void }): 
       <label style={{ display: 'block', margin: '10px 0', color: '#bdc3c7' }}>
         Amount Debit
         <input
-          value={f.amount_debit}
+          value={form().amount_debit}
           disabled={!isDebit()}
           data-testid="transaction-input-amount_debit"
           onInput={(e) => setForm({ ...form(), amount_debit: e.currentTarget.value })}
@@ -106,7 +104,7 @@ export default function TransactionCreateForm(props: { onClose?: () => void }): 
       <label style={{ display: 'block', margin: '10px 0', color: '#bdc3c7' }}>
         Amount Credit
         <input
-          value={f.amount_credit}
+          value={form().amount_credit}
           disabled={isDebit()}
           data-testid="transaction-input-amount_credit"
           onInput={(e) => setForm({ ...form(), amount_credit: e.currentTarget.value })}

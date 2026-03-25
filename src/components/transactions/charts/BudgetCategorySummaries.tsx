@@ -13,7 +13,10 @@ export default function BudgetCategorySummaries(props: {
   date: () => string
   dataTestId?: string
 }): JSX.Element | null {
-  const summaryQuery = useBudgetCategorySummary(() => props.timeFrame, props.date)
+  const summaryQuery = useBudgetCategorySummary(
+    () => props.timeFrame,
+    () => props.date(),
+  )
   const [selectedCategory, setSelectedCategory] = createSignal('')
 
   const rows = () => (summaryQuery.data ?? []) as BudgetCategorySummary[]
@@ -30,7 +33,7 @@ export default function BudgetCategorySummaries(props: {
   const historicalQuery = useHistoricalSummaryForBudgetCategory(
     selectedCategory,
     () => props.timeFrame,
-    props.date,
+    () => props.date(),
   )
 
   const id = () => props.dataTestId ?? 'budget-category-summaries'

@@ -37,7 +37,11 @@ export default function BudgetCategoriesTreeSelect(props: {
   const clearable = () => props.clearable !== false
   const [filter, setFilter] = createSignal('')
 
-  const q = useBudgetCategories(props.timeframe, props.date, false)
+  const q = useBudgetCategories(
+    () => props.timeframe?.(),
+    () => props.date?.(),
+    false,
+  )
 
   const treeOptions = createMemo(() => {
     const raw = q.data as unknown
