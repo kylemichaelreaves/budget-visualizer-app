@@ -1,7 +1,11 @@
 import { authenticatedTest as test, expect } from './fixtures/fixtures'
 
 test.describe('Transaction create', () => {
-  test('opens create dialog from header button', async ({ transactionsPage, sidebar, transactionCreateDialog }) => {
+  test('opens create dialog from header button', async ({
+    transactionsPage,
+    sidebar,
+    transactionCreateDialog,
+  }) => {
     await transactionsPage.goto()
     await expect(transactionsPage.filtersSection).toBeVisible({ timeout: 30_000 })
     await sidebar.addTransactionButton.click()

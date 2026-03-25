@@ -33,11 +33,8 @@ test.describe('Login flow (unauthenticated)', () => {
 })
 
 authenticatedTest.describe('Auth guard', () => {
-  authenticatedTest(
-    'authenticated user can access budget visualizer',
-    async ({ transactionsPage }) => {
-      await transactionsPage.goto()
-      await expect(transactionsPage.filtersSection).toBeVisible({ timeout: 30_000 })
-    },
-  )
+  authenticatedTest('authenticated user can access budget visualizer', async ({ transactionsPage }) => {
+    await transactionsPage.goto()
+    await expect(transactionsPage.filtersSection).toBeVisible({ timeout: 30_000 })
+  })
 })

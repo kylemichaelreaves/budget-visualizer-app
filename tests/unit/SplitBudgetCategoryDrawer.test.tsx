@@ -12,9 +12,8 @@ vi.mock('@components/transactions/selects/BudgetCategoriesTreeSelect', () => ({
   ),
 }))
 
-const { default: SplitBudgetCategoryDrawer } = await import(
-  '@components/transactions/SplitBudgetCategoryDrawer'
-)
+const { default: SplitBudgetCategoryDrawer } =
+  await import('@components/transactions/SplitBudgetCategoryDrawer')
 
 describe('SplitBudgetCategoryDrawer', () => {
   const defaultProps = {

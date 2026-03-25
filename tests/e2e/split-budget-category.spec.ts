@@ -20,10 +20,7 @@ test.describe('Split Budget Category', () => {
     await expect(splitBudgetCategoryDrawer.heading).toBeVisible()
   })
 
-  test('drawer shows Save and Cancel buttons', async ({
-    transactionEditPage,
-    splitBudgetCategoryDrawer,
-  }) => {
+  test('drawer shows Save and Cancel buttons', async ({ transactionEditPage, splitBudgetCategoryDrawer }) => {
     await transactionEditPage.goto(1)
     await expect(transactionEditPage.form).toBeVisible({ timeout: 10_000 })
     await transactionEditPage.page.getByLabel(/split into multiple categories/i).click()
@@ -51,10 +48,7 @@ test.describe('Split Budget Category', () => {
     expect(newCount).toBeGreaterThan(initialCount)
   })
 
-  test('cancel button closes the drawer', async ({
-    transactionEditPage,
-    splitBudgetCategoryDrawer,
-  }) => {
+  test('cancel button closes the drawer', async ({ transactionEditPage, splitBudgetCategoryDrawer }) => {
     await transactionEditPage.goto(1)
     await expect(transactionEditPage.form).toBeVisible({ timeout: 10_000 })
     await transactionEditPage.page.getByLabel(/split into multiple categories/i).click()

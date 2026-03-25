@@ -12,9 +12,7 @@ vi.mock('@api/hooks/budgetCategories/useBudgetCategories', () => ({
   useBudgetCategories: () => ({ data: undefined, isLoading: false }),
 }))
 
-const { default: BudgetCategoryFormField } = await import(
-  '@components/transactions/BudgetCategoryFormField'
-)
+const { default: BudgetCategoryFormField } = await import('@components/transactions/BudgetCategoryFormField')
 
 describe('BudgetCategoryFormField', () => {
   const defaultProps = {
@@ -35,12 +33,7 @@ describe('BudgetCategoryFormField', () => {
   })
 
   it('checkbox is checked in split mode', () => {
-    render(() => (
-      <BudgetCategoryFormField
-        {...defaultProps}
-        modelValue={{ mode: 'split', splits: [] }}
-      />
-    ))
+    render(() => <BudgetCategoryFormField {...defaultProps} modelValue={{ mode: 'split', splits: [] }} />)
     const checkbox = screen.getByLabelText(/split into multiple categories/i) as HTMLInputElement
     expect(checkbox.checked).toBe(true)
   })
@@ -49,9 +42,7 @@ describe('BudgetCategoryFormField', () => {
     const onChange = vi.fn()
     render(() => <BudgetCategoryFormField {...defaultProps} onChange={onChange} />)
     fireEvent.click(screen.getByLabelText(/split into multiple categories/i))
-    expect(onChange).toHaveBeenCalledWith(
-      expect.objectContaining({ mode: 'split' }),
-    )
+    expect(onChange).toHaveBeenCalledWith(expect.objectContaining({ mode: 'split' }))
   })
 
   it('calls onChange with single mode when checkbox is unchecked', () => {
@@ -119,7 +110,10 @@ describe('BudgetCategoryFormField', () => {
       />
     ))
     fireEvent.click(screen.getByLabelText(/split into multiple categories/i))
-    const call = onChange.mock.calls[0]![0] as { mode: string; splits: { budget_category_id: string; amount_debit: number }[] }
+    const call = onChange.mock.calls[0]![0] as {
+      mode: string
+      splits: { budget_category_id: string; amount_debit: number }[]
+    }
     expect(call.mode).toBe('split')
     expect(call.splits).toHaveLength(1)
     expect(call.splits[0]!.budget_category_id).toBe('Food - Groceries')

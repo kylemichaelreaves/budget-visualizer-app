@@ -11,8 +11,7 @@ const API_GATEWAY_URL =
   process.env.VITE_APIGATEWAY_URL ?? 'https://a4j9exec83.execute-api.us-east-1.amazonaws.com/Prod'
 
 /** In dev, proxy /api/v1 to API Gateway by default. Set VITE_PROXY_LOCAL_LAMBDA=1 to use 127.0.0.1:3000 instead. */
-const apiV1Target =
-  process.env.VITE_PROXY_LOCAL_LAMBDA === '1' ? LAMBDA_DEV_URL : API_GATEWAY_URL
+const apiV1Target = process.env.VITE_PROXY_LOCAL_LAMBDA === '1' ? LAMBDA_DEV_URL : API_GATEWAY_URL
 
 export default defineConfig({
   plugins: [solid()],
