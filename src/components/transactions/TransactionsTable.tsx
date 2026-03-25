@@ -196,11 +196,13 @@ export default function TransactionsTable() {
           >
             <thead>
               <tr style={{ 'text-align': 'left', 'border-bottom': '1px solid #555' }}>
-                {transactionColumns.map((col) => (
-                  <th style={{ padding: '8px 6px' }} data-testid={`column-${col.prop}`}>
-                    {col.label}
-                  </th>
-                ))}
+                <For each={transactionColumns}>
+                  {(col) => (
+                    <th style={{ padding: '8px 6px' }} data-testid={`column-${col.prop}`}>
+                      {col.label}
+                    </th>
+                  )}
+                </For>
               </tr>
             </thead>
             <tbody>

@@ -96,8 +96,8 @@ export default function PendingTransactionsTable(): JSX.Element {
     )
 
   function parseRow(row: PendingTransaction): Transaction {
-    let transactionData: Transaction | null = null
     const raw = row.transaction_data
+    let transactionData: Transaction | null
     if (typeof raw === 'string') {
       try {
         transactionData = JSON.parse(raw) as Transaction

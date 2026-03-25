@@ -1,6 +1,6 @@
 import type { JSX } from 'solid-js'
 import { A, useLocation, useNavigate } from '@solidjs/router'
-import { createSignal, onMount } from 'solid-js'
+import { createSignal, For, onMount } from 'solid-js'
 import TransactionCreateForm from '@components/transactions/TransactionCreateForm'
 import { authState } from '@stores/authStore'
 
@@ -76,20 +76,22 @@ export default function BudgetVisualizer(props: { children?: JSX.Element }) {
           }}
           aria-label="Budget visualizer sections"
         >
-          {menuItems.map((item) => (
-            <A
-              href={item.path}
-              style={{
-                padding: '10px 12px',
-                'border-radius': '6px',
-                'text-decoration': 'none',
-                color: loc.pathname === item.path ? '#1a1a1a' : '#ecf0f1',
-                background: loc.pathname === item.path ? '#5dade2' : 'transparent',
-              }}
-            >
-              {item.title}
-            </A>
-          ))}
+          <For each={menuItems}>
+            {(item) => (
+              <A
+                href={item.path}
+                style={{
+                  padding: '10px 12px',
+                  'border-radius': '6px',
+                  'text-decoration': 'none',
+                  color: loc.pathname === item.path ? '#1a1a1a' : '#ecf0f1',
+                  background: loc.pathname === item.path ? '#5dade2' : 'transparent',
+                }}
+              >
+                {item.title}
+              </A>
+            )}
+          </For>
         </nav>
         <main style={{ flex: '1', 'min-width': 0, padding: 0 }}>{props.children}</main>
       </div>
