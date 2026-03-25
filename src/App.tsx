@@ -1,6 +1,7 @@
 import { Navigate, Route, Router } from '@solidjs/router'
 import Login from '@components/auth/Login'
 import BudgetVisualizer from '@components/layout/BudgetVisualizer'
+import NavBar from '@components/layout/NavBar'
 import LoanCalculator from '@components/loan/LoanCalculator'
 import MemoEditPage from '@components/memos/MemoEditPage'
 import MemoSummaryPage from '@components/memos/MemoSummaryPage'
@@ -11,9 +12,20 @@ import TransactionEditPage from '@components/transactions/TransactionEditPage'
 import TransactionsTable from '@components/transactions/TransactionsTable'
 import TransactionsWithMonthSummary from '@components/transactions/TransactionsWithMonthSummary'
 import TransactionsWithWeekSummary from '@components/transactions/TransactionsWithWeekSummary'
+import type { JSX } from 'solid-js'
+
+function AppLayout(props: { children?: JSX.Element }) {
+  return (
+    <>
+      <NavBar />
+      {props.children}
+    </>
+  )
+}
+
 export default function App() {
   return (
-    <Router>
+    <Router root={AppLayout}>
       <Route path="/login" component={Login} />
       <Route path="/" component={() => <Navigate href="/budget-visualizer/transactions" />} />
       <Route path="/budget-visualizer" component={BudgetVisualizer}>

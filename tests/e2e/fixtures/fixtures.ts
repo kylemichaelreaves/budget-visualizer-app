@@ -12,10 +12,12 @@ import { MemoEditPage } from '../pages/MemoEditPage'
 import { MemoSummaryPage } from '../pages/MemoSummaryPage'
 import { BudgetCategoriesPage } from '../pages/BudgetCategoriesPage'
 import { LoanCalculatorPage } from '../pages/LoanCalculatorPage'
+import { NavBar } from '../pages/NavBar'
 import { SplitBudgetCategoryDrawer } from '../pages/SplitBudgetCategoryDrawer'
 
 type Fixtures = {
   loginPage: LoginPage
+  navbar: NavBar
   sidebar: SidebarNav
   transactionsPage: TransactionsPage
   transactionCreateDialog: TransactionCreateDialog
@@ -36,6 +38,9 @@ type Fixtures = {
 export const test = base.extend<Fixtures>({
   loginPage: async ({ page }, use) => {
     await use(new LoginPage(page))
+  },
+  navbar: async ({ page }, use) => {
+    await use(new NavBar(page))
   },
   sidebar: async ({ page }, use) => {
     await use(new SidebarNav(page))
@@ -90,6 +95,9 @@ export const authenticatedTest = base.extend<Fixtures>({
   },
   loginPage: async ({ page }, use) => {
     await use(new LoginPage(page))
+  },
+  navbar: async ({ page }, use) => {
+    await use(new NavBar(page))
   },
   sidebar: async ({ page }, use) => {
     await use(new SidebarNav(page))
