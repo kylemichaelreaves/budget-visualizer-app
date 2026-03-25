@@ -1,0 +1,41 @@
+{
+  "compilerOptions": {
+    "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
+    "target": "ES2023",
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "lib": ["ES2023", "DOM", "DOM.Iterable"],
+    "types": ["vite/client"],
+    "skipLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@components/*": ["src/components/*"],
+      "@api/*": ["src/api/*"],
+      "@types": ["src/types/index.ts"],
+      "@stores/*": ["src/stores/*"],
+      "@charts/*": ["src/charts/*"],
+      "@composables/*": ["src/composables/*"],
+      "@constants": ["src/constants.ts"],
+      "@utils/*": ["src/utils/*"],
+      "@router": ["src/router/index.tsx"]
+    },
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "moduleDetection": "force",
+    "noEmit": true,
+    "jsx": "preserve",
+    "jsxImportSource": "solid-js",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "erasableSyntaxOnly": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedSideEffectImports": true
+  },
+  "include": ["src", "constants.node.ts"]
+}
