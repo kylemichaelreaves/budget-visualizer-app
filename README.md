@@ -1,3 +1,7 @@
+# budget-visualizer-app
+
+A SolidJS client which hits my resourceQuerier.
+
 ## Usage
 
 This project uses **[Bun](https://bun.sh)** to install dependencies, run the dev server, and build locally.
