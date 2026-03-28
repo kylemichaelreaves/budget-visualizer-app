@@ -1,8 +1,17 @@
 import type { JSX } from 'solid-js'
-import { createEffect, createSignal, For, Show } from 'solid-js'
+import { createEffect, createSignal, For } from 'solid-js'
 import type { SplitBudgetCategory, Timeframe } from '@types'
 import BudgetCategoriesTreeSelect from '@components/transactions/selects/BudgetCategoriesTreeSelect'
 import { generateId } from '@components/transactions/helpers/generateId'
+import { Button } from '@components/ui/button'
+import { Input } from '@components/ui/input'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@components/ui/dialog'
 
 export default function SplitBudgetCategoryDrawer(props: {
   open: boolean
@@ -52,47 +61,26 @@ export default function SplitBudgetCategoryDrawer(props: {
   }
 
   return (
-    <Show when={props.open}>
-      <div
-        style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0,0,0,0.5)',
-          'z-index': 100,
-          display: 'flex',
-          'justify-content': 'flex-end',
-        }}
-        onClick={(e) => e.target === e.currentTarget && props.onCancel()}
+    <Dialog open={props.open} onOpenChange={(open) => !open && props.onCancel()}>
+      <DialogContent
+        class="max-w-[520px] bg-card text-foreground"
+        aria-label="Split Budget Category Drawer"
       >
-        <div
-          role="dialog"
-          aria-label="Split Budget Category Drawer"
-          style={{
-            width: 'min(100%, 520px)',
-            background: '#2c2c2c',
-            color: '#ecf0f1',
-            padding: '20px',
-            'overflow-y': 'auto',
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <h3 style={{ 'margin-top': 0 }}>Split transaction</h3>
-          <p style={{ color: '#bdc3c7', 'font-size': '0.9rem' }}>
+        <DialogHeader>
+          <DialogTitle>Split transaction</DialogTitle>
+          <p class="text-sm text-muted-foreground">
             Transaction: ${props.transactionAmount.toFixed(2)} · Split total: ${total().toFixed(2)}
             {diff() > 0.01 ? (
-              <span style={{ color: '#e74c3c', 'margin-left': '8px' }}>Difference: ${diff().toFixed(2)}</span>
+              <span class="ml-2 text-destructive">Difference: ${diff().toFixed(2)}</span>
             ) : null}
           </p>
+        </DialogHeader>
+
+        <div class="space-y-3">
           <For each={local()}>
             {(split, index) => (
               <div
-                style={{
-                  display: 'grid',
-                  'grid-template-columns': '1fr 120px 40px',
-                  gap: '8px',
-                  'margin-bottom': '12px',
-                  'align-items': 'end',
-                }}
+                class="grid grid-cols-[1fr_120px_40px] gap-2 items-end"
                 data-testid="split-row"
               >
                 <BudgetCategoriesTreeSelect
@@ -103,38 +91,41 @@ export default function SplitBudgetCategoryDrawer(props: {
                   date={props.date}
                   filterable
                 />
-                <input
+                <Input
                   type="number"
                   step="0.01"
                   min={0}
                   value={split.amount_debit}
                   data-testid={`split-amount-${index()}`}
                   onInput={(e) => updateAmount(index(), Number(e.currentTarget.value) || 0)}
-                  style={{ padding: '8px' }}
                 />
-                <button
+                <Button
+                  variant="destructive"
+                  size="icon"
                   type="button"
                   onClick={() => removeSplit(index())}
                   data-testid={`split-remove-${index()}`}
                 >
                   ×
-                </button>
+                </Button>
               </div>
             )}
           </For>
-          <button type="button" onClick={addSplit} style={{ 'margin-bottom': '16px' }}>
+
+          <Button variant="outline" type="button" onClick={addSplit} class="mb-4">
             Add split
-          </button>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button type="button" onClick={() => props.onCancel()}>
-              Cancel
-            </button>
-            <button type="button" disabled={!isValid()} onClick={() => props.onSubmit(local())}>
-              Save splits
-            </button>
-          </div>
+          </Button>
         </div>
-      </div>
-    </Show>
+
+        <DialogFooter>
+          <Button variant="outline" type="button" onClick={() => props.onCancel()}>
+            Cancel
+          </Button>
+          <Button type="button" disabled={!isValid()} onClick={() => props.onSubmit(local())}>
+            Save splits
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

@@ -1,6 +1,8 @@
 import type { JSX } from 'solid-js'
 import { Show, createMemo } from 'solid-js'
 import type { LoanFormType } from '@types'
+import { Input } from '@components/ui/input'
+import { Label } from '@components/ui/label'
 
 export type LoanFieldDef = {
   label: string
@@ -25,15 +27,15 @@ export default function LoanFormField(props: {
   })
 
   const wrap = (inner: JSX.Element) => (
-    <label style={{ display: 'flex', 'flex-direction': 'column', gap: '6px', margin: '10px 0' }}>
-      <span style={{ color: '#bdc3c7', 'font-size': '0.9rem' }}>{props.field.label}</span>
+    <div class="flex flex-col gap-1.5 my-2.5">
+      <Label class="text-muted-foreground text-sm">{props.field.label}</Label>
       {props.field.tooltip ? (
-        <span title={props.field.tooltip} style={{ color: '#7f8c8d', 'font-size': '0.75rem' }}>
+        <span title={props.field.tooltip} class="text-xs text-muted-foreground/70">
           {props.field.tooltip}
         </span>
       ) : null}
       {inner}
-    </label>
+    </div>
   )
 
   const iso = () => {
@@ -46,7 +48,7 @@ export default function LoanFormField(props: {
     <Show
       when={props.field.type === 'date'}
       fallback={wrap(
-        <input
+        <Input
           type="number"
           placeholder={props.field.placeholder}
           value={Number(value()) || ''}
@@ -56,18 +58,11 @@ export default function LoanFormField(props: {
             const next = { ...props.model, [props.field.prop]: Number.isFinite(n) ? n : 0 }
             props.onChange(next as LoanFormType)
           }}
-          style={{
-            padding: '8px',
-            'border-radius': '4px',
-            border: '1px solid #555',
-            background: '#2c2c2c',
-            color: '#ecf0f1',
-          }}
         />,
       )}
     >
       {wrap(
-        <input
+        <Input
           type="date"
           placeholder={props.field.placeholder}
           value={iso()}
@@ -75,13 +70,6 @@ export default function LoanFormField(props: {
             const v = e.currentTarget.value
             const next = { ...props.model, [props.field.prop]: v ? new Date(v + 'T12:00:00') : new Date() }
             props.onChange(next as LoanFormType)
-          }}
-          style={{
-            padding: '8px',
-            'border-radius': '4px',
-            border: '1px solid #555',
-            background: '#2c2c2c',
-            color: '#ecf0f1',
           }}
         />,
       )}

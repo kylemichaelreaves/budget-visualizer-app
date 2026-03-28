@@ -1,6 +1,5 @@
 import type { JSX } from 'solid-js'
 import { createMemo, createSignal, For, onCleanup, onMount, Show } from 'solid-js'
-import './shared-ui.css'
 
 export default function SelectComponent(props: {
   options: { value: string; label: string }[]
@@ -43,10 +42,10 @@ export default function SelectComponent(props: {
   })
 
   return (
-    <div class="bv-select-combobox" ref={(el) => (root = el)} data-testid={props.dataTestId || undefined}>
-      <div style={{ display: 'flex', gap: '6px', 'align-items': 'center' }}>
+    <div class="relative w-full" ref={(el) => (root = el)} data-testid={props.dataTestId || undefined}>
+      <div class="flex items-center gap-1.5">
         <input
-          class="bv-select-input"
+          class="w-full rounded-md border border-border bg-input px-2.5 py-2 text-foreground placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-55"
           type="text"
           placeholder={props.placeholder}
           disabled={props.disabled}
@@ -70,7 +69,7 @@ export default function SelectComponent(props: {
         <Show when={props.selectedValue && !props.disabled}>
           <button
             type="button"
-            class="bv-autocomplete-clear"
+            class="cursor-pointer border-none bg-transparent px-2 py-1 text-base leading-none text-muted-foreground"
             aria-label="Clear"
             onClick={(ev) => {
               ev.stopPropagation()
@@ -85,16 +84,19 @@ export default function SelectComponent(props: {
         </Show>
       </div>
       <Show when={open() && !props.disabled}>
-        <div class="bv-select-dropdown" role="listbox">
+        <div
+          class="absolute left-0 right-0 top-full z-40 mt-1 max-h-[220px] overflow-y-auto rounded-md border border-border bg-popover shadow-lg"
+          role="listbox"
+        >
           <Show when={props.loading}>
-            <div class="bv-autocomplete-loading">{props.loadingText ?? 'Loading...'}</div>
+            <div class="px-3 py-2.5 text-sm text-muted-foreground">{props.loadingText ?? 'Loading...'}</div>
           </Show>
           <Show when={!props.loading}>
             <For each={filtered()}>
               {(option) => (
                 <div
-                  class="bv-select-option"
-                  classList={{ 'bv-select-option-selected': option.value === props.selectedValue }}
+                  class="cursor-pointer px-3 py-2 text-sm text-popover-foreground hover:bg-accent"
+                  classList={{ 'bg-accent/50': option.value === props.selectedValue }}
                   role="option"
                   aria-selected={option.value === props.selectedValue}
                   data-testid={`option-${option.value}`}

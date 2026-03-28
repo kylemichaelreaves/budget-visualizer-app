@@ -5,6 +5,9 @@ import { extractBudgetCategoriesData } from '@api/helpers/extractBudgetCategorie
 import { convertToTree } from '@api/helpers/convertToTree'
 import { useBudgetCategories } from '@api/hooks/budgetCategories/useBudgetCategories'
 import AlertComponent from '@components/shared/AlertComponent'
+import { Button } from '@components/ui/button'
+import { Input } from '@components/ui/input'
+import { Card, CardContent } from '@components/ui/card'
 import type { CategoryNode } from '@types'
 
 function filterTree(nodes: CategoryNode[], q: string): CategoryNode[] {
@@ -32,36 +35,22 @@ function TreeNode(props: { node: CategoryNode; depth: number }): JSX.Element {
 
   return (
     <li
-      style={{
-        margin: '6px 0',
-        'padding-left': `${pad()}px`,
-        'list-style': 'none',
-        'border-left': props.depth > 0 ? '1px solid #444' : 'none',
-      }}
+      class="my-1.5 list-none"
+      style={{ 'padding-left': `${pad()}px` }}
+      classList={{ 'border-l border-border': props.depth > 0 }}
       data-testid={`budget-category-node-${props.depth}`}
     >
-      <div
-        style={{
-          display: 'flex',
-          'flex-wrap': 'wrap',
-          gap: '10px',
-          'align-items': 'baseline',
-        }}
-      >
-        <span style={{ color: '#ecf0f1', 'font-weight': 600 }}>{props.node.label}</span>
+      <div class="flex flex-wrap gap-2.5 items-baseline">
+        <span class="text-foreground font-semibold">{props.node.label}</span>
         <code
-          style={{
-            'font-size': '0.8rem',
-            color: '#95a5a6',
-            'word-break': 'break-all',
-          }}
+          class="text-xs text-muted-foreground break-all"
           data-testid="budget-category-path"
         >
           {props.node.value}
         </code>
       </div>
       <Show when={children().length > 0}>
-        <ul style={{ margin: '8px 0 0', padding: 0 }}>
+        <ul class="mt-2 m-0 p-0">
           <For each={children()}>{(c) => <TreeNode node={c} depth={props.depth + 1} />}</For>
         </ul>
       </Show>
@@ -88,10 +77,10 @@ export default function BudgetCategoriesPage(): JSX.Element {
   const visibleTree = createMemo(() => filterTree(tree(), filter()))
 
   return (
-    <div style={{ color: '#ecf0f1', 'max-width': '960px' }} data-testid="budget-categories-page">
-      <header style={{ 'margin-bottom': '16px' }}>
-        <h1 style={{ margin: '0 0 8px', 'font-size': '1.35rem' }}>Budget categories</h1>
-        <p style={{ margin: 0, color: '#bdc3c7', 'font-size': '0.9rem' }}>
+    <div class="text-foreground max-w-[960px]" data-testid="budget-categories-page">
+      <header class="mb-4">
+        <h1 class="mb-2 text-xl">Budget categories</h1>
+        <p class="m-0 text-muted-foreground text-sm">
           Hierarchy from the API (read-only). Use this path string when assigning categories on transactions
           and memos.
         </p>
@@ -108,69 +97,48 @@ export default function BudgetCategoriesPage(): JSX.Element {
         )}
       </Show>
 
-      <div
-        style={{
-          display: 'flex',
-          'flex-wrap': 'wrap',
-          gap: '12px',
-          'align-items': 'center',
-          margin: '12px 0',
-        }}
-      >
-        <input
+      <div class="flex flex-wrap gap-3 items-center my-3">
+        <Input
           type="search"
-          placeholder="Filter by name or path…"
+          placeholder="Filter by name or path..."
           value={filter()}
           onInput={(e) => setFilter(e.currentTarget.value)}
           disabled={q.isLoading || q.isFetching}
           aria-label="Filter categories"
           data-testid="budget-categories-filter"
-          style={{
-            flex: '1 1 220px',
-            'min-width': '180px',
-            padding: '10px 12px',
-            'border-radius': '6px',
-            border: '1px solid #555',
-            background: '#1e1e1e',
-            color: '#ecf0f1',
-          }}
+          class="flex-[1_1_220px] min-w-[180px]"
         />
-        <button
+        <Button
+          variant="outline"
           type="button"
           data-testid="budget-categories-refresh"
           disabled={q.isFetching}
           onClick={() => void queryClient.invalidateQueries({ queryKey: ['budgetCategories'] })}
         >
-          {q.isFetching ? 'Refreshing…' : 'Refresh'}
-        </button>
+          {q.isFetching ? 'Refreshing...' : 'Refresh'}
+        </Button>
       </div>
 
       <Show when={q.isLoading}>
-        <p style={{ color: '#95a5a6' }} data-testid="budget-categories-loading">
-          Loading categories…
+        <p class="text-muted-foreground" data-testid="budget-categories-loading">
+          Loading categories...
         </p>
       </Show>
 
       <Show when={!q.isLoading && visibleTree().length === 0}>
-        <p style={{ color: '#95a5a6' }} data-testid="budget-categories-empty">
+        <p class="text-muted-foreground" data-testid="budget-categories-empty">
           {tree().length === 0 ? 'No categories returned from the API.' : 'No categories match your filter.'}
         </p>
       </Show>
 
       <Show when={!q.isLoading && visibleTree().length > 0}>
-        <div
-          style={{
-            padding: '16px',
-            background: '#2a2a2a',
-            'border-radius': '8px',
-            border: '1px solid #444',
-          }}
-          data-testid="budget-categories-tree"
-        >
-          <ul style={{ margin: 0, padding: 0 }}>
-            <For each={visibleTree()}>{(n) => <TreeNode node={n} depth={0} />}</For>
-          </ul>
-        </div>
+        <Card data-testid="budget-categories-tree">
+          <CardContent class="pt-4">
+            <ul class="m-0 p-0">
+              <For each={visibleTree()}>{(n) => <TreeNode node={n} depth={0} />}</For>
+            </ul>
+          </CardContent>
+        </Card>
       </Show>
     </div>
   )

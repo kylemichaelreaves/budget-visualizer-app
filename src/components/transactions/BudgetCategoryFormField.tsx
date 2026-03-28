@@ -4,6 +4,8 @@ import useTimeframeTypeAndValue from '@api/hooks/timeUnits/useTimeframeTypeAndVa
 import type { BudgetCategoryState, SplitBudgetCategory } from '@types'
 import BudgetCategoriesTreeSelect from '@components/transactions/selects/BudgetCategoriesTreeSelect'
 import SplitBudgetCategoryDrawer from '@components/transactions/SplitBudgetCategoryDrawer'
+import { Button } from '@components/ui/button'
+import { Label } from '@components/ui/label'
 import { generateId } from '@components/transactions/helpers/generateId'
 
 export default function BudgetCategoryFormField(props: {
@@ -61,17 +63,15 @@ export default function BudgetCategoryFormField(props: {
         />
       </Show>
       <Show when={isSplit()}>
-        <div style={{ margin: '8px 0', color: '#bdc3c7' }}>
+        <div class="my-2 text-muted-foreground">
           {splits().length} categor{splits().length === 1 ? 'y' : 'ies'}
           {validationError() ? ` · ${validationError()}` : ''}
         </div>
-        <button type="button" data-testid={`${id()}-edit-splits-button`} onClick={() => setDrawerOpen(true)}>
+        <Button variant="outline" size="sm" type="button" data-testid={`${id()}-edit-splits-button`} onClick={() => setDrawerOpen(true)}>
           {splits().length ? 'Edit splits' : 'Configure splits'}
-        </button>
+        </Button>
       </Show>
-      <label
-        style={{ display: 'flex', 'align-items': 'center', gap: '8px', margin: '12px 0', color: '#ecf0f1' }}
-      >
+      <Label class="flex items-center gap-2 my-3 text-foreground">
         <input
           type="checkbox"
           checked={isSplit()}
@@ -79,7 +79,7 @@ export default function BudgetCategoryFormField(props: {
           onChange={(e) => toggleSplit(e.currentTarget.checked)}
         />
         Split into multiple categories
-      </label>
+      </Label>
       <SplitBudgetCategoryDrawer
         open={drawerOpen()}
         splits={splits()}

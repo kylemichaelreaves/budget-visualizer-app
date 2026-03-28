@@ -7,6 +7,8 @@ import useMemoSummary from '@api/hooks/memos/useMemoSummary'
 import useMemoTransactionsPage from '@api/hooks/memos/useMemoTransactionsPage'
 import AlertComponent from '@components/shared/AlertComponent'
 import StatisticComponent from '@components/shared/StatisticComponent'
+import { Button } from '@components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 import type { Transaction } from '@types'
 
 const txColumns: (keyof Transaction | 'link')[] = [
@@ -63,7 +65,7 @@ export default function MemoSummaryTable(): JSX.Element {
   const invalidId = () => memoIdNum() == null
 
   return (
-    <div style={{ padding: '8px 0', color: '#ecf0f1' }}>
+    <div class="py-2 text-foreground">
       <Show when={invalidId()}>
         <AlertComponent
           type="warning"
@@ -74,16 +76,8 @@ export default function MemoSummaryTable(): JSX.Element {
       </Show>
 
       <Show when={!invalidId()}>
-        <header
-          style={{
-            display: 'flex',
-            'flex-wrap': 'wrap',
-            'align-items': 'baseline',
-            gap: '12px',
-            'margin-bottom': '16px',
-          }}
-        >
-          <h1 style={{ margin: 0, flex: '1 1 auto' }} data-testid="memo-summary-title">
+        <header class="flex flex-wrap items-baseline gap-3 mb-4">
+          <h1 class="m-0 flex-auto" data-testid="memo-summary-title">
             {formatHeader(params.memoId, displayName())}
           </h1>
           <A href={`/budget-visualizer/memos/${params.memoId}/edit`} data-testid="memo-summary-edit-link">
@@ -117,143 +111,131 @@ export default function MemoSummaryTable(): JSX.Element {
         </Show>
 
         <Show when={summaryQ.isLoading || summaryQ.isFetching}>
-          <p style={{ color: '#95a5a6' }}>Loading summary…</p>
+          <p class="text-muted-foreground">Loading summary...</p>
         </Show>
 
         <Show when={summaryQ.data}>
           {(s) => (
-            <div
-              style={{
-                display: 'flex',
-                'flex-wrap': 'wrap',
-                gap: '16px',
-                margin: '12px 0',
-              }}
-            >
-              <StatisticComponent
-                title="Total debit"
-                value={s().sum_amount_debit}
-                dataTestId="memo-summary-total-debit"
-                precision={2}
-              />
-              <StatisticComponent
-                title="Transactions"
-                value={s().transactions_count}
-                dataTestId="memo-summary-tx-count"
-              />
-            </div>
+            <Card class="my-3">
+              <CardContent class="flex flex-wrap gap-4 pt-4">
+                <StatisticComponent
+                  title="Total debit"
+                  value={s().sum_amount_debit}
+                  dataTestId="memo-summary-total-debit"
+                  precision={2}
+                />
+                <StatisticComponent
+                  title="Transactions"
+                  value={s().transactions_count}
+                  dataTestId="memo-summary-tx-count"
+                />
+              </CardContent>
+            </Card>
           )}
         </Show>
 
-        <h2 style={{ color: '#ecf0f1', 'font-size': '1.1rem', 'margin-bottom': '8px' }}>Transactions</h2>
+        <Card class="my-3">
+          <CardHeader>
+            <CardTitle class="text-lg">Transactions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Show when={txQ.isError && txQ.error}>
+              {(err) => (
+                <AlertComponent
+                  type="error"
+                  title={(err() as Error).name}
+                  message={(err() as Error).message}
+                  dataTestId="memo-summary-tx-error"
+                />
+              )}
+            </Show>
 
-        <Show when={txQ.isError && txQ.error}>
-          {(err) => (
-            <AlertComponent
-              type="error"
-              title={(err() as Error).name}
-              message={(err() as Error).message}
-              dataTestId="memo-summary-tx-error"
-            />
-          )}
-        </Show>
+            <Show when={txQ.isLoading || txQ.isFetching}>
+              <p class="text-muted-foreground">Loading transactions...</p>
+            </Show>
 
-        <Show when={txQ.isLoading || txQ.isFetching}>
-          <p style={{ color: '#95a5a6' }}>Loading transactions…</p>
-        </Show>
-
-        <Show when={!txQ.isLoading && !txQ.isFetching && (txQ.data?.length ?? 0) > 0}>
-          <table
-            data-testid="memo-summary-transactions-table"
-            style={{
-              width: '100%',
-              'border-collapse': 'collapse',
-              'font-size': '0.85rem',
-            }}
-          >
-            <thead>
-              <tr style={{ 'border-bottom': '1px solid #555' }}>
-                <For each={txColumns}>
-                  {(key) => (
-                    <th style={{ padding: '8px 6px', 'text-align': 'left' }}>
-                      {key === 'link' ? '' : String(key).replace(/_/g, ' ')}
-                    </th>
-                  )}
-                </For>
-              </tr>
-            </thead>
-            <tbody>
-              <For each={txQ.data ?? []}>
-                {(row) => (
-                  <tr style={{ 'border-bottom': '1px solid #444' }}>
+            <Show when={!txQ.isLoading && !txQ.isFetching && (txQ.data?.length ?? 0) > 0}>
+              <table
+                data-testid="memo-summary-transactions-table"
+                class="w-full border-collapse text-sm"
+              >
+                <thead>
+                  <tr class="border-b border-border">
                     <For each={txColumns}>
                       {(key) => (
-                        <td style={{ padding: '8px 6px' }}>
-                          {key === 'link' ? (
-                            row.id != null ? (
-                              <A
-                                href={`/budget-visualizer/transactions/${row.id}/edit`}
-                                data-testid={`memo-summary-tx-edit-${row.id}`}
-                              >
-                                Edit
-                              </A>
-                            ) : (
-                              '—'
-                            )
-                          ) : key === 'date' ? (
-                            formatDate(String((row as Transaction)[key] ?? ''))
-                          ) : (
-                            String((row as Record<string, unknown>)[key as string] ?? '—')
-                          )}
-                        </td>
+                        <th class="px-1.5 py-2 text-left">
+                          {key === 'link' ? '' : String(key).replace(/_/g, ' ')}
+                        </th>
                       )}
                     </For>
                   </tr>
-                )}
-              </For>
-            </tbody>
-          </table>
-        </Show>
+                </thead>
+                <tbody>
+                  <For each={txQ.data ?? []}>
+                    {(row) => (
+                      <tr class="border-b border-border">
+                        <For each={txColumns}>
+                          {(key) => (
+                            <td class="px-1.5 py-2">
+                              {key === 'link' ? (
+                                row.id != null ? (
+                                  <A
+                                    href={`/budget-visualizer/transactions/${row.id}/edit`}
+                                    data-testid={`memo-summary-tx-edit-${row.id}`}
+                                  >
+                                    Edit
+                                  </A>
+                                ) : (
+                                  '—'
+                                )
+                              ) : key === 'date' ? (
+                                formatDate(String((row as Transaction)[key] ?? ''))
+                              ) : (
+                                String((row as Record<string, unknown>)[key as string] ?? '—')
+                              )}
+                            </td>
+                          )}
+                        </For>
+                      </tr>
+                    )}
+                  </For>
+                </tbody>
+              </table>
+            </Show>
 
-        <Show when={!txQ.isLoading && !txQ.isFetching && (txQ.data?.length ?? 0) === 0}>
-          <p style={{ color: '#95a5a6' }}>No transactions for this memo.</p>
-        </Show>
+            <Show when={!txQ.isLoading && !txQ.isFetching && (txQ.data?.length ?? 0) === 0}>
+              <p class="text-muted-foreground">No transactions for this memo.</p>
+            </Show>
 
-        <div
-          style={{
-            display: 'flex',
-            'align-items': 'center',
-            gap: '12px',
-            'flex-wrap': 'wrap',
-            margin: '12px 0',
-          }}
-        >
-          <label style={{ display: 'flex', 'align-items': 'center', gap: '8px' }}>
-            <span style={{ color: '#bdc3c7', 'font-size': '0.85rem' }}>Rows</span>
-            <select
-              value={txLimit()}
-              onChange={(e) => {
-                setTxLimit(Number(e.currentTarget.value))
-                setTxOffset(0)
-              }}
-              style={{ padding: '6px', 'border-radius': '4px' }}
-            >
-              <option value={25}>25</option>
-              <option value={50}>50</option>
-              <option value={100}>100</option>
-            </select>
-          </label>
-          <button type="button" onClick={goPrevTx} disabled={!canPrev()}>
-            Previous
-          </button>
-          <button type="button" onClick={goNextTx} disabled={!canNext()}>
-            Next
-          </button>
-          <span style={{ color: '#95a5a6', 'font-size': '0.85rem' }}>
-            Offset {txOffset()}
-            {summaryQ.data?.transactions_count != null ? ` / ${summaryQ.data.transactions_count} total` : ''}
-          </span>
-        </div>
+            <div class="flex items-center gap-3 flex-wrap my-3">
+              <label class="flex items-center gap-2">
+                <span class="text-muted-foreground text-sm">Rows</span>
+                <select
+                  value={txLimit()}
+                  onChange={(e) => {
+                    setTxLimit(Number(e.currentTarget.value))
+                    setTxOffset(0)
+                  }}
+                  class="p-1.5 rounded"
+                >
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                  <option value={100}>100</option>
+                </select>
+              </label>
+              <Button variant="outline" size="sm" type="button" onClick={goPrevTx} disabled={!canPrev()}>
+                Previous
+              </Button>
+              <Button variant="outline" size="sm" type="button" onClick={goNextTx} disabled={!canNext()}>
+                Next
+              </Button>
+              <span class="text-muted-foreground text-sm">
+                Offset {txOffset()}
+                {summaryQ.data?.transactions_count != null ? ` / ${summaryQ.data.transactions_count} total` : ''}
+              </span>
+            </div>
+          </CardContent>
+        </Card>
       </Show>
     </div>
   )

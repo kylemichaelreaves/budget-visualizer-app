@@ -7,6 +7,8 @@ import AlertComponent from '@components/shared/AlertComponent'
 import TableSkeleton from '@components/shared/TableSkeleton'
 import TransactionEditForm from '@components/transactions/TransactionEditForm'
 import TransactionsTablePagination from '@components/transactions/TransactionsTablePagination'
+import { Badge } from '@components/ui/badge'
+import { Button } from '@components/ui/button'
 import {
   clearPendingTransactionsByOffset,
   setSelectedStatus,
@@ -141,43 +143,32 @@ export default function PendingTransactionsTable(): JSX.Element {
         )}
       </Show>
 
-      <header
-        style={{
-          display: 'flex',
-          'justify-content': 'space-between',
-          'align-items': 'center',
-          'margin-bottom': '12px',
-        }}
-      >
-        <h2 style={{ margin: 0, color: '#ecf0f1' }}>Pending Transactions</h2>
-        <div role="tablist" data-testid="view-mode-segmented" style={{ display: 'flex', gap: '4px' }}>
-          <button
+      <header class="flex justify-between items-center mb-3">
+        <h2 class="m-0 text-foreground">Pending Transactions</h2>
+        <div role="tablist" data-testid="view-mode-segmented" class="flex gap-1">
+          <Button
+            variant={viewMode() === 'pending' ? 'default' : 'outline'}
+            size="sm"
             type="button"
-            style={{ opacity: viewMode() === 'pending' ? 1 : 0.6 }}
             onClick={() => setViewMode('pending')}
           >
-            Pending
-          </button>
-          <button
+            <Badge variant={viewMode() === 'pending' ? 'default' : 'secondary'}>Pending</Badge>
+          </Button>
+          <Button
+            variant={viewMode() === 'reviewed' ? 'default' : 'outline'}
+            size="sm"
             type="button"
-            style={{ opacity: viewMode() === 'reviewed' ? 1 : 0.6 }}
             onClick={() => setViewMode('reviewed')}
           >
-            Reviewed
-          </button>
+            <Badge variant={viewMode() === 'reviewed' ? 'default' : 'secondary'}>Reviewed</Badge>
+          </Button>
         </div>
       </header>
 
       {modalOpen() && editTxn() ? (
         <dialog
           open
-          style={{
-            border: '1px solid #555',
-            padding: '16px',
-            background: '#2c2c2c',
-            color: '#ecf0f1',
-            width: 'min(90vw, 640px)',
-          }}
+          class="border border-input p-4 bg-card text-foreground w-[min(90vw,640px)]"
         >
           <TransactionEditForm
             transaction={editTxn()!}
@@ -203,12 +194,12 @@ export default function PendingTransactionsTable(): JSX.Element {
         <Show when={!isLoadingCondition()}>
           <table
             data-testid="pending-transactions-table"
-            style={{ width: '100%', 'border-collapse': 'collapse', color: '#ecf0f1', 'font-size': '0.85rem' }}
+            class="w-full border-collapse text-foreground text-sm"
           >
             <thead>
               <tr>
                 <For each={transactionColumns}>
-                  {(col) => <th style={{ border: '1px solid #555', padding: '6px' }}>{col.label}</th>}
+                  {(col) => <th class="border border-input p-1.5">{col.label}</th>}
                 </For>
               </tr>
             </thead>
@@ -219,7 +210,7 @@ export default function PendingTransactionsTable(): JSX.Element {
                     <For each={transactionColumns}>
                       {(col) => (
                         <td
-                          style={{ border: '1px solid #444', padding: '6px' }}
+                          class="border border-border p-1.5"
                           data-testid={`column-${col.prop}`}
                         >
                           <Cell row={row} prop={col.prop} />

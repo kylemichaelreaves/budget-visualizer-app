@@ -15,8 +15,8 @@ export default function MonthSummaryTable(props: { dataTestId?: string }): JSX.E
 
   return (
     <Show when={transactionsState.selectedMonth}>
-      <div data-testid={id()} style={{ margin: '12px 0' }}>
-        <h3 style={{ color: '#ecf0f1', 'margin-bottom': '8px' }}>
+      <div data-testid={id()} class="my-3">
+        <h3 class="text-foreground mb-2">
           Month summary — {transactionsState.selectedMonth}
         </h3>
         <Show when={q.isError && q.error}>
@@ -30,33 +30,26 @@ export default function MonthSummaryTable(props: { dataTestId?: string }): JSX.E
           )}
         </Show>
         <Show when={q.isLoading || q.isFetching}>
-          <p style={{ color: '#95a5a6' }}>Loading month summary…</p>
+          <p class="text-muted-foreground">Loading month summary...</p>
         </Show>
         <Show when={!q.isLoading && !q.isFetching && q.data}>
-          <table
-            style={{
-              width: '100%',
-              'border-collapse': 'collapse',
-              color: '#ecf0f1',
-              'font-size': '0.85rem',
-            }}
-          >
+          <table class="w-full border-collapse text-foreground text-sm">
             <thead>
-              <tr style={{ 'border-bottom': '1px solid #555' }}>
-                <th style={{ padding: '8px 6px', 'text-align': 'left' }}>Memo</th>
-                <th style={{ padding: '8px 6px', 'text-align': 'left' }}>Budget category</th>
-                <th style={{ padding: '8px 6px', 'text-align': 'right' }}>Total debit</th>
+              <tr class="border-b border-border">
+                <th class="px-1.5 py-2 text-left">Memo</th>
+                <th class="px-1.5 py-2 text-left">Budget category</th>
+                <th class="px-1.5 py-2 text-right">Total debit</th>
               </tr>
             </thead>
             <tbody>
               <For each={q.data ?? []}>
                 {(row) => (
-                  <tr style={{ 'border-bottom': '1px solid #444' }}>
-                    <td style={{ padding: '8px 6px' }}>
+                  <tr class="border-b border-border">
+                    <td class="px-1.5 py-2">
                       <MemoCell memo={row.memo} />
                     </td>
-                    <td style={{ padding: '8px 6px' }}>{row.budget_category}</td>
-                    <td style={{ padding: '8px 6px', 'text-align': 'right' }}>
+                    <td class="px-1.5 py-2">{row.budget_category}</td>
+                    <td class="px-1.5 py-2 text-right">
                       {formatCurrency(row.total_amount_debit)}
                     </td>
                   </tr>

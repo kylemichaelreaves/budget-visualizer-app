@@ -1,6 +1,8 @@
 import type { JSX } from 'solid-js'
 import { createEffect, createSignal } from 'solid-js'
 import AlertComponent from '@components/shared/AlertComponent'
+import { Label } from '@components/ui/label'
+import { Input } from '@components/ui/input'
 import { useIsIntervalGreaterThanOldestDate } from '@api/hooks/transactions/useIsIntervalGreaterThanOldestDate'
 
 export default function IntervalForm(props: {
@@ -47,19 +49,12 @@ export default function IntervalForm(props: {
         />
       ) : null}
       <div
-        style={{
-          display: 'flex',
-          'align-items': 'flex-end',
-          'justify-content': 'flex-end',
-          gap: '12px',
-          'flex-wrap': 'wrap',
-          opacity: isOutOfRange() ? 0.5 : 1,
-          'pointer-events': isOutOfRange() ? 'none' : 'auto',
-        }}
+        class="flex items-center justify-end gap-2"
+        classList={{ 'opacity-50 pointer-events-none': isOutOfRange() }}
       >
-        <label style={{ color: '#bdc3c7', 'font-size': '0.85rem' }}>
-          Interval count
-          <input
+        <Label class="flex items-center gap-1.5 text-xs text-muted-foreground">
+          Count
+          <Input
             type="number"
             min={1}
             max={100}
@@ -67,11 +62,11 @@ export default function IntervalForm(props: {
             value={numberInput()}
             data-testid="interval-input-number"
             onInput={(e) => setNumberInput(Number(e.currentTarget.value) || 1)}
-            style={{ display: 'block', width: '80px', 'margin-top': '4px', padding: '6px' }}
+            class="w-14 h-7 px-2 text-xs"
           />
-        </label>
-        <label style={{ color: '#bdc3c7', 'font-size': '0.85rem' }}>
-          Interval type
+        </Label>
+        <Label class="flex items-center gap-1.5 text-xs text-muted-foreground">
+          Interval
           <select
             data-testid="interval-select"
             value={intervalSelect()}
@@ -79,14 +74,14 @@ export default function IntervalForm(props: {
               setIntervalSelect(e.currentTarget.value)
               void intervalQuery.refetch()
             }}
-            style={{ display: 'block', 'margin-top': '4px', padding: '6px' }}
+            class="h-7 rounded-md border border-input bg-input-background px-2 text-xs text-foreground outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
           >
-            <option value="days">{numberInput() === 1 ? 'Day' : 'Days'}</option>
-            <option value="weeks">{numberInput() === 1 ? 'Week' : 'Weeks'}</option>
-            <option value="months">{numberInput() === 1 ? 'Month' : 'Months'}</option>
-            <option value="years">{numberInput() === 1 ? 'Year' : 'Years'}</option>
-          </select>
-        </label>
+          <option value="days">{numberInput() === 1 ? 'Day' : 'Days'}</option>
+          <option value="weeks">{numberInput() === 1 ? 'Week' : 'Weeks'}</option>
+          <option value="months">{numberInput() === 1 ? 'Month' : 'Months'}</option>
+          <option value="years">{numberInput() === 1 ? 'Year' : 'Years'}</option>
+        </select>
+        </Label>
       </div>
     </div>
   )

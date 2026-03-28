@@ -47,12 +47,7 @@ export default function BudgetCategorySummaries(props: {
     <Show when={enabled()}>
       <div
         data-testid={id()}
-        style={{
-          display: 'grid',
-          gap: '20px',
-          margin: '12px 0',
-          'grid-template-columns': 'repeat(auto-fit, minmax(280px, 1fr))',
-        }}
+        class="grid gap-5 my-3 grid-cols-[repeat(auto-fit,minmax(280px,1fr))]"
       >
         <Show when={summaryQuery.isError && summaryQuery.error}>
           {(err) => (
@@ -68,14 +63,15 @@ export default function BudgetCategorySummaries(props: {
           data={rows()}
           isLoading={summaryQuery.isLoading || summaryQuery.isFetching}
           title="Spending by category"
+          showLegend={false}
           dataTestId={`${id()}-pie`}
           onSliceClick={(cat) => {
             const n = cat.budget_category || cat.category_name
             if (n) setSelectedCategory(n)
           }}
         />
-        <div style={{ 'min-width': 0 }}>
-          <p style={{ color: '#ecf0f1', 'text-align': 'center', 'margin-bottom': '8px' }}>
+        <div class="min-w-0">
+          <p class="text-foreground text-center mb-2 text-sm">
             Historical — {selectedCategory() || '—'}
           </p>
           <Show when={historicalQuery.isError && historicalQuery.error}>
@@ -88,12 +84,14 @@ export default function BudgetCategorySummaries(props: {
               />
             )}
           </Show>
-          <LineChart
-            summaries={historicalQuery.data ?? []}
-            handleOnClickSelection={() => undefined}
-            dataTestId={`${id()}-historical-line`}
-            loading={historicalQuery.isLoading || historicalQuery.isFetching}
-          />
+          <div>
+            <LineChart
+              summaries={historicalQuery.data ?? []}
+              handleOnClickSelection={() => undefined}
+              dataTestId={`${id()}-historical-line`}
+              loading={historicalQuery.isLoading || historicalQuery.isFetching}
+            />
+          </div>
         </div>
       </div>
     </Show>

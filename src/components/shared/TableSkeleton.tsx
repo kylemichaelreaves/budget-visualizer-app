@@ -1,6 +1,14 @@
 import type { JSX } from 'solid-js'
 import { For } from 'solid-js'
-import './shared-ui.css'
+import { Skeleton } from '@components/ui/skeleton'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@components/ui/table'
 
 export type SkeletonColumn = { prop: string; label: string }
 
@@ -30,29 +38,29 @@ export default function TableSkeleton(props: {
   const rows = () => Array.from({ length: rowCount() }, (_, i) => i)
 
   return (
-    <div class="table-skeleton" data-testid={props.dataTestId ?? 'table-skeleton'}>
-      <table class="bv-table-skeleton">
-        <thead>
-          <tr>
-            <For each={props.columns}>{(column) => <th>{column.label}</th>}</For>
-          </tr>
-        </thead>
-        <tbody>
+    <div data-testid={props.dataTestId ?? 'table-skeleton'}>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <For each={props.columns}>{(column) => <TableHead>{column.label}</TableHead>}</For>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
           <For each={rows()}>
             {() => (
-              <tr>
+              <TableRow>
                 <For each={props.columns}>
                   {(column) => (
-                    <td>
-                      <span class="bv-shimmer" style={{ width: skeletonWidth(column.prop) }} />
-                    </td>
+                    <TableCell>
+                      <Skeleton class="h-4 rounded" style={{ width: skeletonWidth(column.prop) }} />
+                    </TableCell>
                   )}
                 </For>
-              </tr>
+              </TableRow>
             )}
           </For>
-        </tbody>
-      </table>
+        </TableBody>
+      </Table>
     </div>
   )
 }

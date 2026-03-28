@@ -29,7 +29,7 @@ export default function usePendingTransactions() {
 
       const memoValue = transactionsState.selectedMemo
       const isMemoId = memoValue && !Number.isNaN(Number(memoValue))
-      const memoParam = memoValue ? (isMemoId ? { memoId: Number(memoValue) } : { memo: memoValue }) : {}
+      const memoParam = memoValue ? (isMemoId ? { memoId: Number(memoValue) } : { memoName: memoValue }) : {}
 
       const rows = (await fetchPendingTransactions({
         limit: transactionsState.transactionsTableLimit,

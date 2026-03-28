@@ -1,6 +1,11 @@
 import type { JSX } from 'solid-js'
 import { createMemo } from 'solid-js'
-import './shared-ui.css'
+
+const sizeConfig = {
+  small: { title: 'text-xs mb-1', value: 'text-lg' },
+  default: { title: 'text-sm mb-1.5', value: 'text-2xl' },
+  large: { title: 'text-base mb-2', value: 'text-3xl' },
+} as const
 
 export default function StatisticComponent(props: {
   title: string
@@ -10,7 +15,7 @@ export default function StatisticComponent(props: {
   dataTestId?: string
   precision?: number
 }): JSX.Element {
-  const sizeClass = () => `bv-statistic-${props.size ?? 'default'}`
+  const sizes = () => sizeConfig[props.size ?? 'default']
 
   const numericValue = createMemo(() => Number(props.value))
 
@@ -26,15 +31,15 @@ export default function StatisticComponent(props: {
   })
 
   return (
-    <div class={sizeClass()} data-testid={props.dataTestId || undefined}>
-      <div class="bv-statistic-title">{props.title}</div>
-      <div class="bv-statistic-value">{displayValue()}</div>
+    <div data-testid={props.dataTestId || undefined}>
+      <div class={`font-medium text-muted-foreground ${sizes().title}`}>{props.title}</div>
+      <div class={`font-semibold text-foreground ${sizes().value}`}>{displayValue()}</div>
       {props.previousValue !== undefined && difference() !== null ? (
-        <div class="bv-statistic-footer">
+        <div class="mt-2 text-xs text-muted-foreground">
           {difference()! > 0 ? (
-            <span class="bv-statistic-increase">Increase</span>
+            <span class="text-green-500">Increase</span>
           ) : difference()! < 0 ? (
-            <span class="bv-statistic-decrease">Decrease</span>
+            <span class="text-red-500">Decrease</span>
           ) : (
             <span>No Change</span>
           )}

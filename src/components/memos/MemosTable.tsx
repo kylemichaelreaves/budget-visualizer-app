@@ -96,7 +96,7 @@ export default function MemosTable(): JSX.Element {
         )}
       </Show>
 
-      <h2 style={{ color: '#ecf0f1', 'margin-top': 0 }}>Memos</h2>
+      <h2 class="text-foreground mt-0">Memos</h2>
 
       <Show when={isLoadingCondition()}>
         <TableSkeleton
@@ -111,19 +111,14 @@ export default function MemosTable(): JSX.Element {
       <Show when={!isLoadingCondition() && paginatedData().length > 0}>
         <table
           data-testid="memos-table"
-          style={{
-            width: '100%',
-            'border-collapse': 'collapse',
-            color: '#ecf0f1',
-            'font-size': '0.85rem',
-          }}
+          class="w-full border-collapse text-foreground text-sm"
         >
           <thead>
-            <tr style={{ 'border-bottom': '1px solid #555' }}>
+            <tr class="border-b border-border">
               <For each={columns}>
                 {(col) => (
                   <th
-                    style={{ padding: '8px 6px', 'text-align': 'left' }}
+                    class="px-1.5 py-2 text-left"
                     data-testid={`column-${String(col.prop)}`}
                   >
                     {col.label}
@@ -135,10 +130,10 @@ export default function MemosTable(): JSX.Element {
           <tbody>
             <For each={paginatedData()}>
               {(row) => (
-                <tr style={{ 'border-bottom': '1px solid #444' }}>
+                <tr class="border-b border-border">
                   <For each={columns}>
                     {(col) => (
-                      <td style={{ padding: '8px 6px' }} data-testid={`cell-${row.id}-${String(col.prop)}`}>
+                      <td class="px-1.5 py-2" data-testid={`cell-${row.id}-${String(col.prop)}`}>
                         {col.prop === 'id' ? (
                           <A
                             href={`/budget-visualizer/memos/${row.id}/summary`}
@@ -147,7 +142,7 @@ export default function MemosTable(): JSX.Element {
                             {String(row.id)}
                           </A>
                         ) : col.prop === 'actions' ? (
-                          <div style={{ display: 'flex', gap: '8px', 'flex-wrap': 'wrap' }}>
+                          <div class="flex gap-2 flex-wrap">
                             <A
                               href={`/budget-visualizer/memos/${row.id}/summary`}
                               data-testid={`memo-summary-link-${row.id}`}
@@ -175,7 +170,7 @@ export default function MemosTable(): JSX.Element {
       </Show>
 
       <Show when={!isLoadingCondition() && paginatedData().length === 0}>
-        <p style={{ color: '#95a5a6' }}>No memos found.</p>
+        <p class="text-muted-foreground">No memos found.</p>
       </Show>
 
       <MemosTablePagination />

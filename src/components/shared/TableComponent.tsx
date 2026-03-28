@@ -1,7 +1,15 @@
 import { A } from '@solidjs/router'
 import type { JSX } from 'solid-js'
 import { createMemo, createSignal, For, Show } from 'solid-js'
-import './shared-ui.css'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@components/ui/table'
+import { Button } from '@components/ui/button'
 
 export type TableColumn = {
   prop: string
@@ -63,18 +71,17 @@ export default function TableComponent(props: {
 
   return (
     <div
-      class="bv-table-wrap"
-      classList={{ 'bv-table-loading': props.isFetching }}
+      class={props.isFetching ? 'opacity-50 pointer-events-none' : ''}
       data-testid={props.dataTestId}
     >
       <Show when={props.tableData?.length}>
-        <table class="bv-data-table">
-          <thead>
-            <tr>
+        <Table>
+          <TableHeader>
+            <TableRow>
               <For each={props.columns}>
                 {(column) => (
-                  <th
-                    classList={{ 'bv-sortable': sortable().includes(column.prop) }}
+                  <TableHead
+                    class={sortable().includes(column.prop) ? 'cursor-pointer select-none hover:text-primary' : ''}
                     onClick={() => toggleSort(column.prop)}
                   >
                     {column.label}
@@ -83,15 +90,15 @@ export default function TableComponent(props: {
                         ? ' ▲'
                         : ' ▼'
                       : ''}
-                  </th>
+                  </TableHead>
                 )}
               </For>
-            </tr>
-          </thead>
-          <tbody>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             <For each={pagedData()}>
               {(row) => (
-                <tr
+                <TableRow
                   data-row-key={
                     props.rowKey && row[props.rowKey] != null ? String(row[props.rowKey]) : undefined
                   }
@@ -102,59 +109,64 @@ export default function TableComponent(props: {
                       const str = raw == null ? '' : String(raw)
                       const linkBase = props.routerLinkColumn?.[column.prop]
                       return (
-                        <td>
+                        <TableCell>
                           <Show when={linkBase} fallback={column.formatter ? column.formatter(str) : str}>
                             {(base) => <A href={`${base()}/${encodeURIComponent(str)}`}>{str}</A>}
                           </Show>
-                        </td>
+                        </TableCell>
                       )
                     }}
                   </For>
-                </tr>
+                </TableRow>
               )}
             </For>
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
       </Show>
 
       <Show when={showPagination()}>
-        <div class="bv-table-pagination">
+        <div class="flex items-center justify-between gap-4 py-3 text-sm text-muted-foreground">
           <span>
             Total {sortedData().length} · Page {currentPage()} /{' '}
             {Math.max(1, Math.ceil(sortedData().length / pageSize()))}
           </span>
-          <label>
-            Rows
-            <select
-              value={pageSize()}
-              onChange={(e) => {
-                setPageSize(Number(e.currentTarget.value))
-                setCurrentPage(1)
-              }}
+          <div class="flex items-center gap-2">
+            <label class="flex items-center gap-1.5">
+              Rows
+              <select
+                class="rounded-md border border-input bg-input-background px-2 py-1 text-sm text-foreground"
+                value={pageSize()}
+                onChange={(e) => {
+                  setPageSize(Number(e.currentTarget.value))
+                  setCurrentPage(1)
+                }}
+              >
+                <option value={10}>10</option>
+                <option value={20}>20</option>
+                <option value={30}>30</option>
+                <option value={40}>40</option>
+                <option value={100}>100</option>
+              </select>
+            </label>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              disabled={currentPage() <= 1}
             >
-              <option value={10}>10</option>
-              <option value={20}>20</option>
-              <option value={30}>30</option>
-              <option value={40}>40</option>
-              <option value={100}>100</option>
-            </select>
-          </label>
-          <button
-            type="button"
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-            disabled={currentPage() <= 1}
-          >
-            Previous
-          </button>
-          <button
-            type="button"
-            onClick={() =>
-              setCurrentPage((p) => (p < Math.ceil(sortedData().length / pageSize()) ? p + 1 : p))
-            }
-            disabled={currentPage() >= Math.ceil(sortedData().length / pageSize())}
-          >
-            Next
-          </button>
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setCurrentPage((p) => (p < Math.ceil(sortedData().length / pageSize()) ? p + 1 : p))
+              }
+              disabled={currentPage() >= Math.ceil(sortedData().length / pageSize())}
+            >
+              Next
+            </Button>
+          </div>
         </div>
       </Show>
     </div>

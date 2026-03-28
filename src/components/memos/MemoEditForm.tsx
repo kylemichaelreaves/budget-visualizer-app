@@ -6,6 +6,9 @@ import mutateMemo from '@api/hooks/memos/mutateMemo'
 import AlertComponent from '@components/shared/AlertComponent'
 import BudgetCategoriesTreeSelect from '@components/transactions/selects/BudgetCategoriesTreeSelect'
 import type { Frequency, Memo } from '@types'
+import { Button } from '@components/ui/button'
+import { Input } from '@components/ui/input'
+import { Label } from '@components/ui/label'
 
 type FormState = {
   id: number
@@ -18,7 +21,7 @@ type FormState = {
 }
 
 const frequencyOptions: { value: Frequency | ''; label: string }[] = [
-  { value: '', label: '—' },
+  { value: '', label: '\u2014' },
   { value: 'daily', label: 'Daily' },
   { value: 'weekly', label: 'Weekly' },
   { value: 'monthly', label: 'Monthly' },
@@ -81,7 +84,7 @@ export default function MemoEditForm(props: {
         e.preventDefault()
         save()
       }}
-      style={{ display: 'flex', 'flex-direction': 'column', gap: '14px', 'max-width': '480px' }}
+      class="flex flex-col gap-3.5 max-w-[480px]"
     >
       <Show when={mutation.isError && mutation.error}>
         {(err) => (
@@ -94,18 +97,17 @@ export default function MemoEditForm(props: {
         )}
       </Show>
 
-      <label style={{ color: '#bdc3c7', 'font-size': '0.9rem' }}>
-        Name
-        <input
+      <div class="space-y-1">
+        <Label class="text-muted-foreground text-sm">Name</Label>
+        <Input
           data-testid={`${tid()}-name`}
           value={form.name}
           onInput={(e) => setForm('name', e.currentTarget.value)}
           required
-          style={{ display: 'block', width: '100%', 'margin-top': '4px', padding: '8px' }}
         />
-      </label>
+      </div>
 
-      <label style={{ display: 'flex', 'align-items': 'center', gap: '8px', color: '#ecf0f1' }}>
+      <Label class="flex items-center gap-2 text-foreground">
         <input
           type="checkbox"
           data-testid={`${tid()}-recurring`}
@@ -113,9 +115,9 @@ export default function MemoEditForm(props: {
           onChange={(e) => setForm('recurring', e.currentTarget.checked)}
         />
         Recurring
-      </label>
+      </Label>
 
-      <label style={{ display: 'flex', 'align-items': 'center', gap: '8px', color: '#ecf0f1' }}>
+      <Label class="flex items-center gap-2 text-foreground">
         <input
           type="checkbox"
           data-testid={`${tid()}-necessary`}
@@ -123,9 +125,9 @@ export default function MemoEditForm(props: {
           onChange={(e) => setForm('necessary', e.currentTarget.checked)}
         />
         Necessary
-      </label>
+      </Label>
 
-      <label style={{ display: 'flex', 'align-items': 'center', gap: '8px', color: '#ecf0f1' }}>
+      <Label class="flex items-center gap-2 text-foreground">
         <input
           type="checkbox"
           data-testid={`${tid()}-ambiguous`}
@@ -133,23 +135,23 @@ export default function MemoEditForm(props: {
           onChange={(e) => setForm('ambiguous', e.currentTarget.checked)}
         />
         Ambiguous
-      </label>
+      </Label>
 
-      <label style={{ color: '#bdc3c7', 'font-size': '0.9rem' }}>
-        Frequency
+      <div class="space-y-1">
+        <Label class="text-muted-foreground text-sm">Frequency</Label>
         <select
           data-testid={`${tid()}-frequency`}
           value={form.frequency}
           onChange={(e) => setForm('frequency', e.currentTarget.value as Frequency | '')}
-          style={{ display: 'block', width: '100%', 'margin-top': '4px', padding: '8px' }}
+          class="block w-full mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
         >
           <For each={frequencyOptions}>{(opt) => <option value={opt.value}>{opt.label}</option>}</For>
         </select>
-      </label>
+      </div>
 
-      <div>
-        <span style={{ color: '#bdc3c7', 'font-size': '0.9rem' }}>Budget category</span>
-        <div style={{ 'margin-top': '4px' }}>
+      <div class="space-y-1">
+        <Label class="text-muted-foreground text-sm">Budget category</Label>
+        <div class="mt-1">
           <BudgetCategoriesTreeSelect
             value={form.budget_category}
             onChange={(v) => setForm('budget_category', v)}
@@ -161,10 +163,10 @@ export default function MemoEditForm(props: {
         </div>
       </div>
 
-      <div style={{ display: 'flex', gap: '10px', 'margin-top': '8px' }}>
-        <button type="submit" disabled={mutation.isPending} data-testid={`${tid()}-submit`}>
-          {mutation.isPending ? 'Saving…' : 'Save'}
-        </button>
+      <div class="flex gap-2.5 mt-2">
+        <Button type="submit" disabled={mutation.isPending} data-testid={`${tid()}-submit`}>
+          {mutation.isPending ? 'Saving\u2026' : 'Save'}
+        </Button>
       </div>
     </form>
   )
