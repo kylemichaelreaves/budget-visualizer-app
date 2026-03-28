@@ -91,12 +91,12 @@ function ToggleGroupItem(props: ToggleGroupItemProps) {
   return (
     <ToggleGroupPrimitive.Item
       data-slot="toggle-group-item"
-      data-variant={context.variant || local.variant}
-      data-size={context.size || local.size}
+      data-variant={local.variant ?? context.variant}
+      data-size={local.size ?? context.size}
       class={cn(
         toggleVariants({
-          variant: context.variant || local.variant,
-          size: context.size || local.size,
+          variant: local.variant ?? context.variant,
+          size: local.size ?? context.size,
         }),
         'min-w-0 flex-1 shrink-0 rounded-none shadow-none first:rounded-l-md last:rounded-r-md focus:z-10 focus-visible:z-10 data-[variant=outline]:border-l-0 data-[variant=outline]:first:border-l',
         local.class,

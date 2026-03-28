@@ -19,6 +19,6 @@ describe('BackButton', () => {
   it('applies data-test-id when provided', () => {
     render(() => <BackButton dataTestId="custom-back" />)
     const btn = screen.getByRole('button', { name: 'Go Back' })
-    expect(btn.getAttribute('data-test-id')).toBe('custom-back')
+    expect(btn.getAttribute('data-testid')).toBe('custom-back')
   })
 })

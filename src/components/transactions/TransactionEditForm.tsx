@@ -150,7 +150,7 @@ export default function TransactionEditForm(props: {
           onInput={(e) => setTx('description', e.currentTarget.value)}
         />
       </Field>
-      <Field label="Memo" test={`${tid()}-memo`}>
+      <Field label="Memo" test={`${tid()}-memo`} hasInput={false}>
         <MemoSelect value={tx.memo} onChange={(v) => setTx('memo', v)} dataTestId={`${tid()}-memo-select`} />
       </Field>
       <Field label="Balance" test={`${tid()}-balance`}>
@@ -168,7 +168,7 @@ export default function TransactionEditForm(props: {
           onInput={(e) => setTx('check_number', e.currentTarget.value)}
         />
       </Field>
-      <Field label="Budget Category" test={`${tid()}-budget_category`}>
+      <Field label="Budget Category" test={`${tid()}-budget_category`} hasInput={false}>
         <BudgetCategoryFormField
           modelValue={budgetState}
           transactionAmount={transactionAmount()}
@@ -190,11 +190,16 @@ export default function TransactionEditForm(props: {
   )
 }
 
-function Field(props: { label: string; test: string; children: JSX.Element }): JSX.Element {
+function Field(props: {
+  label: string
+  test: string
+  hasInput?: boolean
+  children: JSX.Element
+}): JSX.Element {
   const id = () => `field-${props.test}`
   return (
     <div class="space-y-1">
-      <Label for={id()} class="text-muted-foreground">
+      <Label for={props.hasInput !== false ? id() : undefined} class="text-muted-foreground">
         {props.label}
       </Label>
       <div data-testid={props.test}>{props.children}</div>

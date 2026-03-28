@@ -6,7 +6,7 @@ export default function BackButton(props: { dataTestId?: string }): JSX.Element 
     <Button
       id="back-button"
       variant="ghost"
-      data-test-id={props.dataTestId ?? ''}
+      data-testid={props.dataTestId}
       onClick={() => window.history.back()}
     >
       Go Back
