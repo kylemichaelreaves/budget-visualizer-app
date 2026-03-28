@@ -59,7 +59,6 @@ export default function BudgetCategorySummaries(props: {
         <BudgetCategoryPieChart
           data={rows()}
           isLoading={summaryQuery.isLoading || summaryQuery.isFetching}
-          title="Spending by category"
           showLegend={false}
           dataTestId={`${id()}-pie`}
           onSliceClick={(cat) => {

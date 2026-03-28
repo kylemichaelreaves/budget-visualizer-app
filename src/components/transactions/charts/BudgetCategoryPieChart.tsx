@@ -11,7 +11,6 @@ function formatCurrency(amount: number): string {
 export default function BudgetCategoryPieChart(props: {
   data: BudgetCategorySummary[]
   isLoading?: boolean
-  title?: string
   dataTestId?: string
   onSliceClick?: (row: BudgetCategorySummary) => void
   showLegend?: boolean
