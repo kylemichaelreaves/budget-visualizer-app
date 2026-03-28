@@ -65,7 +65,9 @@ export default function TransactionCreateForm(props: { onClose?: () => void }): 
         Debit (off = credit)
       </Label>
       <div class="space-y-1">
-        <Label for="create-date" class="text-muted-foreground">Date</Label>
+        <Label for="create-date" class="text-muted-foreground">
+          Date
+        </Label>
         <Input
           id="create-date"
           type="date"
@@ -75,7 +77,9 @@ export default function TransactionCreateForm(props: { onClose?: () => void }): 
         />
       </div>
       <div class="space-y-1">
-        <Label for="create-description" class="text-muted-foreground">Description</Label>
+        <Label for="create-description" class="text-muted-foreground">
+          Description
+        </Label>
         <Input
           id="create-description"
           value={form().description}
@@ -84,7 +88,9 @@ export default function TransactionCreateForm(props: { onClose?: () => void }): 
         />
       </div>
       <div class="space-y-1">
-        <Label for="create-memo" class="text-muted-foreground">Memo</Label>
+        <Label for="create-memo" class="text-muted-foreground">
+          Memo
+        </Label>
         <Input
           id="create-memo"
           value={form().memo}
@@ -93,7 +99,9 @@ export default function TransactionCreateForm(props: { onClose?: () => void }): 
         />
       </div>
       <div class="space-y-1">
-        <Label for="create-amount-debit" class="text-muted-foreground">Amount Debit</Label>
+        <Label for="create-amount-debit" class="text-muted-foreground">
+          Amount Debit
+        </Label>
         <Input
           id="create-amount-debit"
           value={form().amount_debit}
@@ -103,7 +111,9 @@ export default function TransactionCreateForm(props: { onClose?: () => void }): 
         />
       </div>
       <div class="space-y-1">
-        <Label for="create-amount-credit" class="text-muted-foreground">Amount Credit</Label>
+        <Label for="create-amount-credit" class="text-muted-foreground">
+          Amount Credit
+        </Label>
         <Input
           id="create-amount-credit"
           value={form().amount_credit}

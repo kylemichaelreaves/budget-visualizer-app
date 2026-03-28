@@ -98,7 +98,9 @@ export default function MemoEditForm(props: {
       </Show>
 
       <div class="space-y-1">
-        <Label for="memo-name" class="text-muted-foreground text-sm">Name</Label>
+        <Label for="memo-name" class="text-muted-foreground text-sm">
+          Name
+        </Label>
         <Input
           id="memo-name"
           data-testid={`${tid()}-name`}
@@ -142,7 +144,9 @@ export default function MemoEditForm(props: {
       </Label>
 
       <div class="space-y-1">
-        <Label for="memo-frequency" class="text-muted-foreground text-sm">Frequency</Label>
+        <Label for="memo-frequency" class="text-muted-foreground text-sm">
+          Frequency
+        </Label>
         <select
           id="memo-frequency"
           data-testid={`${tid()}-frequency`}
