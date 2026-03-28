@@ -222,7 +222,7 @@ export default function TransactionsTable() {
           </Show>
 
           <Show when={!isLoadingCondition() && paginatedData().length > 0}>
-            <div class="space-y-2" data-testid="transactions-table">
+            <ul role="list" aria-label="Transactions" class="space-y-2" data-testid="transactions-table">
               <For each={paginatedData()}>
                 {(row) => {
                   const debit = Number(row.amount_debit)
@@ -232,7 +232,7 @@ export default function TransactionsTable() {
                   const isCredit = hasCredit && !hasDebit
 
                   return (
-                    <div
+                    <li
                       class="flex items-center justify-between rounded-lg border border-border p-4 transition-colors hover:bg-accent/50"
                       onContextMenu={() => devConsole('log', 'context menu', row.id)}
                     >
@@ -333,11 +333,11 @@ export default function TransactionsTable() {
                           </span>
                         </Show>
                       </div>
-                    </div>
+                    </li>
                   )
                 }}
               </For>
-            </div>
+            </ul>
           </Show>
 
           <Show when={!isLoadingCondition() && paginatedData().length === 0}>

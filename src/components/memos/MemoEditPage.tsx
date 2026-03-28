@@ -57,7 +57,7 @@ export default function MemoEditPage(): JSX.Element {
       </Show>
 
       <Show when={memoId() != null && (q.isLoading || q.isFetching)}>
-        <p data-testid="memo-edit-loading">Loading\u2026</p>
+        <p data-testid="memo-edit-loading">Loading…</p>
       </Show>
 
       <Show when={memoId() != null && !q.isLoading && !q.isFetching && q.data}>

@@ -82,7 +82,7 @@ export default function TransactionEditPage(): JSX.Element {
       </Show>
 
       <Show when={loading()}>
-        <p data-testid="transaction-edit-loading">Loading\u2026</p>
+        <p data-testid="transaction-edit-loading">Loading…</p>
       </Show>
 
       <Show when={!loading() && !isError() && transaction()}>
