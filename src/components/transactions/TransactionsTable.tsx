@@ -313,37 +313,35 @@ export default function TransactionsTable() {
 
                       {/* Center: budget category pills */}
                       <div class="flex-1 flex items-center justify-center flex-wrap gap-1.5 min-w-0">
-                        <Show when={hasDebit}>
-                          <Show
-                            when={Array.isArray(row.budget_category) && row.budget_category.length > 0}
-                            fallback={
-                              <Show when={typeof row.budget_category === 'string' && row.budget_category}>
-                                <Badge variant="outline" class="text-xs">
-                                  {String(row.budget_category)}
-                                </Badge>
-                              </Show>
-                            }
-                          >
-                            <div class="flex flex-wrap gap-1.5 items-center">
-                              <For
-                                each={
-                                  row.budget_category as {
-                                    budget_category_id: string
-                                    amount_debit: number
-                                  }[]
-                                }
-                              >
-                                {(split) => (
-                                  <span class="flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs">
-                                    <span>{split.budget_category_id}</span>
-                                    <span class="text-muted-foreground">
-                                      ${Number(split.amount_debit).toFixed(2)}
-                                    </span>
+                        <Show
+                          when={Array.isArray(row.budget_category) && row.budget_category.length > 0}
+                          fallback={
+                            <Show when={typeof row.budget_category === 'string' && row.budget_category}>
+                              <Badge variant="outline" class="text-xs">
+                                {String(row.budget_category)}
+                              </Badge>
+                            </Show>
+                          }
+                        >
+                          <div class="flex flex-wrap gap-1.5 items-center">
+                            <For
+                              each={
+                                row.budget_category as {
+                                  budget_category_id: string
+                                  amount_debit: number
+                                }[]
+                              }
+                            >
+                              {(split) => (
+                                <span class="flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs">
+                                  <span>{split.budget_category_id}</span>
+                                  <span class="text-muted-foreground">
+                                    ${Number(split.amount_debit).toFixed(2)}
                                   </span>
-                                )}
-                              </For>
-                            </div>
-                          </Show>
+                                </span>
+                              )}
+                            </For>
+                          </div>
                         </Show>
                       </div>
 
