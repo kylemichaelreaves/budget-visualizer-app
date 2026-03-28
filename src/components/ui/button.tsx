@@ -36,9 +36,10 @@ type ButtonProps = JSX.ButtonHTMLAttributes<HTMLButtonElement> &
   }
 
 function Button(props: ButtonProps) {
-  const [local, rest] = splitProps(props, ['class', 'variant', 'size'])
+  const [local, rest] = splitProps(props, ['class', 'variant', 'size', 'type'])
   return (
     <button
+      type={local.type ?? 'button'}
       data-slot="button"
       class={cn(buttonVariants({ variant: local.variant, size: local.size }), local.class)}
       {...rest}
