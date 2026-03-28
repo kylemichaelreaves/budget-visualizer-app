@@ -5,13 +5,7 @@ import BudgetCategoriesTreeSelect from '@components/transactions/selects/BudgetC
 import { generateId } from '@components/transactions/helpers/generateId'
 import { Button } from '@components/ui/button'
 import { Input } from '@components/ui/input'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from '@components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@components/ui/dialog'
 
 export default function SplitBudgetCategoryDrawer(props: {
   open: boolean
@@ -62,10 +56,7 @@ export default function SplitBudgetCategoryDrawer(props: {
 
   return (
     <Dialog open={props.open} onOpenChange={(open) => !open && props.onCancel()}>
-      <DialogContent
-        class="max-w-[520px] bg-card text-foreground"
-        aria-label="Split Budget Category Drawer"
-      >
+      <DialogContent class="max-w-[520px] bg-card text-foreground" aria-label="Split Budget Category Drawer">
         <DialogHeader>
           <DialogTitle>Split transaction</DialogTitle>
           <p class="text-sm text-muted-foreground">
@@ -79,10 +70,7 @@ export default function SplitBudgetCategoryDrawer(props: {
         <div class="space-y-3">
           <For each={local()}>
             {(split, index) => (
-              <div
-                class="grid grid-cols-[1fr_120px_40px] gap-2 items-end"
-                data-testid="split-row"
-              >
+              <div class="grid grid-cols-[1fr_120px_40px] gap-2 items-end" data-testid="split-row">
                 <BudgetCategoriesTreeSelect
                   value={split.budget_category_id}
                   onChange={(v) => updateCategory(index(), v)}

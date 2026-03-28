@@ -92,8 +92,9 @@ export default function LoanCalculator() {
       <CardHeader>
         <CardTitle>Loan Calculator</CardTitle>
         <p class="text-sm text-muted-foreground">
-          Monthly: {loanEstimate.monthlyPayment.toFixed(2)} · Interest: {loanEstimate.totalInterest.toFixed(2)}{' '}
-          · Total cost: {loanEstimate.totalCost.toFixed(2)} · Payoff: {payoffLabel()}
+          Monthly: {loanEstimate.monthlyPayment.toFixed(2)} · Interest:{' '}
+          {loanEstimate.totalInterest.toFixed(2)} · Total cost: {loanEstimate.totalCost.toFixed(2)} · Payoff:{' '}
+          {payoffLabel()}
         </p>
       </CardHeader>
       <CardContent>

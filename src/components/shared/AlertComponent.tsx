@@ -39,9 +39,7 @@ export default function AlertComponent(props: {
         )}
       </Show>
       <AlertTitle data-testid={`${id()}-title`}>{props.title}</AlertTitle>
-      <AlertDescription data-testid={`${id()}-message`}>
-        {props.message}
-      </AlertDescription>
+      <AlertDescription data-testid={`${id()}-message`}>{props.message}</AlertDescription>
     </Alert>
   )
 }

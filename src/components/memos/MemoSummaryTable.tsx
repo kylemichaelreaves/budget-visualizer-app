@@ -155,10 +155,7 @@ export default function MemoSummaryTable(): JSX.Element {
             </Show>
 
             <Show when={!txQ.isLoading && !txQ.isFetching && (txQ.data?.length ?? 0) > 0}>
-              <table
-                data-testid="memo-summary-transactions-table"
-                class="w-full border-collapse text-sm"
-              >
+              <table data-testid="memo-summary-transactions-table" class="w-full border-collapse text-sm">
                 <thead>
                   <tr class="border-b border-border">
                     <For each={txColumns}>
@@ -231,7 +228,9 @@ export default function MemoSummaryTable(): JSX.Element {
               </Button>
               <span class="text-muted-foreground text-sm">
                 Offset {txOffset()}
-                {summaryQ.data?.transactions_count != null ? ` / ${summaryQ.data.transactions_count} total` : ''}
+                {summaryQ.data?.transactions_count != null
+                  ? ` / ${summaryQ.data.transactions_count} total`
+                  : ''}
               </span>
             </div>
           </CardContent>

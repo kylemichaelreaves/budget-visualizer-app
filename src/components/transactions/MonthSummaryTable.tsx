@@ -16,9 +16,7 @@ export default function MonthSummaryTable(props: { dataTestId?: string }): JSX.E
   return (
     <Show when={transactionsState.selectedMonth}>
       <div data-testid={id()} class="my-3">
-        <h3 class="text-foreground mb-2">
-          Month summary — {transactionsState.selectedMonth}
-        </h3>
+        <h3 class="text-foreground mb-2">Month summary — {transactionsState.selectedMonth}</h3>
         <Show when={q.isError && q.error}>
           {(err) => (
             <AlertComponent
@@ -49,9 +47,7 @@ export default function MonthSummaryTable(props: { dataTestId?: string }): JSX.E
                       <MemoCell memo={row.memo} />
                     </td>
                     <td class="px-1.5 py-2">{row.budget_category}</td>
-                    <td class="px-1.5 py-2 text-right">
-                      {formatCurrency(row.total_amount_debit)}
-                    </td>
+                    <td class="px-1.5 py-2 text-right">{formatCurrency(row.total_amount_debit)}</td>
                   </tr>
                 )}
               </For>

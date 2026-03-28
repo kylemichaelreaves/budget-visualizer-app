@@ -141,19 +141,13 @@ export default function TransactionEditForm(props: {
         />
       </Field>
       <Field label="Description" test={`${tid()}-description`}>
-        <Input
-          value={tx.description}
-          onInput={(e) => setTx('description', e.currentTarget.value)}
-        />
+        <Input value={tx.description} onInput={(e) => setTx('description', e.currentTarget.value)} />
       </Field>
       <Field label="Memo" test={`${tid()}-memo`}>
         <MemoSelect value={tx.memo} onChange={(v) => setTx('memo', v)} dataTestId={`${tid()}-memo-select`} />
       </Field>
       <Field label="Balance" test={`${tid()}-balance`}>
-        <Input
-          value={tx.balance ?? ''}
-          onInput={(e) => setTx('balance', e.currentTarget.value)}
-        />
+        <Input value={tx.balance ?? ''} onInput={(e) => setTx('balance', e.currentTarget.value)} />
       </Field>
       <Field label="Check Number" test={`${tid()}-check_number`}>
         <Input
@@ -171,10 +165,7 @@ export default function TransactionEditForm(props: {
         />
       </Field>
       <Field label="Fees" test={`${tid()}-fees`}>
-        <Input
-          value={tx.fees ?? ''}
-          onInput={(e) => setTx('fees', e.currentTarget.value)}
-        />
+        <Input value={tx.fees ?? ''} onInput={(e) => setTx('fees', e.currentTarget.value)} />
       </Field>
       <Button type="button" onClick={saveTransaction} class="mt-4">
         Save

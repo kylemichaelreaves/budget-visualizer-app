@@ -22,7 +22,8 @@ export default function TimeframeToggle(props: {
             type="button"
             class="cursor-pointer rounded-md border px-3.5 py-1.5 text-sm transition-colors"
             classList={{
-              'bg-primary !text-primary-foreground border-primary font-semibold': props.value === option.value,
+              'bg-primary !text-primary-foreground border-primary font-semibold':
+                props.value === option.value,
               'bg-secondary text-muted-foreground border-border hover:bg-secondary/80 hover:text-foreground':
                 props.value !== option.value,
             }}

@@ -76,7 +76,13 @@ export default function MemosTablePagination() {
         <span class="text-foreground">
           Page {currentPage()} / {totalPages()} ({countQuery.data ?? 0} total)
         </span>
-        <Button variant="outline" size="sm" type="button" onClick={goNext} disabled={currentPage() >= totalPages()}>
+        <Button
+          variant="outline"
+          size="sm"
+          type="button"
+          onClick={goNext}
+          disabled={currentPage() >= totalPages()}
+        >
           Next
         </Button>
       </div>

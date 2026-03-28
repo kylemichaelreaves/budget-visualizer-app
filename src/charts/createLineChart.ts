@@ -45,13 +45,11 @@ export function createLineChart(
   // --- Theme colors ---
   const styles = getComputedStyle(svgElement)
   const textColor = styles.getPropertyValue('color').trim() || '#a1a1aa'
-  const gridColor =
-    styles.getPropertyValue('--border').trim() || 'rgba(255,255,255,0.1)'
+  const gridColor = styles.getPropertyValue('--border').trim() || 'rgba(255,255,255,0.1)'
   const lineColor = '#ef4444' // red-500
   const dotColor = '#ef4444'
   const tooltipBg = styles.getPropertyValue('--popover').trim() || '#1c1c1c'
-  const tooltipFg =
-    styles.getPropertyValue('--popover-foreground').trim() || '#fafafa'
+  const tooltipFg = styles.getPropertyValue('--popover-foreground').trim() || '#fafafa'
 
   // --- Dimensions ---
   const margin = { top: 8, right: 8, bottom: 20, left: 40 }
@@ -108,7 +106,13 @@ export function createLineChart(
   svg
     .append('g')
     .attr('class', 'grid-y')
-    .call(d3.axisLeft(y).ticks(6).tickSize(-width).tickFormat(() => ''))
+    .call(
+      d3
+        .axisLeft(y)
+        .ticks(6)
+        .tickSize(-width)
+        .tickFormat(() => ''),
+    )
     .selectAll('line')
     .style('stroke', gridColor)
     .style('stroke-dasharray', '3 3')
@@ -205,14 +209,8 @@ export function createLineChart(
       tooltip
         .html(`<strong>${fmtShortDate(d.date)}</strong><br/>${fmtMoneyFull(d.total_debit)}`)
         .style('opacity', '1')
-        .style(
-          'left',
-          `${x(d.date) + margin.left + svgRect.left - parentRect.left - 40}px`,
-        )
-        .style(
-          'top',
-          `${y(d.total_debit) + margin.top + svgRect.top - parentRect.top - 48}px`,
-        )
+        .style('left', `${x(d.date) + margin.left + svgRect.left - parentRect.left - 40}px`)
+        .style('top', `${y(d.total_debit) + margin.top + svgRect.top - parentRect.top - 48}px`)
     })
     .on('mouseleave', function () {
       d3.select(this).transition().duration(150).attr('r', 4)

@@ -36,7 +36,9 @@ function DialogOverlay(props: DialogOverlayProps) {
   )
 }
 
-type DialogContentProps = ParentProps<{ class?: string } & Omit<DialogPrimitive.DialogContentProps, 'children'>>
+type DialogContentProps = ParentProps<
+  { class?: string } & Omit<DialogPrimitive.DialogContentProps, 'children'>
+>
 
 function DialogContent(props: DialogContentProps) {
   const [local, rest] = splitProps(props, ['class', 'children'])
@@ -53,7 +55,17 @@ function DialogContent(props: DialogContentProps) {
       >
         {local.children}
         <DialogPrimitive.CloseButton class="ring-offset-background focus:ring-ring data-[expanded]:bg-accent data-[expanded]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
             <path d="M18 6 6 18" />
             <path d="m6 6 12 12" />
           </svg>

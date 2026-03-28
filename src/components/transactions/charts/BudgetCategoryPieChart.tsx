@@ -74,12 +74,7 @@ export default function BudgetCategoryPieChart(props: {
     const onSliceClick = props.onSliceClick
     const tooltip = tooltipRef
 
-    const arcG = g
-      .selectAll('.arc')
-      .data(pie(parents))
-      .enter()
-      .append('g')
-      .attr('class', 'arc')
+    const arcG = g.selectAll('.arc').data(pie(parents)).enter().append('g').attr('class', 'arc')
 
     arcG
       .append('path')
@@ -132,40 +127,38 @@ export default function BudgetCategoryPieChart(props: {
   return (
     <div data-testid={props.dataTestId} class="relative">
       {props.isLoading ? (
-        <div class="flex h-[280px] items-center justify-center text-muted-foreground">
-          Loading chart…
-        </div>
+        <div class="flex h-[280px] items-center justify-center text-muted-foreground">Loading chart…</div>
       ) : null}
-      <svg
-        ref={(el) => (svgRef = el)}
-        class="text-foreground"
-        data-testid={`${props.dataTestId}-chart`}
-      />
+      <svg ref={(el) => (svgRef = el)} class="text-foreground" data-testid={`${props.dataTestId}-chart`} />
       <div
         ref={(el) => (tooltipRef = el)}
         class="pointer-events-none absolute z-50 rounded-md border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-lg opacity-0 transition-opacity"
       />
       <Show when={props.showLegend !== false}>
-      <div data-testid={`${props.dataTestId}-legend`} class="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1">
-        <For each={legendParents()}>
-          {(item) => (
-            <div
-              class="flex items-center gap-1.5"
-              data-testid={`${props.dataTestId}-legend-item-${item.category_id}`}
-            >
-              <span
-                class="size-2.5 rounded-full shrink-0"
-                style={{
-                  background: buildBudgetCategoryColorMap(props.data).get(String(item.category_id)) || '#6b7280',
-                }}
-              />
-              <span class="text-xs text-muted-foreground">
-                {item.category_name} ({formatCurrency(Math.abs(item.total_amount_debit))})
-              </span>
-            </div>
-          )}
-        </For>
-      </div>
+        <div
+          data-testid={`${props.dataTestId}-legend`}
+          class="mt-2 flex flex-wrap justify-center gap-x-4 gap-y-1"
+        >
+          <For each={legendParents()}>
+            {(item) => (
+              <div
+                class="flex items-center gap-1.5"
+                data-testid={`${props.dataTestId}-legend-item-${item.category_id}`}
+              >
+                <span
+                  class="size-2.5 rounded-full shrink-0"
+                  style={{
+                    background:
+                      buildBudgetCategoryColorMap(props.data).get(String(item.category_id)) || '#6b7280',
+                  }}
+                />
+                <span class="text-xs text-muted-foreground">
+                  {item.category_name} ({formatCurrency(Math.abs(item.total_amount_debit))})
+                </span>
+              </div>
+            )}
+          </For>
+        </div>
       </Show>
     </div>
   )

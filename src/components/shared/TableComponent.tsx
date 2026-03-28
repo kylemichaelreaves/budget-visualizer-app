@@ -1,14 +1,7 @@
 import { A } from '@solidjs/router'
 import type { JSX } from 'solid-js'
 import { createMemo, createSignal, For, Show } from 'solid-js'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@components/ui/table'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@components/ui/table'
 import { Button } from '@components/ui/button'
 
 export type TableColumn = {
@@ -70,10 +63,7 @@ export default function TableComponent(props: {
   }
 
   return (
-    <div
-      class={props.isFetching ? 'opacity-50 pointer-events-none' : ''}
-      data-testid={props.dataTestId}
-    >
+    <div class={props.isFetching ? 'opacity-50 pointer-events-none' : ''} data-testid={props.dataTestId}>
       <Show when={props.tableData?.length}>
         <Table>
           <TableHeader>
@@ -81,7 +71,9 @@ export default function TableComponent(props: {
               <For each={props.columns}>
                 {(column) => (
                   <TableHead
-                    class={sortable().includes(column.prop) ? 'cursor-pointer select-none hover:text-primary' : ''}
+                    class={
+                      sortable().includes(column.prop) ? 'cursor-pointer select-none hover:text-primary' : ''
+                    }
                     onClick={() => toggleSort(column.prop)}
                   >
                     {column.label}

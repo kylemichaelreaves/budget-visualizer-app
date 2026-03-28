@@ -96,10 +96,7 @@ export default function BudgetCategoriesTreeSelect(props: {
       </Show>
 
       <Show when={q.isLoading || q.isFetching}>
-        <p
-          data-testid={`${tid()}-loading`}
-          class="mt-1 mb-0 text-muted-foreground text-xs"
-        >
+        <p data-testid={`${tid()}-loading`} class="mt-1 mb-0 text-muted-foreground text-xs">
           Loading categories...
         </p>
       </Show>

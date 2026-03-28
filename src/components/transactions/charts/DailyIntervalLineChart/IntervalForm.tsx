@@ -76,11 +76,11 @@ export default function IntervalForm(props: {
             }}
             class="h-7 rounded-md border border-input bg-input-background px-2 text-xs text-foreground outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
           >
-          <option value="days">{numberInput() === 1 ? 'Day' : 'Days'}</option>
-          <option value="weeks">{numberInput() === 1 ? 'Week' : 'Weeks'}</option>
-          <option value="months">{numberInput() === 1 ? 'Month' : 'Months'}</option>
-          <option value="years">{numberInput() === 1 ? 'Year' : 'Years'}</option>
-        </select>
+            <option value="days">{numberInput() === 1 ? 'Day' : 'Days'}</option>
+            <option value="weeks">{numberInput() === 1 ? 'Week' : 'Weeks'}</option>
+            <option value="months">{numberInput() === 1 ? 'Month' : 'Months'}</option>
+            <option value="years">{numberInput() === 1 ? 'Year' : 'Years'}</option>
+          </select>
         </Label>
       </div>
     </div>

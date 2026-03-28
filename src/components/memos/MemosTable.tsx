@@ -109,18 +109,12 @@ export default function MemosTable(): JSX.Element {
       </Show>
 
       <Show when={!isLoadingCondition() && paginatedData().length > 0}>
-        <table
-          data-testid="memos-table"
-          class="w-full border-collapse text-foreground text-sm"
-        >
+        <table data-testid="memos-table" class="w-full border-collapse text-foreground text-sm">
           <thead>
             <tr class="border-b border-border">
               <For each={columns}>
                 {(col) => (
-                  <th
-                    class="px-1.5 py-2 text-left"
-                    data-testid={`column-${String(col.prop)}`}
-                  >
+                  <th class="px-1.5 py-2 text-left" data-testid={`column-${String(col.prop)}`}>
                     {col.label}
                   </th>
                 )}

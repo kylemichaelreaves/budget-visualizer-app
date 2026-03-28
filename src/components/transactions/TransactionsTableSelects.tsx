@@ -192,10 +192,7 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
   const selectClasses = 'p-2 rounded border border-input bg-background text-foreground'
 
   return (
-    <section
-      data-testid={tid()}
-      class="p-3 mb-3 bg-card rounded-lg text-foreground"
-    >
+    <section data-testid={tid()} class="p-3 mb-3 bg-card rounded-lg text-foreground">
       <div class="flex flex-wrap gap-3 items-end">
         <label class="flex flex-col gap-1 text-muted-foreground text-xs min-w-[120px] flex-[1_1_140px]">
           Year
@@ -288,7 +285,13 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
               placeholder="Memo id or name"
               class="flex-1"
             />
-            <Button variant="outline" size="sm" type="button" data-testid={`${tid()}-memo-apply`} onClick={applyMemo}>
+            <Button
+              variant="outline"
+              size="sm"
+              type="button"
+              data-testid={`${tid()}-memo-apply`}
+              onClick={applyMemo}
+            >
               Apply
             </Button>
           </div>
@@ -313,10 +316,7 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
       </Show>
 
       <Show when={transactionsState.selectedDay}>
-        <div
-          data-testid={`${tid()}-day-summary`}
-          class="mt-4 p-3 bg-card rounded-md"
-        >
+        <div data-testid={`${tid()}-day-summary`} class="mt-4 p-3 bg-card rounded-md">
           <h3 class="mb-2 text-base">Day summary</h3>
           <Show when={daySummaryQ.isLoading}>
             <p class="text-muted-foreground">Loading...</p>
@@ -337,9 +337,7 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
                   {(row) => (
                     <tr class="border-b border-border">
                       <td class="p-1.5">{row.memo}</td>
-                      <td class="p-1.5 text-right">
-                        {(row.daily_amount_debit ?? 0).toFixed(2)}
-                      </td>
+                      <td class="p-1.5 text-right">{(row.daily_amount_debit ?? 0).toFixed(2)}</td>
                     </tr>
                   )}
                 </For>

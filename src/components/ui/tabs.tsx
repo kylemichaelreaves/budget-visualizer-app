@@ -6,9 +6,7 @@ type TabsProps = TabsPrimitive.TabsRootProps & { class?: string }
 
 function Tabs(props: TabsProps) {
   const [local, rest] = splitProps(props, ['class'])
-  return (
-    <TabsPrimitive.Root data-slot="tabs" class={cn('flex flex-col gap-2', local.class)} {...rest} />
-  )
+  return <TabsPrimitive.Root data-slot="tabs" class={cn('flex flex-col gap-2', local.class)} {...rest} />
 }
 
 type TabsListProps = TabsPrimitive.TabsListProps & { class?: string }
@@ -48,7 +46,11 @@ type TabsContentProps = TabsPrimitive.TabsContentProps & { class?: string }
 function TabsContent(props: TabsContentProps) {
   const [local, rest] = splitProps(props, ['class'])
   return (
-    <TabsPrimitive.Content data-slot="tabs-content" class={cn('flex-1 outline-none', local.class)} {...rest} />
+    <TabsPrimitive.Content
+      data-slot="tabs-content"
+      class={cn('flex-1 outline-none', local.class)}
+      {...rest}
+    />
   )
 }
 

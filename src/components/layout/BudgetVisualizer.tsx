@@ -43,10 +43,7 @@ export default function BudgetVisualizer(props: { children?: JSX.Element }) {
       </Dialog>
 
       <div class="flex gap-4 items-start">
-        <nav
-          class="flex flex-col gap-1 min-w-[160px]"
-          aria-label="Budget visualizer sections"
-        >
+        <nav class="flex flex-col gap-1 min-w-[160px]" aria-label="Budget visualizer sections">
           <For each={menuItems}>
             {(item) => (
               <A

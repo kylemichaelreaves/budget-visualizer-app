@@ -42,10 +42,7 @@ function TreeNode(props: { node: CategoryNode; depth: number }): JSX.Element {
     >
       <div class="flex flex-wrap gap-2.5 items-baseline">
         <span class="text-foreground font-semibold">{props.node.label}</span>
-        <code
-          class="text-xs text-muted-foreground break-all"
-          data-testid="budget-category-path"
-        >
+        <code class="text-xs text-muted-foreground break-all" data-testid="budget-category-path">
           {props.node.value}
         </code>
       </div>

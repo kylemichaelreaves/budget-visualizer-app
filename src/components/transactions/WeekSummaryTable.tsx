@@ -16,9 +16,7 @@ export default function WeekSummaryTable(props: { dataTestId?: string }): JSX.El
   return (
     <Show when={transactionsState.selectedWeek}>
       <div data-testid={id()} class="my-3">
-        <h3 class="text-foreground mb-2">
-          Week summary — {transactionsState.selectedWeek}
-        </h3>
+        <h3 class="text-foreground mb-2">Week summary — {transactionsState.selectedWeek}</h3>
         <Show when={q.isError && q.error}>
           {(err) => (
             <AlertComponent
@@ -49,9 +47,7 @@ export default function WeekSummaryTable(props: { dataTestId?: string }): JSX.El
                       <MemoCell memo={row.memo} />
                     </td>
                     <td class="px-1.5 py-2">{row.budget_category ?? '—'}</td>
-                    <td class="px-1.5 py-2 text-right">
-                      {formatCurrency(row.weekly_amount_debit)}
-                    </td>
+                    <td class="px-1.5 py-2 text-right">{formatCurrency(row.weekly_amount_debit)}</td>
                   </tr>
                 )}
               </For>

@@ -45,10 +45,7 @@ export default function BudgetCategorySummaries(props: {
 
   return (
     <Show when={enabled()}>
-      <div
-        data-testid={id()}
-        class="grid gap-5 my-3 grid-cols-[repeat(auto-fit,minmax(280px,1fr))]"
-      >
+      <div data-testid={id()} class="grid gap-5 my-3 grid-cols-[repeat(auto-fit,minmax(280px,1fr))]">
         <Show when={summaryQuery.isError && summaryQuery.error}>
           {(err) => (
             <AlertComponent
@@ -71,9 +68,7 @@ export default function BudgetCategorySummaries(props: {
           }}
         />
         <div class="min-w-0">
-          <p class="text-foreground text-center mb-2 text-sm">
-            Historical — {selectedCategory() || '—'}
-          </p>
+          <p class="text-foreground text-center mb-2 text-sm">Historical — {selectedCategory() || '—'}</p>
           <Show when={historicalQuery.isError && historicalQuery.error}>
             {(err) => (
               <AlertComponent

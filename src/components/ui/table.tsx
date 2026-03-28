@@ -73,7 +73,11 @@ function TableCell(props: JSX.TdHTMLAttributes<HTMLTableCellElement> & { class?:
 function TableCaption(props: JSX.HTMLAttributes<HTMLTableCaptionElement> & { class?: string }) {
   const [local, rest] = splitProps(props, ['class'])
   return (
-    <caption data-slot="table-caption" class={cn('text-muted-foreground mt-4 text-sm', local.class)} {...rest} />
+    <caption
+      data-slot="table-caption"
+      class={cn('text-muted-foreground mt-4 text-sm', local.class)}
+      {...rest}
+    />
   )
 }
 

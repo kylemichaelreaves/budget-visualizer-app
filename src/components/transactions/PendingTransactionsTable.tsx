@@ -166,10 +166,7 @@ export default function PendingTransactionsTable(): JSX.Element {
       </header>
 
       {modalOpen() && editTxn() ? (
-        <dialog
-          open
-          class="border border-input p-4 bg-card text-foreground w-[min(90vw,640px)]"
-        >
+        <dialog open class="border border-input p-4 bg-card text-foreground w-[min(90vw,640px)]">
           <TransactionEditForm
             transaction={editTxn()!}
             isPending
@@ -209,10 +206,7 @@ export default function PendingTransactionsTable(): JSX.Element {
                   <tr onContextMenu={() => openModal(row)}>
                     <For each={transactionColumns}>
                       {(col) => (
-                        <td
-                          class="border border-border p-1.5"
-                          data-testid={`column-${col.prop}`}
-                        >
+                        <td class="border border-border p-1.5" data-testid={`column-${col.prop}`}>
                           <Cell row={row} prop={col.prop} />
                         </td>
                       )}

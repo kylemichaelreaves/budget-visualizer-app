@@ -67,7 +67,13 @@ export default function BudgetCategoryFormField(props: {
           {splits().length} categor{splits().length === 1 ? 'y' : 'ies'}
           {validationError() ? ` · ${validationError()}` : ''}
         </div>
-        <Button variant="outline" size="sm" type="button" data-testid={`${id()}-edit-splits-button`} onClick={() => setDrawerOpen(true)}>
+        <Button
+          variant="outline"
+          size="sm"
+          type="button"
+          data-testid={`${id()}-edit-splits-button`}
+          onClick={() => setDrawerOpen(true)}
+        >
           {splits().length ? 'Edit splits' : 'Configure splits'}
         </Button>
       </Show>
