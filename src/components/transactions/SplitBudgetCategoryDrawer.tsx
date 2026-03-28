@@ -5,7 +5,7 @@ import BudgetCategoriesTreeSelect from '@components/transactions/selects/BudgetC
 import { generateId } from '@components/transactions/helpers/generateId'
 import { Button } from '@components/ui/button'
 import { Input } from '@components/ui/input'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@components/ui/dialog'
 
 export default function SplitBudgetCategoryDrawer(props: {
   open: boolean
@@ -185,19 +185,19 @@ export default function SplitBudgetCategoryDrawer(props: {
           </Show>
         </div>
 
-        <DialogFooter class="flex flex-col gap-2 border-t pt-4">
-          <Button onClick={() => props.onSubmit(local())} class="w-full" disabled={!isValid()}>
-            Save splits
+        <div class="flex gap-2 border-t pt-4">
+          <Button variant="outline" class="flex-1" onClick={() => props.onCancel()}>
+            Cancel
           </Button>
           <Show when={props.onClear && props.splits.length > 0}>
-            <Button variant="outline" class="w-full" onClick={() => props.onClear?.()}>
+            <Button variant="outline" class="flex-1" onClick={() => props.onClear?.()}>
               Clear splits
             </Button>
           </Show>
-          <Button variant="outline" class="w-full" onClick={() => props.onCancel()}>
-            Cancel
+          <Button class="flex-1" onClick={() => props.onSubmit(local())} disabled={!isValid()}>
+            Save splits
           </Button>
-        </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   )
