@@ -17,10 +17,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 import { Badge } from '@components/ui/badge'
 import { Skeleton } from '@components/ui/skeleton'
 
+const currencyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
+
 function formatCurrency(value: unknown): string {
   const num = Number(value)
   if (!Number.isFinite(num) || value == null || value === '') return ''
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(num)
+  return currencyFormatter.format(num)
 }
 
 export default function TransactionsTable() {

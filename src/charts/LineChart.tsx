@@ -35,7 +35,7 @@ export default function LineChart(props: {
   })
 
   return (
-    <div ref={(el) => (wrapperEl = el)} class="relative w-full overflow-hidden text-foreground">
+    <div ref={(el) => (wrapperEl = el)} class="relative w-full text-foreground">
       <svg
         ref={(el) => {
           svgEl = el
