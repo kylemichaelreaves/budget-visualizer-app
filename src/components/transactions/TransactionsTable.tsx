@@ -19,7 +19,7 @@ import { Skeleton } from '@components/ui/skeleton'
 
 function formatCurrency(value: unknown): string {
   const num = Number(value)
-  if (Number.isNaN(num) || value == null || value === '') return ''
+  if (!Number.isFinite(num) || value == null || value === '') return ''
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(num)
 }
 
@@ -225,7 +225,9 @@ export default function TransactionsTable() {
                 {(row) => {
                   const debit = Number(row.amount_debit)
                   const credit = Number(row.amount_credit)
-                  const isCredit = credit > 0 && (Number.isNaN(debit) || debit === 0)
+                  const hasDebit = Number.isFinite(debit) && debit !== 0
+                  const hasCredit = Number.isFinite(credit) && credit !== 0
+                  const isCredit = hasCredit && !hasDebit
 
                   return (
                     <div
@@ -315,10 +317,10 @@ export default function TransactionsTable() {
                       </div>
 
                       <div class="flex items-center gap-4 shrink-0">
-                        <Show when={row.amount_debit != null && Number(row.amount_debit) !== 0}>
+                        <Show when={hasDebit}>
                           <span class="font-semibold text-red-500">{formatCurrency(row.amount_debit)}</span>
                         </Show>
-                        <Show when={row.amount_credit != null && Number(row.amount_credit) !== 0}>
+                        <Show when={hasCredit}>
                           <span class="font-semibold text-green-500">
                             +{formatCurrency(row.amount_credit)}
                           </span>

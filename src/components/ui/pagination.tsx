@@ -30,7 +30,7 @@ function PaginationItem(props: JSX.LiHTMLAttributes<HTMLLIElement>) {
   return <li data-slot="pagination-item" {...props} />
 }
 
-type PaginationLinkProps = JSX.AnchorHTMLAttributes<HTMLAnchorElement> & {
+type PaginationLinkProps = JSX.ButtonHTMLAttributes<HTMLButtonElement> & {
   class?: string
   isActive?: boolean
   size?: 'default' | 'sm' | 'lg' | 'icon'
@@ -39,7 +39,8 @@ type PaginationLinkProps = JSX.AnchorHTMLAttributes<HTMLAnchorElement> & {
 function PaginationLink(props: PaginationLinkProps) {
   const [local, rest] = splitProps(props, ['class', 'isActive', 'size'])
   return (
-    <a
+    <button
+      type="button"
       aria-current={local.isActive ? 'page' : undefined}
       data-slot="pagination-link"
       data-active={local.isActive}
