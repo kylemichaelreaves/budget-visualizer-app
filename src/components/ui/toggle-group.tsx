@@ -31,17 +31,31 @@ const ToggleGroupContext = createContext<ToggleGroupContextValue>({
   variant: 'default',
 })
 
-type ToggleGroupProps = ParentProps<{
+type ToggleGroupSingleProps = ParentProps<{
+  class?: string
+  variant?: VariantProps<typeof toggleVariants>['variant']
+  size?: VariantProps<typeof toggleVariants>['size']
+  value?: string | null
+  defaultValue?: string
+  onChange?: (value: string | null) => void
+  multiple?: false
+  orientation?: 'horizontal' | 'vertical'
+  disabled?: boolean
+}>
+
+type ToggleGroupMultipleProps = ParentProps<{
   class?: string
   variant?: VariantProps<typeof toggleVariants>['variant']
   size?: VariantProps<typeof toggleVariants>['size']
   value?: string[]
   defaultValue?: string[]
   onChange?: (value: string[]) => void
-  multiple?: true
+  multiple: true
   orientation?: 'horizontal' | 'vertical'
   disabled?: boolean
 }>
+
+type ToggleGroupProps = ToggleGroupSingleProps | ToggleGroupMultipleProps
 
 function ToggleGroup(props: ToggleGroupProps) {
   const [local, rest] = splitProps(props, ['class', 'variant', 'size', 'children'])
@@ -54,7 +68,6 @@ function ToggleGroup(props: ToggleGroupProps) {
         'group/toggle-group flex w-fit items-center rounded-md data-[variant=outline]:shadow-xs',
         local.class,
       )}
-      multiple
       {...rest}
     >
       <ToggleGroupContext.Provider value={{ variant: local.variant, size: local.size }}>

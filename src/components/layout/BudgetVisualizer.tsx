@@ -50,8 +50,8 @@ export default function BudgetVisualizer(props: { children?: JSX.Element }) {
                 href={item.path}
                 class={
                   loc.pathname === item.path
-                    ? 'px-3 py-2.5 rounded-md no-underline bg-[#5dade2] [color:#fff]'
-                    : 'px-3 py-2.5 rounded-md no-underline [color:var(--foreground)] hover:bg-accent'
+                    ? 'px-3 py-2.5 rounded-md no-underline bg-brand text-brand-foreground'
+                    : 'px-3 py-2.5 rounded-md no-underline text-foreground hover:bg-accent'
                 }
               >
                 {item.title}

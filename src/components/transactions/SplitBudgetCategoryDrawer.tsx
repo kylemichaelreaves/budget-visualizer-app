@@ -56,7 +56,7 @@ export default function SplitBudgetCategoryDrawer(props: {
 
   return (
     <Dialog open={props.open} onOpenChange={(open) => !open && props.onCancel()}>
-      <DialogContent class="max-w-[520px] bg-card text-foreground" aria-label="Split Budget Category Drawer">
+      <DialogContent class="max-w-[520px] bg-card text-foreground">
         <DialogHeader>
           <DialogTitle>Split transaction</DialogTitle>
           <p class="text-sm text-muted-foreground">
