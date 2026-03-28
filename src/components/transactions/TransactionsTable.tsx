@@ -233,10 +233,11 @@ export default function TransactionsTable() {
 
                   return (
                     <li
-                      class="flex items-center justify-between rounded-lg border border-border p-4 transition-colors hover:bg-accent/50"
+                      class="flex items-start justify-between gap-4 rounded-lg border border-border p-4 transition-colors hover:bg-accent/50"
                       onContextMenu={() => devConsole('log', 'context menu', row.id)}
                     >
-                      <div class="flex items-center gap-4 min-w-0">
+                      {/* Left: icon + description */}
+                      <div class="flex items-center gap-4 min-w-0 shrink-0">
                         <div
                           class={`flex size-10 shrink-0 items-center justify-center rounded-full ${
                             isCredit ? 'bg-green-950' : 'bg-red-950'
@@ -306,19 +307,48 @@ export default function TransactionsTable() {
                               {' · '}
                             </Show>
                             {formatDate(String(row.date))}
-                            <Show when={row.budget_category}>
-                              {' · '}
-                              <Badge variant="outline" class="ml-1 text-xs">
-                                {Array.isArray(row.budget_category)
-                                  ? `Split (${row.budget_category.length})`
-                                  : String(row.budget_category)}
-                              </Badge>
-                            </Show>
                           </p>
                         </div>
                       </div>
 
-                      <div class="flex items-center gap-4 shrink-0">
+                      {/* Center: budget category pills */}
+                      <div class="flex-1 flex items-center justify-center flex-wrap gap-1.5 min-w-0">
+                        <Show when={hasDebit}>
+                          <Show
+                            when={Array.isArray(row.budget_category) && row.budget_category.length > 0}
+                            fallback={
+                              <Show when={typeof row.budget_category === 'string' && row.budget_category}>
+                                <Badge variant="outline" class="text-xs">
+                                  {String(row.budget_category)}
+                                </Badge>
+                              </Show>
+                            }
+                          >
+                            <div class="flex flex-wrap gap-1.5 items-center">
+                              <For
+                                each={
+                                  row.budget_category as {
+                                    budget_category_id: string
+                                    amount_debit: number
+                                  }[]
+                                }
+                              >
+                                {(split) => (
+                                  <span class="flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs">
+                                    <span>{split.budget_category_id}</span>
+                                    <span class="text-muted-foreground">
+                                      ${Number(split.amount_debit).toFixed(2)}
+                                    </span>
+                                  </span>
+                                )}
+                              </For>
+                            </div>
+                          </Show>
+                        </Show>
+                      </div>
+
+                      {/* Right: amount */}
+                      <div class="flex items-center gap-3 shrink-0">
                         <Show when={hasDebit}>
                           <span class="font-semibold text-red-500">{formatCurrency(row.amount_debit)}</span>
                         </Show>
