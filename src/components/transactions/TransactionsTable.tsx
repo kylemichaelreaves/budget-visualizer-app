@@ -1,6 +1,6 @@
 import { A } from '@solidjs/router'
 import { DateTime } from 'luxon'
-import { createEffect, createMemo, createSignal, For, on, Show } from 'solid-js'
+import { createEffect, createMemo, For, on, Show } from 'solid-js'
 import { formatDate } from '@api/helpers/formatDate'
 import useTransactions from '@api/hooks/transactions/useTransactions'
 import AlertComponent from '@components/shared/AlertComponent'
@@ -10,9 +10,7 @@ import MonthSummaryTable from '@components/transactions/MonthSummaryTable'
 import TransactionsTablePagination from '@components/transactions/TransactionsTablePagination'
 import TransactionsTableSelects from '@components/transactions/TransactionsTableSelects'
 import WeekSummaryTable from '@components/transactions/WeekSummaryTable'
-import SplitBudgetCategoryDrawer from '@components/transactions/SplitBudgetCategoryDrawer'
 import { clearTransactionsByOffset, transactionsState } from '@stores/transactionsStore'
-import type { Transaction } from '@types'
 import { Timeframe } from '@types'
 import { devConsole } from '@utils/devConsole'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
@@ -29,7 +27,6 @@ function formatCurrency(value: unknown): string {
 
 export default function TransactionsTable() {
   const query = useTransactions()
-  const [splitTarget, setSplitTarget] = createSignal<Transaction | null>(null)
 
   const isPaginationDisabled = () =>
     Boolean(
@@ -323,10 +320,9 @@ export default function TransactionsTable() {
                               <Show
                                 when={typeof row.budget_category === 'string' && row.budget_category}
                                 fallback={
-                                  <button
-                                    type="button"
-                                    class="flex items-center gap-1.5 text-xs text-muted-foreground border border-dashed rounded-full px-3 py-1 hover:border-brand hover:text-brand transition-colors cursor-pointer"
-                                    onClick={() => setSplitTarget(row as unknown as Transaction)}
+                                  <A
+                                    href={`/budget-visualizer/transactions/${row.id}/edit`}
+                                    class="flex items-center gap-1.5 text-xs text-muted-foreground border border-dashed rounded-full px-3 py-1 hover:border-brand hover:text-brand transition-colors no-underline"
                                   >
                                     <svg
                                       class="size-3"
@@ -341,22 +337,24 @@ export default function TransactionsTable() {
                                       <line x1="7" y1="7" x2="7.01" y2="7" />
                                     </svg>
                                     Assign category
-                                  </button>
+                                  </A>
                                 }
                               >
-                                <button
-                                  type="button"
-                                  class="cursor-pointer"
-                                  onClick={() => setSplitTarget(row as unknown as Transaction)}
+                                <A
+                                  href={`/budget-visualizer/transactions/${row.id}/edit`}
+                                  class="no-underline"
                                 >
                                   <Badge variant="outline" class="text-xs hover:bg-accent transition-colors">
                                     {String(row.budget_category)}
                                   </Badge>
-                                </button>
+                                </A>
                               </Show>
                             }
                           >
-                            <div class="flex flex-wrap gap-1.5 items-center">
+                            <A
+                              href={`/budget-visualizer/transactions/${row.id}/edit`}
+                              class="flex flex-wrap gap-1.5 items-center no-underline"
+                            >
                               <For
                                 each={
                                   row.budget_category as {
@@ -366,19 +364,15 @@ export default function TransactionsTable() {
                                 }
                               >
                                 {(split) => (
-                                  <button
-                                    type="button"
-                                    class="flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs hover:bg-accent transition-colors cursor-pointer"
-                                    onClick={() => setSplitTarget(row as unknown as Transaction)}
-                                  >
+                                  <span class="flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs hover:bg-accent transition-colors">
                                     <span>{split.budget_category_id}</span>
                                     <span class="text-muted-foreground">
                                       ${Number(split.amount_debit).toFixed(2)}
                                     </span>
-                                  </button>
+                                  </span>
                                 )}
                               </For>
-                            </div>
+                            </A>
                           </Show>
                         </Show>
                       </div>
@@ -414,35 +408,6 @@ export default function TransactionsTable() {
 
       <Show when={!isPaginationDisabled()}>
         <TransactionsTablePagination />
-      </Show>
-
-      <Show when={splitTarget()}>
-        {(target) => (
-          <SplitBudgetCategoryDrawer
-            open={!!splitTarget()}
-            splits={
-              Array.isArray(target().budget_category)
-                ? (target().budget_category as {
-                    id: string
-                    budget_category_id: string
-                    amount_debit: number
-                  }[])
-                : []
-            }
-            transactionAmount={Math.abs(Number(target().amount_debit) || Number(target().amount_credit) || 0)}
-            transactionDescription={target().description}
-            transactionDate={formatDate(String(target().date))}
-            transactionCategory={
-              typeof target().budget_category === 'string' ? (target().budget_category as string) : undefined
-            }
-            onSubmit={(splits) => {
-              // TODO: call mutation to persist splits to the backend, then invalidate transactions query
-              devConsole('log', 'Split submitted for transaction', target().id, splits)
-              setSplitTarget(null)
-            }}
-            onCancel={() => setSplitTarget(null)}
-          />
-        )}
       </Show>
     </div>
   )

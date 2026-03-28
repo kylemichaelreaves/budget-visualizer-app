@@ -8,7 +8,7 @@ const borderColorMap: Record<AlertType, string> = {
   success: 'border-l-4 border-l-green-500',
   warning: 'border-l-4 border-l-yellow-500',
   info: 'border-l-4 border-l-blue-500',
-  error: '',
+  error: 'border-l-4 border-l-destructive',
 }
 
 export default function AlertComponent(props: {

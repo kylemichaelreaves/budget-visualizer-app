@@ -1,6 +1,18 @@
 import type { DailyInterval, LineChartDataPoint, SummaryTypeBase } from '@types'
 import * as d3 from 'd3'
 
+const moneyFormatter = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+  minimumFractionDigits: 0,
+  maximumFractionDigits: 0,
+})
+
+const moneyFormatterFull = new Intl.NumberFormat('en-US', {
+  style: 'currency',
+  currency: 'USD',
+})
+
 export function createLineChart(
   el: SVGSVGElement,
   summaries: (SummaryTypeBase | DailyInterval)[],
@@ -73,15 +85,8 @@ export function createLineChart(
 
   // --- Axes ---
   const fmtShortDate = d3.utcFormat('%b %d')
-  const fmtMoney = (n: number) =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(n)
-  const fmtMoneyFull = (n: number) =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
+  const fmtMoney = (n: number) => moneyFormatter.format(n)
+  const fmtMoneyFull = (n: number) => moneyFormatterFull.format(n)
 
   const xAxis = d3
     .axisBottom(x)

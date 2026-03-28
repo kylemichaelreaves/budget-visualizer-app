@@ -37,10 +37,11 @@ type PaginationLinkProps = JSX.ButtonHTMLAttributes<HTMLButtonElement> & {
 }
 
 function PaginationLink(props: PaginationLinkProps) {
-  const [local, rest] = splitProps(props, ['class', 'isActive', 'size'])
+  const [local, rest] = splitProps(props, ['class', 'isActive', 'size', 'type'])
   return (
     <button
-      type="button"
+      {...rest}
+      type={local.type ?? 'button'}
       aria-current={local.isActive ? 'page' : undefined}
       data-slot="pagination-link"
       data-active={local.isActive}
@@ -51,7 +52,6 @@ function PaginationLink(props: PaginationLinkProps) {
         }),
         local.class,
       )}
-      {...rest}
     />
   )
 }
