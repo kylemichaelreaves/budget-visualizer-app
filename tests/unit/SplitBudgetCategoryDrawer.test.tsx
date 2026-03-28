@@ -65,15 +65,15 @@ describe('SplitBudgetCategoryDrawer', () => {
       { id: '1', budget_category_id: 'Food', amount_debit: 50 },
       { id: '2', budget_category_id: 'Gas', amount_debit: 50 },
     ]
-    const { container } = renderDrawer({ splits })
-    const rows = container.querySelectorAll('[data-testid="split-row"]')
+    renderDrawer({ splits })
+    const rows = document.body.querySelectorAll('[data-testid="split-row"]')
     expect(rows.length).toBe(2)
   })
 
   it('adds a split row when Add split is clicked', () => {
-    const { container } = renderDrawer()
+    renderDrawer()
     fireEvent.click(screen.getByRole('button', { name: /add split/i }))
-    const rows = container.querySelectorAll('[data-testid="split-row"]')
+    const rows = document.body.querySelectorAll('[data-testid="split-row"]')
     expect(rows.length).toBe(1)
   })
 
@@ -82,10 +82,10 @@ describe('SplitBudgetCategoryDrawer', () => {
       { id: '1', budget_category_id: 'Food', amount_debit: 50 },
       { id: '2', budget_category_id: 'Gas', amount_debit: 50 },
     ]
-    const { container } = renderDrawer({ splits })
-    const removeBtn = container.querySelector('[data-testid="split-remove-0"]') as HTMLElement
+    renderDrawer({ splits })
+    const removeBtn = document.body.querySelector('[data-testid="split-remove-0"]') as HTMLElement
     fireEvent.click(removeBtn)
-    const rows = container.querySelectorAll('[data-testid="split-row"]')
+    const rows = document.body.querySelectorAll('[data-testid="split-row"]')
     expect(rows.length).toBe(1)
   })
 

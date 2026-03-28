@@ -11,7 +11,7 @@ describe('isValidParam', () => {
   })
 
   it('rejects empty memo string', () => {
-    expect(isValidParam('memo', '')).toBe(false)
+    expect(isValidParam('memoName', '')).toBe(false)
   })
 
   it('rejects invalid memoId', () => {
