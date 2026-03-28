@@ -316,68 +316,70 @@ export default function TransactionsTable() {
 
                       {/* Center: budget category pills */}
                       <div class="flex items-center justify-center flex-wrap gap-1.5 min-w-0">
-                        <Show
-                          when={Array.isArray(row.budget_category) && row.budget_category.length > 0}
-                          fallback={
-                            <Show
-                              when={typeof row.budget_category === 'string' && row.budget_category}
-                              fallback={
-                                <button
-                                  type="button"
-                                  class="flex items-center gap-1.5 text-xs text-muted-foreground border border-dashed rounded-full px-3 py-1 hover:border-brand hover:text-brand transition-colors cursor-pointer"
-                                  onClick={() => setSplitTarget(row as unknown as Transaction)}
-                                >
-                                  <svg
-                                    class="size-3"
-                                    viewBox="0 0 24 24"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    stroke-width="2"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
+                        <Show when={!isCredit} fallback={null}>
+                          <Show
+                            when={Array.isArray(row.budget_category) && row.budget_category.length > 0}
+                            fallback={
+                              <Show
+                                when={typeof row.budget_category === 'string' && row.budget_category}
+                                fallback={
+                                  <button
+                                    type="button"
+                                    class="flex items-center gap-1.5 text-xs text-muted-foreground border border-dashed rounded-full px-3 py-1 hover:border-brand hover:text-brand transition-colors cursor-pointer"
+                                    onClick={() => setSplitTarget(row as unknown as Transaction)}
                                   >
-                                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
-                                    <line x1="7" y1="7" x2="7.01" y2="7" />
-                                  </svg>
-                                  Assign category
-                                </button>
-                              }
-                            >
-                              <button
-                                type="button"
-                                class="cursor-pointer"
-                                onClick={() => setSplitTarget(row as unknown as Transaction)}
+                                    <svg
+                                      class="size-3"
+                                      viewBox="0 0 24 24"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      stroke-width="2"
+                                      stroke-linecap="round"
+                                      stroke-linejoin="round"
+                                    >
+                                      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                                      <line x1="7" y1="7" x2="7.01" y2="7" />
+                                    </svg>
+                                    Assign category
+                                  </button>
+                                }
                               >
-                                <Badge variant="outline" class="text-xs hover:bg-accent transition-colors">
-                                  {String(row.budget_category)}
-                                </Badge>
-                              </button>
-                            </Show>
-                          }
-                        >
-                          <div class="flex flex-wrap gap-1.5 items-center">
-                            <For
-                              each={
-                                row.budget_category as {
-                                  budget_category_id: string
-                                  amount_debit: number
-                                }[]
-                              }
-                            >
-                              {(split) => (
                                 <button
                                   type="button"
-                                  class="flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs hover:bg-accent transition-colors cursor-pointer"
+                                  class="cursor-pointer"
                                   onClick={() => setSplitTarget(row as unknown as Transaction)}
                                 >
-                                  <span>{split.budget_category_id}</span>
-                                  <span class="text-muted-foreground">
-                                    ${Number(split.amount_debit).toFixed(2)}
-                                  </span>
+                                  <Badge variant="outline" class="text-xs hover:bg-accent transition-colors">
+                                    {String(row.budget_category)}
+                                  </Badge>
                                 </button>
-                              )}
-                            </For>
-                          </div>
+                              </Show>
+                            }
+                          >
+                            <div class="flex flex-wrap gap-1.5 items-center">
+                              <For
+                                each={
+                                  row.budget_category as {
+                                    budget_category_id: string
+                                    amount_debit: number
+                                  }[]
+                                }
+                              >
+                                {(split) => (
+                                  <button
+                                    type="button"
+                                    class="flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs hover:bg-accent transition-colors cursor-pointer"
+                                    onClick={() => setSplitTarget(row as unknown as Transaction)}
+                                  >
+                                    <span>{split.budget_category_id}</span>
+                                    <span class="text-muted-foreground">
+                                      ${Number(split.amount_debit).toFixed(2)}
+                                    </span>
+                                  </button>
+                                )}
+                              </For>
+                            </div>
+                          </Show>
                         </Show>
                       </div>
 
