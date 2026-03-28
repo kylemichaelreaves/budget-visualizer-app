@@ -36,7 +36,7 @@ export default function SplitBudgetCategoryDrawer(props: {
   const remaining = () => props.transactionAmount - totalAllocated()
   const isBalanced = () => Math.abs(remaining()) < 0.01
   const isValid = () =>
-    totalAllocated() > 0 && local().length > 0 && local().every((s) => s.budget_category_id)
+    isBalanced() && totalAllocated() > 0 && local().length > 0 && local().every((s) => s.budget_category_id)
 
   function updateAmount(index: number, v: number) {
     setLocal((rows) => {

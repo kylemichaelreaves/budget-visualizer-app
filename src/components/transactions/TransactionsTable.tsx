@@ -436,6 +436,7 @@ export default function TransactionsTable() {
               typeof target().budget_category === 'string' ? (target().budget_category as string) : undefined
             }
             onSubmit={(splits) => {
+              // TODO: call mutation to persist splits to the backend, then invalidate transactions query
               devConsole('log', 'Split submitted for transaction', target().id, splits)
               setSplitTarget(null)
             }}

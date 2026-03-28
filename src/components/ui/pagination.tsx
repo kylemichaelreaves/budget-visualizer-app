@@ -114,7 +114,6 @@ function PaginationEllipsis(props: JSX.HTMLAttributes<HTMLSpanElement> & { class
   const [local, rest] = splitProps(props, ['class'])
   return (
     <span
-      aria-hidden
       data-slot="pagination-ellipsis"
       class={cn('flex size-9 items-center justify-center', local.class)}
       {...rest}
