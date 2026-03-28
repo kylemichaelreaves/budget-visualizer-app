@@ -82,15 +82,18 @@ export default function BudgetCategoryPieChart(props: {
       .attr('fill', (d) => colorMap.get(String(d.data.category_id)) || '#6b7280')
       .style('cursor', onSliceClick ? 'pointer' : 'default')
       .style('transition', 'opacity 0.15s')
-      .on('mouseenter', function (_event, d) {
+      .on('mouseenter', function (event, d) {
         d3.select(this).transition().duration(150).attr('d', arcHover(d)!)
-        if (tooltip) {
+        if (tooltip && svg) {
           tooltip.textContent = ''
           const strong = document.createElement('strong')
           strong.textContent = d.data.category_name
           tooltip.appendChild(strong)
           tooltip.appendChild(document.createElement('br'))
           tooltip.appendChild(document.createTextNode(formatCurrency(Math.abs(d.data.total_amount_debit))))
+          const parentRect = svg.parentElement!.getBoundingClientRect()
+          tooltip.style.left = `${event.clientX - parentRect.left + 12}px`
+          tooltip.style.top = `${event.clientY - parentRect.top - 12}px`
           tooltip.style.opacity = '1'
         }
       })
