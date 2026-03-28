@@ -281,7 +281,17 @@ export default function TransactionsTable() {
                             </A>
                           </p>
                           <p class="text-sm text-muted-foreground truncate">
-                            <Show when={row.memo}>
+                            <Show
+                              when={row.memo && row.memo_id != null}
+                              fallback={
+                                row.memo ? (
+                                  <>
+                                    {String(row.memo)}
+                                    {' · '}
+                                  </>
+                                ) : null
+                              }
+                            >
                               <A
                                 href={`/budget-visualizer/memos/${row.memo_id}/summary`}
                                 class="hover:underline"
@@ -295,7 +305,9 @@ export default function TransactionsTable() {
                             <Show when={row.budget_category}>
                               {' · '}
                               <Badge variant="outline" class="ml-1 text-xs">
-                                {String(row.budget_category)}
+                                {Array.isArray(row.budget_category)
+                                  ? `Split (${row.budget_category.length})`
+                                  : String(row.budget_category)}
                               </Badge>
                             </Show>
                           </p>

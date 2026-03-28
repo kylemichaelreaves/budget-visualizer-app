@@ -62,15 +62,17 @@ function ToggleGroup(props: ToggleGroupProps) {
   return (
     <ToggleGroupPrimitive.Root
       data-slot="toggle-group"
-      data-variant={local.variant}
-      data-size={local.size}
+      data-variant={local.variant ?? 'default'}
+      data-size={local.size ?? 'default'}
       class={cn(
         'group/toggle-group flex w-fit items-center rounded-md data-[variant=outline]:shadow-xs',
         local.class,
       )}
       {...rest}
     >
-      <ToggleGroupContext.Provider value={{ variant: local.variant, size: local.size }}>
+      <ToggleGroupContext.Provider
+        value={{ variant: local.variant ?? 'default', size: local.size ?? 'default' }}
+      >
         {local.children}
       </ToggleGroupContext.Provider>
     </ToggleGroupPrimitive.Root>
