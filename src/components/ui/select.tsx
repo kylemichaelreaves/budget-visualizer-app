@@ -46,6 +46,14 @@ function SelectValue<T extends string | object>(props: SelectPrimitive.SelectVal
   return <SelectPrimitive.Value data-slot="select-value" {...props} />
 }
 
+/**
+ * SelectContent renders the dropdown popover with a Listbox inside.
+ *
+ * Kobalte's Select uses a data-driven pattern: items are provided via the
+ * `options` prop on `Select.Root`, and each item is rendered by the
+ * `Select.Item` component passed to `itemComponent` on `Select.Root`.
+ * The Listbox does not accept JSX children directly.
+ */
 type SelectContentProps = { class?: string; listboxClass?: string } & Omit<
   SelectPrimitive.SelectContentProps,
   'children'

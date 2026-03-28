@@ -30,7 +30,7 @@ export default function NavigationButtonGroup(props: {
       </Button>
       <Button
         variant="outline"
-        class="rounded-none border-0 border-r border-r-border/20"
+        class={`rounded-none border-0 ${props.reset ? 'border-r border-r-border/20' : ''}`}
         onClick={() => props.goToNext()}
         disabled={props.isFirst}
       >
