@@ -26,9 +26,13 @@ export default function LoanFormField(props: {
     return { min: 0, step: 0.01 }
   })
 
+  const fieldId = () => `loan-${props.field.prop}`
+
   const wrap = (inner: JSX.Element) => (
     <div class="flex flex-col gap-1.5 my-2.5">
-      <Label class="text-muted-foreground text-sm">{props.field.label}</Label>
+      <Label for={fieldId()} class="text-muted-foreground text-sm">
+        {props.field.label}
+      </Label>
       {props.field.tooltip ? (
         <span title={props.field.tooltip} class="text-xs text-muted-foreground/70">
           {props.field.tooltip}
@@ -49,6 +53,7 @@ export default function LoanFormField(props: {
       when={props.field.type === 'date'}
       fallback={wrap(
         <Input
+          id={fieldId()}
           type="number"
           placeholder={props.field.placeholder}
           value={Number(value()) || ''}
@@ -63,6 +68,7 @@ export default function LoanFormField(props: {
     >
       {wrap(
         <Input
+          id={fieldId()}
           type="date"
           placeholder={props.field.placeholder}
           value={iso()}

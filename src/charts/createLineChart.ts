@@ -167,10 +167,12 @@ export function createLineChart(
     .attr('stroke-width', 2)
     .attr('d', line as unknown as string)
 
-  // --- Tooltip ---
-  const tooltip = d3
-    .select(svgElement.parentElement!)
+  // --- Tooltip (reuse existing or create) ---
+  const parent = d3.select(svgElement.parentElement!)
+  parent.selectAll('[data-slot="chart-tooltip"]').remove()
+  const tooltip = parent
     .append('div')
+    .attr('data-slot', 'chart-tooltip')
     .style('position', 'absolute')
     .style('pointer-events', 'none')
     .style('background', tooltipBg)
@@ -206,8 +208,14 @@ export function createLineChart(
       d3.select(this).transition().duration(150).attr('r', 6)
       const svgRect = svgElement.getBoundingClientRect()
       const parentRect = svgElement.parentElement!.getBoundingClientRect()
+      const tooltipNode = tooltip.node()!
+      tooltipNode.textContent = ''
+      const strong = document.createElement('strong')
+      strong.textContent = fmtShortDate(d.date)
+      tooltipNode.appendChild(strong)
+      tooltipNode.appendChild(document.createElement('br'))
+      tooltipNode.appendChild(document.createTextNode(fmtMoneyFull(d.total_debit)))
       tooltip
-        .html(`<strong>${fmtShortDate(d.date)}</strong><br/>${fmtMoneyFull(d.total_debit)}`)
         .style('opacity', '1')
         .style('left', `${x(d.date) + margin.left + svgRect.left - parentRect.left - 40}px`)
         .style('top', `${y(d.total_debit) + margin.top + svgRect.top - parentRect.top - 48}px`)

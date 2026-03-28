@@ -29,9 +29,8 @@ export default function LineChart(props: {
   })
 
   onCleanup(() => {
-    // Remove any tooltip divs created by createLineChart
     if (wrapperEl) {
-      wrapperEl.querySelectorAll('div').forEach((el) => el.remove())
+      wrapperEl.querySelectorAll('[data-slot="chart-tooltip"]').forEach((el) => el.remove())
     }
   })
 

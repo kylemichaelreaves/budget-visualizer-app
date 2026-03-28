@@ -114,10 +114,10 @@ export default function TransactionEditForm(props: {
   return (
     <form data-testid={tid()} aria-label="Transaction Edit Form" class="text-foreground space-y-3">
       <Field label="Id" test={`${tid()}-id`}>
-        <Input value={tx.id ?? ''} disabled />
+        <Input id={`field-${tid()}-id`} value={tx.id ?? ''} disabled />
       </Field>
       <Field label="Transaction Number" test={`${tid()}-transaction_number`}>
-        <Input value={tx.transaction_number ?? ''} disabled />
+        <Input id={`field-${tid()}-transaction_number`} value={tx.transaction_number ?? ''} disabled />
       </Field>
       <Field label="Date" test={`${tid()}-date`}>
         <Input
@@ -154,10 +154,15 @@ export default function TransactionEditForm(props: {
         <MemoSelect value={tx.memo} onChange={(v) => setTx('memo', v)} dataTestId={`${tid()}-memo-select`} />
       </Field>
       <Field label="Balance" test={`${tid()}-balance`}>
-        <Input value={tx.balance ?? ''} onInput={(e) => setTx('balance', e.currentTarget.value)} />
+        <Input
+          id={`field-${tid()}-balance`}
+          value={tx.balance ?? ''}
+          onInput={(e) => setTx('balance', e.currentTarget.value)}
+        />
       </Field>
       <Field label="Check Number" test={`${tid()}-check_number`}>
         <Input
+          id={`field-${tid()}-check_number`}
           value={tx.check_number ?? ''}
           disabled={tx.description !== 'CHECK'}
           onInput={(e) => setTx('check_number', e.currentTarget.value)}
@@ -172,7 +177,11 @@ export default function TransactionEditForm(props: {
         />
       </Field>
       <Field label="Fees" test={`${tid()}-fees`}>
-        <Input value={tx.fees ?? ''} onInput={(e) => setTx('fees', e.currentTarget.value)} />
+        <Input
+          id={`field-${tid()}-fees`}
+          value={tx.fees ?? ''}
+          onInput={(e) => setTx('fees', e.currentTarget.value)}
+        />
       </Field>
       <Button type="button" onClick={saveTransaction} class="mt-4">
         Save

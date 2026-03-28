@@ -46,10 +46,13 @@ function SelectValue<T extends string | object>(props: SelectPrimitive.SelectVal
   return <SelectPrimitive.Value data-slot="select-value" {...props} />
 }
 
-type SelectContentProps = { class?: string } & Omit<SelectPrimitive.SelectContentProps, 'children'>
+type SelectContentProps = { class?: string; listboxClass?: string } & Omit<
+  SelectPrimitive.SelectContentProps,
+  'children'
+>
 
 function SelectContent(props: SelectContentProps) {
-  const [local, rest] = splitProps(props, ['class'])
+  const [local, rest] = splitProps(props, ['class', 'listboxClass'])
   return (
     <SelectPrimitive.Portal>
       <SelectPrimitive.Content
@@ -60,7 +63,7 @@ function SelectContent(props: SelectContentProps) {
         )}
         {...rest}
       >
-        <SelectPrimitive.Listbox class="p-1" />
+        <SelectPrimitive.Listbox class={cn('p-1', local.listboxClass)} />
       </SelectPrimitive.Content>
     </SelectPrimitive.Portal>
   )

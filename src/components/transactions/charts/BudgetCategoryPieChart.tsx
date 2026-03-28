@@ -1,5 +1,5 @@
 import type { JSX } from 'solid-js'
-import { createEffect, For, Show } from 'solid-js'
+import { createEffect, createMemo, For, Show } from 'solid-js'
 import * as d3 from 'd3'
 import type { BudgetCategorySummary } from '@types'
 import { buildBudgetCategoryColorMap } from '@composables/budgetCategoryColors'
@@ -85,7 +85,12 @@ export default function BudgetCategoryPieChart(props: {
       .on('mouseenter', function (_event, d) {
         d3.select(this).transition().duration(150).attr('d', arcHover(d)!)
         if (tooltip) {
-          tooltip.innerHTML = `<strong>${d.data.category_name}</strong><br/>${formatCurrency(Math.abs(d.data.total_amount_debit))}`
+          tooltip.textContent = ''
+          const strong = document.createElement('strong')
+          strong.textContent = d.data.category_name
+          tooltip.appendChild(strong)
+          tooltip.appendChild(document.createElement('br'))
+          tooltip.appendChild(document.createTextNode(formatCurrency(Math.abs(d.data.total_amount_debit))))
           tooltip.style.opacity = '1'
         }
       })
@@ -121,6 +126,8 @@ export default function BudgetCategoryPieChart(props: {
       .text(formatCurrency(total))
   })
 
+  const legendColorMap = createMemo(() => buildBudgetCategoryColorMap(props.data))
+
   const legendParents = () =>
     props.data.filter((cat) => cat.parent_id === null && Math.abs(cat.total_amount_debit) > 0)
 
@@ -148,8 +155,7 @@ export default function BudgetCategoryPieChart(props: {
                 <span
                   class="size-2.5 rounded-full shrink-0"
                   style={{
-                    background:
-                      buildBudgetCategoryColorMap(props.data).get(String(item.category_id)) || '#6b7280',
+                    background: legendColorMap().get(String(item.category_id)) || '#6b7280',
                   }}
                 />
                 <span class="text-xs text-muted-foreground">
