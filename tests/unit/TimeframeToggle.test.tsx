@@ -35,9 +35,9 @@ describe('TimeframeToggle', () => {
     expect(onChange).not.toHaveBeenCalled()
   })
 
-  it('applies checked class to the active option', () => {
+  it('applies active styling to the selected option', () => {
     render(() => <TimeframeToggle value="monthly" onChange={() => {}} />)
-    expect(screen.getByText('Monthly').classList.contains('bv-check-tag-checked')).toBe(true)
-    expect(screen.getByText('Weekly').classList.contains('bv-check-tag-checked')).toBe(false)
+    expect(screen.getByText('Monthly').classList.contains('bg-primary')).toBe(true)
+    expect(screen.getByText('Weekly').classList.contains('bg-primary')).toBe(false)
   })
 })

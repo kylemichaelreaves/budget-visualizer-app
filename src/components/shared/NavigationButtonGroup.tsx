@@ -1,6 +1,6 @@
 import type { JSX } from 'solid-js'
 import { Show } from 'solid-js'
-import './shared-ui.css'
+import { Button } from '@components/ui/button'
 
 /** Matches Vue: Previous disabled when `isLast`, Next disabled when `isFirst`. */
 export default function NavigationButtonGroup(props: {
@@ -14,18 +14,33 @@ export default function NavigationButtonGroup(props: {
   'aria-label'?: string
 }): JSX.Element {
   return (
-    <div class="bv-button-group" role="group" data-testid={props.dataTestId} aria-label={props['aria-label']}>
-      <button type="button" onClick={() => props.goToPrevious()} disabled={props.isLast}>
+    <div
+      class="inline-flex flex-wrap overflow-hidden rounded-md border border-border"
+      role="group"
+      data-testid={props.dataTestId}
+      aria-label={props['aria-label']}
+    >
+      <Button
+        variant="outline"
+        class="rounded-none border-0 border-r border-r-border/20"
+        onClick={() => props.goToPrevious()}
+        disabled={props.isLast}
+      >
         ← Previous {props.label}
-      </button>
-      <button type="button" onClick={() => props.goToNext()} disabled={props.isFirst}>
+      </Button>
+      <Button
+        variant="outline"
+        class={`rounded-none border-0 ${props.reset ? 'border-r border-r-border/20' : ''}`}
+        onClick={() => props.goToNext()}
+        disabled={props.isFirst}
+      >
         Next {props.label} →
-      </button>
+      </Button>
       <Show when={props.reset}>
         {(fn) => (
-          <button type="button" class="bv-btn-info" onClick={() => fn()()}>
+          <Button variant="outline" class="rounded-none border-0 bg-muted" onClick={() => fn()()}>
             ✕ Reset {props.label}
-          </button>
+          </Button>
         )}
       </Show>
     </div>

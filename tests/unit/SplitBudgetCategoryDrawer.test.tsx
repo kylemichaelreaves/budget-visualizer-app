@@ -32,32 +32,33 @@ describe('SplitBudgetCategoryDrawer', () => {
 
   it('renders when open is true', () => {
     renderDrawer()
-    expect(screen.getByText('Split transaction')).toBeInTheDocument()
+    expect(screen.getByText('Budget Category Split')).toBeInTheDocument()
   })
 
   it('does not render when open is false', () => {
     renderDrawer({ open: false })
-    expect(screen.queryByText('Split transaction')).not.toBeInTheDocument()
+    expect(screen.queryByText('Budget Category Split')).not.toBeInTheDocument()
   })
 
   it('shows transaction amount in summary', () => {
-    renderDrawer({ transactionAmount: 250 })
-    expect(screen.getByText(/Transaction: \$250\.00/)).toBeInTheDocument()
+    renderDrawer({ transactionAmount: 250, transactionDescription: 'Test' })
+    expect(screen.getByText(/-\$250\.00/)).toBeInTheDocument()
   })
 
-  it('shows split total in summary', () => {
+  it('shows allocated total in balance summary', () => {
     const splits = [
       { id: '1', budget_category_id: 'Food', amount_debit: 30 },
       { id: '2', budget_category_id: 'Gas', amount_debit: 20 },
     ]
     renderDrawer({ splits })
-    expect(screen.getByText(/Split total: \$50\.00/)).toBeInTheDocument()
+    expect(screen.getByText('Allocated')).toBeInTheDocument()
+    expect(screen.getAllByText('$50.00').length).toBeGreaterThanOrEqual(1)
   })
 
-  it('shows difference when splits do not match transaction amount', () => {
+  it('shows remaining when splits do not match transaction amount', () => {
     const splits = [{ id: '1', budget_category_id: 'Food', amount_debit: 30 }]
     renderDrawer({ splits })
-    expect(screen.getByText(/Difference/)).toBeInTheDocument()
+    expect(screen.getByText(/unallocated/)).toBeInTheDocument()
   })
 
   it('renders a split row per split entry', () => {
@@ -65,16 +66,17 @@ describe('SplitBudgetCategoryDrawer', () => {
       { id: '1', budget_category_id: 'Food', amount_debit: 50 },
       { id: '2', budget_category_id: 'Gas', amount_debit: 50 },
     ]
-    const { container } = renderDrawer({ splits })
-    const rows = container.querySelectorAll('[data-testid="split-row"]')
+    renderDrawer({ splits })
+    const rows = document.body.querySelectorAll('[data-testid="split-row"]')
     expect(rows.length).toBe(2)
   })
 
   it('adds a split row when Add split is clicked', () => {
-    const { container } = renderDrawer()
+    renderDrawer()
+    // Starts with 1 default row, adding creates 2
     fireEvent.click(screen.getByRole('button', { name: /add split/i }))
-    const rows = container.querySelectorAll('[data-testid="split-row"]')
-    expect(rows.length).toBe(1)
+    const rows = document.body.querySelectorAll('[data-testid="split-row"]')
+    expect(rows.length).toBe(2)
   })
 
   it('removes a split row when remove button is clicked', () => {
@@ -82,10 +84,10 @@ describe('SplitBudgetCategoryDrawer', () => {
       { id: '1', budget_category_id: 'Food', amount_debit: 50 },
       { id: '2', budget_category_id: 'Gas', amount_debit: 50 },
     ]
-    const { container } = renderDrawer({ splits })
-    const removeBtn = container.querySelector('[data-testid="split-remove-0"]') as HTMLElement
+    renderDrawer({ splits })
+    const removeBtn = document.body.querySelector('[data-testid="split-remove-0"]') as HTMLElement
     fireEvent.click(removeBtn)
-    const rows = container.querySelectorAll('[data-testid="split-row"]')
+    const rows = document.body.querySelectorAll('[data-testid="split-row"]')
     expect(rows.length).toBe(1)
   })
 

@@ -1,6 +1,5 @@
 import type { JSX } from 'solid-js'
 import { createMemo, createSignal, For, onCleanup, onMount, Show } from 'solid-js'
-import './shared-ui.css'
 
 export type AutocompleteOption = { value: string; label: string }
 
@@ -86,10 +85,10 @@ export default function AutocompleteComponent(props: {
   })
 
   return (
-    <div class="bv-autocomplete-wrapper" data-testid={props.dataTestId} ref={(el) => (root = el)}>
-      <div class="bv-autocomplete-input-wrap">
+    <div class="relative w-full" data-testid={props.dataTestId} ref={(el) => (root = el)}>
+      <div class="relative flex items-center">
         <input
-          class="bv-autocomplete-input"
+          class="w-full rounded-md border border-input bg-input-background px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
           type="text"
           placeholder={props.placeholder}
           disabled={props.disabled}
@@ -135,7 +134,7 @@ export default function AutocompleteComponent(props: {
         <Show when={props.value && !props.disabled}>
           <button
             type="button"
-            class="bv-autocomplete-clear"
+            class="absolute right-2 flex items-center justify-center size-5 rounded-full bg-transparent text-muted-foreground hover:text-foreground border-none cursor-pointer text-base leading-none"
             aria-label="Clear"
             onClick={(ev) => {
               ev.stopPropagation()
@@ -149,16 +148,21 @@ export default function AutocompleteComponent(props: {
         </Show>
       </div>
       <Show when={open() && !props.disabled}>
-        <div class="bv-autocomplete-dropdown" role="listbox">
+        <div
+          class="absolute z-50 mt-1 w-full max-h-[220px] overflow-y-auto rounded-md border border-border bg-popover text-popover-foreground shadow-lg"
+          role="listbox"
+        >
           <Show when={props.loading}>
-            <div class="bv-autocomplete-loading">{props.loadingText ?? 'Loading...'}</div>
+            <div class="px-3 py-2 text-sm text-muted-foreground">{props.loadingText ?? 'Loading...'}</div>
           </Show>
           <Show when={!props.loading}>
             <For each={suggestions()}>
               {(item, index) => (
                 <div
-                  class="bv-autocomplete-item"
-                  classList={{ 'bv-autocomplete-item-active': index() === highlight() }}
+                  class="cursor-default select-none px-3 py-1.5 text-sm"
+                  classList={{
+                    'bg-accent text-accent-foreground': index() === highlight(),
+                  }}
                   role="option"
                   onMouseEnter={() => setHighlight(index())}
                   onClick={() => {
@@ -167,7 +171,7 @@ export default function AutocompleteComponent(props: {
                     setQuery('')
                   }}
                 >
-                  <span class="label">{item.label}</span>
+                  <span>{item.label}</span>
                 </div>
               )}
             </For>

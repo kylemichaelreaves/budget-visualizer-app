@@ -4,6 +4,8 @@ import { useNavigate, useParams } from '@solidjs/router'
 import { useMemoById } from '@api/hooks/memos/useMemoById'
 import AlertComponent from '@components/shared/AlertComponent'
 import MemoEditForm from './MemoEditForm'
+import { Button } from '@components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 
 export default function MemoEditPage(): JSX.Element {
   const params = useParams<{ memoId: string }>()
@@ -26,12 +28,12 @@ export default function MemoEditPage(): JSX.Element {
   }
 
   return (
-    <div style={{ padding: '12px 0', color: '#ecf0f1' }}>
-      <header style={{ 'margin-bottom': '16px' }}>
-        <button type="button" onClick={() => window.history.back()}>
+    <div class="py-3 text-foreground">
+      <header class="mb-4">
+        <Button variant="outline" type="button" onClick={() => window.history.back()}>
           Back
-        </button>
-        <h1 style={{ 'margin-top': '12px' }}>Edit memo</h1>
+        </Button>
+        <h1 class="mt-3 text-xl font-semibold">Edit memo</h1>
       </header>
 
       <Show when={memoId() == null}>
@@ -59,7 +61,16 @@ export default function MemoEditPage(): JSX.Element {
       </Show>
 
       <Show when={memoId() != null && !q.isLoading && !q.isFetching && q.data}>
-        {(m) => <MemoEditForm memo={m()} onSuccess={goAfterSave} dataTestId="memo-edit-form" />}
+        {(m) => (
+          <Card>
+            <CardHeader>
+              <CardTitle>Memo Details</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <MemoEditForm memo={m()} onSuccess={goAfterSave} dataTestId="memo-edit-form" />
+            </CardContent>
+          </Card>
+        )}
       </Show>
 
       <Show when={memoId() != null && !q.isLoading && !q.isFetching && !q.data && !q.isError}>

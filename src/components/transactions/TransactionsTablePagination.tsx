@@ -1,6 +1,7 @@
 import { onMount, Show } from 'solid-js'
 import useTransactionsCount from '@api/hooks/transactions/useTransactionsCount'
 import AlertComponent from '@components/shared/AlertComponent'
+import { Button } from '@components/ui/button'
 import {
   setTransactionsCount,
   setTransactionsTableLimit,
@@ -51,17 +52,9 @@ export default function TransactionsTablePagination(props: { status?: PendingTra
           />
         )}
       </Show>
-      <div
-        style={{
-          display: 'flex',
-          'align-items': 'center',
-          gap: '12px',
-          'flex-wrap': 'wrap',
-          margin: '12px 0',
-        }}
-      >
-        <label style={{ display: 'flex', 'align-items': 'center', gap: '8px' }}>
-          <span style={{ color: '#bdc3c7', 'font-size': '0.85rem' }}>Rows</span>
+      <div class="flex items-center gap-3 flex-wrap my-3">
+        <label class="flex items-center gap-2">
+          <span class="text-muted-foreground text-sm">Rows</span>
           <select
             value={transactionsState.transactionsTableLimit}
             onChange={(e) => {
@@ -69,22 +62,28 @@ export default function TransactionsTablePagination(props: { status?: PendingTra
               setTransactionsTableLimit(v)
               updateTransactionsTableOffset(0)
             }}
-            style={{ padding: '6px', 'border-radius': '4px' }}
+            class="p-1.5 rounded"
           >
             <option value={25}>25</option>
             <option value={50}>50</option>
             <option value={100}>100</option>
           </select>
         </label>
-        <button type="button" onClick={goPrev} disabled={currentPage() <= 1}>
+        <Button variant="outline" size="sm" type="button" onClick={goPrev} disabled={currentPage() <= 1}>
           Previous
-        </button>
-        <span style={{ color: '#ecf0f1' }}>
+        </Button>
+        <span class="text-foreground">
           Page {currentPage()} / {totalPages()} ({countQuery.data ?? 0} total)
         </span>
-        <button type="button" onClick={goNext} disabled={currentPage() >= totalPages()}>
+        <Button
+          variant="outline"
+          size="sm"
+          type="button"
+          onClick={goNext}
+          disabled={currentPage() >= totalPages()}
+        >
           Next
-        </button>
+        </Button>
       </div>
     </div>
   )

@@ -9,6 +9,8 @@ import useMonths from '@api/hooks/timeUnits/months/useMonths'
 import useWeeks from '@api/hooks/timeUnits/weeks/useWeeks'
 import useWeeksOfMonth from '@api/hooks/timeUnits/weeks/useWeeksOfMonth'
 import useYears from '@api/hooks/timeUnits/years/useYears'
+import { Button } from '@components/ui/button'
+import { Input } from '@components/ui/input'
 import {
   setDays,
   setDaysForSelectedWeek,
@@ -187,44 +189,12 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
     setSelectedDay('')
   }
 
-  const labelStyle = (): Record<string, string> => ({
-    display: 'flex',
-    'flex-direction': 'column' as const,
-    gap: '4px',
-    color: '#bdc3c7',
-    'font-size': '0.8rem',
-    'min-width': '120px',
-    flex: '1 1 140px',
-  })
-
-  const selectStyle: Record<string, string> = {
-    padding: '8px',
-    'border-radius': '4px',
-    border: '1px solid #555',
-    background: '#1e1e1e',
-    color: '#ecf0f1',
-  }
+  const selectClasses = 'p-2 rounded border border-input bg-background text-foreground'
 
   return (
-    <section
-      data-testid={tid()}
-      style={{
-        padding: '12px',
-        margin: '0 0 12px',
-        background: '#2a2a2a',
-        'border-radius': '8px',
-        color: '#ecf0f1',
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          'flex-wrap': 'wrap',
-          gap: '12px',
-          'align-items': 'flex-end',
-        }}
-      >
-        <label style={labelStyle()}>
+    <section data-testid={tid()} class="p-3 mb-3 bg-card rounded-lg text-foreground">
+      <div class="flex flex-wrap gap-3 items-end">
+        <label class="flex flex-col gap-1 text-muted-foreground text-xs min-w-[120px] flex-[1_1_140px]">
           Year
           <select
             data-testid={`${tid()}-year`}
@@ -236,14 +206,14 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
               setSelectedWeek('')
               setSelectedDay('')
             }}
-            style={selectStyle}
+            class={selectClasses}
           >
             <option value="">Any</option>
             <For each={yearOptions()}>{(y) => <option value={y.year}>{y.year}</option>}</For>
           </select>
         </label>
 
-        <label style={labelStyle()}>
+        <label class="flex flex-col gap-1 text-muted-foreground text-xs min-w-[120px] flex-[1_1_140px]">
           Month
           <select
             data-testid={`${tid()}-month`}
@@ -258,14 +228,14 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
                 if (yr) setSelectedYear(yr)
               }
             }}
-            style={selectStyle}
+            class={selectClasses}
           >
             <option value="">Any</option>
             <For each={monthOptions()}>{(m) => <option value={m.month_year}>{m.month_year}</option>}</For>
           </select>
         </label>
 
-        <label style={labelStyle()}>
+        <label class="flex flex-col gap-1 text-muted-foreground text-xs min-w-[120px] flex-[1_1_140px]">
           Week
           <select
             data-testid={`${tid()}-week`}
@@ -275,14 +245,14 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
               setSelectedWeek(v)
               setSelectedDay('')
             }}
-            style={selectStyle}
+            class={selectClasses}
           >
             <option value="">Any</option>
             <For each={weekOptions()}>{(w) => <option value={w}>{w}</option>}</For>
           </select>
         </label>
 
-        <label style={labelStyle()}>
+        <label class="flex flex-col gap-1 text-muted-foreground text-xs min-w-[120px] flex-[1_1_140px]">
           Day
           <select
             data-testid={`${tid()}-day`}
@@ -291,17 +261,17 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
               const v = e.currentTarget.value
               setSelectedDay(v)
             }}
-            style={selectStyle}
+            class={selectClasses}
           >
             <option value="">Any</option>
             <For each={dayOptions()}>{(d) => <option value={d}>{formatDate(d)}</option>}</For>
           </select>
         </label>
 
-        <label style={{ ...labelStyle(), 'min-width': '160px', flex: '2 1 200px' }}>
+        <label class="flex flex-col gap-1 text-muted-foreground text-xs min-w-[160px] flex-[2_1_200px]">
           Memo filter
-          <div style={{ display: 'flex', gap: '8px', 'align-items': 'center' }}>
-            <input
+          <div class="flex gap-2 items-center">
+            <Input
               data-testid={`${tid()}-memo-input`}
               value={memoDraft()}
               onInput={(e) => setMemoDraft(e.currentTarget.value)}
@@ -313,58 +283,61 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
                 }
               }}
               placeholder="Memo id or name"
-              style={{ ...selectStyle, flex: '1' }}
+              class="flex-1"
             />
-            <button type="button" data-testid={`${tid()}-memo-apply`} onClick={applyMemo}>
+            <Button
+              variant="outline"
+              size="sm"
+              type="button"
+              data-testid={`${tid()}-memo-apply`}
+              onClick={applyMemo}
+            >
               Apply
-            </button>
+            </Button>
           </div>
         </label>
 
-        <button
+        <Button
+          variant="outline"
+          size="sm"
           type="button"
           data-testid={`${tid()}-clear-timeframe`}
           onClick={clearTimeframe}
-          style={{ padding: '8px 12px', 'align-self': 'flex-end' }}
+          class="self-end"
         >
           Clear timeframe
-        </button>
+        </Button>
       </div>
 
       <Show when={yearsQ.isError || monthsQ.isError || weeksQ.isError || daysQ.isError}>
-        <p style={{ color: '#e74c3c', 'margin-top': '8px', 'font-size': '0.85rem' }}>
+        <p class="text-destructive mt-2 text-sm">
           Some timeframe lists failed to load; dropdowns may be incomplete.
         </p>
       </Show>
 
       <Show when={transactionsState.selectedDay}>
-        <div
-          data-testid={`${tid()}-day-summary`}
-          style={{ margin: '16px 0 0', padding: '12px', background: '#333', 'border-radius': '6px' }}
-        >
-          <h3 style={{ margin: '0 0 8px', 'font-size': '1rem' }}>Day summary</h3>
+        <div data-testid={`${tid()}-day-summary`} class="mt-4 p-3 bg-card rounded-md">
+          <h3 class="mb-2 text-base">Day summary</h3>
           <Show when={daySummaryQ.isLoading}>
-            <p style={{ color: '#95a5a6' }}>Loading…</p>
+            <p class="text-muted-foreground">Loading...</p>
           </Show>
           <Show when={daySummaryQ.isError}>
-            <p style={{ color: '#e74c3c' }}>Could not load day summary.</p>
+            <p class="text-destructive">Could not load day summary.</p>
           </Show>
           <Show when={!daySummaryQ.isLoading && !daySummaryQ.isError && (daySummaryQ.data?.length ?? 0) > 0}>
-            <table style={{ width: '100%', 'border-collapse': 'collapse', 'font-size': '0.85rem' }}>
+            <table class="w-full border-collapse text-sm">
               <thead>
-                <tr style={{ 'border-bottom': '1px solid #555' }}>
-                  <th style={{ 'text-align': 'left', padding: '6px' }}>Memo</th>
-                  <th style={{ 'text-align': 'right', padding: '6px' }}>Debit</th>
+                <tr class="border-b border-border">
+                  <th class="text-left p-1.5">Memo</th>
+                  <th class="text-right p-1.5">Debit</th>
                 </tr>
               </thead>
               <tbody>
                 <For each={daySummaryQ.data ?? []}>
                   {(row) => (
-                    <tr style={{ 'border-bottom': '1px solid #444' }}>
-                      <td style={{ padding: '6px' }}>{row.memo}</td>
-                      <td style={{ padding: '6px', 'text-align': 'right' }}>
-                        {(row.daily_amount_debit ?? 0).toFixed(2)}
-                      </td>
+                    <tr class="border-b border-border">
+                      <td class="p-1.5">{row.memo}</td>
+                      <td class="p-1.5 text-right">{(row.daily_amount_debit ?? 0).toFixed(2)}</td>
                     </tr>
                   )}
                 </For>
@@ -374,7 +347,7 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
           <Show
             when={!daySummaryQ.isLoading && !daySummaryQ.isError && (daySummaryQ.data?.length ?? 0) === 0}
           >
-            <p style={{ color: '#95a5a6' }}>No summary rows for this day.</p>
+            <p class="text-muted-foreground">No summary rows for this day.</p>
           </Show>
         </div>
       </Show>

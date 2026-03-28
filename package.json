@@ -19,13 +19,19 @@
     "format:check": "prettier --check ."
   },
   "dependencies": {
+    "@kobalte/core": "^0.13.11",
     "@solidjs/router": "^0.15.4",
+    "@tailwindcss/vite": "^4.2.2",
     "@tanstack/solid-query": "^5.95.2",
     "axios": "^1.13.6",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
     "d3": "^7.9.0",
-    "katex": "^0.16.40",
+    "katex": "^0.16.43",
     "luxon": "^3.7.2",
-    "solid-js": "^1.9.11"
+    "solid-js": "^1.9.12",
+    "tailwind-merge": "^3.5.0",
+    "tailwindcss": "4"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
@@ -42,8 +48,8 @@
     "prettier": "^3.8.1",
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.57.2",
-    "vite": "^8.0.2",
+    "vite": "^8.0.3",
     "vite-plugin-solid": "^2.11.11",
-    "vitest": "^4.1.1"
+    "vitest": "^4.1.2"
   }
 }

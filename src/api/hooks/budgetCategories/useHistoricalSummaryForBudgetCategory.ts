@@ -6,7 +6,6 @@ export function useHistoricalSummaryForBudgetCategory(
   budgetCategory: () => string,
   timeFrame: () => Timeframe,
   date: () => string,
-  historical = true,
 ) {
   return useQuery(() => ({
     queryKey: ['historical-summary-for-budget-category', budgetCategory(), timeFrame(), date()],
@@ -15,7 +14,8 @@ export function useHistoricalSummaryForBudgetCategory(
         budgetCategory: budgetCategory(),
         timeFrame: timeFrame(),
         date: date(),
-        historical,
+        summary: true,
+        summaryType: 'historical',
       }) as Promise<SummaryTypeBase[]>,
     refetchOnWindowFocus: false,
     enabled: !!budgetCategory() && !!date() && date().trim() !== '',

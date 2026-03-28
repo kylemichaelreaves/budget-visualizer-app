@@ -7,6 +7,9 @@ import mutateTransaction from '@api/hooks/transactions/mutateTransaction'
 import mutatePendingTransaction from '@api/hooks/transactions/mutatePendingTransaction'
 import MemoSelect from '@components/transactions/selects/MemoSelect'
 import BudgetCategoryFormField from '@components/transactions/BudgetCategoryFormField'
+import { Button } from '@components/ui/button'
+import { Input } from '@components/ui/input'
+import { Label } from '@components/ui/label'
 
 function initBudgetState(txn: Transaction): BudgetCategoryState {
   if (txn.is_split && Array.isArray(txn.budget_category)) {
@@ -109,63 +112,63 @@ export default function TransactionEditForm(props: {
   }
 
   return (
-    <form data-testid={tid()} aria-label="Transaction Edit Form" style={{ color: '#ecf0f1' }}>
+    <form data-testid={tid()} aria-label="Transaction Edit Form" class="text-foreground space-y-3">
       <Field label="Id" test={`${tid()}-id`}>
-        <input value={tx.id ?? ''} disabled style={{ width: '100%', padding: '8px' }} />
+        <Input id={`field-${tid()}-id`} value={tx.id ?? ''} disabled />
       </Field>
       <Field label="Transaction Number" test={`${tid()}-transaction_number`}>
-        <input value={tx.transaction_number ?? ''} disabled style={{ width: '100%', padding: '8px' }} />
+        <Input id={`field-${tid()}-transaction_number`} value={tx.transaction_number ?? ''} disabled />
       </Field>
       <Field label="Date" test={`${tid()}-date`}>
-        <input
+        <Input
+          id={`field-${tid()}-date`}
           type="date"
           value={tx.date?.slice(0, 10) ?? ''}
           onInput={(e) => setTx('date', e.currentTarget.value)}
-          style={{ width: '100%', padding: '8px' }}
         />
       </Field>
       <Field label="Amount Debit" test={`${tid()}-amount_debit`}>
-        <input
+        <Input
+          id={`field-${tid()}-amount_debit`}
           value={tx.amount_debit}
           disabled={!!tx.amount_credit}
           onInput={(e) => setTx('amount_debit', e.currentTarget.value)}
-          style={{ width: '100%', padding: '8px' }}
         />
       </Field>
       <Field label="Amount Credit" test={`${tid()}-amount_credit`}>
-        <input
+        <Input
+          id={`field-${tid()}-amount_credit`}
           value={tx.amount_credit}
           disabled={!!tx.amount_debit}
           onInput={(e) => setTx('amount_credit', e.currentTarget.value)}
-          style={{ width: '100%', padding: '8px' }}
         />
       </Field>
       <Field label="Description" test={`${tid()}-description`}>
-        <input
+        <Input
+          id={`field-${tid()}-description`}
           value={tx.description}
           onInput={(e) => setTx('description', e.currentTarget.value)}
-          style={{ width: '100%', padding: '8px' }}
         />
       </Field>
-      <Field label="Memo" test={`${tid()}-memo`}>
+      <Field label="Memo" test={`${tid()}-memo`} hasInput={false}>
         <MemoSelect value={tx.memo} onChange={(v) => setTx('memo', v)} dataTestId={`${tid()}-memo-select`} />
       </Field>
       <Field label="Balance" test={`${tid()}-balance`}>
-        <input
+        <Input
+          id={`field-${tid()}-balance`}
           value={tx.balance ?? ''}
           onInput={(e) => setTx('balance', e.currentTarget.value)}
-          style={{ width: '100%', padding: '8px' }}
         />
       </Field>
       <Field label="Check Number" test={`${tid()}-check_number`}>
-        <input
+        <Input
+          id={`field-${tid()}-check_number`}
           value={tx.check_number ?? ''}
           disabled={tx.description !== 'CHECK'}
           onInput={(e) => setTx('check_number', e.currentTarget.value)}
-          style={{ width: '100%', padding: '8px' }}
         />
       </Field>
-      <Field label="Budget Category" test={`${tid()}-budget_category`}>
+      <Field label="Budget Category" test={`${tid()}-budget_category`} hasInput={false}>
         <BudgetCategoryFormField
           modelValue={budgetState}
           transactionAmount={transactionAmount()}
@@ -174,24 +177,32 @@ export default function TransactionEditForm(props: {
         />
       </Field>
       <Field label="Fees" test={`${tid()}-fees`}>
-        <input
+        <Input
+          id={`field-${tid()}-fees`}
           value={tx.fees ?? ''}
           onInput={(e) => setTx('fees', e.currentTarget.value)}
-          style={{ width: '100%', padding: '8px' }}
         />
       </Field>
-      <button type="button" onClick={saveTransaction} style={{ 'margin-top': '16px' }}>
+      <Button type="button" onClick={saveTransaction} class="mt-4">
         Save
-      </button>
+      </Button>
     </form>
   )
 }
 
-function Field(props: { label: string; test: string; children: JSX.Element }): JSX.Element {
+function Field(props: {
+  label: string
+  test: string
+  hasInput?: boolean
+  children: JSX.Element
+}): JSX.Element {
+  const id = () => `field-${props.test}`
   return (
-    <label style={{ display: 'block', margin: '10px 0', color: '#bdc3c7' }}>
-      {props.label}
+    <div class="space-y-1">
+      <Label for={props.hasInput !== false ? id() : undefined} class="text-muted-foreground">
+        {props.label}
+      </Label>
       <div data-testid={props.test}>{props.children}</div>
-    </label>
+    </div>
   )
 }

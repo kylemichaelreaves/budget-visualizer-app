@@ -1,6 +1,5 @@
 import type { JSX } from 'solid-js'
 import NavigationButtonGroup from './NavigationButtonGroup'
-import './shared-ui.css'
 
 export default function SummaryHeader(props: {
   timeFrame: 'Month' | 'Week'
@@ -18,13 +17,19 @@ export default function SummaryHeader(props: {
 
   return (
     <div
-      class="bv-summary-header"
+      class="flex w-full items-center justify-between text-foreground"
       data-testid={`${testBase()}-header`}
       data-selected-period={props.selectedPeriod}
       data-timeframe={tf()}
     >
-      <div class="bv-summary-header-left" data-testid={`${testBase()}-left-section`}>
-        <div class="bv-summary-title-section">
+      <div class="flex items-center gap-8" data-testid={`${testBase()}-left-section`}>
+        <div
+          class="flex gap-2"
+          classList={{
+            'flex-row items-center gap-10': tf() === 'Month',
+            'flex-col gap-0.5': tf() === 'Week',
+          }}
+        >
           <h2 data-testid={`${testBase()}-title`}>
             {tf()} Summary for: {props.selectedPeriod}
           </h2>
@@ -32,7 +37,7 @@ export default function SummaryHeader(props: {
         </div>
         {props.amountTotal}
       </div>
-      <div class="bv-summary-header-right">
+      <div class="flex items-start">
         <NavigationButtonGroup
           label={tf()}
           isLast={props.isLast}

@@ -15,10 +15,8 @@ export default function WeekSummaryTable(props: { dataTestId?: string }): JSX.El
 
   return (
     <Show when={transactionsState.selectedWeek}>
-      <div data-testid={id()} style={{ margin: '12px 0' }}>
-        <h3 style={{ color: '#ecf0f1', 'margin-bottom': '8px' }}>
-          Week summary — {transactionsState.selectedWeek}
-        </h3>
+      <div data-testid={id()} class="my-3">
+        <h3 class="text-foreground mb-2">Week summary — {transactionsState.selectedWeek}</h3>
         <Show when={q.isError && q.error}>
           {(err) => (
             <AlertComponent
@@ -30,35 +28,26 @@ export default function WeekSummaryTable(props: { dataTestId?: string }): JSX.El
           )}
         </Show>
         <Show when={q.isLoading || q.isFetching}>
-          <p style={{ color: '#95a5a6' }}>Loading week summary…</p>
+          <p class="text-muted-foreground">Loading week summary...</p>
         </Show>
         <Show when={!q.isLoading && !q.isFetching && q.data}>
-          <table
-            style={{
-              width: '100%',
-              'border-collapse': 'collapse',
-              color: '#ecf0f1',
-              'font-size': '0.85rem',
-            }}
-          >
+          <table class="w-full border-collapse text-foreground text-sm">
             <thead>
-              <tr style={{ 'border-bottom': '1px solid #555' }}>
-                <th style={{ padding: '8px 6px', 'text-align': 'left' }}>Memo</th>
-                <th style={{ padding: '8px 6px', 'text-align': 'left' }}>Budget category</th>
-                <th style={{ padding: '8px 6px', 'text-align': 'right' }}>Weekly debit</th>
+              <tr class="border-b border-border">
+                <th class="px-1.5 py-2 text-left">Memo</th>
+                <th class="px-1.5 py-2 text-left">Budget category</th>
+                <th class="px-1.5 py-2 text-right">Weekly debit</th>
               </tr>
             </thead>
             <tbody>
               <For each={q.data ?? []}>
                 {(row) => (
-                  <tr style={{ 'border-bottom': '1px solid #444' }}>
-                    <td style={{ padding: '8px 6px' }}>
+                  <tr class="border-b border-border">
+                    <td class="px-1.5 py-2">
                       <MemoCell memo={row.memo} />
                     </td>
-                    <td style={{ padding: '8px 6px' }}>{row.budget_category ?? '—'}</td>
-                    <td style={{ padding: '8px 6px', 'text-align': 'right' }}>
-                      {formatCurrency(row.weekly_amount_debit)}
-                    </td>
+                    <td class="px-1.5 py-2">{row.budget_category ?? '—'}</td>
+                    <td class="px-1.5 py-2 text-right">{formatCurrency(row.weekly_amount_debit)}</td>
                   </tr>
                 )}
               </For>

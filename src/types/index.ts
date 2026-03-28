@@ -304,13 +304,14 @@ export interface TransactionQueryParams {
   offset?: number
   limit?: number
   memoId?: Memo['id']
-  memo?: Memo['name']
+  memoName?: Memo['name']
   timeFrame?: Timeframe
   oldestDate?: boolean
   count?: boolean
   isSplit?: boolean
   budgetCategory?: BudgetCategory['name']
-  historical?: boolean
+  summary?: boolean
+  summaryType?: 'historical' | 'period'
   totalAmountDebit?: boolean
   budgetCategorySummary?: boolean
   budgetCategoryHierarchySum?: boolean

@@ -5,7 +5,11 @@ import { extractApiErrorMessage } from '@api/extractApiErrorMessage'
 import { loginRequest, persistSession } from '@stores/authStore'
 import { safeRedirectPath } from '@utils/safeRedirectPath'
 import { devConsole } from '@utils/devConsole'
-import AlertComponent from '@components/shared/AlertComponent'
+import { Alert, AlertDescription, AlertTitle } from '@components/ui/alert'
+import { Button } from '@components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
+import { Input } from '@components/ui/input'
+import { Label } from '@components/ui/label'
 
 const DEFAULT_AUTHENTICATED_ROUTE = '/budget-visualizer/transactions'
 
@@ -38,81 +42,56 @@ export default function Login() {
   })
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        'flex-direction': 'column',
-        'justify-content': 'center',
-        'align-items': 'center',
-        gap: '16px',
-        'min-height': '100vh',
-        background: '#1e1e1e',
-        color: '#ecf0f1',
-        padding: '20px',
-      }}
-    >
-      <div
-        style={{
-          width: 'min(100%, 420px)',
-          padding: '28px',
-          background: '#2c2c2c',
-          'border-radius': '10px',
-          border: '1px solid #444',
-        }}
-      >
-        {loginMut.isError ? (
-          <AlertComponent type="error" title="Login failed" message={errorDescription()} />
-        ) : null}
-        <h1 style={{ 'margin-top': 0, 'font-size': '1.35rem' }}>Sign in</h1>
-        <form
-          style={{ display: 'flex', 'flex-direction': 'column', gap: '14px' }}
-          onSubmit={(e) => {
-            e.preventDefault()
-            loginMut.mutate()
-          }}
-        >
-          <label style={{ display: 'flex', 'flex-direction': 'column', gap: '6px' }}>
-            <span style={{ color: '#bdc3c7', 'font-size': '0.85rem' }}>Username</span>
-            <input
-              autocomplete="username"
-              value={username()}
-              onInput={(e) => setUsername(e.currentTarget.value)}
-              style={{
-                padding: '10px',
-                'border-radius': '6px',
-                border: '1px solid #555',
-                background: '#1a1a1a',
-                color: '#ecf0f1',
-              }}
-            />
-          </label>
-          <label style={{ display: 'flex', 'flex-direction': 'column', gap: '6px' }}>
-            <span style={{ color: '#bdc3c7', 'font-size': '0.85rem' }}>Password</span>
-            <input
-              type="password"
-              autocomplete="current-password"
-              value={password()}
-              onInput={(e) => setPassword(e.currentTarget.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  if (!isDisabled()) loginMut.mutate()
-                }
-              }}
-              style={{
-                padding: '10px',
-                'border-radius': '6px',
-                border: '1px solid #555',
-                background: '#1a1a1a',
-                color: '#ecf0f1',
-              }}
-            />
-          </label>
-          <button type="submit" disabled={isDisabled()}>
-            {loginMut.isPending ? 'Signing in…' : 'Login'}
-          </button>
-        </form>
-      </div>
+    <div class="flex min-h-screen flex-col items-center justify-center bg-background p-5">
+      <Card class="w-full max-w-[420px]">
+        <CardHeader>
+          <CardTitle class="text-xl">Sign in</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {loginMut.isError ? (
+            <Alert variant="destructive" class="mb-4">
+              <AlertTitle>Login failed</AlertTitle>
+              <AlertDescription>{errorDescription()}</AlertDescription>
+            </Alert>
+          ) : null}
+          <form
+            class="flex flex-col gap-4"
+            onSubmit={(e) => {
+              e.preventDefault()
+              loginMut.mutate()
+            }}
+          >
+            <div class="flex flex-col gap-2">
+              <Label for="login-username">Username</Label>
+              <Input
+                id="login-username"
+                autocomplete="username"
+                value={username()}
+                onInput={(e) => setUsername(e.currentTarget.value)}
+              />
+            </div>
+            <div class="flex flex-col gap-2">
+              <Label for="login-password">Password</Label>
+              <Input
+                id="login-password"
+                type="password"
+                autocomplete="current-password"
+                value={password()}
+                onInput={(e) => setPassword(e.currentTarget.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    if (!isDisabled()) loginMut.mutate()
+                  }
+                }}
+              />
+            </div>
+            <Button type="submit" disabled={isDisabled()}>
+              {loginMut.isPending ? 'Signing in…' : 'Login'}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   )
 }

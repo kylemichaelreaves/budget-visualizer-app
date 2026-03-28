@@ -3,6 +3,8 @@ import { createStore } from 'solid-js/store'
 import type { LoanFormType } from '@types'
 import { devConsole } from '@utils/devConsole'
 import LoanFormField, { type LoanFieldDef } from './LoanFormField'
+import { Button } from '@components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 
 type LoanEstimate = {
   monthlyPayment: number
@@ -86,52 +88,48 @@ export default function LoanCalculator() {
   const payoffLabel = () => new Date(loanEstimate.payoffDate).toLocaleDateString()
 
   return (
-    <section
-      style={{
-        width: 'min(100%, 520px)',
-        padding: '20px',
-        background: '#2c2c2c',
-        'border-radius': '8px',
-        color: '#ecf0f1',
-      }}
-    >
-      <h2 style={{ 'margin-top': 0 }}>Loan Calculator</h2>
-      <p style={{ color: '#bdc3c7', 'font-size': '0.9rem' }}>
-        Monthly: {loanEstimate.monthlyPayment.toFixed(2)} · Interest: {loanEstimate.totalInterest.toFixed(2)}{' '}
-        · Total cost: {loanEstimate.totalCost.toFixed(2)} · Payoff: {payoffLabel()}
-      </p>
-
-      <form
-        onSubmit={(e) => {
-          e.preventDefault()
-          calculateLoanEstimate()
-        }}
-      >
-        <For each={loanFormFields}>
-          {(field) => (
-            <LoanFormField
-              field={field}
-              model={loanForm}
-              onChange={(m) =>
-                batch(() => {
-                  setLoanForm('loanAmount', m.loanAmount)
-                  setLoanForm('interestRate', m.interestRate)
-                  setLoanForm('loanTerm', m.loanTerm)
-                  setLoanForm('startDate', m.startDate)
-                })
-              }
-            />
-          )}
-        </For>
-        <div style={{ display: 'flex', gap: '10px', 'margin-top': '16px' }}>
-          <button type="submit" disabled={isFormInitial()}>
-            Calculate
-          </button>
-          <button type="button" onClick={resetForm} disabled={isFormInitial()}>
-            Reset
-          </button>
-        </div>
-      </form>
-    </section>
+    <Card class="w-full max-w-[520px]">
+      <CardHeader>
+        <CardTitle>Loan Calculator</CardTitle>
+        <p class="text-sm text-muted-foreground">
+          Monthly: {loanEstimate.monthlyPayment.toFixed(2)} · Interest:{' '}
+          {loanEstimate.totalInterest.toFixed(2)} · Total cost: {loanEstimate.totalCost.toFixed(2)} · Payoff:{' '}
+          {payoffLabel()}
+        </p>
+      </CardHeader>
+      <CardContent>
+        <form
+          onSubmit={(e) => {
+            e.preventDefault()
+            calculateLoanEstimate()
+          }}
+        >
+          <For each={loanFormFields}>
+            {(field) => (
+              <LoanFormField
+                field={field}
+                model={loanForm}
+                onChange={(m) =>
+                  batch(() => {
+                    setLoanForm('loanAmount', m.loanAmount)
+                    setLoanForm('interestRate', m.interestRate)
+                    setLoanForm('loanTerm', m.loanTerm)
+                    setLoanForm('startDate', m.startDate)
+                  })
+                }
+              />
+            )}
+          </For>
+          <div class="flex gap-2.5 mt-4">
+            <Button type="submit" disabled={isFormInitial()}>
+              Calculate
+            </Button>
+            <Button variant="outline" type="button" onClick={resetForm} disabled={isFormInitial()}>
+              Reset
+            </Button>
+          </div>
+        </form>
+      </CardContent>
+    </Card>
   )
 }

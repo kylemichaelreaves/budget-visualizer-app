@@ -3,27 +3,41 @@ import { createEffect, createSignal, For, Show } from 'solid-js'
 import type { SplitBudgetCategory, Timeframe } from '@types'
 import BudgetCategoriesTreeSelect from '@components/transactions/selects/BudgetCategoriesTreeSelect'
 import { generateId } from '@components/transactions/helpers/generateId'
+import { Button } from '@components/ui/button'
+import { Input } from '@components/ui/input'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@components/ui/dialog'
 
 export default function SplitBudgetCategoryDrawer(props: {
   open: boolean
   splits: SplitBudgetCategory[]
   transactionAmount: number
+  transactionType?: 'debit' | 'credit'
+  transactionDescription?: string
+  transactionDate?: string
+  transactionCategory?: string
   timeframe?: () => Timeframe | undefined
   date?: () => string | undefined
   onSubmit: (splits: SplitBudgetCategory[]) => void
   onCancel: () => void
+  onClear?: () => void
 }): JSX.Element {
   const [local, setLocal] = createSignal<SplitBudgetCategory[]>([])
 
   createEffect(() => {
     if (props.open) {
-      setLocal(props.splits.length ? [...props.splits] : [])
+      setLocal(
+        props.splits.length
+          ? [...props.splits]
+          : [{ id: generateId(), budget_category_id: '', amount_debit: 0 }],
+      )
     }
   })
 
-  const total = () => local().reduce((a, s) => a + s.amount_debit, 0)
-  const diff = () => Math.abs(total() - props.transactionAmount)
-  const isValid = () => diff() <= 0.01 && local().length > 0 && local().every((s) => s.budget_category_id)
+  const totalAllocated = () => local().reduce((a, s) => a + (Number(s.amount_debit) || 0), 0)
+  const remaining = () => props.transactionAmount - totalAllocated()
+  const isBalanced = () => Math.abs(remaining()) < 0.01
+  const isValid = () =>
+    isBalanced() && totalAllocated() > 0 && local().length > 0 && local().every((s) => s.budget_category_id)
 
   function updateAmount(index: number, v: number) {
     setLocal((rows) => {
@@ -48,93 +62,149 @@ export default function SplitBudgetCategoryDrawer(props: {
   }
 
   function removeSplit(index: number) {
-    setLocal((rows) => rows.filter((_, i) => i !== index))
+    setLocal((rows) => (rows.length > 1 ? rows.filter((_, i) => i !== index) : rows))
   }
 
   return (
-    <Show when={props.open}>
-      <div
-        style={{
-          position: 'fixed',
-          inset: 0,
-          background: 'rgba(0,0,0,0.5)',
-          'z-index': 100,
-          display: 'flex',
-          'justify-content': 'flex-end',
-        }}
-        onClick={(e) => e.target === e.currentTarget && props.onCancel()}
-      >
-        <div
-          role="dialog"
-          aria-label="Split Budget Category Drawer"
-          style={{
-            width: 'min(100%, 520px)',
-            background: '#2c2c2c',
-            color: '#ecf0f1',
-            padding: '20px',
-            'overflow-y': 'auto',
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          <h3 style={{ 'margin-top': 0 }}>Split transaction</h3>
-          <p style={{ color: '#bdc3c7', 'font-size': '0.9rem' }}>
-            Transaction: ${props.transactionAmount.toFixed(2)} · Split total: ${total().toFixed(2)}
-            {diff() > 0.01 ? (
-              <span style={{ color: '#e74c3c', 'margin-left': '8px' }}>Difference: ${diff().toFixed(2)}</span>
-            ) : null}
+    <Dialog open={props.open} onOpenChange={(open) => !open && props.onCancel()}>
+      <DialogContent class="sm:max-w-lg bg-card text-foreground flex flex-col max-h-[85vh] overflow-y-auto">
+        <DialogHeader class="pb-2">
+          <DialogTitle>Budget Category Split</DialogTitle>
+          <p class="text-sm text-muted-foreground">
+            Allocate this transaction across one or more budget categories.
           </p>
+        </DialogHeader>
+
+        {/* Transaction summary */}
+        <div class="rounded-lg border bg-muted/40 p-4 space-y-1">
+          <div class="flex items-center justify-between">
+            <span class="font-medium">{props.transactionDescription ?? 'Transaction'}</span>
+            <span
+              class={`font-semibold ${props.transactionType === 'credit' ? 'text-green-500' : 'text-red-500'}`}
+            >
+              {props.transactionType === 'credit' ? '+' : '-'}
+              {`$${Math.abs(props.transactionAmount).toFixed(2)}`}
+            </span>
+          </div>
+          <Show when={props.transactionCategory || props.transactionDate}>
+            <p class="text-sm text-muted-foreground">
+              {props.transactionCategory}
+              <Show when={props.transactionCategory && props.transactionDate}> · </Show>
+              {props.transactionDate}
+            </p>
+          </Show>
+        </div>
+
+        {/* Split rows */}
+        <div class="space-y-3 py-2">
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-medium">Splits</span>
+            <Button size="sm" variant="outline" onClick={addSplit}>
+              + Add Split
+            </Button>
+          </div>
+
           <For each={local()}>
             {(split, index) => (
-              <div
-                style={{
-                  display: 'grid',
-                  'grid-template-columns': '1fr 120px 40px',
-                  gap: '8px',
-                  'margin-bottom': '12px',
-                  'align-items': 'end',
-                }}
-                data-testid="split-row"
-              >
-                <BudgetCategoriesTreeSelect
-                  value={split.budget_category_id}
-                  onChange={(v) => updateCategory(index(), v)}
-                  dataTestId={`split-category-${index()}`}
-                  timeframe={props.timeframe}
-                  date={props.date}
-                  filterable
-                />
-                <input
-                  type="number"
-                  step="0.01"
-                  min={0}
-                  value={split.amount_debit}
-                  data-testid={`split-amount-${index()}`}
-                  onInput={(e) => updateAmount(index(), Number(e.currentTarget.value) || 0)}
-                  style={{ padding: '8px' }}
-                />
-                <button
-                  type="button"
+              <div class="flex items-center gap-2" data-testid="split-row">
+                <span class="text-xs text-muted-foreground w-5 shrink-0 text-right">{index() + 1}.</span>
+
+                <div class="flex-1 min-w-0">
+                  <BudgetCategoriesTreeSelect
+                    value={split.budget_category_id}
+                    onChange={(v) => updateCategory(index(), v)}
+                    dataTestId={`split-category-${index()}`}
+                    timeframe={props.timeframe}
+                    date={props.date}
+                    filterable
+                  />
+                </div>
+
+                <div class="relative w-28 shrink-0">
+                  <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">
+                    $
+                  </span>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    min={0}
+                    value={split.amount_debit === 0 ? '' : split.amount_debit}
+                    placeholder="0.00"
+                    class="pl-6 h-9 text-sm"
+                    data-testid={`split-amount-${index()}`}
+                    onInput={(e) => updateAmount(index(), Number(e.currentTarget.value) || 0)}
+                  />
+                </div>
+
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  class="h-9 w-9 shrink-0"
                   onClick={() => removeSplit(index())}
+                  disabled={local().length === 1}
                   data-testid={`split-remove-${index()}`}
                 >
-                  ×
-                </button>
+                  <svg
+                    class="size-4 text-red-500"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    stroke-width="2"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                  >
+                    <path d="M3 6h18" />
+                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                  </svg>
+                </Button>
               </div>
             )}
           </For>
-          <button type="button" onClick={addSplit} style={{ 'margin-bottom': '16px' }}>
-            Add split
-          </button>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button type="button" onClick={() => props.onCancel()}>
-              Cancel
-            </button>
-            <button type="button" disabled={!isValid()} onClick={() => props.onSubmit(local())}>
-              Save splits
-            </button>
+
+          {/* Balance summary */}
+          <div class="rounded-lg border p-3 space-y-2 mt-2">
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-muted-foreground">Transaction total</span>
+              <span>${props.transactionAmount.toFixed(2)}</span>
+            </div>
+            <div class="flex items-center justify-between text-sm">
+              <span class="text-muted-foreground">Allocated</span>
+              <span>${totalAllocated().toFixed(2)}</span>
+            </div>
+            <div class="border-t pt-2 flex items-center justify-between text-sm font-medium">
+              <span>Remaining</span>
+              <span
+                class={isBalanced() ? 'text-green-500' : remaining() < 0 ? 'text-red-500' : 'text-yellow-500'}
+              >
+                ${remaining().toFixed(2)}
+              </span>
+            </div>
           </div>
+
+          <Show when={!isBalanced()}>
+            <p class="text-xs text-muted-foreground">
+              {remaining() > 0
+                ? `$${remaining().toFixed(2)} still unallocated.`
+                : `Over-allocated by $${Math.abs(remaining()).toFixed(2)}.`}
+            </p>
+          </Show>
         </div>
-      </div>
-    </Show>
+
+        <div class="flex gap-2 border-t pt-4">
+          <Button variant="outline" class="flex-1" onClick={() => props.onCancel()}>
+            Cancel
+          </Button>
+          <Show when={props.onClear && props.splits.length > 0}>
+            <Button variant="outline" class="flex-1" onClick={() => props.onClear?.()}>
+              Clear splits
+            </Button>
+          </Show>
+          <Button class="flex-1" onClick={() => props.onSubmit(local())} disabled={!isValid()}>
+            Save splits
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }

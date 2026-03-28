@@ -38,12 +38,12 @@ export default function useTransactions() {
 
       const memoValue = transactionsState.selectedMemo
       const isMemoId = memoValue && !Number.isNaN(Number(memoValue))
-      let memoParam: { memoId?: number; memo?: string } = {}
+      let memoParam: { memoId?: number; memoName?: string } = {}
       if (memoValue) {
         if (isMemoId) {
           memoParam = { memoId: Number(memoValue) }
         } else {
-          memoParam = { memo: memoValue }
+          memoParam = { memoName: memoValue }
         }
       }
 

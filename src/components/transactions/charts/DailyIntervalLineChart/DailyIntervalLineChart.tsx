@@ -60,28 +60,30 @@ export default function DailyIntervalLineChart(props: {
 
   return (
     <Show when={shouldShowChart()}>
-      <div data-testid={id()}>
+      <div data-testid={id()} class="flex flex-col h-full">
         <Show when={chartQuery.isError && chartQuery.error}>
           {(err) => (
             <AlertComponent
               type="error"
-              title={(err() as Error).name}
-              message={(err() as Error).message}
+              title={(err() as Error).name ?? 'Error'}
+              message={(err() as Error).message ?? String(err())}
               dataTestId={`${id()}-error`}
             />
           )}
         </Show>
         <IntervalForm dataTestId={`${id()}-form`} onIntervalValueChange={setIntervalValue} />
         <Show when={chartQuery.isLoading || chartQuery.isFetching}>
-          <p style={{ padding: '20px', 'text-align': 'center', color: '#bdc3c7' }}>Loading chart data…</p>
+          <p class="p-5 text-center text-muted-foreground">Loading chart data...</p>
         </Show>
         <Show when={chartQuery.data && chartQuery.data.length > 0}>
-          <LineChart
-            summaries={chartQuery.data!}
-            handleOnClickSelection={handleOnDayClicked}
-            dataTestId={`${id()}-line-chart`}
-            loading={false}
-          />
+          <div>
+            <LineChart
+              summaries={chartQuery.data!}
+              handleOnClickSelection={handleOnDayClicked}
+              dataTestId={`${id()}-line-chart`}
+              loading={false}
+            />
+          </div>
         </Show>
       </div>
     </Show>

@@ -18,7 +18,7 @@ export class NavBar {
   }
 
   loginLabel() {
-    return this.nav.getByRole('button').locator('.navbar-login-label')
+    return this.nav.getByTestId('navbar-login-label')
   }
 
   async clickLoginLogout() {

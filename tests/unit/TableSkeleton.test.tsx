@@ -36,9 +36,9 @@ describe('TableSkeleton', () => {
     expect(screen.getByTestId('custom-skeleton')).toBeInTheDocument()
   })
 
-  it('renders shimmer spans per cell', () => {
+  it('renders skeleton elements per cell', () => {
     const { container } = render(() => <TableSkeleton columns={columns} rows={1} />)
-    const shimmers = container.querySelectorAll('.bv-shimmer')
-    expect(shimmers.length).toBe(2) // one per column
+    const skeletons = container.querySelectorAll('[data-slot="skeleton"]')
+    expect(skeletons.length).toBe(2) // one per column
   })
 })
