@@ -62,12 +62,13 @@ export function createLineChart(
     .range([0, width])
     .domain(d3.extent(chartData, (d) => d.date) as [Date, Date])
 
-  const [minAmount, maxAmount] = d3.extent(chartData, (d) => d.total_debit) as [number, number]
-  const yPad = Math.abs(maxAmount - minAmount) * 0.1 || 10
+  const absValues = chartData.map((d) => Math.abs(d.total_debit))
+  const [minAbs, maxAbs] = d3.extent(absValues) as [number, number]
+  const yPad = (maxAbs - minAbs) * 0.1 || 10
   const y = d3
     .scaleLinear()
     .range([height, 0])
-    .domain([minAmount - yPad, maxAmount + yPad])
+    .domain([0, maxAbs + yPad])
     .nice()
 
   // --- Axes ---
@@ -156,7 +157,7 @@ export function createLineChart(
   const line = d3
     .line<LineChartDataPoint>()
     .x((d) => x(d.date))
-    .y((d) => y(d.total_debit))
+    .y((d) => y(Math.abs(d.total_debit)))
     .curve(d3.curveMonotoneX)
 
   svg
@@ -198,7 +199,7 @@ export function createLineChart(
     .attr('class', 'dot')
     .attr('data-testid', (_d, i) => `chart-dot-${i}`)
     .attr('cx', (d) => x(d.date))
-    .attr('cy', (d) => y(d.total_debit))
+    .attr('cy', (d) => y(Math.abs(d.total_debit)))
     .attr('r', 4)
     .attr('fill', dotColor)
     .attr('stroke', tooltipBg)
@@ -214,11 +215,11 @@ export function createLineChart(
       strong.textContent = fmtShortDate(d.date)
       tooltipNode.appendChild(strong)
       tooltipNode.appendChild(document.createElement('br'))
-      tooltipNode.appendChild(document.createTextNode(fmtMoneyFull(d.total_debit)))
+      tooltipNode.appendChild(document.createTextNode(fmtMoneyFull(Math.abs(d.total_debit))))
       tooltip
         .style('opacity', '1')
         .style('left', `${x(d.date) + margin.left + svgRect.left - parentRect.left - 40}px`)
-        .style('top', `${y(d.total_debit) + margin.top + svgRect.top - parentRect.top - 48}px`)
+        .style('top', `${y(Math.abs(d.total_debit)) + margin.top + svgRect.top - parentRect.top - 48}px`)
     })
     .on('mouseleave', function () {
       d3.select(this).transition().duration(150).attr('r', 4)
