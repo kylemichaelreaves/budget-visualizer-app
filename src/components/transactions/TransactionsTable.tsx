@@ -232,10 +232,7 @@ export default function TransactionsTable() {
                   const isCredit = hasCredit && !hasDebit
 
                   return (
-                    <li
-                      class="grid grid-cols-[2fr_1fr_150px] items-center gap-4 rounded-lg border border-border p-4 transition-colors hover:bg-accent/50"
-                      onContextMenu={() => devConsole('log', 'context menu', row.id)}
-                    >
+                    <li class="grid grid-cols-[2fr_1fr_150px] items-center gap-4 rounded-lg border border-border p-4 transition-colors hover:bg-accent/50">
                       {/* Left: icon + description */}
                       <div class="flex items-center gap-4 min-w-0">
                         <div
