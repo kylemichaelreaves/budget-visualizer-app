@@ -14,7 +14,7 @@ function Progress(props: ProgressProps) {
         <ProgressPrimitive.Fill
           data-slot="progress-indicator"
           class="bg-primary h-full w-full flex-1 transition-all"
-          style={{ transform: `translateX(-${100 - (rest.value || 0)}%)` }}
+          style={{ transform: `translateX(-${100 - Math.min(100, Math.max(0, Number(rest.value) || 0))}%)` }}
         />
       </ProgressPrimitive.Track>
     </ProgressPrimitive.Root>

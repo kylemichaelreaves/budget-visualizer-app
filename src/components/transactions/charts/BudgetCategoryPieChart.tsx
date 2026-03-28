@@ -36,6 +36,7 @@ export default function BudgetCategoryPieChart(props: {
     const colorMap = buildBudgetCategoryColorMap(data)
     const container = svg.parentElement
     const containerWidth = container ? container.getBoundingClientRect().width : 300
+    if (containerWidth <= 0) return
     const w = Math.min(containerWidth, 280)
     const h = Math.min(w * 0.85, 240)
     const radius = Math.min(w, h) / 2 - 16

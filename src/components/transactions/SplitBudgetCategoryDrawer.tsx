@@ -78,7 +78,7 @@ export default function SplitBudgetCategoryDrawer(props: {
         <div class="rounded-lg border bg-muted/40 p-4 space-y-1">
           <div class="flex items-center justify-between">
             <span class="font-medium">{props.transactionDescription ?? 'Transaction'}</span>
-            <span class="font-semibold text-red-500">-${props.transactionAmount.toFixed(2)}</span>
+            <span class="font-semibold text-red-500">{`-$${props.transactionAmount.toFixed(2)}`}</span>
           </div>
           <Show when={props.transactionCategory || props.transactionDate}>
             <p class="text-sm text-muted-foreground">

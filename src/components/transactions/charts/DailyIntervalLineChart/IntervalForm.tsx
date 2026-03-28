@@ -50,7 +50,7 @@ export default function IntervalForm(props: {
       ) : null}
       <div
         class="flex items-center justify-end gap-2"
-        classList={{ 'opacity-50 pointer-events-none': isOutOfRange() }}
+        classList={{ 'opacity-50': isOutOfRange(), 'pointer-events-none': isOutOfRange() }}
       >
         <Label class="flex items-center gap-1.5 text-xs text-muted-foreground">
           Count

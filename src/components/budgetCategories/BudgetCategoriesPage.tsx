@@ -37,7 +37,7 @@ function TreeNode(props: { node: CategoryNode; depth: number }): JSX.Element {
     <li
       class="my-1.5 list-none"
       style={{ 'padding-left': `${pad()}px` }}
-      classList={{ 'border-l border-border': props.depth > 0 }}
+      classList={{ 'border-l': props.depth > 0, 'border-border': props.depth > 0 }}
       data-testid={`budget-category-node-${props.depth}`}
     >
       <div class="flex flex-wrap gap-2.5 items-baseline">

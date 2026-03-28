@@ -300,7 +300,7 @@ export default function TransactionsTable() {
                               <A
                                 href={`/budget-visualizer/memos/${row.memo_id}/summary`}
                                 class="hover:underline"
-                                data-testid="memo-link"
+                                data-testid={`memo-link-${row.memo_id}`}
                               >
                                 {String(row.memo)}
                               </A>

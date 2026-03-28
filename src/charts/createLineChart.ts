@@ -67,6 +67,7 @@ export function createLineChart(
   const margin = { top: 8, right: 8, bottom: 20, left: 40 }
   const width = parentWidth - margin.left - margin.right
   const height = 240
+  if (width <= 0) return
 
   // --- Scales ---
   const x = d3
