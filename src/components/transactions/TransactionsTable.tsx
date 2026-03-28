@@ -236,7 +236,7 @@ export default function TransactionsTable() {
 
                   return (
                     <li
-                      class="grid grid-cols-[minmax(200px,1fr)_minmax(120px,1fr)_auto] items-center gap-4 rounded-lg border border-border p-4 transition-colors hover:bg-accent/50"
+                      class="grid grid-cols-[2fr_1fr_auto] items-center gap-4 rounded-lg border border-border p-4 transition-colors hover:bg-accent/50"
                       onContextMenu={() => devConsole('log', 'context menu', row.id)}
                     >
                       {/* Left: icon + description */}
