@@ -65,8 +65,8 @@ export default function DailyIntervalLineChart(props: {
           {(err) => (
             <AlertComponent
               type="error"
-              title={err().name}
-              message={err().message}
+              title={(err() as Error).name ?? 'Error'}
+              message={(err() as Error).message ?? String(err())}
               dataTestId={`${id()}-error`}
             />
           )}

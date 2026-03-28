@@ -45,7 +45,7 @@ export default function SelectComponent(props: {
     <div class="relative w-full" ref={(el) => (root = el)} data-testid={props.dataTestId || undefined}>
       <div class="flex items-center gap-1.5">
         <input
-          class="w-full rounded-md border border-border bg-input px-2.5 py-2 text-foreground placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-55"
+          class="w-full rounded-md border border-border bg-input-background px-2.5 py-2 text-foreground placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50"
           type="text"
           placeholder={props.placeholder}
           disabled={props.disabled}
