@@ -24,6 +24,7 @@ export default function LineChart(props: {
     }
     if (!el || loading || !summaries?.length) {
       if (el) el.innerHTML = ''
+      wrapperEl?.querySelectorAll('[data-slot="chart-tooltip"]').forEach((tooltipEl) => tooltipEl.remove())
       return
     }
     rafId = requestAnimationFrame(() => {
