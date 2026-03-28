@@ -121,6 +121,7 @@ export default function TransactionEditForm(props: {
       </Field>
       <Field label="Date" test={`${tid()}-date`}>
         <Input
+          id={`field-${tid()}-date`}
           type="date"
           value={tx.date?.slice(0, 10) ?? ''}
           onInput={(e) => setTx('date', e.currentTarget.value)}
@@ -128,6 +129,7 @@ export default function TransactionEditForm(props: {
       </Field>
       <Field label="Amount Debit" test={`${tid()}-amount_debit`}>
         <Input
+          id={`field-${tid()}-amount_debit`}
           value={tx.amount_debit}
           disabled={!!tx.amount_credit}
           onInput={(e) => setTx('amount_debit', e.currentTarget.value)}
@@ -135,13 +137,18 @@ export default function TransactionEditForm(props: {
       </Field>
       <Field label="Amount Credit" test={`${tid()}-amount_credit`}>
         <Input
+          id={`field-${tid()}-amount_credit`}
           value={tx.amount_credit}
           disabled={!!tx.amount_debit}
           onInput={(e) => setTx('amount_credit', e.currentTarget.value)}
         />
       </Field>
       <Field label="Description" test={`${tid()}-description`}>
-        <Input value={tx.description} onInput={(e) => setTx('description', e.currentTarget.value)} />
+        <Input
+          id={`field-${tid()}-description`}
+          value={tx.description}
+          onInput={(e) => setTx('description', e.currentTarget.value)}
+        />
       </Field>
       <Field label="Memo" test={`${tid()}-memo`}>
         <MemoSelect value={tx.memo} onChange={(v) => setTx('memo', v)} dataTestId={`${tid()}-memo-select`} />
@@ -175,9 +182,12 @@ export default function TransactionEditForm(props: {
 }
 
 function Field(props: { label: string; test: string; children: JSX.Element }): JSX.Element {
+  const id = () => `field-${props.test}`
   return (
     <div class="space-y-1">
-      <Label class="text-muted-foreground">{props.label}</Label>
+      <Label for={id()} class="text-muted-foreground">
+        {props.label}
+      </Label>
       <div data-testid={props.test}>{props.children}</div>
     </div>
   )

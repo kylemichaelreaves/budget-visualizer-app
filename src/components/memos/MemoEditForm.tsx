@@ -98,8 +98,9 @@ export default function MemoEditForm(props: {
       </Show>
 
       <div class="space-y-1">
-        <Label class="text-muted-foreground text-sm">Name</Label>
+        <Label for="memo-name" class="text-muted-foreground text-sm">Name</Label>
         <Input
+          id="memo-name"
           data-testid={`${tid()}-name`}
           value={form.name}
           onInput={(e) => setForm('name', e.currentTarget.value)}
@@ -109,6 +110,7 @@ export default function MemoEditForm(props: {
 
       <Label class="flex items-center gap-2 text-foreground">
         <input
+          id="memo-recurring"
           type="checkbox"
           data-testid={`${tid()}-recurring`}
           checked={form.recurring}
@@ -119,6 +121,7 @@ export default function MemoEditForm(props: {
 
       <Label class="flex items-center gap-2 text-foreground">
         <input
+          id="memo-necessary"
           type="checkbox"
           data-testid={`${tid()}-necessary`}
           checked={form.necessary}
@@ -129,6 +132,7 @@ export default function MemoEditForm(props: {
 
       <Label class="flex items-center gap-2 text-foreground">
         <input
+          id="memo-ambiguous"
           type="checkbox"
           data-testid={`${tid()}-ambiguous`}
           checked={form.ambiguous}
@@ -138,8 +142,9 @@ export default function MemoEditForm(props: {
       </Label>
 
       <div class="space-y-1">
-        <Label class="text-muted-foreground text-sm">Frequency</Label>
+        <Label for="memo-frequency" class="text-muted-foreground text-sm">Frequency</Label>
         <select
+          id="memo-frequency"
           data-testid={`${tid()}-frequency`}
           value={form.frequency}
           onChange={(e) => setForm('frequency', e.currentTarget.value as Frequency | '')}

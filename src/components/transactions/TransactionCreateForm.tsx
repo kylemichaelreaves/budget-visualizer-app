@@ -65,8 +65,9 @@ export default function TransactionCreateForm(props: { onClose?: () => void }): 
         Debit (off = credit)
       </Label>
       <div class="space-y-1">
-        <Label class="text-muted-foreground">Date</Label>
+        <Label for="create-date" class="text-muted-foreground">Date</Label>
         <Input
+          id="create-date"
           type="date"
           value={form().date}
           data-testid="transaction-input-date"
@@ -74,24 +75,27 @@ export default function TransactionCreateForm(props: { onClose?: () => void }): 
         />
       </div>
       <div class="space-y-1">
-        <Label class="text-muted-foreground">Description</Label>
+        <Label for="create-description" class="text-muted-foreground">Description</Label>
         <Input
+          id="create-description"
           value={form().description}
           data-testid="transaction-input-description"
           onInput={(e) => setForm({ ...form(), description: e.currentTarget.value })}
         />
       </div>
       <div class="space-y-1">
-        <Label class="text-muted-foreground">Memo</Label>
+        <Label for="create-memo" class="text-muted-foreground">Memo</Label>
         <Input
+          id="create-memo"
           value={form().memo}
           data-testid="transaction-input-memo"
           onInput={(e) => setForm({ ...form(), memo: e.currentTarget.value })}
         />
       </div>
       <div class="space-y-1">
-        <Label class="text-muted-foreground">Amount Debit</Label>
+        <Label for="create-amount-debit" class="text-muted-foreground">Amount Debit</Label>
         <Input
+          id="create-amount-debit"
           value={form().amount_debit}
           disabled={!isDebit()}
           data-testid="transaction-input-amount_debit"
@@ -99,8 +103,9 @@ export default function TransactionCreateForm(props: { onClose?: () => void }): 
         />
       </div>
       <div class="space-y-1">
-        <Label class="text-muted-foreground">Amount Credit</Label>
+        <Label for="create-amount-credit" class="text-muted-foreground">Amount Credit</Label>
         <Input
+          id="create-amount-credit"
           value={form().amount_credit}
           disabled={isDebit()}
           data-testid="transaction-input-amount_credit"

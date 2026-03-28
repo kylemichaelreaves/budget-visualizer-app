@@ -25,7 +25,7 @@ export class TransactionCreateDialog {
     this.amountCreditInput = this.dialog.getByLabel('Amount Credit')
     this.debitToggle = this.dialog.getByLabel(/debit/i)
     this.submitButton = this.dialog.getByRole('button', { name: /create transaction/i })
-    this.closeButton = this.dialog.getByRole('button', { name: 'Close' })
+    this.closeButton = this.dialog.getByRole('button', { name: /dismiss|close/i })
     this.errorAlert = this.dialog.getByRole('alert')
   }
 

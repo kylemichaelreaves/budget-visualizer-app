@@ -11,7 +11,7 @@ export class SplitBudgetCategoryDrawer {
 
   constructor(page: Page) {
     this.page = page
-    this.drawer = page.getByRole('dialog', { name: /split budget category drawer/i })
+    this.drawer = page.getByRole('dialog', { name: /split transaction/i })
     this.heading = this.drawer.getByRole('heading', { name: /split transaction/i })
     this.saveButton = this.drawer.getByRole('button', { name: /save splits/i })
     this.cancelButton = this.drawer.getByRole('button', { name: /cancel/i })
