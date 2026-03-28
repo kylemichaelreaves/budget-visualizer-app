@@ -34,7 +34,8 @@ export default function BudgetCategoryPieChart(props: {
 
     const colorMap = buildBudgetCategoryColorMap(data)
     const container = svg.parentElement
-    const containerWidth = container ? container.getBoundingClientRect().width : 300
+    if (!container) return
+    const containerWidth = container.getBoundingClientRect().width
     if (containerWidth <= 0) return
     const w = Math.min(containerWidth, 280)
     const h = Math.min(w * 0.85, 240)
@@ -91,7 +92,7 @@ export default function BudgetCategoryPieChart(props: {
           tooltip.appendChild(strong)
           tooltip.appendChild(document.createElement('br'))
           tooltip.appendChild(document.createTextNode(formatCurrency(Math.abs(d.data.total_amount_debit))))
-          const parentRect = svg.parentElement!.getBoundingClientRect()
+          const parentRect = container.getBoundingClientRect()
           tooltip.style.left = `${event.clientX - parentRect.left + 12}px`
           tooltip.style.top = `${event.clientY - parentRect.top - 12}px`
           tooltip.style.opacity = '1'
@@ -99,7 +100,7 @@ export default function BudgetCategoryPieChart(props: {
       })
       .on('mousemove', function (event) {
         if (tooltip && svg) {
-          const parentRect = svg.parentElement!.getBoundingClientRect()
+          const parentRect = container.getBoundingClientRect()
           tooltip.style.left = `${event.clientX - parentRect.left + 12}px`
           tooltip.style.top = `${event.clientY - parentRect.top - 12}px`
         }

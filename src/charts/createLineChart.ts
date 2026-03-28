@@ -22,7 +22,8 @@ export function createLineChart(
   d3.select(svgElement).selectAll('*').remove()
 
   const parentElement = svgElement.parentElement
-  const parentWidth = parentElement ? parentElement.getBoundingClientRect().width : 300
+  if (!parentElement) return
+  const parentWidth = parentElement.getBoundingClientRect().width
 
   const parseDateUTC = d3.utcParse('%Y-%m-%dT%H:%M:%S.%LZ')
 
@@ -175,7 +176,7 @@ export function createLineChart(
     .attr('d', line as unknown as string)
 
   // --- Tooltip (reuse existing or create) ---
-  const parent = d3.select(svgElement.parentElement!)
+  const parent = d3.select(parentElement)
   parent.selectAll('[data-slot="chart-tooltip"]').remove()
   const tooltip = parent
     .append('div')
@@ -214,7 +215,7 @@ export function createLineChart(
     .on('mouseenter', function (_event, d) {
       d3.select(this).transition().duration(150).attr('r', 6)
       const svgRect = svgElement.getBoundingClientRect()
-      const parentRect = svgElement.parentElement!.getBoundingClientRect()
+      const parentRect = parentElement.getBoundingClientRect()
       const tooltipNode = tooltip.node()!
       tooltipNode.textContent = ''
       const strong = document.createElement('strong')
