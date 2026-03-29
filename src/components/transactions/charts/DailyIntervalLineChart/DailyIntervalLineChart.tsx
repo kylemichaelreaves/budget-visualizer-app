@@ -23,13 +23,23 @@ export default function DailyIntervalLineChart(props: {
       return transactionsState.selectedDay
     }
     if (transactionsState.selectedWeek) {
-      return parseDateIWIYYY(transactionsState.selectedWeek)?.toISOString().split('T')[0] ?? null
+      const weekStart = parseDateIWIYYY(transactionsState.selectedWeek)
+      if (weekStart) {
+        const end = DateTime.fromJSDate(weekStart, { zone: 'utc' }).plus({ days: 6 })
+        return end.toISODate()
+      }
+      return null
     }
     if (transactionsState.selectedMonth) {
-      return parseDateMMYYYY(transactionsState.selectedMonth)?.toISOString().split('T')[0] ?? null
+      const monthStart = parseDateMMYYYY(transactionsState.selectedMonth)
+      if (monthStart) {
+        const end = DateTime.fromJSDate(monthStart, { zone: 'utc' }).endOf('month')
+        return end.toISODate()
+      }
+      return null
     }
     if (transactionsState.selectedYear) {
-      return `${transactionsState.selectedYear}-06-15`
+      return `${transactionsState.selectedYear}-12-31`
     }
     if (props.firstDay) {
       return props.firstDay
