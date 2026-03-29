@@ -1,5 +1,5 @@
 import type { JSX } from 'solid-js'
-import { For, Show, createEffect, createMemo, on, onMount } from 'solid-js'
+import { For, Show, createEffect, createMemo, on } from 'solid-js'
 import { useLocation, useNavigate } from '@solidjs/router'
 import { formatDayLabel, formatWeekLabel, formatMonthLabel } from '@api/helpers/formatPeriodLabels'
 import useDays from '@api/hooks/timeUnits/days/useDays'
@@ -67,23 +67,33 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
   const loc = useLocation()
   const navigate = useNavigate()
 
-  // Sync URL params → store on mount. Only hydrate from URL if params are
-  // present; only clear if no params AND no existing store selection (to
-  // avoid wiping route-param selections from summary pages).
-  onMount(() => {
-    const sp = new URLSearchParams(loc.search)
-    const day = sp.get('day')
-    const week = sp.get('week')
-    const month = sp.get('month')
-    const year = sp.get('year')
-    const memo = sp.get('memo')
-    if (day) selectDayView(day)
-    else if (week) selectWeekView(week)
-    else if (month) selectMonthView(month)
-    else if (year) selectYearView(year)
-    else if (memo) selectMemoView(memo)
-    else if (!transactionsState.viewMode) clearAllFilters()
-  })
+  // Sync URL params → store whenever loc.search changes (mount, back/forward nav).
+  // A flag prevents the store→URL effect from re-triggering this effect.
+  let syncingFromUrl = false
+  createEffect(
+    on(
+      () => loc.search,
+      () => {
+        syncingFromUrl = true
+        try {
+          const sp = new URLSearchParams(loc.search)
+          const day = sp.get('day')
+          const week = sp.get('week')
+          const month = sp.get('month')
+          const year = sp.get('year')
+          const memo = sp.get('memo')
+          if (day) selectDayView(day)
+          else if (week) selectWeekView(week)
+          else if (month) selectMonthView(month)
+          else if (year) selectYearView(year)
+          else if (memo) selectMemoView(memo)
+          else if (!transactionsState.viewMode) clearAllFilters()
+        } finally {
+          syncingFromUrl = false
+        }
+      },
+    ),
+  )
 
   // Sync store → URL params when selection changes.
   // Derive effective view mode from selections so URL stays consistent
@@ -100,6 +110,7 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
           transactionsState.selectedMemo,
         ] as const,
       () => {
+        if (syncingFromUrl) return
         const { viewMode, selectedDay, selectedWeek, selectedMonth, selectedYear, selectedMemo } =
           transactionsState
 
