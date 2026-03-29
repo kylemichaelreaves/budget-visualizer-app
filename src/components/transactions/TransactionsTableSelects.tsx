@@ -87,7 +87,7 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
           else if (month) selectMonthView(month)
           else if (year) selectYearView(year)
           else if (memo) selectMemoView(memo)
-          else if (!transactionsState.viewMode) clearAllFilters()
+          else clearAllFilters()
         } finally {
           syncingFromUrl = false
         }

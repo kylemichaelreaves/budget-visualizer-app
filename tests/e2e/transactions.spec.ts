@@ -192,6 +192,7 @@ test.describe('Transaction list filtering', () => {
       return (
         url.pathname.endsWith('/transactions') &&
         url.searchParams.get('timeFrame') === 'month' &&
+        url.searchParams.get('date') === '01-2025' &&
         url.searchParams.has('limit') &&
         url.searchParams.has('offset')
       )
