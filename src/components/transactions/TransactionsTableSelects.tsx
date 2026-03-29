@@ -1,5 +1,6 @@
 import type { JSX } from 'solid-js'
-import { For, Show, createEffect, createMemo, on } from 'solid-js'
+import { For, Show, createEffect, createMemo, on, onMount } from 'solid-js'
+import { useLocation, useNavigate } from '@solidjs/router'
 import { formatDayLabel, formatWeekLabel, formatMonthLabel } from '@api/helpers/formatPeriodLabels'
 import useDays from '@api/hooks/timeUnits/days/useDays'
 import useMonths from '@api/hooks/timeUnits/months/useMonths'
@@ -60,6 +61,55 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
       (data) => {
         if (data) setDays(data as DayYear[])
       },
+    ),
+  )
+
+  const loc = useLocation()
+  const navigate = useNavigate()
+
+  // Sync URL params → store on mount
+  onMount(() => {
+    const sp = new URLSearchParams(loc.search)
+    const day = sp.get('day')
+    const week = sp.get('week')
+    const month = sp.get('month')
+    const year = sp.get('year')
+    const memo = sp.get('memo')
+    if (day) selectDayView(day)
+    else if (week) selectWeekView(week)
+    else if (month) selectMonthView(month)
+    else if (year) selectYearView(year)
+    else if (memo) selectMemoView(memo)
+  })
+
+  // Sync store → URL params when viewMode/selection changes
+  createEffect(
+    on(
+      () =>
+        [
+          transactionsState.viewMode,
+          transactionsState.selectedDay,
+          transactionsState.selectedWeek,
+          transactionsState.selectedMonth,
+          transactionsState.selectedYear,
+          transactionsState.selectedMemo,
+        ] as const,
+      () => {
+        const sp = new URLSearchParams()
+        const vm = transactionsState.viewMode
+        if (vm === 'day' && transactionsState.selectedDay) sp.set('day', transactionsState.selectedDay)
+        else if (vm === 'week' && transactionsState.selectedWeek)
+          sp.set('week', transactionsState.selectedWeek)
+        else if (vm === 'month' && transactionsState.selectedMonth)
+          sp.set('month', transactionsState.selectedMonth)
+        else if (vm === 'year' && transactionsState.selectedYear)
+          sp.set('year', transactionsState.selectedYear)
+        else if (vm === 'memo' && transactionsState.selectedMemo)
+          sp.set('memo', transactionsState.selectedMemo)
+        const qs = sp.toString()
+        navigate(`${loc.pathname}${qs ? `?${qs}` : ''}`, { replace: true })
+      },
+      { defer: true },
     ),
   )
 

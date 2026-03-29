@@ -13,7 +13,6 @@ import TransactionsTablePagination from '@components/transactions/TransactionsTa
 import TransactionsTableSelects from '@components/transactions/TransactionsTableSelects'
 import { transactionsState } from '@stores/transactionsStore'
 import { Timeframe } from '@types'
-import { devConsole } from '@utils/devConsole'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 import { Badge } from '@components/ui/badge'
 import { Skeleton } from '@components/ui/skeleton'
@@ -102,27 +101,6 @@ export default function TransactionsTable() {
       () => {
         void loadMorePagesIfNeeded()
       },
-    ),
-  )
-
-  // Cache clearing is handled by useTransactions when the query key changes.
-  // The manual refetch ensures TanStack re-runs the queryFn even if it
-  // considers the new key "fresh" from a previous visit.
-  createEffect(
-    on(
-      () =>
-        [
-          transactionsState.selectedDay,
-          transactionsState.selectedWeek,
-          transactionsState.selectedMonth,
-          transactionsState.selectedYear,
-          transactionsState.selectedMemo,
-        ] as const,
-      () => {
-        devConsole('log', '[TransactionsTable] selection changed, refetch')
-        void query.refetch()
-      },
-      { defer: true },
     ),
   )
 
