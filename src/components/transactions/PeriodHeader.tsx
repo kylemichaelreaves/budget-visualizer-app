@@ -128,9 +128,9 @@ export default function PeriodHeader(props: { onAddTransaction?: () => void }): 
             </svg>
           </Button>
           <Button
-            variant="ghost"
+            variant="outline"
             size="sm"
-            class="h-8 px-3 text-muted-foreground"
+            class="h-8 px-3"
             onClick={() => clearAllFilters()}
             data-testid="period-header-clear"
           >
