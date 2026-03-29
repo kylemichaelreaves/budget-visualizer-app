@@ -2,14 +2,15 @@ import { A } from '@solidjs/router'
 import { DateTime } from 'luxon'
 import { createEffect, createMemo, For, on, Show } from 'solid-js'
 import { formatDate } from '@api/helpers/formatDate'
+import { getPeriodLabel } from '@api/helpers/formatPeriodLabels'
 import useTransactions from '@api/hooks/transactions/useTransactions'
 import AlertComponent from '@components/shared/AlertComponent'
 import BudgetCategorySummaries from '@components/transactions/charts/BudgetCategorySummaries'
 import DailyIntervalLineChart from '@components/transactions/charts/DailyIntervalLineChart/DailyIntervalLineChart'
-import MonthSummaryTable from '@components/transactions/MonthSummaryTable'
+import PeriodHeader from '@components/transactions/PeriodHeader'
+import SummaryStatsCards from '@components/transactions/SummaryStatsCards'
 import TransactionsTablePagination from '@components/transactions/TransactionsTablePagination'
 import TransactionsTableSelects from '@components/transactions/TransactionsTableSelects'
-import WeekSummaryTable from '@components/transactions/WeekSummaryTable'
 import { clearTransactionsByOffset, transactionsState } from '@stores/transactionsStore'
 import { Timeframe } from '@types'
 import { devConsole } from '@utils/devConsole'
@@ -23,6 +24,14 @@ function formatCurrency(value: unknown): string {
   const num = Number(value)
   if (!Number.isFinite(num) || value == null || value === '') return ''
   return currencyFormatter.format(num)
+}
+
+function getSelectedValue(): string {
+  if (transactionsState.viewMode === 'day') return transactionsState.selectedDay
+  if (transactionsState.viewMode === 'week') return transactionsState.selectedWeek
+  if (transactionsState.viewMode === 'month') return transactionsState.selectedMonth
+  if (transactionsState.viewMode === 'year') return transactionsState.selectedYear
+  return ''
 }
 
 export default function TransactionsTable() {
@@ -119,6 +128,12 @@ export default function TransactionsTable() {
     ),
   )
 
+  const cardTitle = () => {
+    if (!transactionsState.viewMode) return 'Recent Transactions'
+    if (transactionsState.viewMode === 'memo') return `Results for "${transactionsState.selectedMemo}"`
+    return getPeriodLabel(transactionsState.viewMode, getSelectedValue())
+  }
+
   return (
     <div class="space-y-6">
       <Show when={query.isError && query.error}>
@@ -186,20 +201,16 @@ export default function TransactionsTable() {
         </Card>
       </div>
 
-      <Show when={transactionsState.selectedMonth}>
-        <MonthSummaryTable />
-      </Show>
-
-      <Show when={transactionsState.selectedWeek}>
-        <WeekSummaryTable />
-      </Show>
-
       <TransactionsTableSelects dataTestId="transactions-table-selects" />
+
+      <PeriodHeader />
+
+      <SummaryStatsCards transactions={paginatedData()} />
 
       {/* Transactions list */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Transactions</CardTitle>
+          <CardTitle>{cardTitle()}</CardTitle>
         </CardHeader>
         <CardContent>
           <Show when={isLoadingCondition()}>
