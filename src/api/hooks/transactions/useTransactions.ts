@@ -1,7 +1,8 @@
 import { useInfiniteQuery } from '@tanstack/solid-query'
-import { createMemo } from 'solid-js'
+import { createEffect, createMemo, on } from 'solid-js'
 import { fetchTransactions } from '@api/transactions/fetchTransactions'
 import {
+  clearTransactionsByOffset,
   getTransactionsByOffset,
   setTransactionsByOffset,
   transactionsState,
@@ -23,6 +24,10 @@ export default function useTransactions() {
         selectedValue(),
       ] as const,
   )
+
+  // Clear the offset cache whenever the query key changes so the queryFn
+  // doesn't return stale data from a previous filter.
+  createEffect(on(queryKey, () => clearTransactionsByOffset(), { defer: true }))
 
   devConsole('log', '[useTransactions] selectedMemo:', transactionsState.selectedMemo)
 
