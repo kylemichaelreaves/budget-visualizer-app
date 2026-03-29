@@ -6,6 +6,7 @@ import {
   selectWeekView,
   selectMonthView,
   selectYearView,
+  clearAllFilters,
 } from '@stores/transactionsStore'
 import { getPeriodLabel } from '@api/helpers/formatPeriodLabels'
 import { Button } from '@components/ui/button'
@@ -20,6 +21,7 @@ function getSelectedValue(): string {
   return ''
 }
 
+/** Lists are sorted descending (newest first: index 0 = most recent). */
 function getList(): string[] {
   const s = transactionsState
   if (s.viewMode === 'day') return s.days.map((d) => String(d.day).split('T')[0]!)
@@ -29,14 +31,10 @@ function getList(): string[] {
   return []
 }
 
-function navigatePeriod(dir: -1 | 1): void {
+function selectAtIndex(idx: number): void {
   const list = getList()
-  const current = getSelectedValue()
-  const idx = list.indexOf(current)
-  if (idx < 0) return
-  const nextIdx = idx + dir
-  if (nextIdx < 0 || nextIdx >= list.length) return
-  const next = list[nextIdx]!
+  const next = list[idx]
+  if (!next) return
   const vm = transactionsState.viewMode
   if (vm === 'day') selectDayView(next)
   else if (vm === 'week') selectWeekView(next)
@@ -47,16 +45,16 @@ function navigatePeriod(dir: -1 | 1): void {
 export default function PeriodHeader(props: { onAddTransaction?: () => void }): JSX.Element {
   const label = createMemo(() => getPeriodLabel(transactionsState.viewMode, getSelectedValue()))
 
-  const canPrev = createMemo(() => {
+  const currentIndex = createMemo(() => {
     const list = getList()
-    const idx = list.indexOf(getSelectedValue())
-    return idx > 0
+    return list.indexOf(getSelectedValue())
   })
 
-  const canNext = createMemo(() => {
+  // Newer = lower index (toward 0). Prev = older = higher index.
+  const canGoNewer = createMemo(() => currentIndex() > 0)
+  const canGoOlder = createMemo(() => {
     const list = getList()
-    const idx = list.indexOf(getSelectedValue())
-    return idx >= 0 && idx < list.length - 1
+    return currentIndex() >= 0 && currentIndex() < list.length - 1
   })
 
   const isTimePeriod = () =>
@@ -79,7 +77,9 @@ export default function PeriodHeader(props: { onAddTransaction?: () => void }): 
 
       <Show when={transactionsState.viewMode === 'memo'}>
         <h1 data-testid="period-header-label">"{transactionsState.selectedMemo}"</h1>
-        <div />
+        <Button variant="ghost" size="sm" onClick={() => clearAllFilters()} data-testid="period-header-clear">
+          Clear
+        </Button>
       </Show>
 
       <Show when={isTimePeriod()}>
@@ -89,8 +89,8 @@ export default function PeriodHeader(props: { onAddTransaction?: () => void }): 
             variant="outline"
             size="sm"
             class="h-8 px-3"
-            disabled={!canPrev()}
-            onClick={() => navigatePeriod(-1)}
+            disabled={!canGoOlder()}
+            onClick={() => selectAtIndex(currentIndex() + 1)}
             data-testid="period-header-prev"
           >
             <svg
@@ -110,8 +110,8 @@ export default function PeriodHeader(props: { onAddTransaction?: () => void }): 
             variant="outline"
             size="sm"
             class="h-8 px-3"
-            disabled={!canNext()}
-            onClick={() => navigatePeriod(1)}
+            disabled={!canGoNewer()}
+            onClick={() => selectAtIndex(currentIndex() - 1)}
             data-testid="period-header-next"
           >
             Next
@@ -126,6 +126,27 @@ export default function PeriodHeader(props: { onAddTransaction?: () => void }): 
             >
               <path d="m9 18 6-6-6-6" />
             </svg>
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            class="h-8 px-3 text-muted-foreground"
+            onClick={() => clearAllFilters()}
+            data-testid="period-header-clear"
+          >
+            <svg
+              class="size-3.5 mr-1"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M18 6 6 18" />
+              <path d="m6 6 12 12" />
+            </svg>
+            Clear
           </Button>
         </div>
       </Show>

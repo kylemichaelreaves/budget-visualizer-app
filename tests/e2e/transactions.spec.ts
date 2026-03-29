@@ -108,12 +108,30 @@ test.describe('View mode filtering', () => {
     await expect(transactionsPage.nextPeriodButton).toBeVisible()
   })
 
-  test('navigating to next year updates period label', async ({ transactionsPage }) => {
+  test('prev navigates to older period, next to newer', async ({ transactionsPage }) => {
+    await transactionsPage.goto()
+    await expect(transactionsPage.filtersSection).toBeVisible({ timeout: 30_000 })
+    // Select 2025 (newest) — Next should be disabled, Prev goes to 2024
+    await transactionsPage.selectYear('2025')
+    await expect(transactionsPage.periodLabel).toHaveText('2025')
+    await expect(transactionsPage.nextPeriodButton).toBeDisabled()
+    await expect(transactionsPage.prevPeriodButton).toBeEnabled()
+    // Go to previous (older) — 2024
+    await transactionsPage.clickPrevPeriod()
+    await expect(transactionsPage.periodLabel).toHaveText('2024')
+    // Now Prev should be disabled (oldest), Next should be enabled
+    await expect(transactionsPage.prevPeriodButton).toBeDisabled()
+    await expect(transactionsPage.nextPeriodButton).toBeEnabled()
+  })
+
+  test('clear button in nav group clears the active filter', async ({ transactionsPage }) => {
     await transactionsPage.goto()
     await expect(transactionsPage.filtersSection).toBeVisible({ timeout: 30_000 })
     await transactionsPage.selectYear('2025')
     await expect(transactionsPage.periodLabel).toHaveText('2025')
-    await transactionsPage.clickNextPeriod()
-    await expect(transactionsPage.periodLabel).toHaveText('2024')
+    await transactionsPage.page.getByTestId('period-header-clear').click()
+    await expect(transactionsPage.periodLabel).not.toBeVisible()
+    await expect(transactionsPage.summaryCreditsCard).not.toBeVisible()
+    await expect(transactionsPage.yearSelect).toHaveValue('')
   })
 })
