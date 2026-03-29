@@ -81,7 +81,6 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
     else if (year) selectYearView(year)
     else if (memo) selectMemoView(memo)
     else clearAllFilters()
-    else clearAllFilters()
   })
 
   // Sync store → URL params when selection changes.
