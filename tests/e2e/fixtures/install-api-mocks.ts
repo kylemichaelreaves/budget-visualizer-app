@@ -64,19 +64,19 @@ export async function installApiMocks(page: Page): Promise<void> {
     }
 
     if (path.endsWith('/transactions/days')) {
-      await json(route, [])
+      await json(route, [{ day: '2025-01-15' }, { day: '2024-12-20' }])
       return
     }
     if (path.endsWith('/transactions/weeks')) {
-      await json(route, [])
+      await json(route, [{ week_year: '03-2025' }, { week_year: '52-2024' }])
       return
     }
     if (path.endsWith('/transactions/months')) {
-      await json(route, [])
+      await json(route, [{ month_year: '01-2025' }, { month_year: '12-2024' }])
       return
     }
     if (path.endsWith('/transactions/years')) {
-      await json(route, [])
+      await json(route, [{ year: '2025' }, { year: '2024' }])
       return
     }
 

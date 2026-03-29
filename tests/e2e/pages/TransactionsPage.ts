@@ -9,8 +9,20 @@ export class TransactionsPage {
   readonly monthSelect: Locator
   readonly weekSelect: Locator
   readonly daySelect: Locator
-  readonly memoInput: Locator
-  readonly memoApplyButton: Locator
+  readonly clearButton: Locator
+
+  /** Period header */
+  readonly periodHeader: Locator
+  readonly periodLabel: Locator
+  readonly prevPeriodButton: Locator
+  readonly nextPeriodButton: Locator
+
+  /** Summary stats */
+  readonly summaryCreditsCard: Locator
+  readonly summaryDebitsCard: Locator
+  readonly summaryCategoriesCard: Locator
+
+  /** Backward-compat alias */
   readonly clearTimeframeButton: Locator
 
   constructor(page: Page) {
@@ -20,9 +32,19 @@ export class TransactionsPage {
     this.monthSelect = this.filtersSection.getByLabel('Month')
     this.weekSelect = this.filtersSection.getByLabel('Week')
     this.daySelect = this.filtersSection.getByLabel('Day')
-    this.memoInput = this.filtersSection.getByPlaceholder('Memo id or name')
-    this.memoApplyButton = this.filtersSection.getByRole('button', { name: 'Apply' })
-    this.clearTimeframeButton = this.filtersSection.getByRole('button', { name: 'Clear timeframe' })
+    this.clearButton = this.filtersSection.getByRole('button', { name: 'Clear' })
+
+    this.periodHeader = page.getByTestId('period-header')
+    this.periodLabel = page.getByTestId('period-header-label')
+    this.prevPeriodButton = page.getByTestId('period-header-prev')
+    this.nextPeriodButton = page.getByTestId('period-header-next')
+
+    this.summaryCreditsCard = page.getByTestId('summary-credits-card')
+    this.summaryDebitsCard = page.getByTestId('summary-debits-card')
+    this.summaryCategoriesCard = page.getByTestId('summary-categories-card')
+
+    // backward compat
+    this.clearTimeframeButton = this.clearButton
   }
 
   async goto() {
@@ -37,12 +59,23 @@ export class TransactionsPage {
     await this.monthSelect.selectOption(month)
   }
 
-  async filterByMemo(memo: string) {
-    await this.memoInput.fill(memo)
-    await this.memoApplyButton.click()
+  async selectWeek(week: string) {
+    await this.weekSelect.selectOption(week)
+  }
+
+  async selectDay(day: string) {
+    await this.daySelect.selectOption(day)
   }
 
   async clearFilters() {
-    await this.clearTimeframeButton.click()
+    await this.clearButton.click()
+  }
+
+  async clickPrevPeriod() {
+    await this.prevPeriodButton.click()
+  }
+
+  async clickNextPeriod() {
+    await this.nextPeriodButton.click()
   }
 }

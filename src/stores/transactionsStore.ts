@@ -1,3 +1,4 @@
+import { batch } from 'solid-js'
 import { createStore } from 'solid-js/store'
 import type {
   DayYear,
@@ -7,6 +8,7 @@ import type {
   SummaryTypeBase,
   Summaries,
   Transaction,
+  ViewMode,
   WeekYear,
   Year,
 } from '@types'
@@ -21,6 +23,7 @@ export type TransactionsState = {
   selectedBudgetCategory: string | null
   selectedDescription: string
   selectedStatus: 'pending' | 'reviewed'
+  viewMode: ViewMode
   days: DayYear[]
   daysForSelectedWeek: string[]
   weeksForSelectedMonth: string[]
@@ -61,6 +64,7 @@ const initial: TransactionsState = {
   selectedBudgetCategory: '',
   selectedDescription: '',
   selectedStatus: 'pending',
+  viewMode: null,
   days: [],
   daysForSelectedWeek: [],
   weeksForSelectedMonth: [],
@@ -145,33 +149,80 @@ export function clearSelectionForPending(): void {
   })
 }
 
-export function applyMonthSummaryRoute(month: string): void {
+export function setViewMode(mode: ViewMode): void {
+  setTransactionsState('viewMode', mode)
+}
+
+function clearAllSelections(): void {
   setTransactionsState({
     selectedDay: '',
     selectedWeek: '',
+    selectedMonth: '',
     selectedYear: '',
     selectedMemo: '',
-    selectedMonth: month,
+  })
+}
+
+export function selectDayView(day: string): void {
+  batch(() => {
+    clearAllSelections()
+    setTransactionsState({ selectedDay: day, viewMode: 'day' })
+  })
+}
+
+export function selectWeekView(week: string): void {
+  batch(() => {
+    clearAllSelections()
+    setTransactionsState({ selectedWeek: week, viewMode: 'week' })
+  })
+}
+
+export function selectMonthView(month: string): void {
+  batch(() => {
+    clearAllSelections()
+    setTransactionsState({ selectedMonth: month, viewMode: 'month' })
+  })
+}
+
+export function selectYearView(year: string): void {
+  batch(() => {
+    clearAllSelections()
+    setTransactionsState({ selectedYear: year, viewMode: 'year' })
+  })
+}
+
+export function selectMemoView(memo: string): void {
+  batch(() => {
+    clearAllSelections()
+    setTransactionsState({ selectedMemo: memo, viewMode: 'memo' })
+  })
+}
+
+export function clearAllFilters(): void {
+  batch(() => {
+    clearAllSelections()
+    setTransactionsState('viewMode', null)
+  })
+}
+
+export function applyMonthSummaryRoute(month: string): void {
+  batch(() => {
+    clearAllSelections()
+    setTransactionsState({ selectedMonth: month, viewMode: 'month' })
   })
 }
 
 export function applyWeekSummaryRoute(week: string): void {
-  setTransactionsState({
-    selectedDay: '',
-    selectedMonth: '',
-    selectedYear: '',
-    selectedMemo: '',
-    selectedWeek: week,
+  batch(() => {
+    clearAllSelections()
+    setTransactionsState({ selectedWeek: week, viewMode: 'week' })
   })
 }
 
 export function applyMemoSummaryRoute(memoId: string): void {
-  setTransactionsState({
-    selectedDay: '',
-    selectedWeek: '',
-    selectedMonth: '',
-    selectedYear: '',
-    selectedMemo: memoId,
+  batch(() => {
+    clearAllSelections()
+    setTransactionsState({ selectedMemo: memoId, viewMode: 'memo' })
   })
 }
 

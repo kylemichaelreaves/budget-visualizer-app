@@ -4,8 +4,9 @@ import * as d3 from 'd3'
 const moneyFormatter = new Intl.NumberFormat('en-US', {
   style: 'currency',
   currency: 'USD',
+  notation: 'compact',
   minimumFractionDigits: 0,
-  maximumFractionDigits: 0,
+  maximumFractionDigits: 1,
 })
 
 const moneyFormatterFull = new Intl.NumberFormat('en-US', {
@@ -65,7 +66,7 @@ export function createLineChart(
   const tooltipFg = styles.getPropertyValue('--popover-foreground').trim() || '#fafafa'
 
   // --- Dimensions ---
-  const margin = { top: 8, right: 8, bottom: 20, left: 40 }
+  const margin = { top: 8, right: 8, bottom: 30, left: 45 }
   const width = parentWidth - margin.left - margin.right
   const height = 240
   if (width <= 0) return
@@ -98,7 +99,7 @@ export function createLineChart(
 
   const yAxis = d3
     .axisLeft(y)
-    .ticks(6)
+    .ticks(5)
     .tickFormat((d) => fmtMoney(d as number))
     .tickSizeOuter(0)
 

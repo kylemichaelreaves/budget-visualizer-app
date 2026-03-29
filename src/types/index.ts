@@ -246,6 +246,8 @@ export const Timeframe = {
 
 export type Timeframe = (typeof Timeframe)[keyof typeof Timeframe]
 
+export type ViewMode = 'day' | 'week' | 'month' | 'year' | 'memo' | null
+
 export type Transaction = {
   id?: number
   transaction_number?: string
