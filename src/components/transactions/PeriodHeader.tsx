@@ -10,6 +10,7 @@ import {
 } from '@stores/transactionsStore'
 import { getPeriodLabel } from '@api/helpers/formatPeriodLabels'
 import { Button } from '@components/ui/button'
+import PeriodNavigationGroup from './PeriodNavigationGroup'
 
 function getSelectedValue(): string {
   const s = transactionsState
@@ -50,7 +51,6 @@ export default function PeriodHeader(props: { onAddTransaction?: () => void }): 
     return list.indexOf(getSelectedValue())
   })
 
-  // Newer = lower index (toward 0). Prev = older = higher index.
   const canGoNewer = createMemo(() => currentIndex() > 0)
   const canGoOlder = createMemo(() => {
     const list = getList()
@@ -77,78 +77,26 @@ export default function PeriodHeader(props: { onAddTransaction?: () => void }): 
 
       <Show when={transactionsState.viewMode === 'memo'}>
         <h1 data-testid="period-header-label">"{transactionsState.selectedMemo}"</h1>
-        <Button variant="ghost" size="sm" onClick={() => clearAllFilters()} data-testid="period-header-clear">
+        <Button
+          variant="outline"
+          size="sm"
+          class="h-8 px-3"
+          onClick={() => clearAllFilters()}
+          data-testid="period-header-clear"
+        >
           Clear
         </Button>
       </Show>
 
       <Show when={isTimePeriod()}>
         <h1 data-testid="period-header-label">{label()}</h1>
-        <div class="flex items-center gap-1">
-          <Button
-            variant="outline"
-            size="sm"
-            class="h-8 px-3"
-            disabled={!canGoOlder()}
-            onClick={() => selectAtIndex(currentIndex() + 1)}
-            data-testid="period-header-prev"
-          >
-            <svg
-              class="size-4 mr-1"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="m15 18-6-6 6-6" />
-            </svg>
-            Prev
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            class="h-8 px-3"
-            disabled={!canGoNewer()}
-            onClick={() => selectAtIndex(currentIndex() - 1)}
-            data-testid="period-header-next"
-          >
-            Next
-            <svg
-              class="size-4 ml-1"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="m9 18 6-6-6-6" />
-            </svg>
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            class="h-8 px-3"
-            onClick={() => clearAllFilters()}
-            data-testid="period-header-clear"
-          >
-            <svg
-              class="size-3.5 mr-1"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-            >
-              <path d="M18 6 6 18" />
-              <path d="m6 6 12 12" />
-            </svg>
-            Clear
-          </Button>
-        </div>
+        <PeriodNavigationGroup
+          canGoOlder={canGoOlder()}
+          canGoNewer={canGoNewer()}
+          onPrev={() => selectAtIndex(currentIndex() + 1)}
+          onNext={() => selectAtIndex(currentIndex() - 1)}
+          onClear={() => clearAllFilters()}
+        />
       </Show>
     </div>
   )
