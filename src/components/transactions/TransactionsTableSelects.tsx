@@ -67,7 +67,9 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
   const loc = useLocation()
   const navigate = useNavigate()
 
-  // Sync URL params → store on mount; clear filters if no recognized params
+  // Sync URL params → store on mount. Only hydrate from URL if params are
+  // present; only clear if no params AND no existing store selection (to
+  // avoid wiping route-param selections from summary pages).
   onMount(() => {
     const sp = new URLSearchParams(loc.search)
     const day = sp.get('day')
@@ -80,7 +82,7 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
     else if (month) selectMonthView(month)
     else if (year) selectYearView(year)
     else if (memo) selectMemoView(memo)
-    else clearAllFilters()
+    else if (!transactionsState.viewMode) clearAllFilters()
   })
 
   // Sync store → URL params when selection changes.

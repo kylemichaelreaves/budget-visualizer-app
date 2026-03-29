@@ -141,13 +141,15 @@ test.describe('Transaction list filtering', () => {
     await transactionsPage.goto()
     await expect(transactionsPage.filtersSection).toBeVisible({ timeout: 30_000 })
 
-    // Intercept the transactions API call after selecting a year
+    // Intercept the transactions list API call (has limit/offset, no summary flags)
     const requestPromise = transactionsPage.page.waitForRequest((req) => {
       const url = new URL(req.url())
       return (
         url.pathname.endsWith('/transactions') &&
         url.searchParams.get('timeFrame') === 'year' &&
-        url.searchParams.get('date') === '2025'
+        url.searchParams.get('date') === '2025' &&
+        url.searchParams.has('limit') &&
+        url.searchParams.has('offset')
       )
     })
 
@@ -165,7 +167,9 @@ test.describe('Transaction list filtering', () => {
       return (
         url.pathname.endsWith('/transactions') &&
         url.searchParams.get('timeFrame') === 'month' &&
-        url.searchParams.get('date') === '01-2025'
+        url.searchParams.get('date') === '01-2025' &&
+        url.searchParams.has('limit') &&
+        url.searchParams.has('offset')
       )
     })
 
@@ -182,10 +186,15 @@ test.describe('Transaction list filtering', () => {
     await transactionsPage.selectYear('2025')
     await expect(transactionsPage.page.getByText('No transactions for the current filters.')).toBeVisible()
 
-    // Switch to month — should also trigger refetch and show empty state
+    // Switch to month — should also trigger list refetch
     const requestPromise = transactionsPage.page.waitForRequest((req) => {
       const url = new URL(req.url())
-      return url.pathname.endsWith('/transactions') && url.searchParams.get('timeFrame') === 'month'
+      return (
+        url.pathname.endsWith('/transactions') &&
+        url.searchParams.get('timeFrame') === 'month' &&
+        url.searchParams.has('limit') &&
+        url.searchParams.has('offset')
+      )
     })
 
     await transactionsPage.selectMonth('01-2025')
