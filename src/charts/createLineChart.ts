@@ -65,7 +65,7 @@ export function createLineChart(
   const tooltipFg = styles.getPropertyValue('--popover-foreground').trim() || '#fafafa'
 
   // --- Dimensions ---
-  const margin = { top: 8, right: 8, bottom: 20, left: 40 }
+  const margin = { top: 8, right: 8, bottom: 20, left: 55 }
   const width = parentWidth - margin.left - margin.right
   const height = 240
   if (width <= 0) return
