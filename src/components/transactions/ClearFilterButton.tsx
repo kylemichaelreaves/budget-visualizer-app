@@ -1,12 +1,16 @@
 import type { JSX } from 'solid-js'
 import { Button } from '@components/ui/button'
 
-export default function ClearFilterButton(props: { onClick: () => void; dataTestId?: string }): JSX.Element {
+export default function ClearFilterButton(props: {
+  onClick: () => void
+  dataTestId?: string
+  class?: string
+}): JSX.Element {
   return (
     <Button
       variant="outline"
       size="sm"
-      class="h-8 px-3"
+      class={props.class ?? 'h-8 px-3'}
       onClick={props.onClick}
       data-testid={props.dataTestId}
     >

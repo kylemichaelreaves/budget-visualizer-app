@@ -267,9 +267,11 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
         </label>
 
         <Show when={transactionsState.viewMode !== null}>
-          <div class="self-end">
-            <ClearFilterButton onClick={() => clearAllFilters()} dataTestId={`${tid()}-clear-timeframe`} />
-          </div>
+          <ClearFilterButton
+            onClick={() => clearAllFilters()}
+            dataTestId={`${tid()}-clear-timeframe`}
+            class="h-[38px] px-3 self-end"
+          />
         </Show>
       </div>
 
