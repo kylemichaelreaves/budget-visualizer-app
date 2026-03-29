@@ -147,6 +147,10 @@ export default function TransactionsTable() {
         )}
       </Show>
 
+      <PeriodHeader />
+
+      <SummaryStatsCards transactions={paginatedData()} />
+
       {/* Charts row */}
       <div class="grid gap-6 md:grid-cols-2">
         <Card class="gap-0 justify-between">
@@ -202,10 +206,6 @@ export default function TransactionsTable() {
       </div>
 
       <TransactionsTableSelects dataTestId="transactions-table-selects" />
-
-      <PeriodHeader />
-
-      <SummaryStatsCards transactions={paginatedData()} />
 
       {/* Transactions list */}
       <Card>
