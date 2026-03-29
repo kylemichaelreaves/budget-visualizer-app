@@ -2,6 +2,7 @@ import type { JSX } from 'solid-js'
 import { createMemo, For, Show } from 'solid-js'
 import { transactionsState } from '@stores/transactionsStore'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
+import SummaryStatCard from './SummaryStatCard'
 
 const currencyFormatter = new Intl.NumberFormat('en-US', {
   minimumFractionDigits: 2,
@@ -44,10 +45,10 @@ export default function SummaryStatsCards(props: { transactions: TransactionRow[
   return (
     <Show when={transactionsState.viewMode !== null}>
       <div class="grid gap-4 grid-cols-1 sm:grid-cols-3">
-        {/* Total Credits */}
-        <Card data-testid="summary-credits-card">
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-sm font-medium">Total Credits</CardTitle>
+        <SummaryStatCard
+          title="Total Credits"
+          dataTestId="summary-credits-card"
+          icon={
             <svg
               class="size-4 text-green-500"
               viewBox="0 0 24 24"
@@ -61,19 +62,17 @@ export default function SummaryStatsCards(props: { transactions: TransactionRow[
               <polyline points="16 12 12 8 8 12" />
               <line x1="12" y1="16" x2="12" y2="8" />
             </svg>
-          </CardHeader>
-          <CardContent>
+          }
+          value={
             <div class="text-2xl font-bold text-green-500">+${currencyFormatter.format(credits().total)}</div>
-            <p class="text-xs text-muted-foreground mt-1">
-              {credits().count} income transaction{credits().count !== 1 ? 's' : ''}
-            </p>
-          </CardContent>
-        </Card>
+          }
+          subtitle={`${credits().count} income transaction${credits().count !== 1 ? 's' : ''}`}
+        />
 
-        {/* Total Debits */}
-        <Card data-testid="summary-debits-card">
-          <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle class="text-sm font-medium">Total Debits</CardTitle>
+        <SummaryStatCard
+          title="Total Debits"
+          dataTestId="summary-debits-card"
+          icon={
             <svg
               class="size-4 text-red-500"
               viewBox="0 0 24 24"
@@ -87,16 +86,13 @@ export default function SummaryStatsCards(props: { transactions: TransactionRow[
               <polyline points="8 12 12 16 16 12" />
               <line x1="12" y1="8" x2="12" y2="16" />
             </svg>
-          </CardHeader>
-          <CardContent>
+          }
+          value={
             <div class="text-2xl font-bold text-red-500">-${currencyFormatter.format(debits().total)}</div>
-            <p class="text-xs text-muted-foreground mt-1">
-              {debits().count} expense transaction{debits().count !== 1 ? 's' : ''}
-            </p>
-          </CardContent>
-        </Card>
+          }
+          subtitle={`${debits().count} expense transaction${debits().count !== 1 ? 's' : ''}`}
+        />
 
-        {/* By Budget Category */}
         <Card data-testid="summary-categories-card">
           <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle class="text-sm font-medium">By Budget Category</CardTitle>
