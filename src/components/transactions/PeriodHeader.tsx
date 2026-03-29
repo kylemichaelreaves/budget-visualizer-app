@@ -10,6 +10,7 @@ import {
 } from '@stores/transactionsStore'
 import { getPeriodLabel } from '@api/helpers/formatPeriodLabels'
 import { Button } from '@components/ui/button'
+import ClearFilterButton from './ClearFilterButton'
 import PeriodNavigationGroup from './PeriodNavigationGroup'
 
 function getSelectedValue(): string {
@@ -77,15 +78,7 @@ export default function PeriodHeader(props: { onAddTransaction?: () => void }): 
 
       <Show when={transactionsState.viewMode === 'memo'}>
         <h1 data-testid="period-header-label">"{transactionsState.selectedMemo}"</h1>
-        <Button
-          variant="outline"
-          size="sm"
-          class="h-8 px-3"
-          onClick={() => clearAllFilters()}
-          data-testid="period-header-clear"
-        >
-          Clear
-        </Button>
+        <ClearFilterButton onClick={() => clearAllFilters()} dataTestId="period-header-clear" />
       </Show>
 
       <Show when={isTimePeriod()}>

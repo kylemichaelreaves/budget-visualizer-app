@@ -7,7 +7,7 @@ import useMonths from '@api/hooks/timeUnits/months/useMonths'
 import useWeeks from '@api/hooks/timeUnits/weeks/useWeeks'
 import useYears from '@api/hooks/timeUnits/years/useYears'
 import AutocompleteComponent from '@components/shared/AutocompleteComponent'
-import { Button } from '@components/ui/button'
+import ClearFilterButton from './ClearFilterButton'
 import {
   selectDayView,
   selectWeekView,
@@ -267,16 +267,9 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
         </label>
 
         <Show when={transactionsState.viewMode !== null}>
-          <Button
-            variant="ghost"
-            size="sm"
-            type="button"
-            data-testid={`${tid()}-clear-timeframe`}
-            onClick={() => clearAllFilters()}
-            class="self-end"
-          >
-            Clear
-          </Button>
+          <div class="self-end">
+            <ClearFilterButton onClick={() => clearAllFilters()} dataTestId={`${tid()}-clear-timeframe`} />
+          </div>
         </Show>
       </div>
 
