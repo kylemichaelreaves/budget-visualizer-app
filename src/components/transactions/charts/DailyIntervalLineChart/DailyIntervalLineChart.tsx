@@ -19,14 +19,17 @@ export default function DailyIntervalLineChart(props: {
   const [intervalValue, setIntervalValue] = createSignal('1 month')
 
   const selectedValue = createMemo((): string | null => {
+    if (transactionsState.selectedDay) {
+      return transactionsState.selectedDay
+    }
     if (transactionsState.selectedWeek) {
       return parseDateIWIYYY(transactionsState.selectedWeek)?.toISOString().split('T')[0] ?? null
     }
     if (transactionsState.selectedMonth) {
       return parseDateMMYYYY(transactionsState.selectedMonth)?.toISOString().split('T')[0] ?? null
     }
-    if (transactionsState.selectedDay) {
-      return transactionsState.selectedDay
+    if (transactionsState.selectedYear) {
+      return `${transactionsState.selectedYear}-06-15`
     }
     if (props.firstDay) {
       return props.firstDay
@@ -34,12 +37,16 @@ export default function DailyIntervalLineChart(props: {
     return DateTime.now().minus({ months: 1 }).endOf('month').toISODate()
   })
 
-  const chartQuery = useDailyTotalAmountDebit(intervalValue, () => selectedValue())
+  const intervalForView = createMemo(() => {
+    const vm = transactionsState.viewMode
+    if (vm === 'day') return '1 day'
+    if (vm === 'week') return '1 weeks'
+    if (vm === 'month') return '1 months'
+    if (vm === 'year') return '1 years'
+    return intervalValue()
+  })
 
-  const shouldShowChart = createMemo(
-    () =>
-      !transactionsState.selectedDay && !transactionsState.selectedWeek && !transactionsState.selectedMonth,
-  )
+  const chartQuery = useDailyTotalAmountDebit(intervalForView, () => selectedValue())
 
   onMount(() => {
     const sp = new URLSearchParams(loc.search)
@@ -58,34 +65,36 @@ export default function DailyIntervalLineChart(props: {
 
   const id = () => props.dataTestId ?? 'daily-interval-line-chart'
 
+  const showIntervalForm = () => !transactionsState.viewMode
+
   return (
-    <Show when={shouldShowChart()}>
-      <div data-testid={id()} class="flex flex-col h-full">
-        <Show when={chartQuery.isError && chartQuery.error}>
-          {(err) => (
-            <AlertComponent
-              type="error"
-              title={(err() as Error).name ?? 'Error'}
-              message={(err() as Error).message ?? String(err())}
-              dataTestId={`${id()}-error`}
-            />
-          )}
-        </Show>
+    <div data-testid={id()} class="flex flex-col h-full">
+      <Show when={chartQuery.isError && chartQuery.error}>
+        {(err) => (
+          <AlertComponent
+            type="error"
+            title={(err() as Error).name ?? 'Error'}
+            message={(err() as Error).message ?? String(err())}
+            dataTestId={`${id()}-error`}
+          />
+        )}
+      </Show>
+      <Show when={showIntervalForm()}>
         <IntervalForm dataTestId={`${id()}-form`} onIntervalValueChange={setIntervalValue} />
-        <Show when={chartQuery.isLoading || chartQuery.isFetching}>
-          <p class="p-5 text-center text-muted-foreground">Loading chart data...</p>
-        </Show>
-        <Show when={chartQuery.data && chartQuery.data.length > 0}>
-          <div>
-            <LineChart
-              summaries={chartQuery.data!}
-              handleOnClickSelection={handleOnDayClicked}
-              dataTestId={`${id()}-line-chart`}
-              loading={false}
-            />
-          </div>
-        </Show>
-      </div>
-    </Show>
+      </Show>
+      <Show when={chartQuery.isLoading || chartQuery.isFetching}>
+        <p class="p-5 text-center text-muted-foreground">Loading chart data...</p>
+      </Show>
+      <Show when={chartQuery.data && chartQuery.data.length > 0}>
+        <div>
+          <LineChart
+            summaries={chartQuery.data!}
+            handleOnClickSelection={handleOnDayClicked}
+            dataTestId={`${id()}-line-chart`}
+            loading={false}
+          />
+        </div>
+      </Show>
+    </div>
   )
 }
