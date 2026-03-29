@@ -105,7 +105,6 @@ export default function TransactionsTable() {
     ),
   )
 
-  let skipSelectionRefetch = true
   createEffect(
     on(
       () =>
@@ -117,14 +116,11 @@ export default function TransactionsTable() {
           transactionsState.selectedMemo,
         ] as const,
       () => {
-        if (skipSelectionRefetch) {
-          skipSelectionRefetch = false
-          return
-        }
         devConsole('log', '[TransactionsTable] selection changed, refetch')
         clearTransactionsByOffset()
         void query.refetch()
       },
+      { defer: true },
     ),
   )
 
