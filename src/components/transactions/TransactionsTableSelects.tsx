@@ -115,14 +115,21 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
                     ? 'memo'
                     : null)
 
-        const sp = new URLSearchParams()
+        const sp = new URLSearchParams(loc.search)
+        sp.delete('day')
+        sp.delete('week')
+        sp.delete('month')
+        sp.delete('year')
+        sp.delete('memo')
         if (effectiveViewMode === 'day' && selectedDay) sp.set('day', selectedDay)
         else if (effectiveViewMode === 'week' && selectedWeek) sp.set('week', selectedWeek)
         else if (effectiveViewMode === 'month' && selectedMonth) sp.set('month', selectedMonth)
         else if (effectiveViewMode === 'year' && selectedYear) sp.set('year', selectedYear)
         else if (effectiveViewMode === 'memo' && selectedMemo) sp.set('memo', selectedMemo)
         const qs = sp.toString()
-        navigate(`${loc.pathname}${qs ? `?${qs}` : ''}`, { replace: true })
+        const search = qs ? `?${qs}` : ''
+        if (search === (loc.search || '')) return
+        navigate(`${loc.pathname}${search}`, { replace: true })
       },
       { defer: true },
     ),

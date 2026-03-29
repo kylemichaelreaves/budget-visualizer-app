@@ -160,6 +160,7 @@ function clearAllSelections(): void {
     selectedMonth: '',
     selectedYear: '',
     selectedMemo: '',
+    transactionsTableOffset: 0,
   })
 }
 
