@@ -67,7 +67,7 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
   const loc = useLocation()
   const navigate = useNavigate()
 
-  // Sync URL params → store on mount
+  // Sync URL params → store on mount; clear filters if no recognized params
   onMount(() => {
     const sp = new URLSearchParams(loc.search)
     const day = sp.get('day')
@@ -80,9 +80,12 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
     else if (month) selectMonthView(month)
     else if (year) selectYearView(year)
     else if (memo) selectMemoView(memo)
+    else clearAllFilters()
   })
 
-  // Sync store → URL params when viewMode/selection changes
+  // Sync store → URL params when selection changes.
+  // Derive effective view mode from selections so URL stays consistent
+  // even if viewMode is null while a selection exists.
   createEffect(
     on(
       () =>
@@ -95,17 +98,29 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
           transactionsState.selectedMemo,
         ] as const,
       () => {
+        const { viewMode, selectedDay, selectedWeek, selectedMonth, selectedYear, selectedMemo } =
+          transactionsState
+
+        const effectiveViewMode =
+          viewMode ??
+          (selectedDay
+            ? 'day'
+            : selectedWeek
+              ? 'week'
+              : selectedMonth
+                ? 'month'
+                : selectedYear
+                  ? 'year'
+                  : selectedMemo
+                    ? 'memo'
+                    : null)
+
         const sp = new URLSearchParams()
-        const vm = transactionsState.viewMode
-        if (vm === 'day' && transactionsState.selectedDay) sp.set('day', transactionsState.selectedDay)
-        else if (vm === 'week' && transactionsState.selectedWeek)
-          sp.set('week', transactionsState.selectedWeek)
-        else if (vm === 'month' && transactionsState.selectedMonth)
-          sp.set('month', transactionsState.selectedMonth)
-        else if (vm === 'year' && transactionsState.selectedYear)
-          sp.set('year', transactionsState.selectedYear)
-        else if (vm === 'memo' && transactionsState.selectedMemo)
-          sp.set('memo', transactionsState.selectedMemo)
+        if (effectiveViewMode === 'day' && selectedDay) sp.set('day', selectedDay)
+        else if (effectiveViewMode === 'week' && selectedWeek) sp.set('week', selectedWeek)
+        else if (effectiveViewMode === 'month' && selectedMonth) sp.set('month', selectedMonth)
+        else if (effectiveViewMode === 'year' && selectedYear) sp.set('year', selectedYear)
+        else if (effectiveViewMode === 'memo' && selectedMemo) sp.set('memo', selectedMemo)
         const qs = sp.toString()
         navigate(`${loc.pathname}${qs ? `?${qs}` : ''}`, { replace: true })
       },

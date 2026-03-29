@@ -194,3 +194,28 @@ test.describe('Transaction list filtering', () => {
     await expect(transactionsPage.page.getByText('No transactions for the current filters.')).toBeVisible()
   })
 })
+
+test.describe('URL param sync', () => {
+  test('selecting a filter updates the URL', async ({ transactionsPage }) => {
+    await transactionsPage.goto()
+    await expect(transactionsPage.filtersSection).toBeVisible({ timeout: 30_000 })
+    await transactionsPage.selectYear('2025')
+    await expect(transactionsPage.page).toHaveURL(/[?&]year=2025/)
+  })
+
+  test('loading with ?month= restores the filter', async ({ transactionsPage }) => {
+    await transactionsPage.page.goto('/budget-visualizer/transactions?month=01-2025')
+    await expect(transactionsPage.periodLabel).toBeVisible({ timeout: 30_000 })
+    await expect(transactionsPage.periodLabel).toHaveText('January 2025')
+    await expect(transactionsPage.summaryCreditsCard).toBeVisible()
+  })
+
+  test('clearing filters removes URL params', async ({ transactionsPage }) => {
+    await transactionsPage.goto()
+    await expect(transactionsPage.filtersSection).toBeVisible({ timeout: 30_000 })
+    await transactionsPage.selectYear('2025')
+    await expect(transactionsPage.page).toHaveURL(/[?&]year=2025/)
+    await transactionsPage.clearFilters()
+    await expect(transactionsPage.page).not.toHaveURL(/[?&]year=/)
+  })
+})
