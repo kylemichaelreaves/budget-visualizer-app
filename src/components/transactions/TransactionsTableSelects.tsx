@@ -122,19 +122,20 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
         const { viewMode, selectedDay, selectedWeek, selectedMonth, selectedYear, selectedMemo } =
           transactionsState
 
-        const effectiveViewMode =
-          viewMode ??
-          (selectedDay
-            ? 'day'
-            : selectedWeek
-              ? 'week'
-              : selectedMonth
-                ? 'month'
-                : selectedYear
-                  ? 'year'
-                  : selectedMemo
-                    ? 'memo'
-                    : null)
+        // Derive from active selections so the URL matches the real filter state
+        // regardless of whether viewMode agrees with the selection fields.
+        void viewMode // tracked for reactivity; URL is derived from selections below
+        const effectiveViewMode = selectedDay
+          ? 'day'
+          : selectedWeek
+            ? 'week'
+            : selectedMonth
+              ? 'month'
+              : selectedYear
+                ? 'year'
+                : selectedMemo
+                  ? 'memo'
+                  : null
 
         const sp = new URLSearchParams(loc.search)
         sp.delete('day')
@@ -156,6 +157,9 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
         if (targetPathname === loc.pathname && search === (loc.search || '')) return
         navigate(`${targetPathname}${search}`, { replace: true })
       },
+      // defer: true — skip initial mount so we don't navigate before the URL→store
+      // sync effect has a chance to run. The store→URL direction only fires on
+      // subsequent selection changes, not on the component's first render.
       { defer: true },
     ),
   )
