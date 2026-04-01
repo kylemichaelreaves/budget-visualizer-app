@@ -3,6 +3,7 @@ import { createEffect, createMemo, For, Show } from 'solid-js'
 import * as d3 from 'd3'
 import type { BudgetCategorySummary } from '@types'
 import { buildBudgetCategoryColorMap } from '@composables/budgetCategoryColors'
+import { Skeleton } from '@components/ui/skeleton'
 
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
@@ -138,7 +139,14 @@ export default function BudgetCategoryPieChart(props: {
   return (
     <div data-testid={props.dataTestId} class="relative">
       {props.isLoading ? (
-        <div class="flex h-[280px] items-center justify-center text-muted-foreground">Loading chart…</div>
+        <div class="flex flex-col items-center justify-center gap-3 py-4">
+          <Skeleton class="size-[200px] rounded-full" />
+          <div class="flex gap-3">
+            <Skeleton class="h-3 w-16" />
+            <Skeleton class="h-3 w-16" />
+            <Skeleton class="h-3 w-16" />
+          </div>
+        </div>
       ) : null}
       <svg ref={(el) => (svgRef = el)} class="text-foreground" data-testid={`${props.dataTestId}-chart`} />
       <div

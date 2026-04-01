@@ -7,6 +7,7 @@ import { parseDateMMYYYY } from '@api/helpers/parseDateMMYYYY'
 import { useDailyTotalAmountDebit } from '@api/hooks/timeUnits/days/useDailyTotalAmountDebit'
 import LineChart from '@charts/LineChart'
 import AlertComponent from '@components/shared/AlertComponent'
+import { Skeleton } from '@components/ui/skeleton'
 import { setSelectedDay, transactionsState } from '@stores/transactionsStore'
 import IntervalForm from './IntervalForm'
 
@@ -93,7 +94,15 @@ export default function DailyIntervalLineChart(props: {
         <IntervalForm dataTestId={`${id()}-form`} onIntervalValueChange={setIntervalValue} />
       </Show>
       <Show when={chartQuery.isLoading || chartQuery.isFetching}>
-        <p class="p-5 text-center text-muted-foreground">Loading chart data...</p>
+        <div class="flex flex-col gap-2 p-4" data-testid={`${id()}-skeleton`}>
+          <Skeleton class="h-[240px] w-full rounded-lg" />
+          <div class="flex justify-between px-2">
+            <Skeleton class="h-3 w-12" />
+            <Skeleton class="h-3 w-12" />
+            <Skeleton class="h-3 w-12" />
+            <Skeleton class="h-3 w-12" />
+          </div>
+        </div>
       </Show>
       <Show when={chartQuery.data && chartQuery.data.length > 0}>
         <div>

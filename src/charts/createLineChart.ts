@@ -29,9 +29,13 @@ export function createLineChart(
   const parseDateUTC = d3.utcParse('%Y-%m-%dT%H:%M:%S.%LZ')
 
   const createDateFromItem = (item: SummaryTypeBase | DailyInterval): Date => {
-    if (item.date) {
-      const parsed = parseDateUTC(item.date as string)
+    const raw = (item as SummaryTypeBase).period_start ?? item.date
+    if (raw) {
+      const parsed = parseDateUTC(raw as string)
       if (parsed) return parsed
+      // Fallback: try native Date for formats like "2025-01-01T00:00:00"
+      const fallback = new Date(raw as string)
+      if (!Number.isNaN(fallback.getTime())) return fallback
     }
 
     if (item.day_number) {

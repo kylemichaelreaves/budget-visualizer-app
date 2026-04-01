@@ -228,6 +228,7 @@ export type SummaryTypeBase = {
   month_number?: string
   json?: JsonObjectType
   date?: string
+  period_start?: string
 }
 
 export type Summaries = {
