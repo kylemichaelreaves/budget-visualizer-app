@@ -7,12 +7,20 @@ import AutocompleteComponent from '@components/shared/AutocompleteComponent'
 
 export default function MemoSelect(props: {
   value: string
-  onChange: (v: string) => void
+  onChange: (v: string, memoId?: number) => void
   placeholder?: string
   dataTestId?: string
 }): JSX.Element {
   const [searchQuery, setSearchQuery] = createSignal('')
   const memosQuery = useMemoSearch({ searchQuery: () => searchQuery() })
+
+  const memoLookup = createMemo(() => {
+    const map = new Map<string, number>()
+    for (const m of memosQuery.data ?? []) {
+      if (m.name) map.set(m.name.trim(), m.id)
+    }
+    return map
+  })
 
   const [pendingCb, setPendingCb] = createSignal<
     ((results: { value: string; label: string }[]) => void) | null
@@ -43,12 +51,16 @@ export default function MemoSelect(props: {
       </Show>
       <AutocompleteComponent
         value={props.value}
-        onChange={props.onChange}
+        onChange={(v) => props.onChange(v, memoLookup().get(v))}
         placeholder={props.placeholder ?? 'Select a memo'}
         options={memoOptions()}
         dataTestId={props.dataTestId ?? 'transactions-table-memo-select'}
         minCharacters={1}
-        onClear={() => props.onChange('')}
+        onClear={() => {
+          setSearchQuery('')
+          setPendingCb(null)
+          props.onChange('')
+        }}
         onSearch={(query, callback) => {
           setSearchQuery(query)
           setPendingCb(() => callback)

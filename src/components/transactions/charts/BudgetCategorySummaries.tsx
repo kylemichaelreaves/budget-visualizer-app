@@ -99,6 +99,7 @@ export default function BudgetCategorySummaries(props: {
                 handleOnClickSelection={() => undefined}
                 dataTestId={`${id()}-historical-line`}
                 loading={false}
+                stackedDateLabels
               />
             </div>
           </Show>

@@ -53,10 +53,19 @@ test.describe('Transactions (authenticated)', () => {
     await expect(transactionsPage.filtersSection).toBeVisible({ timeout: 30_000 })
     await expect(transactionsPage.clearButton).not.toBeVisible()
   })
+
+  test('inline clear buttons are hidden when no filter is active', async ({ transactionsPage }) => {
+    await transactionsPage.goto()
+    await expect(transactionsPage.filtersSection).toBeVisible({ timeout: 30_000 })
+    await expect(transactionsPage.yearClearButton).not.toBeVisible()
+    await expect(transactionsPage.monthClearButton).not.toBeVisible()
+    await expect(transactionsPage.weekClearButton).not.toBeVisible()
+    await expect(transactionsPage.dayClearButton).not.toBeVisible()
+  })
 })
 
 test.describe('View mode filtering', () => {
-  test('selecting a year activates year view', async ({ transactionsPage }) => {
+  test('selecting a year activates year view and shows inline clear', async ({ transactionsPage }) => {
     await transactionsPage.goto()
     await expect(transactionsPage.filtersSection).toBeVisible({ timeout: 30_000 })
     await transactionsPage.selectYear('2025')
@@ -66,14 +75,16 @@ test.describe('View mode filtering', () => {
     await expect(transactionsPage.summaryDebitsCard).toBeVisible()
     await expect(transactionsPage.summaryCategoriesCard).toBeVisible()
     await expect(transactionsPage.clearButton).toBeVisible()
+    await expect(transactionsPage.yearClearButton).toBeVisible()
   })
 
-  test('selecting a month activates month view', async ({ transactionsPage }) => {
+  test('selecting a month activates month view and shows inline clear', async ({ transactionsPage }) => {
     await transactionsPage.goto()
     await expect(transactionsPage.filtersSection).toBeVisible({ timeout: 30_000 })
     await transactionsPage.selectMonth('01-2025')
     await expect(transactionsPage.periodLabel).toBeVisible()
     await expect(transactionsPage.periodLabel).toHaveText('January 2025')
+    await expect(transactionsPage.monthClearButton).toBeVisible()
   })
 
   test('selecting a new filter clears the previous one', async ({ transactionsPage }) => {
@@ -122,6 +133,28 @@ test.describe('View mode filtering', () => {
     // Now Prev should be disabled (oldest), Next should be enabled
     await expect(transactionsPage.prevPeriodButton).toBeDisabled()
     await expect(transactionsPage.nextPeriodButton).toBeEnabled()
+  })
+
+  test('inline clear button on select resets filters', async ({ transactionsPage }) => {
+    await transactionsPage.goto()
+    await expect(transactionsPage.filtersSection).toBeVisible({ timeout: 30_000 })
+    await transactionsPage.selectYear('2025')
+    await expect(transactionsPage.yearClearButton).toBeVisible()
+    await transactionsPage.clearYear()
+    await expect(transactionsPage.yearSelect).toHaveValue('')
+    await expect(transactionsPage.summaryCreditsCard).not.toBeVisible()
+    await expect(transactionsPage.yearClearButton).not.toBeVisible()
+  })
+
+  test('inline clear button on month select resets filters', async ({ transactionsPage }) => {
+    await transactionsPage.goto()
+    await expect(transactionsPage.filtersSection).toBeVisible({ timeout: 30_000 })
+    await transactionsPage.selectMonth('01-2025')
+    await expect(transactionsPage.monthClearButton).toBeVisible()
+    await transactionsPage.clearMonth()
+    await expect(transactionsPage.monthSelect).toHaveValue('')
+    await expect(transactionsPage.summaryCreditsCard).not.toBeVisible()
+    await expect(transactionsPage.monthClearButton).not.toBeVisible()
   })
 
   test('clear button in nav group clears the active filter', async ({ transactionsPage }) => {

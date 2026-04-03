@@ -11,24 +11,21 @@ export function buildBudgetCategoryColorMap(data: BudgetCategorySummary[] | unde
 
   const baseColors = d3.schemeCategory10.concat(d3.schemeSet2)
 
+  function setColor(cat: BudgetCategorySummary, color: string) {
+    if (cat.category_id != null) colorMap.set(String(cat.category_id), color)
+    if (cat.category_name) colorMap.set(cat.category_name, color)
+    if (cat.budget_category) colorMap.set(cat.budget_category, color)
+    if (cat.full_path) colorMap.set(cat.full_path, color)
+  }
+
   parentCategories.forEach((parent, index) => {
     const baseColor = baseColors[index % baseColors.length]
-    if (parent.category_id != null && baseColor) {
-      colorMap.set(String(parent.category_id), baseColor)
-    }
-    if (parent.category_name && baseColor) {
-      colorMap.set(parent.category_name, baseColor)
-    }
+    if (baseColor) setColor(parent, baseColor)
     const children = categoriesWithData.filter((cat) => cat.parent_id === parent.category_id)
     children.forEach((child, childIndex) => {
       const shade = d3.color(baseColor as string)?.darker(0.3 + childIndex * 0.2)
       const childColor = shade ? shade.toString() : baseColor
-      if (child.category_id != null && childColor) {
-        colorMap.set(String(child.category_id), childColor)
-      }
-      if (child.category_name && childColor) {
-        colorMap.set(child.category_name, childColor)
-      }
+      if (childColor) setColor(child, childColor)
     })
   })
 
@@ -39,12 +36,7 @@ export function buildBudgetCategoryColorMap(data: BudgetCategorySummary[] | unde
   orphanedCategories.forEach((orphan, index) => {
     const colorIndex = parentCategories.length + index
     const orphanColor = baseColors[colorIndex % baseColors.length]
-    if (orphan.category_id != null && orphanColor) {
-      colorMap.set(String(orphan.category_id), orphanColor)
-    }
-    if (orphan.category_name && orphanColor) {
-      colorMap.set(orphan.category_name, orphanColor)
-    }
+    if (orphanColor) setColor(orphan, orphanColor)
   })
 
   return colorMap

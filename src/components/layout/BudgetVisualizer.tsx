@@ -1,6 +1,6 @@
 import type { JSX } from 'solid-js'
 import { A, useLocation, useNavigate } from '@solidjs/router'
-import { createSignal, For, onMount } from 'solid-js'
+import { createSignal, For, onMount, Show } from 'solid-js'
 import TransactionCreateForm from '@components/transactions/TransactionCreateForm'
 import { Button } from '@components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@components/ui/dialog'
@@ -26,13 +26,7 @@ export default function BudgetVisualizer(props: { children?: JSX.Element }) {
   })
 
   return (
-    <section class="bg-background text-foreground min-h-screen p-4">
-      <header class="flex justify-end mb-3">
-        <Button type="button" onClick={() => setShowCreate(true)}>
-          Add New Transaction
-        </Button>
-      </header>
-
+    <section class="bg-background text-foreground min-h-screen">
       <Dialog open={showCreate()} onOpenChange={setShowCreate}>
         <DialogContent>
           <DialogHeader>
@@ -42,8 +36,17 @@ export default function BudgetVisualizer(props: { children?: JSX.Element }) {
         </DialogContent>
       </Dialog>
 
-      <div class="flex gap-4 items-start">
-        <nav class="flex flex-col gap-1 min-w-[160px]" aria-label="Budget visualizer sections">
+      <div class="px-4 py-6">
+        <Show when={!loc.pathname.includes('/budget-categories') && !loc.pathname.includes('/loan-calculator')}>
+          <header class="flex justify-end mb-6">
+            <Button type="button" onClick={() => setShowCreate(true)}>
+              Add New Transaction
+            </Button>
+          </header>
+        </Show>
+
+        <div class="flex gap-6 items-start">
+          <nav class="flex flex-col gap-1 w-48 shrink-0" aria-label="Budget visualizer sections">
           <For each={menuItems}>
             {(item) => (
               <A
@@ -59,7 +62,8 @@ export default function BudgetVisualizer(props: { children?: JSX.Element }) {
             )}
           </For>
         </nav>
-        <main class="flex-1 min-w-0">{props.children}</main>
+          <main class="flex-1 min-w-0">{props.children}</main>
+        </div>
       </div>
     </section>
   )

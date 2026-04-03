@@ -2,7 +2,6 @@ import { useInfiniteQuery } from '@tanstack/solid-query'
 import { createMemo } from 'solid-js'
 import { fetchTransactions } from '@api/transactions/fetchTransactions'
 import {
-  getTransactionsByOffset,
   setTransactionsByOffset,
   transactionsState,
 } from '@stores/transactionsStore'
@@ -31,10 +30,6 @@ export default function useTransactions() {
     initialPageParam: 0,
     queryFn: async ({ pageParam }) => {
       const page = Number(pageParam)
-      const cached = getTransactionsByOffset(page)
-      if (cached.length > 0) {
-        return cached
-      }
 
       const memoValue = transactionsState.selectedMemo
       const isMemoId = memoValue && !Number.isNaN(Number(memoValue))

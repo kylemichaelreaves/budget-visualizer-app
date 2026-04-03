@@ -138,8 +138,11 @@ export default function AutocompleteComponent(props: {
             aria-label="Clear"
             onClick={(ev) => {
               ev.stopPropagation()
-              props.onChange('')
               setQuery('')
+              setAsyncSuggestions([])
+              setOpen(false)
+              setHighlight(0)
+              props.onChange('')
               props.onClear?.()
             }}
           >

@@ -8,7 +8,30 @@ export async function updateTransaction(transaction: Transaction): Promise<Trans
   }
 
   try {
-    const response = await httpClient.patch(`/transactions/${transaction.id}`, transaction)
+    // Backend reads from queryStringParameters with camelCase field names
+    const fieldMap: Record<string, string> = {
+      date: 'date',
+      description: 'description',
+      memo: 'memo',
+      memo_id: 'memoId',
+      amount_debit: 'amountDebit',
+      amount_credit: 'amountCredit',
+      balance: 'balance',
+      check_number: 'checkNumber',
+      fees: 'fees',
+      budget_category: 'budgetCategory',
+    }
+
+    const params: Record<string, string> = { id: String(transaction.id) }
+    for (const [frontendKey, backendKey] of Object.entries(fieldMap)) {
+      const val = (transaction as Record<string, unknown>)[frontendKey]
+      if (val != null && typeof val !== 'object') {
+        params[backendKey] = String(val)
+      }
+    }
+
+    devConsole('log', '[updateTransaction] PATCH body:', params)
+    const response = await httpClient.patch(`/transactions/${transaction.id}`, params)
     return response.data
   } catch (error) {
     devConsole('error', 'Error updating transaction:', error)

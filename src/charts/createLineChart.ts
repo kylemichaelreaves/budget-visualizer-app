@@ -18,6 +18,7 @@ export function createLineChart(
   el: SVGSVGElement,
   summaries: (SummaryTypeBase | DailyInterval)[],
   onDateSelected: (date: string) => void,
+  options?: { stackedDateLabels?: boolean },
 ): void {
   const svgElement = el
   d3.select(svgElement).selectAll('*').remove()
@@ -70,7 +71,8 @@ export function createLineChart(
   const tooltipFg = styles.getPropertyValue('--popover-foreground').trim() || '#fafafa'
 
   // --- Dimensions ---
-  const margin = { top: 8, right: 8, bottom: 30, left: 45 }
+  const stacked = options?.stackedDateLabels ?? false
+  const margin = { top: 8, right: 8, bottom: stacked ? 42 : 30, left: 45 }
   const width = parentWidth - margin.left - margin.right
   const height = 240
   if (width <= 0) return
@@ -91,7 +93,12 @@ export function createLineChart(
     .nice()
 
   // --- Axes ---
-  const fmtShortDate = d3.utcFormat('%b %d')
+  const fmtMonth = d3.utcFormat('%b')
+  const fmtYear = d3.utcFormat('%y')
+  const fmtDayMonth = d3.utcFormat('%b %d')
+  const fmtShortDate = stacked
+    ? (d: Date) => `${fmtMonth(d)} ${fmtYear(d)}`
+    : (d: Date) => fmtDayMonth(d)
   const fmtMoney = (n: number) => moneyFormatter.format(n)
   const fmtMoneyFull = (n: number) => moneyFormatterFull.format(n)
 
@@ -100,6 +107,25 @@ export function createLineChart(
     .ticks(Math.min(chartData.length, 8))
     .tickFormat((d) => fmtShortDate(d as Date))
     .tickSizeOuter(0)
+
+  const formatXTickMultiLine = (g: d3.Selection<SVGGElement, unknown, null, undefined>) => {
+    g.selectAll('.tick text').each(function () {
+      const text = d3.select(this)
+      const label = text.text()
+      const [month, year] = label.split(' ')
+      text.text('')
+      text
+        .append('tspan')
+        .attr('x', 0)
+        .attr('dy', '0')
+        .text(month)
+      text
+        .append('tspan')
+        .attr('x', 0)
+        .attr('dy', '1.2em')
+        .text(year)
+    })
+  }
 
   const yAxis = d3
     .axisLeft(y)
@@ -155,6 +181,7 @@ export function createLineChart(
     .attr('class', 'x-axis')
     .attr('transform', `translate(0,${height})`)
     .call(xAxis)
+  if (stacked) formatXTickMultiLine(xAxisG)
   xAxisG.selectAll('text').style('fill', textColor).style('font-size', '12px')
   xAxisG.selectAll('line').style('stroke', gridColor)
   xAxisG.select('.domain').style('stroke', gridColor)

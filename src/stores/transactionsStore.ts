@@ -18,6 +18,7 @@ export type TransactionsState = {
   selectedMonth: string
   selectedYear: string
   selectedMemo: string
+  selectedMemoId: number | null
   selectedWeek: string
   selectedType: string
   selectedBudgetCategory: string | null
@@ -59,6 +60,7 @@ const initial: TransactionsState = {
   selectedMonth: '',
   selectedYear: '',
   selectedMemo: '',
+  selectedMemoId: null,
   selectedWeek: '',
   selectedType: 'Amount Debit',
   selectedBudgetCategory: '',
@@ -136,6 +138,7 @@ export function clearSelectionForSummary(): void {
     selectedMonth: '',
     selectedYear: '',
     selectedMemo: '',
+    selectedMemoId: null,
   })
 }
 
@@ -146,6 +149,7 @@ export function clearSelectionForPending(): void {
     selectedMonth: '',
     selectedYear: '',
     selectedMemo: '',
+    selectedMemoId: null,
   })
 }
 
@@ -160,6 +164,7 @@ function clearAllSelections(): void {
     selectedMonth: '',
     selectedYear: '',
     selectedMemo: '',
+    selectedMemoId: null,
   })
 }
 
@@ -191,10 +196,10 @@ export function selectYearView(year: string): void {
   })
 }
 
-export function selectMemoView(memo: string): void {
+export function selectMemoView(memo: string, memoId?: number | null): void {
   batch(() => {
     clearAllSelections()
-    setTransactionsState({ selectedMemo: memo, viewMode: 'memo' })
+    setTransactionsState({ selectedMemo: memo, selectedMemoId: memoId ?? null, viewMode: 'memo' })
   })
 }
 
@@ -222,7 +227,7 @@ export function applyWeekSummaryRoute(week: string): void {
 export function applyMemoSummaryRoute(memoId: string): void {
   batch(() => {
     clearAllSelections()
-    setTransactionsState({ selectedMemo: memoId, viewMode: 'memo' })
+    setTransactionsState({ selectedMemoId: Number(memoId), viewMode: 'memo' })
   })
 }
 
@@ -232,8 +237,9 @@ export function setSelectedDay(day: string): void {
 export function setSelectedMonth(month: string): void {
   setTransactionsState('selectedMonth', month)
 }
-export function setSelectedMemo(memo: string): void {
+export function setSelectedMemo(memo: string, memoId?: number | null): void {
   setTransactionsState('selectedMemo', memo)
+  if (memoId !== undefined) setTransactionsState('selectedMemoId', memoId ?? null)
 }
 export function setSelectedWeek(week: string): void {
   setTransactionsState('selectedWeek', week)

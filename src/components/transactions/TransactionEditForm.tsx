@@ -1,12 +1,13 @@
 import type { JSX } from 'solid-js'
 import { batch, createEffect, createMemo, untrack } from 'solid-js'
-import { createStore, reconcile } from 'solid-js/store'
+import { createStore, reconcile, unwrap } from 'solid-js/store'
 import { useQueryClient } from '@tanstack/solid-query'
 import type { BudgetCategoryState, PendingTransaction, SplitBudgetCategory, Transaction } from '@types'
 import mutateTransaction from '@api/hooks/transactions/mutateTransaction'
 import mutatePendingTransaction from '@api/hooks/transactions/mutatePendingTransaction'
 import MemoSelect from '@components/transactions/selects/MemoSelect'
 import BudgetCategoryFormField from '@components/transactions/BudgetCategoryFormField'
+import AlertComponent from '@components/shared/AlertComponent'
 import { Button } from '@components/ui/button'
 import { Input } from '@components/ui/input'
 import { Label } from '@components/ui/label'
@@ -69,7 +70,7 @@ export default function TransactionEditForm(props: {
     const budgetCategory = getBudgetCategory(budgetState)
 
     const transactionData: Transaction = {
-      ...tx,
+      ...unwrap(tx),
       budget_category: budgetCategory,
       is_split: budgetState.mode === 'split',
     }
@@ -111,8 +112,18 @@ export default function TransactionEditForm(props: {
     }
   }
 
+  const activeMut = () => (props.isPending ? pendMut : regMut)
+
   return (
     <form data-testid={tid()} aria-label="Transaction Edit Form" class="text-foreground space-y-3">
+      {activeMut().isError && activeMut().error ? (
+        <AlertComponent
+          type="error"
+          title={(activeMut().error as Error).name || 'Error'}
+          message={(activeMut().error as Error).message || 'Failed to save transaction'}
+          dataTestId={`${tid()}-error-alert`}
+        />
+      ) : null}
       <Field label="Id" test={`${tid()}-id`}>
         <Input id={`field-${tid()}-id`} value={tx.id ?? ''} disabled />
       </Field>
@@ -183,8 +194,8 @@ export default function TransactionEditForm(props: {
           onInput={(e) => setTx('fees', e.currentTarget.value)}
         />
       </Field>
-      <Button type="button" onClick={saveTransaction} class="mt-4">
-        Save
+      <Button type="button" onClick={saveTransaction} class="mt-4" disabled={activeMut().isPending}>
+        {activeMut().isPending ? 'Saving\u2026' : 'Save'}
       </Button>
     </form>
   )

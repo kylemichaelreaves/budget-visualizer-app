@@ -9,6 +9,7 @@ import type { Memo, Timeframe, PendingTransactionStatus } from '@types'
 export async function fetchTransactionsCount(
   params: {
     date?: string
+    memoId?: Memo['id']
     memoName?: Memo['name']
     timeFrame?: Timeframe
     oldestDate?: boolean

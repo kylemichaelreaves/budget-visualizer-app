@@ -1,6 +1,5 @@
 import type { JSX } from 'solid-js'
-import { createMemo, createSignal, onMount, Show } from 'solid-js'
-import { useLocation, useNavigate } from '@solidjs/router'
+import { createEffect, createMemo, createSignal, Show } from 'solid-js'
 import { DateTime } from 'luxon'
 import { parseDateIWIYYY } from '@api/helpers/parseDateIWIYYY'
 import { parseDateMMYYYY } from '@api/helpers/parseDateMMYYYY'
@@ -8,16 +7,21 @@ import { useDailyTotalAmountDebit } from '@api/hooks/timeUnits/days/useDailyTota
 import LineChart from '@charts/LineChart'
 import AlertComponent from '@components/shared/AlertComponent'
 import { Skeleton } from '@components/ui/skeleton'
-import { setSelectedDay, transactionsState } from '@stores/transactionsStore'
+import { selectDayView, transactionsState } from '@stores/transactionsStore'
 import IntervalForm from './IntervalForm'
 
 export default function DailyIntervalLineChart(props: {
   dataTestId?: string
   firstDay?: string
 }): JSX.Element {
-  const loc = useLocation()
-  const navigate = useNavigate()
   const [intervalValue, setIntervalValue] = createSignal('1 month')
+
+  const [everHadFilter, setEverHadFilter] = createSignal(false)
+
+  // Track whether a filter was ever active (side-effect free — done in a separate effect)
+  createEffect(() => {
+    if (transactionsState.viewMode) setEverHadFilter(true)
+  })
 
   const selectedValue = createMemo((): string | null => {
     if (transactionsState.selectedDay) {
@@ -42,9 +46,13 @@ export default function DailyIntervalLineChart(props: {
     if (transactionsState.selectedYear) {
       return `${transactionsState.selectedYear}-12-31`
     }
-    if (props.firstDay) {
-      return props.firstDay
+    if (transactionsState.selectedMemo) {
+      return DateTime.now().toISODate()
     }
+    // After clearing a filter, show nothing
+    if (everHadFilter()) return null
+    // Default on initial load
+    if (props.firstDay) return props.firstDay
     return DateTime.now().minus({ months: 1 }).endOf('month').toISODate()
   })
 
@@ -59,19 +67,8 @@ export default function DailyIntervalLineChart(props: {
 
   const chartQuery = useDailyTotalAmountDebit(intervalForView, () => selectedValue())
 
-  onMount(() => {
-    const sp = new URLSearchParams(loc.search)
-    const day = sp.get('day')
-    if (day) {
-      setSelectedDay(day)
-    }
-  })
-
   const handleOnDayClicked = (selection: string) => {
-    setSelectedDay(selection)
-    const sp = new URLSearchParams(loc.search)
-    sp.set('day', selection)
-    navigate(`${loc.pathname}?${sp.toString()}`, { replace: true })
+    selectDayView(selection)
   }
 
   const id = () => props.dataTestId ?? 'daily-interval-line-chart'
