@@ -13,7 +13,7 @@ import { setSelectedMemo } from '@stores/transactionsStore'
 import { Badge } from '@components/ui/badge'
 import { Button } from '@components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
-import type { Frequency, Memo, Transaction } from '@types'
+import type { Frequency } from '@types'
 
 // ── Inline SVG icons ──────────────────────────────────────────────────
 

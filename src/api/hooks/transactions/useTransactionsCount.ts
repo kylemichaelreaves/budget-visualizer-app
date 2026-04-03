@@ -3,7 +3,6 @@ import { fetchTransactionsCount } from '@api/transactions/fetchTransactionsCount
 import { setTransactionsCount, transactionsState } from '@stores/transactionsStore'
 import useTimeframeTypeAndValue from '@api/hooks/timeUnits/useTimeframeTypeAndValue'
 import type { PendingTransactionStatus } from '@types'
-import { devConsole } from '@utils/devConsole'
 
 /** When `status` is set, counts pending rows for that status; otherwise counts regular transactions. */
 export default function useTransactionsCount(status?: () => PendingTransactionStatus | undefined) {
@@ -27,9 +26,7 @@ export default function useTransactionsCount(status?: () => PendingTransactionSt
         const params = st
           ? { status: st }
           : { timeFrame: tf, date, ...memoParam }
-        console.log('[useTransactionsCount] params:', params)
         const data = await fetchTransactionsCount(params)
-        console.log('[useTransactionsCount] response:', data)
         const count = Number(data[0]?.count ?? 0)
         setTransactionsCount(count)
         return count

@@ -113,10 +113,10 @@ function getCategoryColor(category: string): string {
 }
 
 function compareMemos(a: Memo, b: Memo, key: SortKey, dir: SortDir): number {
-  let result = 0
   const av = a[key]
   const bv = b[key]
 
+  let result: number
   if (av == null && bv == null) result = 0
   else if (av == null) result = 1
   else if (bv == null) result = -1

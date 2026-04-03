@@ -5,7 +5,8 @@
 Always run these before committing or creating a PR:
 
 ```bash
-npx tsc --noEmit   # TypeScript type checking
+bun run lint        # eslint
+npx tsc --noEmit    # TypeScript type checking
 ```
 
 ## Tech stack
