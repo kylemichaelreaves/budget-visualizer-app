@@ -4,6 +4,7 @@ import { createEffect, createMemo, For, on, Show } from 'solid-js'
 import { formatDate } from '@api/helpers/formatDate'
 import { getPeriodLabel } from '@api/helpers/formatPeriodLabels'
 import useTransactions from '@api/hooks/transactions/useTransactions'
+import useSumAmountDebitByDate from '@api/hooks/transactions/useSumAmountDebitByDate'
 import AlertComponent from '@components/shared/AlertComponent'
 import BudgetCategorySummaries from '@components/transactions/charts/BudgetCategorySummaries'
 import DailyIntervalLineChart from '@components/transactions/charts/DailyIntervalLineChart/DailyIntervalLineChart'
@@ -82,6 +83,21 @@ export default function TransactionsTable() {
     return DateTime.now().toFormat('MM-yyyy')
   })
 
+  const chartTimeFrame = createMemo(() => {
+    if (transactionsState.selectedDay) return Timeframe.Day
+    if (transactionsState.selectedWeek) return Timeframe.Week
+    return Timeframe.Month
+  })
+
+  const chartDate = createMemo(() => {
+    if (transactionsState.selectedDay) return transactionsState.selectedDay
+    if (transactionsState.selectedWeek) return transactionsState.selectedWeek
+    if (transactionsState.selectedMonth) return transactionsState.selectedMonth
+    return defaultMonthForCharts()
+  })
+
+  const sumDebitQuery = useSumAmountDebitByDate(chartTimeFrame, chartDate)
+
   const isLoadingCondition = () =>
     query.isLoading ||
     query.isFetching ||
@@ -149,7 +165,10 @@ export default function TransactionsTable() {
 
       <PeriodHeader />
 
-      <SummaryStatsCards transactions={paginatedData()} />
+      <SummaryStatsCards
+        transactions={paginatedData()}
+        debitTotal={sumDebitQuery.data?.[0]?.total_amount_debit}
+      />
 
       {/* Charts row */}
       <div class="grid gap-6 md:grid-cols-2">
