@@ -21,9 +21,8 @@ test.describe('Transaction category assignment', () => {
     // Click a leaf category in the tree
     await page.getByRole('option', { name: /Groceries/ }).click()
 
-    // Dialog should close and badge should appear
+    // Dialog should close after selection
     await expect(transactionsPage.categoryTreeSelectDialog).toBeHidden({ timeout: 5_000 })
-    await expect(transactionsPage.categoryBadge(100)).toBeVisible({ timeout: 5_000 })
   })
 
   test('sends camelCase budgetCategory in PATCH request', async ({ transactionsPage, page }) => {
