@@ -8,6 +8,11 @@ export class MemosPage {
   readonly emptyMessage: Locator
   readonly errorAlert: Locator
   readonly searchInput: Locator
+  readonly cardTitle: Locator
+
+  /** Category assignment dialog */
+  readonly categoryTreeSelectDialog: Locator
+  readonly categoryTreeSearch: Locator
 
   constructor(page: Page) {
     this.page = page
@@ -17,6 +22,10 @@ export class MemosPage {
     this.emptyMessage = page.getByText('No memos found.')
     this.errorAlert = page.getByTestId('memos-table-error-alert')
     this.searchInput = page.getByTestId('memos-search-input')
+    this.cardTitle = page.getByRole('heading', { name: 'All Memos' })
+
+    this.categoryTreeSelectDialog = page.getByTestId('category-tree-select-dialog')
+    this.categoryTreeSearch = page.getByTestId('category-tree-search')
   }
 
   async goto() {

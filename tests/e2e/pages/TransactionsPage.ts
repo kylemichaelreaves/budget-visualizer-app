@@ -28,6 +28,10 @@ export class TransactionsPage {
   readonly summaryDebitsCard: Locator
   readonly summaryCategoriesCard: Locator
 
+  /** Category assignment dialog */
+  readonly categoryTreeSelectDialog: Locator
+  readonly categoryTreeSearch: Locator
+
   /** Backward-compat alias */
   readonly clearTimeframeButton: Locator
 
@@ -53,6 +57,9 @@ export class TransactionsPage {
     this.summaryCreditsCard = page.getByTestId('summary-credits-card')
     this.summaryDebitsCard = page.getByTestId('summary-debits-card')
     this.summaryCategoriesCard = page.getByTestId('summary-categories-card')
+
+    this.categoryTreeSelectDialog = page.getByTestId('category-tree-select-dialog')
+    this.categoryTreeSearch = page.getByTestId('category-tree-search')
 
     // backward compat
     this.clearTimeframeButton = this.clearButton

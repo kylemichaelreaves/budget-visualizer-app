@@ -38,7 +38,12 @@ export async function installApiMocks(page: Page): Promise<void> {
     }
 
     if (path.includes('/budget-categories')) {
-      await json(route, [{ data: {} }])
+      await json(route, [{
+        data: {
+          Food: { Groceries: {}, Restaurants: {} },
+          Entertainment: { Subscriptions: {}, Hobbies: {} },
+        },
+      }])
       return
     }
 
@@ -104,14 +109,15 @@ export async function installApiMocks(page: Page): Promise<void> {
         return
       }
       if (method === 'PATCH' || method === 'PUT') {
-        await json(route, { ok: true })
+        const body = req.postDataJSON()
+        await json(route, [{ ...body, updated_at: new Date().toISOString() }])
         return
       }
     }
 
     if (path.endsWith('/transactions') || path.match(/\/transactions$/)) {
       if (sp.get('count') === 'true') {
-        await json(route, [{ count: 0 }])
+        await json(route, [{ count: 2 }])
         return
       }
       if (sp.has('interval') && sp.get('dailyTotals') === 'true' && !sp.has('date')) {
@@ -132,7 +138,31 @@ export async function installApiMocks(page: Page): Promise<void> {
         return
       }
       if (method === 'GET') {
-        await json(route, [])
+        await json(route, [
+          {
+            id: 100,
+            transaction_number: '100001',
+            date: '2025-01-15',
+            description: 'POS PURCHASE',
+            memo: 'WHOLEFDS',
+            amount_debit: -37.31,
+            amount_credit: null,
+            balance: 1000,
+            budget_category: null,
+            memo_id: 1,
+          },
+          {
+            id: 101,
+            transaction_number: '100002',
+            date: '2025-01-14',
+            description: 'DIRECT DEPOSIT',
+            memo: 'PAYROLL',
+            amount_debit: null,
+            amount_credit: 2000,
+            balance: 3000,
+            budget_category: null,
+          },
+        ])
         return
       }
     }
@@ -153,11 +183,33 @@ export async function installApiMocks(page: Page): Promise<void> {
     }
     if (path.includes('/memos')) {
       if (method === 'GET') {
-        await json(route, [])
+        await json(route, [
+          {
+            id: 200,
+            name: 'WHOLEFDS',
+            recurring: true,
+            necessary: true,
+            ambiguous: false,
+            budget_category: null,
+            total_amount_debit: 150.0,
+            transactions_count: 5,
+          },
+          {
+            id: 201,
+            name: 'NETFLIX',
+            recurring: true,
+            necessary: false,
+            ambiguous: false,
+            budget_category: 'Entertainment - Subscriptions',
+            total_amount_debit: 15.99,
+            transactions_count: 1,
+          },
+        ])
         return
       }
       if (method === 'PATCH') {
-        await json(route, { id: 1, name: 'Updated' })
+        const body = req.postDataJSON()
+        await json(route, { memo: { ...body, updated_at: new Date().toISOString() } })
         return
       }
     }

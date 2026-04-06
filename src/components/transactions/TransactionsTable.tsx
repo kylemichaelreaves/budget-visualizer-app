@@ -20,9 +20,10 @@ import TransactionsTablePagination from '@components/transactions/TransactionsTa
 import TransactionsTableSelects from '@components/transactions/TransactionsTableSelects'
 import { transactionsState } from '@stores/transactionsStore'
 import { Timeframe } from '@types'
+import type { BudgetCategorySummary } from '@types'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
-import { Badge } from '@components/ui/badge'
 import { Skeleton } from '@components/ui/skeleton'
+import { Badge } from '@components/ui/badge'
 import { formatUsd } from '@utils/formatUsd'
 
 function getSelectedValue(): string {
@@ -129,17 +130,17 @@ export default function TransactionsTable() {
     return defaultMonthForCharts()
   })
 
+  const sumDebitQuery = useSumAmountDebitByDate(chartTimeFrame, chartDate)
+
   const categorySummaryQuery = useBudgetCategorySummary(
     () => chartTimeFrame(),
     () => chartDate(),
   )
 
   const categoryColors = createMemo(() => {
-    const data = categorySummaryQuery.data as import('@types').BudgetCategorySummary[] | undefined
+    const data = categorySummaryQuery.data as BudgetCategorySummary[] | undefined
     return budgetCategoryColorsFromData(data)
   })
-
-  const sumDebitQuery = useSumAmountDebitByDate(chartTimeFrame, chartDate)
 
   const isInitialLoading = () => query.isLoading || (query.isFetching && !query.data?.pages?.length)
 

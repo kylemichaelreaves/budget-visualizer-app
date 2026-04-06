@@ -1,5 +1,6 @@
 import type { Memo, MemoUpdateInput } from '@types'
 import { httpClient } from '@api/httpClient.ts'
+import { toApiPayload, memoFieldMapping } from '@api/helpers/toApiPayload'
 import { devConsole } from '@utils/devConsole'
 
 export async function updateMemo(memo: MemoUpdateInput): Promise<Memo> {
@@ -12,7 +13,10 @@ export async function updateMemo(memo: MemoUpdateInput): Promise<Memo> {
   }
 
   try {
-    const response = await httpClient.patch(`/memos/${memo.id}`, memo)
+    const response = await httpClient.patch(
+      `/memos/${memo.id}`,
+      toApiPayload(memo as unknown as Record<string, unknown>, memoFieldMapping),
+    )
 
     // Your lambda returns { success: true, memo: {...}, message: "..." }
     // Extract the memo from the response structure
