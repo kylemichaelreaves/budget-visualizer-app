@@ -14,7 +14,11 @@ export function flatten(nodes: CategoryNode[], ancestors: string[] = []): FlatNo
 }
 
 /** Flatten the tree respecting which nodes are currently expanded. */
-export function flattenVisible(nodes: CategoryNode[], expanded: Set<string>, ancestors: string[] = []): FlatNode[] {
+export function flattenVisible(
+  nodes: CategoryNode[],
+  expanded: Set<string>,
+  ancestors: string[] = [],
+): FlatNode[] {
   return nodes.flatMap((n) => {
     const self: FlatNode = { node: n, breadcrumb: ancestors }
     if ((n.children?.length ?? 0) > 0 && expanded.has(n.value)) {
