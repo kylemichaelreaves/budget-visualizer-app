@@ -71,7 +71,6 @@ export default function BudgetCategoryTreeSelect(props: {
   }
 
   function handleSelect(value: string) {
-    console.log('[TreeSelect] handleSelect:', value)
     props.onSelect(value)
     props.onOpenChange(false)
     setSearch('')
@@ -98,8 +97,11 @@ export default function BudgetCategoryTreeSelect(props: {
       if (idx >= 0 && idx < items.length) {
         const item = items[idx]
         const hasChildren = (item.node.children?.length ?? 0) > 0
-        if (hasChildren) toggleExpand(item.node.value)
-        handleSelect(item.node.value)
+        if (hasChildren) {
+          toggleExpand(item.node.value)
+        } else {
+          handleSelect(item.node.value)
+        }
       }
     }
   }

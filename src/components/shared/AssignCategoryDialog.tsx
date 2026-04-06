@@ -12,7 +12,6 @@ export default function AssignCategoryDialog(props: {
   const [selectedCategory, setSelectedCategory] = createSignal<string | null>(null)
 
   function handleSelect(value: string) {
-    console.log('[AssignDialog] handleSelect:', value)
     setSelectedCategory(value)
     props.onSave(value)
     props.onClose()

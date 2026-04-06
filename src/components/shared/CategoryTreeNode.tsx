@@ -30,8 +30,11 @@ export default function CategoryTreeNode(props: {
       ref={ref}
       style={{ 'padding-left': `${props.depth * 18 + 10}px` }}
       onClick={() => {
-        if (props.hasChildren) props.onToggle(props.value)
-        props.onSelect(props.value)
+        if (props.hasChildren) {
+          props.onToggle(props.value)
+        } else {
+          props.onSelect(props.value)
+        }
       }}
       role="option"
       aria-selected={props.selected}

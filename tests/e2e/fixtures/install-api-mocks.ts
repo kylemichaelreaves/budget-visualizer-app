@@ -112,7 +112,7 @@ export async function installApiMocks(page: Page): Promise<void> {
       }
       if (method === 'PATCH' || method === 'PUT') {
         const body = req.postDataJSON()
-        await json(route, [{ ...body, updated_at: new Date().toISOString() }])
+        await json(route, { ...body, updated_at: new Date().toISOString() })
         return
       }
     }

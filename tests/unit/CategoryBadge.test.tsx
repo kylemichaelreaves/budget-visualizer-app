@@ -46,9 +46,8 @@ describe('CategoryBadge', () => {
       <CategoryBadge category="Groceries" getColorByName={getColorByName} dataTestId="test-badge" />
     ))
     const badge = screen.getByTestId('test-badge')
-    // #1f77b415 is ~8% alpha, jsdom normalizes to rgba
-    expect(badge.style.backgroundColor).toBeTruthy()
-    expect(badge.style.backgroundColor).toContain('31, 119, 180')
+    // withAlpha converts #hex to rgba with 0.08 alpha
+    expect(badge.style.backgroundColor).toBe('rgba(31, 119, 180, 0.08)')
   })
 
   it('does not apply background when color is fallback #999999', () => {
