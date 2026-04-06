@@ -177,6 +177,7 @@ export default function BudgetCategoryTreeSelect(props: {
                   >
                     <For each={searchResults()!}>
                       {({ node, breadcrumb }, i) => {
+                        // eslint-disable-next-line no-unassigned-vars -- assigned via JSX ref
                         let ref: HTMLButtonElement | undefined
 
                         createEffect(
@@ -228,6 +229,7 @@ export default function BudgetCategoryTreeSelect(props: {
                   {(item, i) => {
                     const depth = () => item.breadcrumb.length
 
+                    // eslint-disable-next-line no-unassigned-vars -- assigned via JSX ref
                     let ref: HTMLButtonElement | undefined
 
                     createEffect(
