@@ -37,8 +37,22 @@ describe('toApiPayload', () => {
     })
 
     it('passes through unmapped keys unchanged', () => {
-      const result = convert({ id: 1, date: '2025-01-01', description: 'test', memo: 'm', balance: 100, fees: null })
-      expect(result).toEqual({ id: 1, date: '2025-01-01', description: 'test', memo: 'm', balance: 100, fees: null })
+      const result = convert({
+        id: 1,
+        date: '2025-01-01',
+        description: 'test',
+        memo: 'm',
+        balance: 100,
+        fees: null,
+      })
+      expect(result).toEqual({
+        id: 1,
+        date: '2025-01-01',
+        description: 'test',
+        memo: 'm',
+        balance: 100,
+        fees: null,
+      })
     })
 
     it('handles a full transaction with mixed mapped and unmapped keys', () => {

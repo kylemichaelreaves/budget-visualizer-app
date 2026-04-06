@@ -13,11 +13,10 @@ test.describe('Memo summary', () => {
     await expect(memoSummaryPage.txCountStat).toBeVisible()
   })
 
-  test('shows edit memo and all memos links', async ({ memoSummaryPage }) => {
+  test('shows edit link', async ({ memoSummaryPage }) => {
     await memoSummaryPage.goto(1)
     await expect(memoSummaryPage.title).toBeVisible({ timeout: 10_000 })
     await expect(memoSummaryPage.editLink).toBeVisible()
-    await expect(memoSummaryPage.allMemosLink).toBeVisible()
   })
 
   test('edit link navigates to memo edit page', async ({ memoSummaryPage, page }) => {
@@ -25,12 +24,5 @@ test.describe('Memo summary', () => {
     await expect(memoSummaryPage.editLink).toBeVisible({ timeout: 10_000 })
     await memoSummaryPage.editLink.click()
     await expect(page).toHaveURL(/\/memos\/1\/edit/)
-  })
-
-  test('all memos link navigates back to memos list', async ({ memoSummaryPage, page }) => {
-    await memoSummaryPage.goto(1)
-    await expect(memoSummaryPage.allMemosLink).toBeVisible({ timeout: 10_000 })
-    await memoSummaryPage.allMemosLink.click()
-    await expect(page).toHaveURL(/\/budget-visualizer\/memos$/)
   })
 })

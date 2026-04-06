@@ -25,7 +25,10 @@ export default function SummaryStatsCards(props: {
       const d = Number(t.amount_debit)
       return Number.isFinite(d) && d !== 0
     })
-    const total = props.debitTotal != null ? Math.abs(props.debitTotal) : rows.reduce((s, t) => s + Math.abs(Number(t.amount_debit)), 0)
+    const total =
+      props.debitTotal != null
+        ? Math.abs(props.debitTotal)
+        : rows.reduce((s, t) => s + Math.abs(Number(t.amount_debit)), 0)
     return { total, count: rows.length }
   })
 

@@ -38,12 +38,14 @@ export async function installApiMocks(page: Page): Promise<void> {
     }
 
     if (path.includes('/budget-categories')) {
-      await json(route, [{
-        data: {
-          Food: { Groceries: {}, Restaurants: {} },
-          Entertainment: { Subscriptions: {}, Hobbies: {} },
+      await json(route, [
+        {
+          data: {
+            Food: { Groceries: {}, Restaurants: {} },
+            Entertainment: { Subscriptions: {}, Hobbies: {} },
+          },
         },
-      }])
+      ])
       return
     }
 

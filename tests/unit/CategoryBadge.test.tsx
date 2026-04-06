@@ -53,9 +53,7 @@ describe('CategoryBadge', () => {
 
   it('does not apply background when color is fallback #999999', () => {
     const getColorByName = vi.fn().mockReturnValue('#999999')
-    render(() => (
-      <CategoryBadge category="Unknown" getColorByName={getColorByName} dataTestId="test-badge" />
-    ))
+    render(() => <CategoryBadge category="Unknown" getColorByName={getColorByName} dataTestId="test-badge" />)
     const badge = screen.getByTestId('test-badge')
     expect(badge.style.backgroundColor).toBe('')
   })
@@ -73,9 +71,7 @@ describe('CategoryBadge', () => {
 
   it('renders data-testid when provided', () => {
     const getColorByName = vi.fn().mockReturnValue('#999999')
-    render(() => (
-      <CategoryBadge category="Test" getColorByName={getColorByName} dataTestId="my-badge" />
-    ))
+    render(() => <CategoryBadge category="Test" getColorByName={getColorByName} dataTestId="my-badge" />)
     expect(screen.getByTestId('my-badge')).toBeInTheDocument()
   })
 })
