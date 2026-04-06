@@ -29,7 +29,13 @@ export default function CategoryBadge(props: {
   dataTestId?: string
   children?: JSX.Element
 }): JSX.Element {
-  const color = () => props.getColorByName(leafName(props.category))
+  const resolvedColor = () => {
+    const c = props.getColorByName(leafName(props.category))
+    return {
+      base: c,
+      bg: c !== '#999999' ? withAlpha(c, 0.08) : undefined,
+    }
+  }
 
   return (
     <Badge
@@ -37,9 +43,9 @@ export default function CategoryBadge(props: {
       class="text-xs hover:opacity-80 transition-colors"
       data-testid={props.dataTestId}
       style={{
-        'border-color': color(),
-        color: color(),
-        'background-color': color() !== '#999999' ? withAlpha(color(), 0.08) : undefined,
+        'border-color': resolvedColor().base,
+        color: resolvedColor().base,
+        'background-color': resolvedColor().bg,
       }}
     >
       {props.children ?? props.category}
