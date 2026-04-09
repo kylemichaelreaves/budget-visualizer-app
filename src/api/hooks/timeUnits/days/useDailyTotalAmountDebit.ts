@@ -14,7 +14,12 @@ export function useDailyTotalAmountDebit(interval: () => string, startDate: () =
   return useQuery(() => {
     const memoFilter = getMemoFilter()
     return {
-      queryKey: ['daily-total-amount-debit-for-interval', interval(), startDate() ?? '', transactionsState.selectedMemo],
+      queryKey: [
+        'daily-total-amount-debit-for-interval',
+        interval(),
+        startDate() ?? '',
+        transactionsState.selectedMemo,
+      ],
       queryFn: () => fetchDailyAmountDebitForInterval(interval(), startDate() ?? null, memoFilter),
       refetchOnWindowFocus: false,
       staleTime: 0,

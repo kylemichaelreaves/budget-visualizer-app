@@ -5,12 +5,7 @@ import { convertToTree } from '@api/helpers/convertToTree'
 import { useBudgetCategories } from '@api/hooks/budgetCategories/useBudgetCategories'
 import type { CategoryNode } from '@types'
 import { Input } from '@components/ui/input'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@components/ui/dialog'
 
 function flattenWithBreadcrumb(
   nodes: CategoryNode[],
@@ -64,19 +59,33 @@ function TreeNodeRow(props: {
         <span class="shrink-0 w-4 h-4 flex items-center justify-center text-muted-foreground">
           <Show
             when={hasChildren()}
-            fallback={
-              <span class="h-1.5 w-1.5 rounded-full bg-muted-foreground/40 mx-auto" />
-            }
+            fallback={<span class="h-1.5 w-1.5 rounded-full bg-muted-foreground/40 mx-auto" />}
           >
             <Show
               when={isOpen()}
               fallback={
-                <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <svg
+                  class="size-3.5"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                >
                   <path d="m9 18 6-6-6-6" />
                 </svg>
               }
             >
-              <svg class="size-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <svg
+                class="size-3.5"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
                 <path d="m6 9 6 6 6-6" />
               </svg>
             </Show>
@@ -84,7 +93,15 @@ function TreeNodeRow(props: {
         </span>
         <span class="flex-1 truncate">{props.node.label}</span>
         <Show when={isSelected()}>
-          <svg class="size-3.5 shrink-0 text-primary" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <svg
+            class="size-3.5 shrink-0 text-primary"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
             <path d="M20 6 9 17l-5-5" />
           </svg>
         </Show>
@@ -112,10 +129,7 @@ function TreeNodeRow(props: {
 }
 
 /** Collect visible nodes from the tree respecting expand state */
-function getVisibleNodes(
-  nodes: CategoryNode[],
-  expanded: Set<string>,
-): CategoryNode[] {
+function getVisibleNodes(nodes: CategoryNode[], expanded: Set<string>): CategoryNode[] {
   const out: CategoryNode[] = []
   for (const n of nodes) {
     out.push(n)
@@ -140,7 +154,11 @@ export default function CategoryTreeSelectDialog(props: {
 
   let listRef: HTMLDivElement | undefined
 
-  const q = useBudgetCategories(() => undefined, () => undefined, false)
+  const q = useBudgetCategories(
+    () => undefined,
+    () => undefined,
+    false,
+  )
 
   const tree = createMemo(() => {
     const raw = q.data as unknown
@@ -282,9 +300,7 @@ export default function CategoryTreeSelectDialog(props: {
               fallback={
                 <Show
                   when={searchResults()!.length > 0}
-                  fallback={
-                    <p class="text-sm text-muted-foreground text-center py-6">No categories found</p>
-                  }
+                  fallback={<p class="text-sm text-muted-foreground text-center py-6">No categories found</p>}
                 >
                   <For each={searchResults()!}>
                     {({ node, breadcrumb }, index) => (

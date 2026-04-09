@@ -20,7 +20,16 @@ import MemosTablePagination from './MemosTablePagination'
 
 function ChevronUpIcon() {
   return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
       <path d="m18 15-6-6-6 6" />
     </svg>
   )
@@ -28,7 +37,16 @@ function ChevronUpIcon() {
 
 function ChevronDownIcon() {
   return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
       <path d="m6 9 6 6 6-6" />
     </svg>
   )
@@ -36,7 +54,16 @@ function ChevronDownIcon() {
 
 function ChevronUpDownIcon() {
   return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg
+      width="12"
+      height="12"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
       <path d="m7 15 5 5 5-5" />
       <path d="m7 9 5-5 5 5" />
     </svg>
@@ -45,7 +72,16 @@ function ChevronUpDownIcon() {
 
 function WarningIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
       <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
       <path d="M12 9v4" />
       <path d="M12 17h.01" />
@@ -55,7 +91,16 @@ function WarningIcon() {
 
 function CheckIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
       <path d="M20 6 9 17l-5-5" />
     </svg>
   )
@@ -63,7 +108,16 @@ function CheckIcon() {
 
 function SearchIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
       <circle cx="11" cy="11" r="8" />
       <path d="m21 21-4.3-4.3" />
     </svg>
@@ -171,14 +225,10 @@ export default function MemosTable(): JSX.Element {
   const totalMemos = createMemo(() => filteredData().length)
   const ambiguousCount = createMemo(() => filteredData().filter((m) => m.ambiguous).length)
 
-  const isInitialLoading = () =>
-    query.isLoading ||
-    (query.isFetching && !query.data?.pages?.length)
+  const isInitialLoading = () => query.isLoading || (query.isFetching && !query.data?.pages?.length)
 
   const isLoadingCondition = () =>
-    isInitialLoading() ||
-    query.isFetchingNextPage ||
-    query.isFetchingPreviousPage
+    isInitialLoading() || query.isFetchingNextPage || query.isFetchingPreviousPage
 
   async function loadMorePagesIfNeeded() {
     const requiredDataCount = currentPage() * LIMIT()
@@ -270,9 +320,7 @@ export default function MemosTable(): JSX.Element {
           {totalMemos()} unique memos
           <Show when={ambiguousCount() > 0}>
             {' '}
-            <span class="text-amber-600 dark:text-amber-400 font-medium">
-              ({ambiguousCount()} ambiguous)
-            </span>
+            <span class="text-amber-600 dark:text-amber-400 font-medium">({ambiguousCount()} ambiguous)</span>
           </Show>
         </p>
       </div>
@@ -343,7 +391,10 @@ export default function MemosTable(): JSX.Element {
                         </td>
 
                         {/* Transactions count */}
-                        <td class="px-3 py-2.5 text-muted-foreground" data-testid={`cell-${row.id}-transactions_count`}>
+                        <td
+                          class="px-3 py-2.5 text-muted-foreground"
+                          data-testid={`cell-${row.id}-transactions_count`}
+                        >
                           {row.transactions_count ?? 0}
                         </td>
 
@@ -359,7 +410,14 @@ export default function MemosTable(): JSX.Element {
                             onClick={() => void toggleAmbiguous(row)}
                             data-testid={`ambiguous-toggle-${row.id}`}
                           >
-                            <Show when={row.ambiguous} fallback={<><CheckIcon /> No</>}>
+                            <Show
+                              when={row.ambiguous}
+                              fallback={
+                                <>
+                                  <CheckIcon /> No
+                                </>
+                              }
+                            >
                               <WarningIcon /> Yes
                             </Show>
                           </button>
@@ -397,7 +455,10 @@ export default function MemosTable(): JSX.Element {
                         </td>
 
                         {/* Total debit */}
-                        <td class="px-3 py-2.5 text-red-600 dark:text-red-400 font-medium tabular-nums" data-testid={`cell-${row.id}-total_amount_debit`}>
+                        <td
+                          class="px-3 py-2.5 text-red-600 dark:text-red-400 font-medium tabular-nums"
+                          data-testid={`cell-${row.id}-total_amount_debit`}
+                        >
                           {formatCurrency(row.total_amount_debit)}
                         </td>
                       </tr>

@@ -96,9 +96,7 @@ export function createLineChart(
   const fmtMonth = d3.utcFormat('%b')
   const fmtYear = d3.utcFormat('%y')
   const fmtDayMonth = d3.utcFormat('%b %d')
-  const fmtShortDate = stacked
-    ? (d: Date) => `${fmtMonth(d)} ${fmtYear(d)}`
-    : (d: Date) => fmtDayMonth(d)
+  const fmtShortDate = stacked ? (d: Date) => `${fmtMonth(d)} ${fmtYear(d)}` : (d: Date) => fmtDayMonth(d)
   const fmtMoney = (n: number) => moneyFormatter.format(n)
   const fmtMoneyFull = (n: number) => moneyFormatterFull.format(n)
 
@@ -114,16 +112,8 @@ export function createLineChart(
       const label = text.text()
       const [month, year] = label.split(' ')
       text.text('')
-      text
-        .append('tspan')
-        .attr('x', 0)
-        .attr('dy', '0')
-        .text(month)
-      text
-        .append('tspan')
-        .attr('x', 0)
-        .attr('dy', '1.2em')
-        .text(year)
+      text.append('tspan').attr('x', 0).attr('dy', '0').text(month)
+      text.append('tspan').attr('x', 0).attr('dy', '1.2em').text(year)
     })
   }
 

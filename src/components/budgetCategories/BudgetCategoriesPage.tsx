@@ -152,11 +152,7 @@ function XIcon(props: { class?: string }): JSX.Element {
 
 function DotIcon(props: { class?: string }): JSX.Element {
   return (
-    <svg
-      class={props.class ?? 'size-4'}
-      viewBox="0 0 24 24"
-      fill="currentColor"
-    >
+    <svg class={props.class ?? 'size-4'} viewBox="0 0 24 24" fill="currentColor">
       <circle cx="12" cy="12" r="3" />
     </svg>
   )
@@ -407,7 +403,10 @@ function TreeNode(props: {
 
         {/* Action buttons (visible on hover, hidden during rename) */}
         <Show when={hovered() && !renaming() && !isMutating()}>
-          <div class="flex items-center gap-0.5 shrink-0 ml-auto" data-testid={`tree-actions-${props.node.label}`}>
+          <div
+            class="flex items-center gap-0.5 shrink-0 ml-auto"
+            data-testid={`tree-actions-${props.node.label}`}
+          >
             <Button
               variant="ghost"
               size="icon"
@@ -500,10 +499,7 @@ export default function BudgetCategoriesPage(): JSX.Element {
   const visibleTree = createMemo(() => filterTree(tree(), filter()))
 
   const handleMutate = async (op: BudgetCategoryOperation) => {
-    const pathKey =
-      op.operation === 'add'
-        ? [...op.path, op.name].join(' - ')
-        : op.path.join(' - ')
+    const pathKey = op.operation === 'add' ? [...op.path, op.name].join(' - ') : op.path.join(' - ')
 
     setError(null)
     setMutatingPaths((prev) => {
@@ -574,8 +570,8 @@ export default function BudgetCategoriesPage(): JSX.Element {
             <CardTitle>Budget Categories</CardTitle>
           </div>
           <CardDescription>
-            Edit the hierarchy used in the category selector. Hover over any row to rename, add
-            children, or delete.
+            Edit the hierarchy used in the category selector. Hover over any row to rename, add children, or
+            delete.
           </CardDescription>
           <CardAction>
             <Button
@@ -638,12 +634,7 @@ export default function BudgetCategoriesPage(): JSX.Element {
             <ul class="m-0 p-0">
               <For each={visibleTree()}>
                 {(node) => (
-                  <TreeNode
-                    node={node}
-                    depth={0}
-                    onMutate={handleMutate}
-                    mutatingPaths={mutatingPaths()}
-                  />
+                  <TreeNode node={node} depth={0} onMutate={handleMutate} mutatingPaths={mutatingPaths()} />
                 )}
               </For>
             </ul>

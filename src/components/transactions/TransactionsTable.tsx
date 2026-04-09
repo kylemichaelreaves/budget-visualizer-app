@@ -44,7 +44,9 @@ export default function TransactionsTable() {
   const mutation = mutateTransaction()
 
   const [categoryDialogOpen, setCategoryDialogOpen] = createSignal(false)
-  const [categoryDialogTarget, setCategoryDialogTarget] = createSignal<import('@types').Transaction | null>(null)
+  const [categoryDialogTarget, setCategoryDialogTarget] = createSignal<import('@types').Transaction | null>(
+    null,
+  )
   const [mutatingCategoryId, setMutatingCategoryId] = createSignal<number | null>(null)
 
   function openCategoryDialog(row: import('@types').Transaction) {
@@ -132,14 +134,10 @@ export default function TransactionsTable() {
     return budgetCategoryColorsFromData(data)
   })
 
-  const isInitialLoading = () =>
-    query.isLoading ||
-    (query.isFetching && !query.data?.pages?.length)
+  const isInitialLoading = () => query.isLoading || (query.isFetching && !query.data?.pages?.length)
 
   const isLoadingCondition = () =>
-    isInitialLoading() ||
-    query.isFetchingNextPage ||
-    query.isFetchingPreviousPage
+    isInitialLoading() || query.isFetchingNextPage || query.isFetchingPreviousPage
 
   async function loadMorePagesIfNeeded() {
     const requiredDataCount = currentPage() * LIMIT()
@@ -324,87 +322,89 @@ export default function TransactionsTable() {
                         <Show when={!isCredit} fallback={null}>
                           <Show
                             when={mutatingCategoryId() !== row.id}
-                            fallback={
-                              <Skeleton class="h-6 w-24 rounded-full" />
-                            }
+                            fallback={<Skeleton class="h-6 w-24 rounded-full" />}
                           >
-                          <Show
-                            when={Array.isArray(row.budget_category) && row.budget_category.length > 0}
-                            fallback={
-                              <Show
-                                when={typeof row.budget_category === 'string' && row.budget_category}
-                                fallback={
+                            <Show
+                              when={Array.isArray(row.budget_category) && row.budget_category.length > 0}
+                              fallback={
+                                <Show
+                                  when={typeof row.budget_category === 'string' && row.budget_category}
+                                  fallback={
+                                    <button
+                                      type="button"
+                                      onClick={() => openCategoryDialog(row)}
+                                      class="flex items-center gap-1.5 text-xs text-muted-foreground border border-dashed rounded-full px-3 py-1 hover:border-brand hover:text-brand transition-colors cursor-pointer bg-transparent"
+                                      data-testid={`assign-category-${row.id}`}
+                                    >
+                                      <svg
+                                        class="size-3"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                      >
+                                        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                                        <line x1="7" y1="7" x2="7.01" y2="7" />
+                                      </svg>
+                                      Assign category
+                                    </button>
+                                  }
+                                >
                                   <button
                                     type="button"
                                     onClick={() => openCategoryDialog(row)}
-                                    class="flex items-center gap-1.5 text-xs text-muted-foreground border border-dashed rounded-full px-3 py-1 hover:border-brand hover:text-brand transition-colors cursor-pointer bg-transparent"
-                                    data-testid={`assign-category-${row.id}`}
+                                    class="cursor-pointer bg-transparent border-none p-0"
+                                    data-testid={`category-badge-${row.id}`}
                                   >
-                                    <svg
-                                      class="size-3"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      stroke-width="2"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
+                                    <Badge
+                                      variant="outline"
+                                      class="text-xs hover:bg-accent transition-colors"
+                                      style={{
+                                        'border-color': categoryColors().getColorByName(
+                                          String(row.budget_category),
+                                        ),
+                                        color: categoryColors().getColorByName(String(row.budget_category)),
+                                      }}
                                     >
-                                      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
-                                      <line x1="7" y1="7" x2="7.01" y2="7" />
-                                    </svg>
-                                    Assign category
+                                      {String(row.budget_category)}
+                                    </Badge>
                                   </button>
-                                }
-                              >
-                                <button
-                                  type="button"
-                                  onClick={() => openCategoryDialog(row)}
-                                  class="cursor-pointer bg-transparent border-none p-0"
-                                  data-testid={`category-badge-${row.id}`}
-                                >
-                                  <Badge
-                                    variant="outline"
-                                    class="text-xs hover:bg-accent transition-colors"
-                                    style={{
-                                      'border-color': categoryColors().getColorByName(String(row.budget_category)),
-                                      color: categoryColors().getColorByName(String(row.budget_category)),
-                                    }}
-                                  >
-                                    {String(row.budget_category)}
-                                  </Badge>
-                                </button>
-                              </Show>
-                            }
-                          >
-                            <A
-                              href={`/budget-visualizer/transactions/${row.id}/edit`}
-                              class="flex flex-wrap gap-1.5 items-center no-underline"
+                                </Show>
+                              }
                             >
-                              <For
-                                each={
-                                  row.budget_category as {
-                                    budget_category_id: string
-                                    amount_debit: number
-                                  }[]
-                                }
+                              <A
+                                href={`/budget-visualizer/transactions/${row.id}/edit`}
+                                class="flex flex-wrap gap-1.5 items-center no-underline"
                               >
-                                {(split) => (
-                                  <span
-                                    class="flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs hover:bg-accent transition-colors"
-                                    style={{
-                                      'border-color': categoryColors().getColorByName(split.budget_category_id),
-                                      color: categoryColors().getColorByName(split.budget_category_id),
-                                    }}
-                                  >
-                                    <span>{split.budget_category_id}</span>
-                                    <span class="text-muted-foreground">
-                                      ${Number(split.amount_debit).toFixed(2)}
+                                <For
+                                  each={
+                                    row.budget_category as {
+                                      budget_category_id: string
+                                      amount_debit: number
+                                    }[]
+                                  }
+                                >
+                                  {(split) => (
+                                    <span
+                                      class="flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs hover:bg-accent transition-colors"
+                                      style={{
+                                        'border-color': categoryColors().getColorByName(
+                                          split.budget_category_id,
+                                        ),
+                                        color: categoryColors().getColorByName(split.budget_category_id),
+                                      }}
+                                    >
+                                      <span>{split.budget_category_id}</span>
+                                      <span class="text-muted-foreground">
+                                        ${Number(split.amount_debit).toFixed(2)}
+                                      </span>
                                     </span>
-                                  </span>
-                                )}
-                              </For>
-                            </A>
-                          </Show>
+                                  )}
+                                </For>
+                              </A>
+                            </Show>
                           </Show>
                         </Show>
                       </div>

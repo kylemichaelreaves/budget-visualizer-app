@@ -91,9 +91,7 @@ export default function TransactionsTableSelects(props: Readonly<{ dataTestId?: 
           optionValue={(d) => d}
           optionLabel={(d) => formatDayLabel(d)}
           selectedValue={() => transactionsState.selectedDay}
-          selectValue={() =>
-            transactionsState.selectedDay.split('T')[0] ?? transactionsState.selectedDay
-          }
+          selectValue={() => transactionsState.selectedDay.split('T')[0] ?? transactionsState.selectedDay}
           onPick={selectDayView}
           onClearFilters={clearAllFilters}
           dataTestId={`${tid()}-day`}

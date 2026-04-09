@@ -23,9 +23,7 @@ export default function useTransactionsCount(status?: () => PendingTransactionSt
             : { memoName: memoValue }
           : {}
 
-        const params = st
-          ? { status: st }
-          : { timeFrame: tf, date, ...memoParam }
+        const params = st ? { status: st } : { timeFrame: tf, date, ...memoParam }
         const data = await fetchTransactionsCount(params)
         const count = Number(data[0]?.count ?? 0)
         setTransactionsCount(count)

@@ -2,8 +2,7 @@ import type { Accessor, JSX } from 'solid-js'
 import { For, Show, createEffect } from 'solid-js'
 import { transactionsState } from '@stores/transactionsStore'
 
-const selectBase =
-  'p-2 pr-8 rounded border bg-background text-foreground appearance-none'
+const selectBase = 'p-2 pr-8 rounded border bg-background text-foreground appearance-none'
 const activeBorder = 'border-brand'
 const inactiveBorder = 'border-input'
 
@@ -62,7 +61,9 @@ function selectClasses(viewMode: TimeframeViewMode): string {
   return `${selectBase} ${transactionsState.viewMode === viewMode ? activeBorder : inactiveBorder}`
 }
 
-export default function TransactionTimeframeSelect<T>(props: TransactionTimeframeSelectProps<T>): JSX.Element {
+export default function TransactionTimeframeSelect<T>(
+  props: TransactionTimeframeSelectProps<T>,
+): JSX.Element {
   let selectRef: HTMLSelectElement | undefined
 
   const valueOnSelect = () => props.selectValue?.() ?? props.selectedValue()
@@ -90,9 +91,7 @@ export default function TransactionTimeframeSelect<T>(props: TransactionTimefram
         >
           <option value="">Any</option>
           <For each={props.options()}>
-            {(item) => (
-              <option value={props.optionValue(item)}>{props.optionLabel(item)}</option>
-            )}
+            {(item) => <option value={props.optionValue(item)}>{props.optionLabel(item)}</option>}
           </For>
         </select>
         <Show when={props.selectedValue()}>

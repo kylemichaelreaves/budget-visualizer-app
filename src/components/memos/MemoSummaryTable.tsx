@@ -19,7 +19,15 @@ import type { Frequency } from '@types'
 
 function ChevronLeftIcon(props: { class?: string }): JSX.Element {
   return (
-    <svg class={props.class ?? 'size-5'} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg
+      class={props.class ?? 'size-5'}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
       <path d="m15 18-6-6 6-6" />
     </svg>
   )
@@ -27,7 +35,15 @@ function ChevronLeftIcon(props: { class?: string }): JSX.Element {
 
 function WarningTriangleIcon(props: { class?: string }): JSX.Element {
   return (
-    <svg class={props.class ?? 'size-3.5'} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg
+      class={props.class ?? 'size-3.5'}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
       <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" />
       <path d="M12 9v4" />
       <path d="M12 17h.01" />
@@ -37,7 +53,15 @@ function WarningTriangleIcon(props: { class?: string }): JSX.Element {
 
 function CheckCircleIcon(props: { class?: string }): JSX.Element {
   return (
-    <svg class={props.class ?? 'size-3.5'} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg
+      class={props.class ?? 'size-3.5'}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
       <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
       <path d="m9 11 3 3L22 4" />
     </svg>
@@ -46,7 +70,15 @@ function CheckCircleIcon(props: { class?: string }): JSX.Element {
 
 function RefreshIcon(props: { class?: string }): JSX.Element {
   return (
-    <svg class={props.class ?? 'size-3.5'} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg
+      class={props.class ?? 'size-3.5'}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
       <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
       <path d="M3 3v5h5" />
       <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
@@ -57,7 +89,15 @@ function RefreshIcon(props: { class?: string }): JSX.Element {
 
 function ArrowUpCircleIcon(props: { class?: string }): JSX.Element {
   return (
-    <svg class={props.class ?? 'size-5'} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg
+      class={props.class ?? 'size-5'}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
       <circle cx="12" cy="12" r="10" />
       <path d="m16 12-4-4-4 4" />
       <path d="M12 16V8" />
@@ -67,7 +107,15 @@ function ArrowUpCircleIcon(props: { class?: string }): JSX.Element {
 
 function ArrowDownCircleIcon(props: { class?: string }): JSX.Element {
   return (
-    <svg class={props.class ?? 'size-5'} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg
+      class={props.class ?? 'size-5'}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
       <circle cx="12" cy="12" r="10" />
       <path d="m8 12 4 4 4-4" />
       <path d="M12 8v8" />
@@ -77,7 +125,15 @@ function ArrowDownCircleIcon(props: { class?: string }): JSX.Element {
 
 function LayoutGridIcon(props: { class?: string }): JSX.Element {
   return (
-    <svg class={props.class ?? 'size-5'} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg
+      class={props.class ?? 'size-5'}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
       <rect width="7" height="7" x="3" y="3" rx="1" />
       <rect width="7" height="7" x="14" y="3" rx="1" />
       <rect width="7" height="7" x="14" y="14" rx="1" />
@@ -88,7 +144,15 @@ function LayoutGridIcon(props: { class?: string }): JSX.Element {
 
 function TrendingUpIcon(props: { class?: string }): JSX.Element {
   return (
-    <svg class={props.class ?? 'size-4'} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg
+      class={props.class ?? 'size-4'}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
       <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
       <polyline points="16 7 22 7 22 13" />
     </svg>
@@ -97,7 +161,15 @@ function TrendingUpIcon(props: { class?: string }): JSX.Element {
 
 function TrendingDownIcon(props: { class?: string }): JSX.Element {
   return (
-    <svg class={props.class ?? 'size-4'} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <svg
+      class={props.class ?? 'size-4'}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
       <polyline points="22 17 13.5 8.5 8.5 13.5 2 7" />
       <polyline points="16 17 22 17 22 11" />
     </svg>
@@ -182,7 +254,10 @@ export default function MemoSummaryTable(): JSX.Element {
     let sum = 0
     let count = 0
     for (const tx of txns) {
-      const credit = typeof tx.amount_credit === 'string' ? parseFloat(tx.amount_credit) : (tx.amount_credit as unknown as number ?? 0)
+      const credit =
+        typeof tx.amount_credit === 'string'
+          ? parseFloat(tx.amount_credit)
+          : ((tx.amount_credit as unknown as number) ?? 0)
       if (credit > 0) {
         sum += credit
         count++
@@ -330,7 +405,10 @@ export default function MemoSummaryTable(): JSX.Element {
                 </div>
                 <span class="text-sm font-medium text-muted-foreground">Total Credits</span>
               </div>
-              <p class="text-2xl font-bold text-green-600 dark:text-green-400 m-0" data-testid="memo-summary-total-credit">
+              <p
+                class="text-2xl font-bold text-green-600 dark:text-green-400 m-0"
+                data-testid="memo-summary-total-credit"
+              >
                 {formatCurrency(totalCredits().sum)}
               </p>
               <p class="text-xs text-muted-foreground mt-1 m-0">
@@ -348,7 +426,10 @@ export default function MemoSummaryTable(): JSX.Element {
                 </div>
                 <span class="text-sm font-medium text-muted-foreground">Total Debits</span>
               </div>
-              <p class="text-2xl font-bold text-red-600 dark:text-red-400 m-0" data-testid="memo-summary-total-debit">
+              <p
+                class="text-2xl font-bold text-red-600 dark:text-red-400 m-0"
+                data-testid="memo-summary-total-debit"
+              >
                 {formatCurrency(totalDebits().sum)}
               </p>
               <p class="text-xs text-muted-foreground mt-1 m-0">
@@ -422,9 +503,7 @@ export default function MemoSummaryTable(): JSX.Element {
                       onClick={(e) => e.stopPropagation()}
                     >
                       <option value="">interval...</option>
-                      <For each={FREQUENCY_OPTIONS}>
-                        {(f) => <option value={f}>{f}</option>}
-                      </For>
+                      <For each={FREQUENCY_OPTIONS}>{(f) => <option value={f}>{f}</option>}</For>
                     </select>
                   </Show>
                 </label>
@@ -486,8 +565,13 @@ export default function MemoSummaryTable(): JSX.Element {
                     return (
                       <div class="flex items-center gap-3 py-3 px-1">
                         {/* Icon */}
-                        <div class={`rounded-full p-1.5 ${isCredit() ? 'bg-green-100 dark:bg-green-900/40' : 'bg-red-100 dark:bg-red-900/40'}`}>
-                          <Show when={isCredit()} fallback={<TrendingDownIcon class={`size-4 text-red-600 dark:text-red-400`} />}>
+                        <div
+                          class={`rounded-full p-1.5 ${isCredit() ? 'bg-green-100 dark:bg-green-900/40' : 'bg-red-100 dark:bg-red-900/40'}`}
+                        >
+                          <Show
+                            when={isCredit()}
+                            fallback={<TrendingDownIcon class={`size-4 text-red-600 dark:text-red-400`} />}
+                          >
                             <TrendingUpIcon class={`size-4 text-green-600 dark:text-green-400`} />
                           </Show>
                         </div>
@@ -496,9 +580,7 @@ export default function MemoSummaryTable(): JSX.Element {
                         <div class="flex-1 min-w-0">
                           <Show
                             when={row.id != null}
-                            fallback={
-                              <p class="text-sm font-medium truncate m-0">{row.description}</p>
-                            }
+                            fallback={<p class="text-sm font-medium truncate m-0">{row.description}</p>}
                           >
                             <A
                               href={`/budget-visualizer/transactions/${row.id}/edit`}
@@ -508,7 +590,9 @@ export default function MemoSummaryTable(): JSX.Element {
                               {row.description}
                             </A>
                           </Show>
-                          <p class="text-xs text-muted-foreground m-0">{formatDate(String(row.date ?? ''))}</p>
+                          <p class="text-xs text-muted-foreground m-0">
+                            {formatDate(String(row.date ?? ''))}
+                          </p>
                         </div>
 
                         {/* Category */}
@@ -519,8 +603,11 @@ export default function MemoSummaryTable(): JSX.Element {
                         </Show>
 
                         {/* Amount */}
-                        <span class={`text-sm font-semibold tabular-nums whitespace-nowrap ${isCredit() ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                          {isCredit() ? '+' : '-'}{formatCurrency(isCredit() ? credit() : debit())}
+                        <span
+                          class={`text-sm font-semibold tabular-nums whitespace-nowrap ${isCredit() ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}
+                        >
+                          {isCredit() ? '+' : '-'}
+                          {formatCurrency(isCredit() ? credit() : debit())}
                         </span>
                       </div>
                     )
