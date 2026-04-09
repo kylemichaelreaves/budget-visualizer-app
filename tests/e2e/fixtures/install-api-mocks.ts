@@ -172,14 +172,17 @@ export async function installApiMocks(page: Page): Promise<void> {
     if (path.match(/\/transactions\/(\d+)$/)) {
       const id = Number(path.match(/\/transactions\/(\d+)$/)![1])
       if (method === 'GET') {
-        await json(route, transactions[id] ?? {
-          id,
-          date: '2024-01-01',
-          description: 'E2E',
-          memo: 'm',
-          amount_debit: '0',
-          amount_credit: '0',
-        })
+        await json(
+          route,
+          transactions[id] ?? {
+            id,
+            date: '2024-01-01',
+            description: 'E2E',
+            memo: 'm',
+            amount_debit: '0',
+            amount_credit: '0',
+          },
+        )
         return
       }
       if (method === 'PATCH' || method === 'PUT') {
@@ -227,13 +230,16 @@ export async function installApiMocks(page: Page): Promise<void> {
     }
     if (path.match(/\/memos\/(\d+)$/) && method === 'GET') {
       const id = Number(path.match(/\/memos\/(\d+)$/)![1])
-      await json(route, memos[id] ?? {
-        id,
-        name: 'E2E Memo',
-        recurring: false,
-        necessary: false,
-        ambiguous: false,
-      })
+      await json(
+        route,
+        memos[id] ?? {
+          id,
+          name: 'E2E Memo',
+          recurring: false,
+          necessary: false,
+          ambiguous: false,
+        },
+      )
       return
     }
     if (path.includes('/memos')) {
