@@ -1,6 +1,7 @@
 import type { JSX } from 'solid-js'
 import { For, Show } from 'solid-js'
 import { clearAllFilters, transactionsState } from '@stores/transactionsStore'
+import type { ViewMode } from '@types'
 
 const selectBase = 'p-2 rounded border bg-background text-foreground'
 const activeBorder = 'border-brand'
@@ -9,7 +10,7 @@ const inactiveBorder = 'border-input'
 export default function TimeframeSelect(props: {
   label: string
   dataTestId: string
-  viewMode: string
+  viewMode: Exclude<ViewMode, null>
   value: string
   options: { value: string; label: string }[]
   onSelect: (value: string) => void
