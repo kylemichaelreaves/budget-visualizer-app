@@ -77,48 +77,40 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
         syncingFromUrl = true
         try {
           const sp = new URLSearchParams(loc.search)
-          const day = sp.get('day')
-          const week = sp.get('week')
-          const month = sp.get('month')
-          const year = sp.get('year')
-          const memo = sp.get('memo')
-
-          const timeframeKeys = ['day', 'week', 'month', 'year', 'memo'] as const
-          let activeKey: (typeof timeframeKeys)[number] | null = null
-
-          // Guard: only update store when URL param differs from current selection
-          // to avoid unnecessary store churn and pagination resets.
           const s = transactionsState
-          if (day) {
-            activeKey = 'day'
-            if (s.viewMode !== 'day' || s.selectedDay !== day) selectDayView(day)
-          } else if (week) {
-            activeKey = 'week'
-            if (s.viewMode !== 'week' || s.selectedWeek !== week) selectWeekView(week)
-          } else if (month) {
-            activeKey = 'month'
-            if (s.viewMode !== 'month' || s.selectedMonth !== month) selectMonthView(month)
-          } else if (year) {
-            activeKey = 'year'
-            if (s.viewMode !== 'year' || s.selectedYear !== year) selectYearView(year)
-          } else if (memo) {
-            activeKey = 'memo'
-            if (s.viewMode !== 'memo' || s.selectedMemo !== memo) selectMemoView(memo)
+
+          const filterMap = {
+            day: { value: sp.get('day'), storeKey: 'selectedDay', apply: selectDayView },
+            week: { value: sp.get('week'), storeKey: 'selectedWeek', apply: selectWeekView },
+            month: { value: sp.get('month'), storeKey: 'selectedMonth', apply: selectMonthView },
+            year: { value: sp.get('year'), storeKey: 'selectedYear', apply: selectYearView },
+            memo: { value: sp.get('memo'), storeKey: 'selectedMemo', apply: selectMemoView },
+          } as const
+
+          type FilterKey = keyof typeof filterMap
+          const timeframeKeys = Object.keys(filterMap) as FilterKey[]
+
+          // Find the first active URL param and sync to store if it differs.
+          const activeKey = timeframeKeys.find((k) => filterMap[k].value) ?? null
+          if (activeKey) {
+            const { value, storeKey, apply } = filterMap[activeKey]
+            if (s.viewMode !== activeKey || s[storeKey] !== value) apply(value!)
           }
           // Only clear filters on the base /transactions route.
           // Summary sub-routes (e.g. /transactions/months/:month/summary) set
           // selections via path params, not query params — clearing here would
           // wipe the selection the parent component just applied.
-          else if (loc.pathname.endsWith('/transactions')) clearAllFilters()
+          else if (loc.pathname.endsWith('/transactions')) {
+            clearAllFilters()
+          }
 
-          // Normalize URL: strip stale timeframe params and duplicates so only
-          // the active key with a single value remains.
+          // Normalize URL: strip stale timeframe params and collapse duplicates
+          // so only the active key with a single value remains.
           const normalized = new URLSearchParams(sp)
           for (const key of timeframeKeys) {
             if (key !== activeKey) {
               normalized.delete(key)
             } else {
-              // Collapse duplicate entries for the active key (e.g. ?day=x&day=y)
               const val = normalized.get(key)
               normalized.delete(key)
               if (val) normalized.set(key, val)
