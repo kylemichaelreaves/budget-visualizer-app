@@ -1,5 +1,5 @@
 import type { JSX } from 'solid-js'
-import { For } from 'solid-js'
+import { For, Show } from 'solid-js'
 import { clearAllFilters, transactionsState } from '@stores/transactionsStore'
 
 const selectBase = 'p-2 rounded border bg-background text-foreground'
@@ -13,6 +13,7 @@ export default function TimeframeSelect(props: {
   value: string
   options: { value: string; label: string }[]
   onSelect: (value: string) => void
+  isError?: boolean
 }): JSX.Element {
   const classes = () =>
     `${selectBase} ${transactionsState.viewMode === props.viewMode ? activeBorder : inactiveBorder}`
@@ -33,6 +34,9 @@ export default function TimeframeSelect(props: {
         <option value="">Any</option>
         <For each={props.options}>{(o) => <option value={o.value}>{o.label}</option>}</For>
       </select>
+      <Show when={props.isError}>
+        <span class="text-destructive text-[10px]">Failed to load</span>
+      </Show>
     </label>
   )
 }

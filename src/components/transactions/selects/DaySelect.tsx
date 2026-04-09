@@ -33,6 +33,7 @@ export default function DaySelect(props: { dataTestId: string }): JSX.Element {
       value={transactionsState.selectedDay.split('T')[0] ?? transactionsState.selectedDay}
       options={options()}
       onSelect={selectDayView}
+      isError={daysQ.isError}
     />
   )
 }

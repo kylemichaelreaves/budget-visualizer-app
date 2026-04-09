@@ -33,6 +33,7 @@ export default function MonthSelect(props: { dataTestId: string }): JSX.Element 
       value={transactionsState.selectedMonth}
       options={options()}
       onSelect={selectMonthView}
+      isError={monthsQ.isError}
     />
   )
 }

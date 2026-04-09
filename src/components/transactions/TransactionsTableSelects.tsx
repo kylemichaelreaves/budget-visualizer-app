@@ -135,7 +135,7 @@ export default function TransactionsTableSelects(props: Readonly<{ dataTestId?: 
           <ClearFilterButton
             onClick={() => clearAllFilters()}
             dataTestId={`${tid()}-clear-timeframe`}
-            class="h-9.5 px-3 self-end"
+            class="h-[38px] px-3 self-end"
           />
         </Show>
       </div>

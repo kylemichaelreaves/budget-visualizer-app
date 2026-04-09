@@ -30,6 +30,7 @@ export default function WeekSelect(props: { dataTestId: string }): JSX.Element {
       value={transactionsState.selectedWeek}
       options={options()}
       onSelect={selectWeekView}
+      isError={weeksQ.isError}
     />
   )
 }

@@ -29,6 +29,7 @@ export default function YearSelect(props: { dataTestId: string }): JSX.Element {
       value={transactionsState.selectedYear}
       options={options()}
       onSelect={selectYearView}
+      isError={yearsQ.isError}
     />
   )
 }
