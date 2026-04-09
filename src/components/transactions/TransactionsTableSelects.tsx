@@ -17,7 +17,7 @@ import {
   transactionsState,
 } from '@stores/transactionsStore'
 
-export default function TransactionsTableSelects(props: { dataTestId?: string }): JSX.Element {
+export default function TransactionsTableSelects(props: Readonly<{ dataTestId?: string }>): JSX.Element {
   const tid = () => props.dataTestId ?? 'transactions-table-selects'
 
   const loc = useLocation()
@@ -64,20 +64,19 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
           // so only the active key with a single value remains.
           const normalized = new URLSearchParams(sp)
           for (const key of timeframeKeys) {
-            if (key !== activeKey) {
-              normalized.delete(key)
-            } else {
+            if (key === activeKey) {
               const val = normalized.get(key)
               normalized.delete(key)
               if (val) normalized.set(key, val)
+            } else {
+              normalized.delete(key)
             }
           }
           const currentSearch = loc.search.startsWith('?') ? loc.search.slice(1) : loc.search
           const normalizedSearch = normalized.toString()
           if (normalizedSearch !== currentSearch) {
-            navigate(`${loc.pathname}${normalizedSearch ? `?${normalizedSearch}` : ''}`, {
-              replace: true,
-            })
+            const search = normalizedSearch ? '?' + normalizedSearch : ''
+            navigate(loc.pathname + search, { replace: true })
           }
         } finally {
           syncingFromUrl = false
@@ -89,6 +88,37 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
   // Sync store → URL params when selection changes.
   // Derive effective view mode from selections so URL stays consistent
   // even if viewMode is null while a selection exists.
+  const selectionEntries = [
+    { key: 'day', storeKey: 'selectedDay' },
+    { key: 'week', storeKey: 'selectedWeek' },
+    { key: 'month', storeKey: 'selectedMonth' },
+    { key: 'year', storeKey: 'selectedYear' },
+    { key: 'memo', storeKey: 'selectedMemo' },
+  ] as const
+
+  const SUMMARY_ROUTE_RE = /\/transactions\/(?:months|weeks)\/[^/]+\/summary\/?$/
+
+  function syncStoreToUrl() {
+    if (syncingFromUrl) return
+    const s = transactionsState
+
+    // Build search params from the first active selection
+    const sp = new URLSearchParams(loc.search)
+    for (const { key } of selectionEntries) sp.delete(key)
+    const active = selectionEntries.find(({ storeKey }) => s[storeKey])
+    if (active) sp.set(active.key, s[active.storeKey])
+
+    const qs = sp.toString()
+    const search = qs ? '?' + qs : ''
+    // On summary sub-routes, redirect to base /transactions so the URL
+    // doesn't keep a stale :month/:week path param alongside query params.
+    const targetPathname = SUMMARY_ROUTE_RE.test(loc.pathname)
+      ? '/budget-visualizer/transactions'
+      : loc.pathname
+    if (targetPathname === loc.pathname && search === (loc.search || '')) return
+    navigate(targetPathname + search, { replace: true })
+  }
+
   createEffect(
     on(
       () =>
@@ -100,44 +130,7 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
           transactionsState.selectedYear,
           transactionsState.selectedMemo,
         ] as const,
-      () => {
-        if (syncingFromUrl) return
-        // Derive from active selections so the URL matches the real filter state
-        // regardless of whether viewMode agrees with the selection fields.
-        // viewMode is already tracked via the dependency array above.
-        const { selectedDay, selectedWeek, selectedMonth, selectedYear, selectedMemo } = transactionsState
-        const effectiveViewMode = selectedDay
-          ? 'day'
-          : selectedWeek
-            ? 'week'
-            : selectedMonth
-              ? 'month'
-              : selectedYear
-                ? 'year'
-                : selectedMemo
-                  ? 'memo'
-                  : null
-
-        const sp = new URLSearchParams(loc.search)
-        sp.delete('day')
-        sp.delete('week')
-        sp.delete('month')
-        sp.delete('year')
-        sp.delete('memo')
-        if (effectiveViewMode === 'day' && selectedDay) sp.set('day', selectedDay)
-        else if (effectiveViewMode === 'week' && selectedWeek) sp.set('week', selectedWeek)
-        else if (effectiveViewMode === 'month' && selectedMonth) sp.set('month', selectedMonth)
-        else if (effectiveViewMode === 'year' && selectedYear) sp.set('year', selectedYear)
-        else if (effectiveViewMode === 'memo' && selectedMemo) sp.set('memo', selectedMemo)
-        const qs = sp.toString()
-        const search = qs ? `?${qs}` : ''
-        // On summary sub-routes, redirect to base /transactions so the URL
-        // doesn't keep a stale :month/:week path param alongside query params.
-        const isSummaryRoute = /\/transactions\/(?:months|weeks)\/[^/]+\/summary\/?$/.test(loc.pathname)
-        const targetPathname = isSummaryRoute ? '/budget-visualizer/transactions' : loc.pathname
-        if (targetPathname === loc.pathname && search === (loc.search || '')) return
-        navigate(`${targetPathname}${search}`, { replace: true })
-      },
+      syncStoreToUrl,
       // defer: true — skip initial mount so we don't navigate before the URL→store
       // sync effect has a chance to run. The store→URL direction only fires on
       // subsequent selection changes, not on the component's first render.
@@ -158,7 +151,7 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
           <ClearFilterButton
             onClick={() => clearAllFilters()}
             dataTestId={`${tid()}-clear-timeframe`}
-            class="h-[38px] px-3 self-end"
+            class="h-9.5 px-3 self-end"
           />
         </Show>
       </div>
