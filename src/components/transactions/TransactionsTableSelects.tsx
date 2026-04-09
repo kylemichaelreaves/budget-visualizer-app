@@ -82,16 +82,20 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
           const month = sp.get('month')
           const year = sp.get('year')
           const memo = sp.get('memo')
-          if (day) selectDayView(day)
-          else if (week) selectWeekView(week)
-          else if (month) selectMonthView(month)
-          else if (year) selectYearView(year)
-          else if (memo) selectMemoView(memo)
+          // Guard: only update store when URL param differs from current selection
+          // to avoid unnecessary store churn and pagination resets.
+          const s = transactionsState
+          if (day && (s.viewMode !== 'day' || s.selectedDay !== day)) selectDayView(day)
+          else if (week && (s.viewMode !== 'week' || s.selectedWeek !== week)) selectWeekView(week)
+          else if (month && (s.viewMode !== 'month' || s.selectedMonth !== month)) selectMonthView(month)
+          else if (year && (s.viewMode !== 'year' || s.selectedYear !== year)) selectYearView(year)
+          else if (memo && (s.viewMode !== 'memo' || s.selectedMemo !== memo)) selectMemoView(memo)
           // Only clear filters on the base /transactions route.
           // Summary sub-routes (e.g. /transactions/months/:month/summary) set
           // selections via path params, not query params — clearing here would
           // wipe the selection the parent component just applied.
-          else if (loc.pathname.endsWith('/transactions')) clearAllFilters()
+          else if (!day && !week && !month && !year && !memo && loc.pathname.endsWith('/transactions'))
+            clearAllFilters()
         } finally {
           syncingFromUrl = false
         }
@@ -145,8 +149,12 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
         else if (effectiveViewMode === 'memo' && selectedMemo) sp.set('memo', selectedMemo)
         const qs = sp.toString()
         const search = qs ? `?${qs}` : ''
-        if (search === (loc.search || '')) return
-        navigate(`${loc.pathname}${search}`, { replace: true })
+        // On summary sub-routes, redirect to base /transactions so the URL
+        // doesn't keep a stale :month/:week path param alongside query params.
+        const isSummaryRoute = /\/transactions\/(?:months|weeks)\/[^/]+\/summary\/?$/.test(loc.pathname)
+        const targetPathname = isSummaryRoute ? '/budget-visualizer/transactions' : loc.pathname
+        if (targetPathname === loc.pathname && search === (loc.search || '')) return
+        navigate(`${targetPathname}${search}`, { replace: true })
       },
       { defer: true },
     ),
