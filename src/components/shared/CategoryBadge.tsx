@@ -1,4 +1,5 @@
 import type { JSX } from 'solid-js'
+import { createMemo } from 'solid-js'
 import { Badge } from '@components/ui/badge'
 
 /** Extract the leaf category name from a path like "Food - Groceries" → "Groceries". */
@@ -29,13 +30,13 @@ export default function CategoryBadge(props: {
   dataTestId?: string
   children?: JSX.Element
 }): JSX.Element {
-  const resolvedColor = () => {
+  const resolvedColor = createMemo(() => {
     const c = props.getColorByName(leafName(props.category))
     return {
       base: c,
       bg: c !== '#999999' ? withAlpha(c, 0.08) : undefined,
     }
-  }
+  })
 
   return (
     <Badge

@@ -125,6 +125,7 @@ export default function TransactionsTable() {
   const chartDate = createMemo(() => {
     if (transactionsState.selectedDay) return transactionsState.selectedDay
     if (transactionsState.selectedWeek) return transactionsState.selectedWeek
+    if (transactionsState.viewMode === 'year' && transactionsState.selectedYear) return transactionsState.selectedYear
     if (transactionsState.selectedMonth) return transactionsState.selectedMonth
     if (transactionsState.selectedYear) return transactionsState.selectedYear
     return defaultMonthForCharts()
