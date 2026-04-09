@@ -1,12 +1,13 @@
 import type { JSX } from 'solid-js'
 import { For, Show, createEffect, createMemo, on } from 'solid-js'
+import { useLocation, useNavigate } from '@solidjs/router'
 import { formatDayLabel, formatWeekLabel, formatMonthLabel } from '@api/helpers/formatPeriodLabels'
 import useDays from '@api/hooks/timeUnits/days/useDays'
 import useMonths from '@api/hooks/timeUnits/months/useMonths'
 import useWeeks from '@api/hooks/timeUnits/weeks/useWeeks'
 import useYears from '@api/hooks/timeUnits/years/useYears'
 import AutocompleteComponent from '@components/shared/AutocompleteComponent'
-import { Button } from '@components/ui/button'
+import ClearFilterButton from './ClearFilterButton'
 import {
   selectDayView,
   selectWeekView,
@@ -60,6 +61,102 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
       (data) => {
         if (data) setDays(data as DayYear[])
       },
+    ),
+  )
+
+  const loc = useLocation()
+  const navigate = useNavigate()
+
+  // Sync URL params → store whenever loc.search changes (mount, back/forward nav).
+  // A flag prevents the store→URL effect from re-triggering this effect.
+  let syncingFromUrl = false
+  createEffect(
+    on(
+      () => loc.search,
+      () => {
+        syncingFromUrl = true
+        try {
+          const sp = new URLSearchParams(loc.search)
+          const day = sp.get('day')
+          const week = sp.get('week')
+          const month = sp.get('month')
+          const year = sp.get('year')
+          const memo = sp.get('memo')
+          // Guard: only update store when URL param differs from current selection
+          // to avoid unnecessary store churn and pagination resets.
+          const s = transactionsState
+          if (day && (s.viewMode !== 'day' || s.selectedDay !== day)) selectDayView(day)
+          else if (week && (s.viewMode !== 'week' || s.selectedWeek !== week)) selectWeekView(week)
+          else if (month && (s.viewMode !== 'month' || s.selectedMonth !== month)) selectMonthView(month)
+          else if (year && (s.viewMode !== 'year' || s.selectedYear !== year)) selectYearView(year)
+          else if (memo && (s.viewMode !== 'memo' || s.selectedMemo !== memo)) selectMemoView(memo)
+          // Only clear filters on the base /transactions route.
+          // Summary sub-routes (e.g. /transactions/months/:month/summary) set
+          // selections via path params, not query params — clearing here would
+          // wipe the selection the parent component just applied.
+          else if (!day && !week && !month && !year && !memo && loc.pathname.endsWith('/transactions'))
+            clearAllFilters()
+        } finally {
+          syncingFromUrl = false
+        }
+      },
+    ),
+  )
+
+  // Sync store → URL params when selection changes.
+  // Derive effective view mode from selections so URL stays consistent
+  // even if viewMode is null while a selection exists.
+  createEffect(
+    on(
+      () =>
+        [
+          transactionsState.viewMode,
+          transactionsState.selectedDay,
+          transactionsState.selectedWeek,
+          transactionsState.selectedMonth,
+          transactionsState.selectedYear,
+          transactionsState.selectedMemo,
+        ] as const,
+      () => {
+        if (syncingFromUrl) return
+        const { viewMode, selectedDay, selectedWeek, selectedMonth, selectedYear, selectedMemo } =
+          transactionsState
+
+        const effectiveViewMode =
+          viewMode ??
+          (selectedDay
+            ? 'day'
+            : selectedWeek
+              ? 'week'
+              : selectedMonth
+                ? 'month'
+                : selectedYear
+                  ? 'year'
+                  : selectedMemo
+                    ? 'memo'
+                    : null)
+
+        const sp = new URLSearchParams(loc.search)
+        sp.delete('day')
+        sp.delete('week')
+        sp.delete('month')
+        sp.delete('year')
+        sp.delete('memo')
+        if (effectiveViewMode === 'day' && selectedDay) sp.set('day', selectedDay)
+        else if (effectiveViewMode === 'week' && selectedWeek) sp.set('week', selectedWeek)
+        else if (effectiveViewMode === 'month' && selectedMonth) sp.set('month', selectedMonth)
+        else if (effectiveViewMode === 'year' && selectedYear) sp.set('year', selectedYear)
+        else if (effectiveViewMode === 'memo' && selectedMemo) sp.set('memo', selectedMemo)
+        const qs = sp.toString()
+        const search = qs ? `?${qs}` : ''
+        // On summary sub-routes, redirect to base /transactions so the URL
+        // doesn't keep a stale :month/:week path param alongside query params.
+        const isSummaryRoute = /\/transactions\/(?:months|weeks)\/[^/]+\/summary\/?$/.test(loc.pathname)
+        const targetPathname = isSummaryRoute ? '/budget-visualizer/transactions' : loc.pathname
+        if (targetPathname === loc.pathname && search === (loc.search || '')) return
+        navigate(`${targetPathname}${search}`, { replace: true })
+      },
+      { defer: true },
     ),
   )
 
@@ -182,16 +279,11 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
         </label>
 
         <Show when={transactionsState.viewMode !== null}>
-          <Button
-            variant="ghost"
-            size="sm"
-            type="button"
-            data-testid={`${tid()}-clear-timeframe`}
+          <ClearFilterButton
             onClick={() => clearAllFilters()}
-            class="self-end"
-          >
-            Clear
-          </Button>
+            dataTestId={`${tid()}-clear-timeframe`}
+            class="h-[38px] px-3 self-end"
+          />
         </Show>
       </div>
 

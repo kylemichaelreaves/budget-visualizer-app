@@ -135,3 +135,100 @@ test.describe('View mode filtering', () => {
     await expect(transactionsPage.yearSelect).toHaveValue('')
   })
 })
+
+test.describe('Transaction list filtering', () => {
+  test('selecting a year triggers a filtered API request', async ({ transactionsPage }) => {
+    await transactionsPage.goto()
+    await expect(transactionsPage.filtersSection).toBeVisible({ timeout: 30_000 })
+
+    // Intercept the transactions list API call (has limit/offset, no summary flags)
+    const requestPromise = transactionsPage.page.waitForRequest((req) => {
+      if (req.method() !== 'GET') return false
+      const url = new URL(req.url())
+      return (
+        url.pathname.endsWith('/transactions') &&
+        url.searchParams.get('timeFrame') === 'year' &&
+        url.searchParams.get('date') === '2025' &&
+        url.searchParams.has('limit') &&
+        url.searchParams.has('offset')
+      )
+    })
+
+    await transactionsPage.selectYear('2025')
+    const request = await requestPromise
+    expect(request).toBeTruthy()
+  })
+
+  test('selecting a month triggers a filtered API request', async ({ transactionsPage }) => {
+    await transactionsPage.goto()
+    await expect(transactionsPage.filtersSection).toBeVisible({ timeout: 30_000 })
+
+    const requestPromise = transactionsPage.page.waitForRequest((req) => {
+      if (req.method() !== 'GET') return false
+      const url = new URL(req.url())
+      return (
+        url.pathname.endsWith('/transactions') &&
+        url.searchParams.get('timeFrame') === 'month' &&
+        url.searchParams.get('date') === '01-2025' &&
+        url.searchParams.has('limit') &&
+        url.searchParams.has('offset')
+      )
+    })
+
+    await transactionsPage.selectMonth('01-2025')
+    const request = await requestPromise
+    expect(request).toBeTruthy()
+  })
+
+  test('changing filter clears stale data and refetches', async ({ transactionsPage }) => {
+    await transactionsPage.goto()
+    await expect(transactionsPage.filtersSection).toBeVisible({ timeout: 30_000 })
+
+    // Select year — API returns [] so empty state should show
+    await transactionsPage.selectYear('2025')
+    await expect(transactionsPage.page.getByText('No transactions for the current filters.')).toBeVisible()
+
+    // Switch to month — should also trigger list refetch
+    const requestPromise = transactionsPage.page.waitForRequest((req) => {
+      if (req.method() !== 'GET') return false
+      const url = new URL(req.url())
+      return (
+        url.pathname.endsWith('/transactions') &&
+        url.searchParams.get('timeFrame') === 'month' &&
+        url.searchParams.get('date') === '01-2025' &&
+        url.searchParams.has('limit') &&
+        url.searchParams.has('offset')
+      )
+    })
+
+    await transactionsPage.selectMonth('01-2025')
+    const request = await requestPromise
+    expect(request).toBeTruthy()
+    await expect(transactionsPage.page.getByText('No transactions for the current filters.')).toBeVisible()
+  })
+})
+
+test.describe('URL param sync', () => {
+  test('selecting a filter updates the URL', async ({ transactionsPage }) => {
+    await transactionsPage.goto()
+    await expect(transactionsPage.filtersSection).toBeVisible({ timeout: 30_000 })
+    await transactionsPage.selectYear('2025')
+    await expect(transactionsPage.page).toHaveURL(/[?&]year=2025/)
+  })
+
+  test('loading with ?month= restores the filter', async ({ transactionsPage }) => {
+    await transactionsPage.page.goto('/budget-visualizer/transactions?month=01-2025')
+    await expect(transactionsPage.periodLabel).toBeVisible({ timeout: 30_000 })
+    await expect(transactionsPage.periodLabel).toHaveText('January 2025')
+    await expect(transactionsPage.summaryCreditsCard).toBeVisible()
+  })
+
+  test('clearing filters removes URL params', async ({ transactionsPage }) => {
+    await transactionsPage.goto()
+    await expect(transactionsPage.filtersSection).toBeVisible({ timeout: 30_000 })
+    await transactionsPage.selectYear('2025')
+    await expect(transactionsPage.page).toHaveURL(/[?&]year=2025/)
+    await transactionsPage.clearFilters()
+    await expect(transactionsPage.page).not.toHaveURL(/[?&]year=/)
+  })
+})
