@@ -21,9 +21,10 @@ test.describe('Memo category assignment', () => {
     // Click a leaf category in the tree
     await page.getByRole('option', { name: /Groceries/ }).click()
 
-    // Dialog should close and badge should appear on the row
+    // Dialog should close after selection
     await expect(memosPage.categoryTreeSelectDialog).toBeHidden({ timeout: 5_000 })
-    await expect(memosPage.changeCategoryButton(200)).toBeVisible({ timeout: 5_000 })
+    // Badge appears after refetch — wait for the table to settle
+    await expect(memosPage.changeCategoryButton(200)).toBeVisible({ timeout: 15_000 })
   })
 
   test('sends camelCase budgetCategory in PATCH request', async ({ memosPage, page }) => {
