@@ -1,12 +1,22 @@
 import type { JSX } from 'solid-js'
-import { createMemo } from 'solid-js'
+import { createEffect, createMemo, on } from 'solid-js'
 import { formatDayLabel } from '@api/helpers/formatPeriodLabels'
 import useDays from '@api/hooks/timeUnits/days/useDays'
-import { selectDayView, transactionsState } from '@stores/transactionsStore'
+import { selectDayView, setDays, transactionsState } from '@stores/transactionsStore'
+import type { DayYear } from '@types'
 import TimeframeSelect from './TimeframeSelect'
 
 export default function DaySelect(props: { dataTestId: string }): JSX.Element {
   const daysQ = useDays()
+
+  createEffect(
+    on(
+      () => daysQ.data,
+      (data) => {
+        if (data) setDays(data as DayYear[])
+      },
+    ),
+  )
 
   const options = createMemo(() =>
     (daysQ.data ?? []).map((d) => {
