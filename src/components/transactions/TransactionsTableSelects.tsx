@@ -87,7 +87,11 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
           else if (month) selectMonthView(month)
           else if (year) selectYearView(year)
           else if (memo) selectMemoView(memo)
-          else clearAllFilters()
+          // Only clear filters on the base /transactions route.
+          // Summary sub-routes (e.g. /transactions/months/:month/summary) set
+          // selections via path params, not query params — clearing here would
+          // wipe the selection the parent component just applied.
+          else if (loc.pathname.endsWith('/transactions')) clearAllFilters()
         } finally {
           syncingFromUrl = false
         }

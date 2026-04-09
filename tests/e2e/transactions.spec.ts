@@ -143,6 +143,7 @@ test.describe('Transaction list filtering', () => {
 
     // Intercept the transactions list API call (has limit/offset, no summary flags)
     const requestPromise = transactionsPage.page.waitForRequest((req) => {
+      if (req.method() !== 'GET') return false
       const url = new URL(req.url())
       return (
         url.pathname.endsWith('/transactions') &&
@@ -163,6 +164,7 @@ test.describe('Transaction list filtering', () => {
     await expect(transactionsPage.filtersSection).toBeVisible({ timeout: 30_000 })
 
     const requestPromise = transactionsPage.page.waitForRequest((req) => {
+      if (req.method() !== 'GET') return false
       const url = new URL(req.url())
       return (
         url.pathname.endsWith('/transactions') &&
@@ -188,6 +190,7 @@ test.describe('Transaction list filtering', () => {
 
     // Switch to month — should also trigger list refetch
     const requestPromise = transactionsPage.page.waitForRequest((req) => {
+      if (req.method() !== 'GET') return false
       const url = new URL(req.url())
       return (
         url.pathname.endsWith('/transactions') &&
