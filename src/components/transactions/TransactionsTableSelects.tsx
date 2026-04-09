@@ -111,10 +111,18 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
           // wipe the selection the parent component just applied.
           else if (loc.pathname.endsWith('/transactions')) clearAllFilters()
 
-          // Normalize URL: strip stale timeframe params so only the active one remains
+          // Normalize URL: strip stale timeframe params and duplicates so only
+          // the active key with a single value remains.
           const normalized = new URLSearchParams(sp)
           for (const key of timeframeKeys) {
-            if (key !== activeKey) normalized.delete(key)
+            if (key !== activeKey) {
+              normalized.delete(key)
+            } else {
+              // Collapse duplicate entries for the active key (e.g. ?day=x&day=y)
+              const val = normalized.get(key)
+              normalized.delete(key)
+              if (val) normalized.set(key, val)
+            }
           }
           const currentSearch = loc.search.startsWith('?') ? loc.search.slice(1) : loc.search
           const normalizedSearch = normalized.toString()
@@ -146,12 +154,10 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
         ] as const,
       () => {
         if (syncingFromUrl) return
-        const { viewMode, selectedDay, selectedWeek, selectedMonth, selectedYear, selectedMemo } =
-          transactionsState
-
         // Derive from active selections so the URL matches the real filter state
         // regardless of whether viewMode agrees with the selection fields.
-        void viewMode // tracked for reactivity; URL is derived from selections below
+        // viewMode is already tracked via the dependency array above.
+        const { selectedDay, selectedWeek, selectedMonth, selectedYear, selectedMemo } = transactionsState
         const effectiveViewMode = selectedDay
           ? 'day'
           : selectedWeek
