@@ -27,6 +27,8 @@ export default function TransactionsTableSelects(props: Readonly<{ dataTestId?: 
   // A flag prevents the store→URL effect from re-triggering this effect.
   let syncingFromUrl = false
 
+  const SUMMARY_ROUTE_RE = /\/transactions\/(?:months|weeks)\/[^/]+\/summary\/?$/
+
   const filterEntries = [
     { key: 'day', storeKey: 'selectedDay', apply: selectDayView },
     { key: 'week', storeKey: 'selectedWeek', apply: selectWeekView },
@@ -80,24 +82,14 @@ export default function TransactionsTableSelects(props: Readonly<{ dataTestId?: 
   // Sync store → URL params when selection changes.
   // Derive effective view mode from selections so URL stays consistent
   // even if viewMode is null while a selection exists.
-  const selectionEntries = [
-    { key: 'day', storeKey: 'selectedDay' },
-    { key: 'week', storeKey: 'selectedWeek' },
-    { key: 'month', storeKey: 'selectedMonth' },
-    { key: 'year', storeKey: 'selectedYear' },
-    { key: 'memo', storeKey: 'selectedMemo' },
-  ] as const
-
-  const SUMMARY_ROUTE_RE = /\/transactions\/(?:months|weeks)\/[^/]+\/summary\/?$/
-
   function syncStoreToUrl() {
     if (syncingFromUrl) return
     const s = transactionsState
 
     // Build search params from the first active selection
     const sp = new URLSearchParams(loc.search)
-    for (const { key } of selectionEntries) sp.delete(key)
-    const active = selectionEntries.find(({ storeKey }) => s[storeKey])
+    for (const { key } of filterEntries) sp.delete(key)
+    const active = filterEntries.find(({ storeKey }) => s[storeKey])
     if (active) sp.set(active.key, s[active.storeKey])
 
     const qs = sp.toString()
