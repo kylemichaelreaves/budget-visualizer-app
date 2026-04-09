@@ -26,7 +26,7 @@ import type { DayYear, MonthYear, WeekYear, Year } from '@types'
 
 const FILTER_PARAMS = ['day', 'week', 'month', 'year', 'memoId'] as const
 
-export default function TransactionsTableSelects(props: { dataTestId?: string }): JSX.Element {
+export default function TransactionsTableSelects(props: Readonly<{ dataTestId?: string }>): JSX.Element {
   const tid = () => props.dataTestId ?? 'transactions-table-selects'
   const loc = useLocation()
   const navigate = useNavigate()

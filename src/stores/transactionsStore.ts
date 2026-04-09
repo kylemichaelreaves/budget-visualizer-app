@@ -48,7 +48,6 @@ export type TransactionsState = {
   transactionsTableLimit: number
   transactionsTableOffset: number
   transactions: Transaction[]
-  transactionsByOffset: Record<number, Transaction[]>
   transactionsCount: number
   memosCount: number
   pendingTransactionsByOffset: Record<number, PendingTransaction[]>
@@ -90,7 +89,6 @@ const initial: TransactionsState = {
   transactionsTableLimit: 100,
   transactionsTableOffset: 0,
   transactions: [],
-  transactionsByOffset: {},
   transactionsCount: 0,
   memosCount: 0,
   pendingTransactionsByOffset: {},
@@ -98,10 +96,6 @@ const initial: TransactionsState = {
 }
 
 export const [transactionsState, setTransactionsState] = createStore<TransactionsState>({ ...initial })
-
-export function getTransactionsByOffset(offset: number): Transaction[] {
-  return transactionsState.transactionsByOffset[offset] ?? []
-}
 
 export function getMemosByOffset(offset: number): Memo[] {
   return transactionsState.memosByOffset[offset] ?? []
@@ -165,6 +159,7 @@ function clearAllSelections(): void {
     selectedYear: '',
     selectedMemo: '',
     selectedMemoId: null,
+    transactionsTableOffset: 0,
   })
 }
 
@@ -249,12 +244,6 @@ export function setSelectedYear(year: string): void {
 }
 export function setMonths(monthsArray: MonthYear[]): void {
   setTransactionsState('months', monthsArray)
-}
-export function setTransactionsByOffset(offset: number, rows: Transaction[]): void {
-  setTransactionsState('transactionsByOffset', offset, rows)
-}
-export function clearTransactionsByOffset(): void {
-  setTransactionsState('transactionsByOffset', {})
 }
 export function setTransactionsCount(count: number): void {
   setTransactionsState('transactionsCount', count)

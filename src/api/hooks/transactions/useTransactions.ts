@@ -1,10 +1,7 @@
 import { useInfiniteQuery } from '@tanstack/solid-query'
 import { createMemo } from 'solid-js'
 import { fetchTransactions } from '@api/transactions/fetchTransactions'
-import {
-  setTransactionsByOffset,
-  transactionsState,
-} from '@stores/transactionsStore'
+import { transactionsState } from '@stores/transactionsStore'
 import useTimeframeTypeAndValue from '@api/hooks/timeUnits/useTimeframeTypeAndValue'
 import type { Transaction } from '@types'
 import { devConsole } from '@utils/devConsole'
@@ -50,7 +47,6 @@ export default function useTransactions() {
         date: selectedValue(),
       })) as Transaction[]
 
-      setTransactionsByOffset(page, rows)
       return rows
     },
     getNextPageParam: (lastPage, allPages) => {

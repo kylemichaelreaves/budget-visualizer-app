@@ -16,9 +16,8 @@ import PeriodHeader from '@components/transactions/PeriodHeader'
 import SummaryStatsCards from '@components/transactions/SummaryStatsCards'
 import TransactionsTablePagination from '@components/transactions/TransactionsTablePagination'
 import TransactionsTableSelects from '@components/transactions/TransactionsTableSelects'
-import { clearTransactionsByOffset, transactionsState } from '@stores/transactionsStore'
+import { transactionsState } from '@stores/transactionsStore'
 import { Timeframe } from '@types'
-import { devConsole } from '@utils/devConsole'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 import { Badge } from '@components/ui/badge'
 import { Skeleton } from '@components/ui/skeleton'
@@ -154,29 +153,6 @@ export default function TransactionsTable() {
       () => currentPage(),
       () => {
         void loadMorePagesIfNeeded()
-      },
-    ),
-  )
-
-  let skipSelectionRefetch = true
-  createEffect(
-    on(
-      () =>
-        [
-          transactionsState.selectedDay,
-          transactionsState.selectedWeek,
-          transactionsState.selectedMonth,
-          transactionsState.selectedYear,
-          transactionsState.selectedMemo,
-        ] as const,
-      () => {
-        if (skipSelectionRefetch) {
-          skipSelectionRefetch = false
-          return
-        }
-        devConsole('log', '[TransactionsTable] selection changed, refetch')
-        clearTransactionsByOffset()
-        void query.refetch()
       },
     ),
   )
