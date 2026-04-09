@@ -89,7 +89,7 @@ export default function TransactionTimeframeSelect<T>(props: TransactionTimefram
           class={`w-full ${selectClasses(props.viewMode)}`}
         >
           <option value="">Any</option>
-          <For each={props.options}>
+          <For each={props.options()}>
             {(item) => (
               <option value={props.optionValue(item)}>{props.optionLabel(item)}</option>
             )}

@@ -54,7 +54,7 @@ export default function TransactionsTable() {
 
   function handleCategorySelect(category: string) {
     const target = categoryDialogTarget()
-    if (!target) return
+    if (!target || target.id == null) return
     setMutatingCategoryId(target.id)
     mutation.mutate(
       { transaction: { id: target.id, budget_category: category } as import('@types').Transaction },
