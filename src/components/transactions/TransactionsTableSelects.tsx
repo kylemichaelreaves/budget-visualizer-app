@@ -26,64 +26,56 @@ export default function TransactionsTableSelects(props: Readonly<{ dataTestId?: 
   // Sync URL params → store whenever loc.search changes (mount, back/forward nav).
   // A flag prevents the store→URL effect from re-triggering this effect.
   let syncingFromUrl = false
-  createEffect(
-    on(
-      () => loc.search,
-      () => {
-        syncingFromUrl = true
-        try {
-          const sp = new URLSearchParams(loc.search)
-          const s = transactionsState
 
-          const filterMap = {
-            day: { value: sp.get('day'), storeKey: 'selectedDay', apply: selectDayView },
-            week: { value: sp.get('week'), storeKey: 'selectedWeek', apply: selectWeekView },
-            month: { value: sp.get('month'), storeKey: 'selectedMonth', apply: selectMonthView },
-            year: { value: sp.get('year'), storeKey: 'selectedYear', apply: selectYearView },
-            memo: { value: sp.get('memo'), storeKey: 'selectedMemo', apply: selectMemoView },
-          } as const
+  const filterEntries = [
+    { key: 'day', storeKey: 'selectedDay', apply: selectDayView },
+    { key: 'week', storeKey: 'selectedWeek', apply: selectWeekView },
+    { key: 'month', storeKey: 'selectedMonth', apply: selectMonthView },
+    { key: 'year', storeKey: 'selectedYear', apply: selectYearView },
+    { key: 'memo', storeKey: 'selectedMemo', apply: selectMemoView },
+  ] as const
 
-          type FilterKey = keyof typeof filterMap
-          const timeframeKeys = Object.keys(filterMap) as FilterKey[]
+  function syncUrlToStore() {
+    syncingFromUrl = true
+    try {
+      const sp = new URLSearchParams(loc.search)
+      const s = transactionsState
 
-          // Find the first active URL param and sync to store if it differs.
-          const activeKey = timeframeKeys.find((k) => filterMap[k].value) ?? null
-          if (activeKey) {
-            const { value, storeKey, apply } = filterMap[activeKey]
-            if (s.viewMode !== activeKey || s[storeKey] !== value) apply(value!)
-          }
-          // Only clear filters on the base /transactions route.
-          // Summary sub-routes (e.g. /transactions/months/:month/summary) set
-          // selections via path params, not query params — clearing here would
-          // wipe the selection the parent component just applied.
-          else if (loc.pathname.endsWith('/transactions')) {
-            clearAllFilters()
-          }
+      // Find the first active URL param and sync to store if it differs.
+      const active = filterEntries.find(({ key }) => sp.get(key))
+      if (active) {
+        const value = sp.get(active.key)!
+        if (s.viewMode !== active.key || s[active.storeKey] !== value) active.apply(value)
+      }
+      // Only clear filters on the base /transactions route.
+      // Summary sub-routes set selections via path params, not query params.
+      else if (loc.pathname.endsWith('/transactions')) {
+        clearAllFilters()
+      }
 
-          // Normalize URL: strip stale timeframe params and collapse duplicates
-          // so only the active key with a single value remains.
-          const normalized = new URLSearchParams(sp)
-          for (const key of timeframeKeys) {
-            if (key === activeKey) {
-              const val = normalized.get(key)
-              normalized.delete(key)
-              if (val) normalized.set(key, val)
-            } else {
-              normalized.delete(key)
-            }
-          }
-          const currentSearch = loc.search.startsWith('?') ? loc.search.slice(1) : loc.search
-          const normalizedSearch = normalized.toString()
-          if (normalizedSearch !== currentSearch) {
-            const search = normalizedSearch ? '?' + normalizedSearch : ''
-            navigate(loc.pathname + search, { replace: true })
-          }
-        } finally {
-          syncingFromUrl = false
+      // Normalize URL: strip stale timeframe params and collapse duplicates.
+      const normalized = new URLSearchParams(sp)
+      for (const { key } of filterEntries) {
+        if (key === active?.key) {
+          const val = normalized.get(key)
+          normalized.delete(key)
+          if (val) normalized.set(key, val)
+        } else {
+          normalized.delete(key)
         }
-      },
-    ),
-  )
+      }
+      const currentSearch = loc.search.startsWith('?') ? loc.search.slice(1) : loc.search
+      const normalizedSearch = normalized.toString()
+      if (normalizedSearch !== currentSearch) {
+        const search = normalizedSearch ? '?' + normalizedSearch : ''
+        navigate(loc.pathname + search, { replace: true })
+      }
+    } finally {
+      syncingFromUrl = false
+    }
+  }
+
+  createEffect(on(() => loc.search, syncUrlToStore))
 
   // Sync store → URL params when selection changes.
   // Derive effective view mode from selections so URL stays consistent
