@@ -82,20 +82,47 @@ export default function TransactionsTableSelects(props: { dataTestId?: string })
           const month = sp.get('month')
           const year = sp.get('year')
           const memo = sp.get('memo')
+
+          const timeframeKeys = ['day', 'week', 'month', 'year', 'memo'] as const
+          let activeKey: (typeof timeframeKeys)[number] | null = null
+
           // Guard: only update store when URL param differs from current selection
           // to avoid unnecessary store churn and pagination resets.
           const s = transactionsState
-          if (day && (s.viewMode !== 'day' || s.selectedDay !== day)) selectDayView(day)
-          else if (week && (s.viewMode !== 'week' || s.selectedWeek !== week)) selectWeekView(week)
-          else if (month && (s.viewMode !== 'month' || s.selectedMonth !== month)) selectMonthView(month)
-          else if (year && (s.viewMode !== 'year' || s.selectedYear !== year)) selectYearView(year)
-          else if (memo && (s.viewMode !== 'memo' || s.selectedMemo !== memo)) selectMemoView(memo)
+          if (day) {
+            activeKey = 'day'
+            if (s.viewMode !== 'day' || s.selectedDay !== day) selectDayView(day)
+          } else if (week) {
+            activeKey = 'week'
+            if (s.viewMode !== 'week' || s.selectedWeek !== week) selectWeekView(week)
+          } else if (month) {
+            activeKey = 'month'
+            if (s.viewMode !== 'month' || s.selectedMonth !== month) selectMonthView(month)
+          } else if (year) {
+            activeKey = 'year'
+            if (s.viewMode !== 'year' || s.selectedYear !== year) selectYearView(year)
+          } else if (memo) {
+            activeKey = 'memo'
+            if (s.viewMode !== 'memo' || s.selectedMemo !== memo) selectMemoView(memo)
+          }
           // Only clear filters on the base /transactions route.
           // Summary sub-routes (e.g. /transactions/months/:month/summary) set
           // selections via path params, not query params — clearing here would
           // wipe the selection the parent component just applied.
-          else if (!day && !week && !month && !year && !memo && loc.pathname.endsWith('/transactions'))
-            clearAllFilters()
+          else if (loc.pathname.endsWith('/transactions')) clearAllFilters()
+
+          // Normalize URL: strip stale timeframe params so only the active one remains
+          const normalized = new URLSearchParams(sp)
+          for (const key of timeframeKeys) {
+            if (key !== activeKey) normalized.delete(key)
+          }
+          const currentSearch = loc.search.startsWith('?') ? loc.search.slice(1) : loc.search
+          const normalizedSearch = normalized.toString()
+          if (normalizedSearch !== currentSearch) {
+            navigate(`${loc.pathname}${normalizedSearch ? `?${normalizedSearch}` : ''}`, {
+              replace: true,
+            })
+          }
         } finally {
           syncingFromUrl = false
         }

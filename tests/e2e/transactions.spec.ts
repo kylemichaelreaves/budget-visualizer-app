@@ -146,7 +146,6 @@ test.describe('Transaction list filtering', () => {
       if (req.method() !== 'GET') return false
       const url = new URL(req.url())
       return (
-        req.method() === 'GET' &&
         url.pathname.endsWith('/transactions') &&
         url.searchParams.get('timeFrame') === 'year' &&
         url.searchParams.get('date') === '2025' &&
@@ -168,7 +167,6 @@ test.describe('Transaction list filtering', () => {
       if (req.method() !== 'GET') return false
       const url = new URL(req.url())
       return (
-        req.method() === 'GET' &&
         url.pathname.endsWith('/transactions') &&
         url.searchParams.get('timeFrame') === 'month' &&
         url.searchParams.get('date') === '01-2025' &&
@@ -195,7 +193,6 @@ test.describe('Transaction list filtering', () => {
       if (req.method() !== 'GET') return false
       const url = new URL(req.url())
       return (
-        req.method() === 'GET' &&
         url.pathname.endsWith('/transactions') &&
         url.searchParams.get('timeFrame') === 'month' &&
         url.searchParams.get('date') === '01-2025' &&
