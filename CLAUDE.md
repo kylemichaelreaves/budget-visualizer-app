@@ -19,13 +19,23 @@ git config core.hooksPath .githooks
 ```
 
 - **`pre-push`** runs `bun run prepush` (`lint` + `format:check`).
-- **`pre-commit`** runs `bun test`.
+- **`pre-commit`** runs **`bun run test`** (Vitest unit tests; not `bun test`, which uses Bun’s built-in runner).
 
 **Before every `git push`:** run `bun run prepush` (or rely on the hook). If it fails, run `bun run format` and fix lint, then push again. Agents should do the same even when using `--no-verify`.
 
 ## Copilot / PR review comments
 
 When new Copilot (or similar) inline review comments appear on an open PR, **implement agreed fixes directly**—do not ask for permission to proceed unless the feedback is ambiguous or conflicts with product intent.
+
+## Agent workflow after code changes
+
+After implementing fixes on a branch with an open PR (or any pushed branch):
+
+1. Run **`bun run prepush`**, **`npx tsc --noEmit`**, and **`bun run test`**; fix anything that fails (including `bun run format` if Prettier complains).
+2. **Commit** with a clear message.
+3. **`git push`** to the remote branch—**do not ask** whether to push once checks pass.
+
+Use **`git commit --no-verify`** only when a hook is misbehaving in the agent environment after you’ve run the same checks manually and they pass. Do not push if TypeScript, tests, or `prepush` still fail.
 
 ## Tech stack
 
