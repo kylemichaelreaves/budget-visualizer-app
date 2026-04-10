@@ -18,7 +18,7 @@ import {
   selectYearView,
   transactionsState,
 } from '@stores/transactionsStore'
-import type { MonthYear, Year } from '@types'
+import type { DayYear, MonthYear, WeekYear, Year } from '@types'
 
 export default function TransactionsTableSelects(props: Readonly<{ dataTestId?: string }>): JSX.Element {
   const tid = () => props.dataTestId ?? 'transactions-table-selects'
@@ -37,10 +37,10 @@ export default function TransactionsTableSelects(props: Readonly<{ dataTestId?: 
     daysQ,
   })
 
-  const yearOptions = createMemo(() => (yearsQ.data ?? []) as Year[])
-  const monthOptions = createMemo(() => (monthsQ.data ?? []) as MonthYear[])
-  const weekOptions = createMemo(() => (weeksQ.data ?? []).map((w) => w.week_year))
-  const dayOptions = createMemo(() => (daysQ.data ?? []).map((d) => String(d.day).split('T')[0] ?? d.day))
+  const yearOptions = createMemo(() => yearsQ.data ?? [])
+  const monthOptions = createMemo(() => monthsQ.data ?? [])
+  const weekOptions = createMemo(() => weeksQ.data ?? [])
+  const dayOptions = createMemo(() => daysQ.data ?? [])
 
   return (
     <section data-testid={tid()} class="p-3 mb-3 bg-card rounded-lg text-foreground">
@@ -71,12 +71,12 @@ export default function TransactionsTableSelects(props: Readonly<{ dataTestId?: 
           clearButtonTestId={`${tid()}-month-clear`}
         />
 
-        <TransactionTimeframeSelect<string>
+        <TransactionTimeframeSelect<WeekYear>
           label="Week"
           viewMode="week"
           options={weekOptions}
-          optionValue={(w) => w}
-          optionLabel={(w) => formatWeekLabel(w)}
+          optionValue={(w) => w.week_year}
+          optionLabel={(w) => formatWeekLabel(w.week_year)}
           selectedValue={() => transactionsState.selectedWeek}
           onPick={selectWeekView}
           onClearFilters={clearAllFilters}
@@ -84,12 +84,12 @@ export default function TransactionsTableSelects(props: Readonly<{ dataTestId?: 
           clearButtonTestId={`${tid()}-week-clear`}
         />
 
-        <TransactionTimeframeSelect<string>
+        <TransactionTimeframeSelect<DayYear>
           label="Day"
           viewMode="day"
           options={dayOptions}
-          optionValue={(d) => d}
-          optionLabel={(d) => formatDayLabel(d)}
+          optionValue={(d) => String(d.day).split('T')[0] ?? d.day}
+          optionLabel={(d) => formatDayLabel(String(d.day).split('T')[0] ?? d.day)}
           selectedValue={() => transactionsState.selectedDay}
           selectValue={() => transactionsState.selectedDay.split('T')[0] ?? transactionsState.selectedDay}
           onPick={selectDayView}
@@ -104,7 +104,7 @@ export default function TransactionsTableSelects(props: Readonly<{ dataTestId?: 
           <ClearFilterButton
             onClick={() => clearAllFilters()}
             dataTestId={`${tid()}-clear-timeframe`}
-            class="self-end h-[38px] px-3"
+            class="self-end h-9.5 px-3"
           />
         </Show>
       </div>
