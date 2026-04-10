@@ -51,7 +51,10 @@ export default function MemoSelect(props: {
       </Show>
       <AutocompleteComponent
         value={props.value}
-        onChange={(v) => props.onChange(v, memoLookup().get(v))}
+        onChange={(v) => {
+          const key = v.trim()
+          props.onChange(v, memoLookup().get(key))
+        }}
         placeholder={props.placeholder ?? 'Select a memo'}
         options={memoOptions()}
         dataTestId={props.dataTestId ?? 'transactions-table-memo-select'}

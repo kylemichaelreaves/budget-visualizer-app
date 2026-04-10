@@ -198,6 +198,14 @@ export function selectMemoView(memo: string, memoId?: number | null): void {
   })
 }
 
+/** Memo filter from `memoId` URL param before the memo record loads — keeps `selectedMemoId` in sync for query keys. */
+export function selectMemoFilterByIdOnly(memoId: number): void {
+  batch(() => {
+    clearAllSelections()
+    setTransactionsState({ selectedMemo: '', selectedMemoId: memoId, viewMode: 'memo' })
+  })
+}
+
 export function clearAllFilters(): void {
   batch(() => {
     clearAllSelections()
@@ -220,9 +228,15 @@ export function applyWeekSummaryRoute(week: string): void {
 }
 
 export function applyMemoSummaryRoute(memoId: string): void {
+  const n = Number(memoId)
+  const valid = Number.isFinite(n) && n > 0
   batch(() => {
     clearAllSelections()
-    setTransactionsState({ selectedMemoId: Number(memoId), viewMode: 'memo' })
+    if (valid) {
+      setTransactionsState({ selectedMemoId: n, viewMode: 'memo' })
+    } else {
+      setTransactionsState({ selectedMemoId: null, viewMode: null })
+    }
   })
 }
 

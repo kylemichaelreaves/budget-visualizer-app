@@ -7,6 +7,7 @@ import {
   selectMonthView,
   selectYearView,
   selectMemoView,
+  selectMemoFilterByIdOnly,
   clearAllFilters,
   transactionsState,
 } from '@stores/transactionsStore'
@@ -117,6 +118,20 @@ export function useTransactionTableFilterUrlSync(): void {
     if (!Number.isFinite(n) || n <= 0) return null
     return n
   }
+
+  /** Set `selectedMemoId` immediately so memo-scoped queries match the URL before `useMemoById` resolves the name. */
+  createEffect(
+    on(
+      () => [memoIdFromUrl(), loc.search] as const,
+      () => {
+        if (urlHasTimeframeParam()) return
+        const id = memoIdFromUrl()
+        if (id == null) return
+        if (transactionsState.selectedMemoId === id && transactionsState.viewMode === 'memo') return
+        selectMemoFilterByIdOnly(id)
+      },
+    ),
+  )
 
   const memoFromUrl = useMemoById({ memoId: () => memoIdFromUrl() })
 
