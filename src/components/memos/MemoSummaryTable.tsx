@@ -274,9 +274,27 @@ export default function MemoSummaryTable(): JSX.Element {
     return { sum, creditTxnCount: count }
   })
 
+  /** `debitTxnCount` is null when sum comes from memo summary API (total `transactions_count` is not debit-only). */
   const totalDebits = createMemo(() => {
     const s = summaryQ.data
-    return { sum: s?.sum_amount_debit ?? 0, count: s?.transactions_count ?? 0 }
+    const apiDebit = s?.sum_amount_debit
+    if (apiDebit != null && Number.isFinite(apiDebit)) {
+      return { sum: apiDebit, debitTxnCount: null as number | null }
+    }
+    const txns = txQ.data ?? []
+    let sum = 0
+    let count = 0
+    for (const tx of txns) {
+      const debit =
+        typeof tx.amount_debit === 'string'
+          ? parseFloat(tx.amount_debit)
+          : ((tx.amount_debit as unknown as number) ?? 0)
+      if (debit > 0) {
+        sum += debit
+        count++
+      }
+    }
+    return { sum, debitTxnCount: count }
   })
 
   // ── Mutations ───────────────────────────────────────────────────────
@@ -477,9 +495,12 @@ export default function MemoSummaryTable(): JSX.Element {
               >
                 {formatCurrency(totalDebits().sum)}
               </p>
-              <p class="text-xs text-muted-foreground mt-1 m-0">
-                {totalDebits().count} transaction{totalDebits().count !== 1 ? 's' : ''}
-              </p>
+              <Show when={totalDebits().debitTxnCount != null}>
+                <p class="text-xs text-muted-foreground mt-1 m-0">
+                  {totalDebits().debitTxnCount} debit transaction
+                  {totalDebits().debitTxnCount !== 1 ? 's' : ''} on this page
+                </p>
+              </Show>
             </CardContent>
           </Card>
 
