@@ -36,11 +36,12 @@ export class MemoSummaryPage {
     return this.backButton
   }
 
+  /** Link to the memo edit route (`/memos/:id/edit`). */
   get editLink() {
     return this.page.getByTestId('memo-summary-edit-link')
   }
 
-  /** Summary header line showing total transaction count (from memo summary API). */
+  /** Total transaction count line in the memo summary header (memo summary API). Not the same as total debit/credit amounts. */
   get txCountStat() {
     return this.page.getByTestId('memo-summary-tx-count')
   }

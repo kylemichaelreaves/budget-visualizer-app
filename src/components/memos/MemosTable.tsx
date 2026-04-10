@@ -193,6 +193,7 @@ export default function MemosTable(): JSX.Element {
 
   const [searchQuery, setSearchQuery] = createSignal('')
   const [tableMutationError, setTableMutationError] = createSignal<string | null>(null)
+  const [togglingAmbiguousId, setTogglingAmbiguousId] = createSignal<number | null>(null)
   const [sortKey, setSortKey] = createSignal<SortKey | null>(null)
   const [sortDir, setSortDir] = createSignal<SortDir>('asc')
 
@@ -233,15 +234,28 @@ export default function MemosTable(): JSX.Element {
     isInitialLoading() || query.isFetchingNextPage || query.isFetchingPreviousPage
 
   async function loadMorePagesIfNeeded() {
-    const requiredDataCount = currentPage() * LIMIT()
-    while (flattenedData().length < requiredDataCount && query.hasNextPage) {
+    const limit = LIMIT()
+    const page = currentPage()
+    const start = (page - 1) * limit
+    const end = start + limit
+
+    if (!searchQuery().trim()) {
+      const requiredFlat = page * limit
+      while (flattenedData().length < requiredFlat && query.hasNextPage) {
+        await query.fetchNextPage()
+      }
+      return
+    }
+
+    // Client-side search: keep loading pages until the filtered slice can fill the current page or data is exhausted.
+    while (filteredData().length < end && query.hasNextPage) {
       await query.fetchNextPage()
     }
   }
 
   createEffect(
     on(
-      () => currentPage(),
+      () => [currentPage(), searchQuery()] as const,
       () => {
         void loadMorePagesIfNeeded()
       },
@@ -279,6 +293,7 @@ export default function MemosTable(): JSX.Element {
 
   async function toggleAmbiguous(memo: Memo) {
     setTableMutationError(null)
+    setTogglingAmbiguousId(memo.id)
     try {
       await httpClient.patch(`/memos/${memo.id}`, {
         name: memo.name,
@@ -289,6 +304,8 @@ export default function MemosTable(): JSX.Element {
       const msg = e instanceof Error ? e.message : 'Could not update memo'
       setTableMutationError(msg)
       devConsole('error', 'toggleAmbiguous failed', e)
+    } finally {
+      setTogglingAmbiguousId(null)
     }
   }
 
@@ -438,7 +455,8 @@ export default function MemosTable(): JSX.Element {
                         <td class="px-3 py-2.5" data-testid={`cell-${row.id}-ambiguous`}>
                           <button
                             type="button"
-                            class={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium cursor-pointer transition-colors ${
+                            disabled={togglingAmbiguousId() === row.id}
+                            class={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
                               row.ambiguous
                                 ? 'bg-amber-100 text-amber-800 hover:bg-amber-200 dark:bg-amber-900/50 dark:text-amber-300 dark:hover:bg-amber-900/70'
                                 : 'bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-900/70'

@@ -77,6 +77,11 @@ export function useTransactionTableFilterUrlSync(): void {
     ),
   )
 
+  function urlHasTimeframeParam(): boolean {
+    const sp = new URLSearchParams(loc.search)
+    return !!(sp.get('day') || sp.get('week') || sp.get('month') || sp.get('year'))
+  }
+
   const memoIdFromUrl = () => {
     const sp = new URLSearchParams(loc.search)
     const raw = sp.get('memoId')
@@ -87,10 +92,12 @@ export function useTransactionTableFilterUrlSync(): void {
 
   const memoFromUrl = useMemoById({ memoId: () => memoIdFromUrl() })
 
+  /** Do not override day/week/month/year selection when both memoId and a timeframe appear in the URL. */
   createEffect(
     on(
       () => memoFromUrl.data,
       (memo) => {
+        if (urlHasTimeframeParam()) return
         if (memo?.name) {
           selectMemoView(memo.name, memo.id)
         }

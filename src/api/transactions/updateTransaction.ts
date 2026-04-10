@@ -8,7 +8,7 @@ export async function updateTransaction(transaction: Transaction): Promise<Trans
   }
 
   try {
-    // PATCH JSON body uses camelCase keys expected by the API gateway / Lambda handler.
+    // PATCH JSON body (Axios second argument) uses camelCase keys expected by the API gateway / Lambda handler.
     const fieldMap: Record<string, string> = {
       date: 'date',
       description: 'description',

@@ -213,7 +213,7 @@ function InlineAddForm(props: {
     if (!trimmed || submitting()) return
     setSubmitting(true)
     try {
-      await Promise.resolve(props.onSubmit(trimmed))
+      await props.onSubmit(trimmed)
     } finally {
       setSubmitting(false)
     }
@@ -227,6 +227,11 @@ function InlineAddForm(props: {
     }
   }
 
+  const fieldTestId = (suffix: string) => {
+    const base = props['data-testid'] ?? 'inline-add'
+    return `${base}-${suffix}`
+  }
+
   return (
     <div class="flex items-center gap-1.5 py-1" data-testid={props['data-testid']}>
       <Input
@@ -238,7 +243,7 @@ function InlineAddForm(props: {
         disabled={submitting()}
         autofocus
         class="h-7 text-sm flex-1 min-w-[120px]"
-        data-testid="inline-add-input"
+        data-testid={fieldTestId('input')}
       />
       <Button
         variant="ghost"
@@ -247,7 +252,7 @@ function InlineAddForm(props: {
         disabled={!name().trim() || submitting()}
         onClick={() => void handleSubmit()}
         aria-label="Confirm add"
-        data-testid="inline-add-confirm"
+        data-testid={fieldTestId('confirm')}
       >
         <CheckIcon class="size-3.5" />
       </Button>
@@ -257,7 +262,7 @@ function InlineAddForm(props: {
         class="size-7 text-muted-foreground hover:text-foreground"
         onClick={props.onCancel}
         aria-label="Cancel add"
-        data-testid="inline-add-cancel"
+        data-testid={fieldTestId('cancel')}
       >
         <XIcon class="size-3.5" />
       </Button>
@@ -446,7 +451,7 @@ function TreeNode(props: {
         <div style={{ 'padding-left': `${pad() + 26}px` }}>
           <InlineAddForm
             placeholder={`New subcategory of ${props.node.label}...`}
-            onSubmit={(name) => void handleAddChild(name)}
+            onSubmit={(name) => handleAddChild(name)}
             onCancel={() => setAddingChild(false)}
             data-testid={`add-child-form-${props.node.label}`}
           />
@@ -613,7 +618,7 @@ export default function BudgetCategoriesPage(): JSX.Element {
             <div class="mb-2">
               <InlineAddForm
                 placeholder="New root category..."
-                onSubmit={(name) => void handleAddRoot(name)}
+                onSubmit={(name) => handleAddRoot(name)}
                 onCancel={() => setAddingRoot(false)}
                 data-testid="add-root-form"
               />

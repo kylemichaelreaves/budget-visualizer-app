@@ -1,5 +1,6 @@
 /* @refresh reload */
 import { QueryClientProvider } from '@tanstack/solid-query'
+import { Show } from 'solid-js'
 import { render } from 'solid-js/web'
 import { queryClient } from '@api/queryClient'
 import { setUnauthorizedHandler } from '@api/httpClient'
@@ -23,7 +24,9 @@ render(
   () => (
     <QueryClientProvider client={queryClient}>
       <App />
-      <QueryDevtools />
+      <Show when={import.meta.env.DEV}>
+        <QueryDevtools />
+      </Show>
     </QueryClientProvider>
   ),
   root!,
