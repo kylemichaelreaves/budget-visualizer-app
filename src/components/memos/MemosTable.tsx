@@ -230,8 +230,24 @@ export default function MemosTable(): JSX.Element {
 
   const isInitialLoading = () => query.isLoading || (query.isFetching && !query.data?.pages?.length)
 
+  /** With active client search, prefetch extra pages in the background — do not swap the table for skeleton on each page. */
   const isLoadingCondition = () =>
-    isInitialLoading() || query.isFetchingNextPage || query.isFetchingPreviousPage
+    isInitialLoading() || query.isFetchingPreviousPage || (query.isFetchingNextPage && !searchQuery().trim())
+
+  /** Load every page while searching so filtered totals / page counts match the full memo list. */
+  createEffect(
+    on(
+      () => searchQuery().trim(),
+      (q) => {
+        if (!q) return
+        void (async () => {
+          while (query.hasNextPage) {
+            await query.fetchNextPage()
+          }
+        })()
+      },
+    ),
+  )
 
   async function loadMorePagesIfNeeded() {
     const limit = LIMIT()

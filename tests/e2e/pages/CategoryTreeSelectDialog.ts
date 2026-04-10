@@ -31,15 +31,21 @@ export class CategoryTreeSelectDialog {
     await this.searchInput.clear()
   }
 
+  /** Category rows are `role="button"`; scope by visible name (substring, case-insensitive). */
+  categoryOption(name: string): Locator {
+    const trimmed = name.trim()
+    if (!trimmed) {
+      throw new Error('CategoryTreeSelectDialog.categoryOption: name must be non-empty')
+    }
+    const escaped = trimmed.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+    return this.dialog.getByRole('button', { name: new RegExp(escaped, 'i') })
+  }
+
   async selectCategory(name: string) {
-    await this.dialog.getByRole('button', { name, exact: false }).click()
+    await this.categoryOption(name).click()
   }
 
   async close() {
     await this.closeButton.click()
-  }
-
-  categoryOption(name: string): Locator {
-    return this.dialog.getByRole('button', { name, exact: false })
   }
 }

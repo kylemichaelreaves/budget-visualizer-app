@@ -13,6 +13,7 @@ const fieldMap = {
   check_number: 'checkNumber',
   fees: 'fees',
   budget_category: 'budgetCategory',
+  is_split: 'isSplit',
 } as const satisfies Record<string, string>
 
 export async function updateTransaction(transaction: TransactionPatch): Promise<Transaction> {
@@ -31,6 +32,11 @@ export async function updateTransaction(transaction: TransactionPatch): Promise<
 
       if (frontendKey === 'budget_category') {
         body[backendKey] = val
+        continue
+      }
+
+      if (frontendKey === 'is_split') {
+        body[backendKey] = Boolean(val)
         continue
       }
 
