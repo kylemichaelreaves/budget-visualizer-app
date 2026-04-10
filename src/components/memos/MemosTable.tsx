@@ -1,6 +1,6 @@
 import { A } from '@solidjs/router'
 import type { JSX } from 'solid-js'
-import { createEffect, createMemo, createSignal, For, on, Show } from 'solid-js'
+import { createEffect, createMemo, createSignal, For, on, onCleanup, Show } from 'solid-js'
 import { useQueryClient } from '@tanstack/solid-query'
 import useMemos from '@api/hooks/memos/useMemos'
 import { httpClient } from '@api/httpClient'
@@ -239,9 +239,14 @@ export default function MemosTable(): JSX.Element {
     on(
       () => searchQuery().trim(),
       (q) => {
+        let cancelled = false
+        onCleanup(() => {
+          cancelled = true
+        })
         if (!q) return
         void (async () => {
-          while (query.hasNextPage) {
+          while (!cancelled && query.hasNextPage) {
+            if (searchQuery().trim() !== q) return
             await query.fetchNextPage()
           }
         })()

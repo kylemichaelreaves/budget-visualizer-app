@@ -25,7 +25,8 @@ export default function useTransactionsCount(status?: () => PendingTransactionSt
         return count
       },
       refetchOnWindowFocus: false,
-      staleTime: 0,
+      // Query key already includes timeframe/date/memo; avoid refetch churn on remount/navigation.
+      staleTime: 2 * 60 * 1000,
     }
   })
 }
