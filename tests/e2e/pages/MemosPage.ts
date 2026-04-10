@@ -11,7 +11,7 @@ export class MemosPage {
 
   constructor(page: Page) {
     this.page = page
-    this.heading = page.getByRole('heading', { name: /memos/i })
+    this.heading = page.getByRole('heading', { name: 'Memos', exact: true })
     this.table = page.getByTestId('memos-table')
     this.skeleton = page.getByTestId('memos-table-skeleton')
     this.emptyMessage = page.getByText('No memos found.')

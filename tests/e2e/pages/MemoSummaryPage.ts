@@ -36,12 +36,11 @@ export class MemoSummaryPage {
     return this.backButton
   }
 
-  /** @deprecated Removed in new design — editing is inline */
   get editLink() {
-    return this.page.getByRole('link', { name: 'Edit memo' })
+    return this.page.getByTestId('memo-summary-edit-link')
   }
 
-  /** @deprecated Use totalDebitStat instead */
+  /** Summary header line showing total transaction count (from memo summary API). */
   get txCountStat() {
     return this.page.getByTestId('memo-summary-tx-count')
   }

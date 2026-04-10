@@ -11,9 +11,10 @@ import { Button } from '@components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 import { Input } from '@components/ui/input'
 import { Skeleton } from '@components/ui/skeleton'
-import { transactionsState } from '@stores/transactionsStore'
+import { transactionsState, updateMemosTableOffset } from '@stores/transactionsStore'
 import type { Memo } from '@types'
 import CategoryTreeSelectDialog from '@components/transactions/CategoryTreeSelectDialog'
+import { devConsole } from '@utils/devConsole'
 import MemosTablePagination from './MemosTablePagination'
 
 // --- Inline SVG Icons ---
@@ -246,6 +247,16 @@ export default function MemosTable(): JSX.Element {
     ),
   )
 
+  createEffect(
+    on(
+      () => [searchQuery(), sortKey(), sortDir()] as const,
+      () => {
+        updateMemosTableOffset(0)
+      },
+      { defer: true },
+    ),
+  )
+
   // Query auto-refetches when memosTableLimit changes (it's in the query key)
 
   function handleSort(key: SortKey) {
@@ -267,10 +278,13 @@ export default function MemosTable(): JSX.Element {
 
   async function toggleAmbiguous(memo: Memo) {
     try {
-      await httpClient.patch(`/memos/${memo.id}`, { ambiguous: !memo.ambiguous })
+      await httpClient.patch(`/memos/${memo.id}`, {
+        name: memo.name,
+        ambiguous: !memo.ambiguous,
+      })
       await queryClient.invalidateQueries({ queryKey: ['memos'] })
-    } catch {
-      // silently fail for now
+    } catch (e) {
+      devConsole('error', 'toggleAmbiguous failed', e)
     }
   }
 
@@ -288,13 +302,16 @@ export default function MemosTable(): JSX.Element {
     if (!target) return
     setMutatingCategoryId(target.id)
     try {
-      await httpClient.patch(`/memos/${target.id}`, { budgetCategory: category })
+      await httpClient.patch(`/memos/${target.id}`, {
+        name: target.name,
+        budgetCategory: category,
+      })
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['memos'] }),
         queryClient.invalidateQueries({ queryKey: ['transactions'] }),
       ])
     } catch (e) {
-      console.error('Failed to update memo category:', e)
+      devConsole('error', 'Failed to update memo category:', e)
     } finally {
       setMutatingCategoryId(null)
     }

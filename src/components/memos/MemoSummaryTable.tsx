@@ -344,6 +344,14 @@ export default function MemoSummaryTable(): JSX.Element {
               {memo()?.name ?? `Memo ${params.memoId}`}
             </h1>
 
+            <A
+              href={`/budget-visualizer/memos/${params.memoId}/edit`}
+              class="text-sm font-medium text-primary hover:underline shrink-0"
+              data-testid="memo-summary-edit-link"
+            >
+              Edit memo
+            </A>
+
             <div class="flex items-center gap-2 flex-wrap">
               <Show when={isAmbiguous()}>
                 <Badge variant="outline" class="border-amber-500/50 text-amber-600 dark:text-amber-400">
@@ -366,7 +374,7 @@ export default function MemoSummaryTable(): JSX.Element {
             </div>
           </div>
 
-          <p class="text-muted-foreground mt-1 mb-0">
+          <p class="text-muted-foreground mt-1 mb-0" data-testid="memo-summary-tx-count">
             {summaryQ.data?.transactions_count ?? '...'} transactions
           </p>
         </header>

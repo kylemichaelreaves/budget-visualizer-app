@@ -62,7 +62,11 @@ export default function TransactionsTable() {
       { transaction: { id: target.id, budget_category: category } as import('@types').Transaction },
       {
         onSuccess: async () => {
-          await queryClient.invalidateQueries({ queryKey: ['transactions'] })
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ['transactions'] }),
+            queryClient.invalidateQueries({ queryKey: ['budget-category-summary'] }),
+            queryClient.invalidateQueries({ queryKey: ['historical-summary-for-budget-category'] }),
+          ])
           setMutatingCategoryId(null)
         },
         onError: () => {

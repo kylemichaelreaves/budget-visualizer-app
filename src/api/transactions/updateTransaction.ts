@@ -8,7 +8,7 @@ export async function updateTransaction(transaction: Transaction): Promise<Trans
   }
 
   try {
-    // Backend reads from queryStringParameters with camelCase field names
+    // PATCH JSON body uses camelCase keys expected by the API gateway / Lambda handler.
     const fieldMap: Record<string, string> = {
       date: 'date',
       description: 'description',

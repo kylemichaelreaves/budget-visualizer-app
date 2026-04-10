@@ -201,7 +201,7 @@ function filterTree(nodes: CategoryNode[], q: string): CategoryNode[] {
 
 function InlineAddForm(props: {
   placeholder: string
-  onSubmit: (name: string) => void
+  onSubmit: (name: string) => void | Promise<void>
   onCancel: () => void
   'data-testid'?: string
 }): JSX.Element {
@@ -213,7 +213,7 @@ function InlineAddForm(props: {
     if (!trimmed || submitting()) return
     setSubmitting(true)
     try {
-      props.onSubmit(trimmed)
+      await Promise.resolve(props.onSubmit(trimmed))
     } finally {
       setSubmitting(false)
     }

@@ -10,18 +10,16 @@ export default function useTransactionsCount(status?: () => PendingTransactionSt
 
   return useQuery(() => {
     const st = status?.()
-    const memoValue = transactionsState.selectedMemo
+    const memoId = transactionsState.selectedMemoId
+    const memoName = transactionsState.selectedMemo
+    const memoKey = memoId != null ? `id:${memoId}` : memoName.trim() ? `name:${memoName}` : ''
     const tf = selectedValue() ? timeFrame() : undefined
     const date = selectedValue()
 
     return {
-      queryKey: ['transactions-count', st ?? 'regular', tf, date, memoValue],
+      queryKey: ['transactions-count', st ?? 'regular', tf, date, memoKey],
       queryFn: async () => {
-        const memoParam = memoValue
-          ? !Number.isNaN(Number(memoValue))
-            ? { memoId: Number(memoValue) }
-            : { memoName: memoValue }
-          : {}
+        const memoParam = memoId != null ? { memoId } : memoName.trim() ? { memoName: memoName.trim() } : {}
 
         const params = st ? { status: st } : { timeFrame: tf, date, ...memoParam }
         const data = await fetchTransactionsCount(params)
