@@ -17,6 +17,9 @@ import CategoryTreeSelectDialog from '@components/transactions/CategoryTreeSelec
 import { devConsole } from '@utils/devConsole'
 import MemosTablePagination from './MemosTablePagination'
 
+/** Debounce before prefetching all pages for client search (reduces request bursts while typing). */
+const MEMOS_SEARCH_PREFETCH_DEBOUNCE_MS = 400
+
 // --- Inline SVG Icons ---
 
 function ChevronUpIcon() {
@@ -240,16 +243,26 @@ export default function MemosTable(): JSX.Element {
       () => searchQuery().trim(),
       (q) => {
         let cancelled = false
+        let debounceId: ReturnType<typeof setTimeout> | undefined
         onCleanup(() => {
           cancelled = true
+          if (debounceId !== undefined) clearTimeout(debounceId)
         })
         if (!q) return
-        void (async () => {
-          while (!cancelled && query.hasNextPage) {
-            if (searchQuery().trim() !== q) return
-            await query.fetchNextPage()
-          }
-        })()
+        debounceId = setTimeout(() => {
+          debounceId = undefined
+          if (cancelled) return
+          void (async () => {
+            try {
+              while (!cancelled && query.hasNextPage) {
+                if (searchQuery().trim() !== q) return
+                await query.fetchNextPage()
+              }
+            } catch (e) {
+              devConsole('error', 'MemosTable search prefetch failed', e)
+            }
+          })()
+        }, MEMOS_SEARCH_PREFETCH_DEBOUNCE_MS)
       },
     ),
   )
@@ -260,17 +273,21 @@ export default function MemosTable(): JSX.Element {
     const start = (page - 1) * limit
     const end = start + limit
 
-    if (!searchQuery().trim()) {
-      const requiredFlat = page * limit
-      while (flattenedData().length < requiredFlat && query.hasNextPage) {
+    try {
+      if (!searchQuery().trim()) {
+        const requiredFlat = page * limit
+        while (flattenedData().length < requiredFlat && query.hasNextPage) {
+          await query.fetchNextPage()
+        }
+        return
+      }
+
+      // Client-side search: keep loading pages until the filtered slice can fill the current page or data is exhausted.
+      while (filteredData().length < end && query.hasNextPage) {
         await query.fetchNextPage()
       }
-      return
-    }
-
-    // Client-side search: keep loading pages until the filtered slice can fill the current page or data is exhausted.
-    while (filteredData().length < end && query.hasNextPage) {
-      await query.fetchNextPage()
+    } catch (e) {
+      devConsole('error', 'MemosTable loadMorePagesIfNeeded failed', e)
     }
   }
 

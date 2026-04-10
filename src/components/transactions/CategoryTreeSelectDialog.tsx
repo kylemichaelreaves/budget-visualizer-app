@@ -1,4 +1,4 @@
-import type { JSX } from 'solid-js'
+import type { Accessor, JSX } from 'solid-js'
 import { createEffect, createMemo, createSignal, For, Show } from 'solid-js'
 import { extractBudgetCategoriesData } from '@api/helpers/extractBudgetCategoriesData'
 import { convertToTree } from '@api/helpers/convertToTree'
@@ -23,7 +23,8 @@ function TreeNodeRow(props: {
   selected: string
   expanded: Set<string>
   highlighted: number
-  navigableItems: CategoryNode[]
+  /** O(1) keyboard row index by category value (rebuilt when `navigableItems` changes). */
+  treeNavIndexByValue: Accessor<Map<string, number>>
   onToggle: (value: string) => void
   onSelect: (value: string) => void
   onHighlight: (index: number) => void
@@ -31,7 +32,7 @@ function TreeNodeRow(props: {
   const hasChildren = () => (props.node.children?.length ?? 0) > 0
   const isOpen = () => props.expanded.has(props.node.value)
   const isSelected = () => props.selected === props.node.value
-  const navIndex = () => props.navigableItems.indexOf(props.node)
+  const navIndex = () => props.treeNavIndexByValue().get(props.node.value) ?? -1
   const isHighlighted = () => props.highlighted === navIndex()
 
   return (
@@ -120,7 +121,7 @@ function TreeNodeRow(props: {
               selected={props.selected}
               expanded={props.expanded}
               highlighted={props.highlighted}
-              navigableItems={props.navigableItems}
+              treeNavIndexByValue={props.treeNavIndexByValue}
               onToggle={props.onToggle}
               onSelect={props.onSelect}
               onHighlight={props.onHighlight}
@@ -194,6 +195,15 @@ export default function CategoryTreeSelectDialog(props: {
       return results.map(({ node }) => node)
     }
     return getVisibleNodes(tree(), expanded())
+  })
+
+  const treeNavIndexByValue = createMemo(() => {
+    const items = navigableItems()
+    const m = new Map<string, number>()
+    for (let i = 0; i < items.length; i++) {
+      m.set(items[i].value, i)
+    }
+    return m
   })
 
   // Reset highlight when the list changes
@@ -349,7 +359,7 @@ export default function CategoryTreeSelectDialog(props: {
                     selected={props.value}
                     expanded={expanded()}
                     highlighted={highlight()}
-                    navigableItems={navigableItems()}
+                    treeNavIndexByValue={treeNavIndexByValue}
                     onToggle={toggleExpand}
                     onSelect={handleSelect}
                     onHighlight={setHighlight}
