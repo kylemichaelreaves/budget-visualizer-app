@@ -12,13 +12,17 @@ export default function useTransactionsCount(status?: () => PendingTransactionSt
   return useQuery(() => {
     const st = status?.()
     const { key: memoKey, params: memoParam } = memoQuerySliceFromStore()
-    const tf = selectedValue() ? timeFrame() : undefined
-    const date = selectedValue()
+    const rawDate = selectedValue()
+    const hasTimeframe = Boolean(rawDate && String(rawDate).trim() !== '')
+    const tf = hasTimeframe ? timeFrame() : undefined
+    const date = hasTimeframe ? rawDate : undefined
 
     return {
       queryKey: ['transactions-count', st ?? 'regular', tf, date, memoKey],
       queryFn: async () => {
-        const params = st ? { status: st } : { timeFrame: tf, date, ...memoParam }
+        const params = st
+          ? { status: st }
+          : { ...memoParam, ...(hasTimeframe ? { timeFrame: tf, date } : {}) }
         const data = await fetchTransactionsCount(params)
         const count = Number(data[0]?.count ?? 0)
         setTransactionsCount(count)

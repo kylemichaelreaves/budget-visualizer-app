@@ -20,7 +20,7 @@ function isBareTransactionsRoute(pathname: string): boolean {
 }
 
 /** Month/week summary routes embed the period in the path; filter query strings belong on the main transactions list. */
-const TRANSACTIONS_SUMMARY_FILTER_PATH = /\/transactions\/(?:months|weeks)\/[^/]+\/summary$/
+const TRANSACTIONS_SUMMARY_FILTER_PATH = /\/transactions\/(?:months|weeks)\/[^/]+\/summary\/?$/
 
 function pathForTransactionFilterSync(pathname: string): string {
   if (TRANSACTIONS_SUMMARY_FILTER_PATH.test(pathname)) {
