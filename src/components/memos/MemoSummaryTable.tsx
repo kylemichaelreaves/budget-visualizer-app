@@ -243,6 +243,7 @@ export default function MemoSummaryTable(): JSX.Element {
   // ── Derived memo data ───────────────────────────────────────────────
 
   const memo = () => memoQ.data
+  const memoReady = createMemo(() => !!memoQ.data)
   const isAmbiguous = () => memo()?.ambiguous ?? false
   const isRecurring = () => memo()?.recurring ?? false
   const isNecessary = () => memo()?.necessary ?? false
@@ -321,7 +322,14 @@ export default function MemoSummaryTable(): JSX.Element {
   }
 
   function handleFrequencyChange(value: string) {
-    patchMemo({ frequency: value, recurring: true })
+    const v = value.trim()
+    if (!v) {
+      patchMemo({ frequency: null, recurring: true })
+      return
+    }
+    if (FREQUENCY_OPTIONS.includes(v as Frequency)) {
+      patchMemo({ frequency: v as Frequency, recurring: true })
+    }
   }
 
   // ── Render ──────────────────────────────────────────────────────────
@@ -489,8 +497,9 @@ export default function MemoSummaryTable(): JSX.Element {
                   fallback={
                     <button
                       type="button"
+                      disabled={!memoReady() || saving()}
                       onClick={() => setCategoryDialogOpen(true)}
-                      class="text-sm text-muted-foreground hover:text-foreground border border-dashed border-border rounded-full px-3 py-1 transition-colors"
+                      class="text-sm text-muted-foreground hover:text-foreground border border-dashed border-border rounded-full px-3 py-1 transition-colors disabled:opacity-50 disabled:pointer-events-none"
                     >
                       + Assign category
                     </button>
@@ -498,8 +507,9 @@ export default function MemoSummaryTable(): JSX.Element {
                 >
                   <button
                     type="button"
+                    disabled={!memoReady() || saving()}
                     onClick={() => setCategoryDialogOpen(true)}
-                    class="inline-flex items-center rounded-full bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 px-3 py-1 text-sm font-medium hover:bg-violet-200 dark:hover:bg-violet-900/60 transition-colors cursor-pointer"
+                    class="inline-flex items-center rounded-full bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 px-3 py-1 text-sm font-medium hover:bg-violet-200 dark:hover:bg-violet-900/60 transition-colors cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
                   >
                     {budgetCategory()}
                   </button>
@@ -508,22 +518,28 @@ export default function MemoSummaryTable(): JSX.Element {
 
               {/* Checkboxes */}
               <div class="space-y-2">
-                <label class="flex items-center gap-2 text-sm cursor-pointer">
+                <label
+                  class="flex items-center gap-2 text-sm"
+                  classList={{ 'cursor-pointer': memoReady(), 'cursor-not-allowed opacity-60': !memoReady() }}
+                >
                   <input
                     type="checkbox"
                     checked={isAmbiguous()}
-                    disabled={saving()}
+                    disabled={!memoReady() || saving()}
                     onChange={(e) => handleAmbiguousChange(e.currentTarget.checked)}
                     class="rounded border-border accent-amber-500"
                   />
                   <span>Ambiguous category</span>
                 </label>
 
-                <label class="flex items-center gap-2 text-sm cursor-pointer">
+                <label
+                  class="flex items-center gap-2 text-sm"
+                  classList={{ 'cursor-pointer': memoReady(), 'cursor-not-allowed opacity-60': !memoReady() }}
+                >
                   <input
                     type="checkbox"
                     checked={isRecurring()}
-                    disabled={saving()}
+                    disabled={!memoReady() || saving()}
                     onChange={(e) => handleRecurringChange(e.currentTarget.checked)}
                     class="rounded border-border accent-blue-500"
                   />
@@ -532,7 +548,7 @@ export default function MemoSummaryTable(): JSX.Element {
                     <select
                       value={frequency() ?? ''}
                       onChange={(e) => handleFrequencyChange(e.currentTarget.value)}
-                      disabled={saving()}
+                      disabled={!memoReady() || saving()}
                       class="ml-1 text-xs border border-input rounded px-1.5 py-0.5 bg-background"
                       onClick={(e) => e.stopPropagation()}
                     >
@@ -542,11 +558,14 @@ export default function MemoSummaryTable(): JSX.Element {
                   </Show>
                 </label>
 
-                <label class="flex items-center gap-2 text-sm cursor-pointer">
+                <label
+                  class="flex items-center gap-2 text-sm"
+                  classList={{ 'cursor-pointer': memoReady(), 'cursor-not-allowed opacity-60': !memoReady() }}
+                >
                   <input
                     type="checkbox"
                     checked={isNecessary()}
-                    disabled={saving()}
+                    disabled={!memoReady() || saving()}
                     onChange={(e) => handleNecessaryChange(e.currentTarget.checked)}
                     class="rounded border-border accent-green-500"
                   />

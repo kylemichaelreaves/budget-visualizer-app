@@ -257,7 +257,8 @@ export type Transaction = {
   date: string
   description: string
   memo: string
-  memo_id?: number
+  /** Set to `null` in the edit form when the memo text is not tied to a resolved memo id (clears stale associations on PATCH). */
+  memo_id?: number | null
   amount_debit: string
   amount_credit: string
   balance?: string

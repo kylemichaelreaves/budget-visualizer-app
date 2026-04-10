@@ -28,6 +28,13 @@ export async function updateTransaction(transaction: TransactionPatch): Promise<
 
     for (const [frontendKey, backendKey] of Object.entries(fieldMap)) {
       const val = src[frontendKey]
+
+      if (frontendKey === 'memo_id') {
+        if (!Object.prototype.hasOwnProperty.call(src, 'memo_id')) continue
+        body[backendKey] = val == null ? null : val
+        continue
+      }
+
       if (val == null) continue
 
       if (frontendKey === 'budget_category') {

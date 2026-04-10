@@ -176,7 +176,16 @@ export default function TransactionEditForm(props: {
         />
       </Field>
       <Field label="Memo" test={`${tid()}-memo`} hasInput={false}>
-        <MemoSelect value={tx.memo} onChange={(v) => setTx('memo', v)} dataTestId={`${tid()}-memo-select`} />
+        <MemoSelect
+          value={tx.memo}
+          onChange={(v, memoId) =>
+            batch(() => {
+              setTx('memo', v)
+              setTx('memo_id', memoId ?? null)
+            })
+          }
+          dataTestId={`${tid()}-memo-select`}
+        />
       </Field>
       <Field label="Balance" test={`${tid()}-balance`}>
         <Input
