@@ -19,6 +19,16 @@ function isBareTransactionsRoute(pathname: string): boolean {
   return /\/transactions\/?$/.test(pathname)
 }
 
+/** Month/week summary routes embed the period in the path; filter query strings belong on the main transactions list. */
+const TRANSACTIONS_SUMMARY_FILTER_PATH = /\/transactions\/(?:months|weeks)\/[^/]+\/summary$/
+
+function pathForTransactionFilterSync(pathname: string): string {
+  if (TRANSACTIONS_SUMMARY_FILTER_PATH.test(pathname)) {
+    return pathname.replace(TRANSACTIONS_SUMMARY_FILTER_PATH, '/transactions')
+  }
+  return pathname
+}
+
 /**
  * Keeps transactions table timeframe/memo filters in sync with the URL:
  * - Reacts to `loc.search` / `loc.pathname` (back/forward, deep links)
@@ -164,12 +174,13 @@ export function useTransactionTableFilterUrlSync(): void {
     const qs = sp.toString()
     const nextSearch = qs ? `?${qs}` : ''
     const currentSearch = loc.search ?? ''
-    if (nextSearch === currentSearch) return
+    const path = pathForTransactionFilterSync(loc.pathname)
+    if (nextSearch === currentSearch && path === loc.pathname) return
 
     pushingStoreToUrl = true
     skipOneUrlToStoreApply = true
     try {
-      navigate(`${loc.pathname}${nextSearch}`, { replace: true })
+      navigate(`${path}${nextSearch}`, { replace: true })
     } finally {
       pushingStoreToUrl = false
     }

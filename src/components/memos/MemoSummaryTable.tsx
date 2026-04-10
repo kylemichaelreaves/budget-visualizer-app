@@ -295,6 +295,8 @@ export default function MemoSummaryTable(): JSX.Element {
         queryClient.invalidateQueries({ queryKey: ['memo'] }),
         queryClient.invalidateQueries({ queryKey: ['memo-summary'] }),
         queryClient.invalidateQueries({ queryKey: ['memos'] }),
+        queryClient.invalidateQueries({ queryKey: ['memo-transactions'] }),
+        queryClient.invalidateQueries({ queryKey: ['memos-count'] }),
         queryClient.invalidateQueries({ queryKey: ['transactions'] }),
       ])
     } catch (e) {
