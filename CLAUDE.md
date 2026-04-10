@@ -41,7 +41,7 @@ npx tsc --noEmit    # TypeScript type checking
 ## Store
 
 - `transactionsStore.ts` holds filter state: `selectedDay`, `selectedWeek`, `selectedMonth`, `selectedYear`, `selectedMemo`, `selectedMemoId`
-- Filter URL sync is in `TransactionsTableSelects.tsx` — all filters persist as query params
+- Filter URL sync lives in `composables/transactionTableFilterUrlSync.ts` (used from `TransactionsTableSelects.tsx`) — all filters persist as query params
 - `viewMode` determines which filter is active; `null` means no filter
 
 ## Charts

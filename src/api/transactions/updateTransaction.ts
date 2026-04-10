@@ -1,8 +1,8 @@
 import { httpClient } from '@api/httpClient'
-import type { Transaction } from '@types'
+import type { Transaction, TransactionPatch } from '@types'
 import { devConsole } from '@utils/devConsole'
 
-export async function updateTransaction(transaction: Transaction): Promise<Transaction> {
+export async function updateTransaction(transaction: TransactionPatch): Promise<Transaction> {
   if (!transaction.id) {
     throw new Error('Transaction ID is required for updates')
   }

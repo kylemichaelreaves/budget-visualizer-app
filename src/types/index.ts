@@ -267,6 +267,9 @@ export type Transaction = {
   is_split?: boolean
 }
 
+/** PATCH `/transactions/:id` — `id` required; other fields optional. */
+export type TransactionPatch = Partial<Transaction> & { id: number }
+
 export type PendingTransaction = {
   id: number
   created_at: string

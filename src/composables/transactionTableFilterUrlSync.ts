@@ -32,10 +32,35 @@ export function useTransactionTableFilterUrlSync(): void {
   let hydratingFromUrl = false
   /** True while store→URL navigation is in flight (skips URL→store re-entry). */
   let pushingStoreToUrl = false
+  /** Skip the next URL→store pass — it only reflects `syncUrlFromStore`’s own `navigate`, not a real navigation. */
+  let skipOneUrlToStoreApply = false
+
+  function memoIdQueryParamInvalid(raw: string | null): boolean {
+    if (raw == null || raw === '') return false
+    return !Number.isFinite(Number(raw))
+  }
 
   function applyUrlParamsToStore() {
     if (pushingStoreToUrl) return
+    if (skipOneUrlToStoreApply) {
+      skipOneUrlToStoreApply = false
+      return
+    }
+
     const sp = new URLSearchParams(loc.search)
+    const memoIdRaw = sp.get('memoId')
+    if (memoIdQueryParamInvalid(memoIdRaw)) {
+      sp.delete('memoId')
+      const qs = sp.toString()
+      pushingStoreToUrl = true
+      try {
+        navigate(`${loc.pathname}${qs ? `?${qs}` : ''}`, { replace: true })
+      } finally {
+        pushingStoreToUrl = false
+      }
+      return
+    }
+
     const day = sp.get('day')
     const week = sp.get('week')
     const month = sp.get('month')
@@ -60,7 +85,7 @@ export function useTransactionTableFilterUrlSync(): void {
         selectYearView(year)
         return
       }
-      if (!memoIdParam && isBareTransactionsRoute(loc.pathname)) {
+      if ((!memoIdParam || memoIdParam === '') && isBareTransactionsRoute(loc.pathname)) {
         clearAllFilters()
       }
     } finally {
@@ -108,20 +133,25 @@ export function useTransactionTableFilterUrlSync(): void {
 
   function syncUrlFromStore() {
     if (hydratingFromUrl) return
+    const sp = new URLSearchParams(loc.search)
+    for (const key of TRANSACTION_TABLE_FILTER_URL_PARAMS) sp.delete(key)
+
+    if (transactionsState.selectedDay) sp.set('day', transactionsState.selectedDay)
+    else if (transactionsState.selectedWeek) sp.set('week', transactionsState.selectedWeek)
+    else if (transactionsState.selectedMonth) sp.set('month', transactionsState.selectedMonth)
+    else if (transactionsState.selectedYear) sp.set('year', transactionsState.selectedYear)
+    else if (transactionsState.selectedMemoId != null)
+      sp.set('memoId', String(transactionsState.selectedMemoId))
+
+    const qs = sp.toString()
+    const nextSearch = qs ? `?${qs}` : ''
+    const currentSearch = loc.search ?? ''
+    if (nextSearch === currentSearch) return
+
     pushingStoreToUrl = true
+    skipOneUrlToStoreApply = true
     try {
-      const sp = new URLSearchParams(loc.search)
-      for (const key of TRANSACTION_TABLE_FILTER_URL_PARAMS) sp.delete(key)
-
-      if (transactionsState.selectedDay) sp.set('day', transactionsState.selectedDay)
-      else if (transactionsState.selectedWeek) sp.set('week', transactionsState.selectedWeek)
-      else if (transactionsState.selectedMonth) sp.set('month', transactionsState.selectedMonth)
-      else if (transactionsState.selectedYear) sp.set('year', transactionsState.selectedYear)
-      else if (transactionsState.selectedMemoId != null)
-        sp.set('memoId', String(transactionsState.selectedMemoId))
-
-      const qs = sp.toString()
-      navigate(`${loc.pathname}${qs ? `?${qs}` : ''}`, { replace: true })
+      navigate(`${loc.pathname}${nextSearch}`, { replace: true })
     } finally {
       pushingStoreToUrl = false
     }

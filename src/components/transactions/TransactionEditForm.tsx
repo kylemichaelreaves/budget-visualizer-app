@@ -2,7 +2,13 @@ import type { JSX } from 'solid-js'
 import { batch, createEffect, createMemo, untrack } from 'solid-js'
 import { createStore, reconcile, unwrap } from 'solid-js/store'
 import { useQueryClient } from '@tanstack/solid-query'
-import type { BudgetCategoryState, PendingTransaction, SplitBudgetCategory, Transaction } from '@types'
+import type {
+  BudgetCategoryState,
+  PendingTransaction,
+  SplitBudgetCategory,
+  Transaction,
+  TransactionPatch,
+} from '@types'
 import mutateTransaction from '@api/hooks/transactions/mutateTransaction'
 import mutatePendingTransaction from '@api/hooks/transactions/mutatePendingTransaction'
 import MemoSelect from '@components/transactions/selects/MemoSelect'
@@ -99,8 +105,16 @@ export default function TransactionEditForm(props: {
         },
       )
     } else {
+      const id = tx.id
+      if (id == null) return
+      const patch: TransactionPatch = {
+        ...unwrap(tx),
+        id,
+        budget_category: budgetCategory,
+        is_split: budgetState.mode === 'split',
+      }
       regMut.mutate(
-        { transaction: transactionData },
+        { transaction: patch },
         {
           onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: ['transactions'] })

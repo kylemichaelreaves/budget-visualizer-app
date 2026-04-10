@@ -59,7 +59,7 @@ export default function TransactionsTable() {
     if (!target || target.id == null) return
     setMutatingCategoryId(target.id)
     mutation.mutate(
-      { transaction: { id: target.id, budget_category: category } as import('@types').Transaction },
+      { transaction: { id: target.id, budget_category: category } },
       {
         onSuccess: async () => {
           await Promise.all([
