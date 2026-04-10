@@ -36,19 +36,11 @@ function TreeNodeRow(props: {
 
   return (
     <>
-      <button
-        type="button"
+      <div
         data-highlight={isHighlighted()}
         style={{ 'padding-left': `${props.depth * 18 + 10}px` }}
-        onClick={() => {
-          if (hasChildren()) {
-            props.onToggle(props.node.value)
-          } else {
-            props.onSelect(props.node.value)
-          }
-        }}
         onMouseEnter={() => props.onHighlight(navIndex())}
-        class={`w-full flex items-center gap-2 py-1.5 pr-3 rounded-md text-sm transition-colors text-left ${
+        class={`w-full flex items-center gap-1 py-1.5 pr-3 rounded-md text-sm transition-colors ${
           isHighlighted()
             ? 'bg-accent text-accent-foreground'
             : isSelected()
@@ -56,10 +48,19 @@ function TreeNodeRow(props: {
               : 'text-foreground'
         }`}
       >
-        <span class="shrink-0 w-4 h-4 flex items-center justify-center text-muted-foreground">
-          <Show
-            when={hasChildren()}
-            fallback={<span class="h-1.5 w-1.5 rounded-full bg-muted-foreground/40 mx-auto" />}
+        <Show
+          when={hasChildren()}
+          fallback={<span class="shrink-0 w-7 h-7" aria-hidden="true" />}
+        >
+          <button
+            type="button"
+            aria-expanded={isOpen()}
+            aria-label={isOpen() ? 'Collapse category' : 'Expand category'}
+            class="shrink-0 size-7 flex items-center justify-center rounded-md text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+            onClick={(e) => {
+              e.stopPropagation()
+              props.onToggle(props.node.value)
+            }}
           >
             <Show
               when={isOpen()}
@@ -89,23 +90,29 @@ function TreeNodeRow(props: {
                 <path d="m6 9 6 6 6-6" />
               </svg>
             </Show>
-          </Show>
-        </span>
-        <span class="flex-1 truncate">{props.node.label}</span>
-        <Show when={isSelected()}>
-          <svg
-            class="size-3.5 shrink-0 text-primary"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M20 6 9 17l-5-5" />
-          </svg>
+          </button>
         </Show>
-      </button>
+        <button
+          type="button"
+          class="flex-1 min-w-0 flex items-center gap-2 py-0.5 text-left rounded-md"
+          onClick={() => props.onSelect(props.node.value)}
+        >
+          <span class="flex-1 truncate">{props.node.label}</span>
+          <Show when={isSelected()}>
+            <svg
+              class="size-3.5 shrink-0 text-primary"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
+              <path d="M20 6 9 17l-5-5" />
+            </svg>
+          </Show>
+        </button>
+      </div>
 
       <Show when={hasChildren() && isOpen()}>
         <For each={props.node.children!}>
@@ -235,12 +242,7 @@ export default function CategoryTreeSelectDialog(props: {
       e.preventDefault()
       const item = items[highlight()]
       if (!item) return
-      const hasChildren = (item.children?.length ?? 0) > 0
-      if (hasChildren && searchResults() === null) {
-        toggleExpand(item.value)
-      } else {
-        handleSelect(item.value)
-      }
+      handleSelect(item.value)
     } else if (e.key === 'Escape') {
       e.preventDefault()
       props.onOpenChange(false)

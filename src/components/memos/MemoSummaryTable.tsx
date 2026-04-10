@@ -251,11 +251,12 @@ export default function MemoSummaryTable(): JSX.Element {
   const frequency = () => memo()?.frequency ?? undefined
   const isResolved = () => !isAmbiguous() && !!budgetCategory()
 
+  /** `creditTxnCount` is null when sum comes from memo summary API (no credit-specific count there). */
   const totalCredits = createMemo(() => {
     const s = summaryQ.data
     const apiCredit = s?.sum_amount_credit
     if (apiCredit != null && Number.isFinite(apiCredit)) {
-      return { sum: apiCredit, count: s?.transactions_count ?? 0 }
+      return { sum: apiCredit, creditTxnCount: null as number | null }
     }
     const txns = txQ.data ?? []
     let sum = 0
@@ -270,7 +271,7 @@ export default function MemoSummaryTable(): JSX.Element {
         count++
       }
     }
-    return { sum, count }
+    return { sum, creditTxnCount: count }
   })
 
   const totalDebits = createMemo(() => {
@@ -450,11 +451,11 @@ export default function MemoSummaryTable(): JSX.Element {
               >
                 {formatCurrency(totalCredits().sum)}
               </p>
-              <p class="text-xs text-muted-foreground mt-1 m-0">
-                {totalCredits().count} transaction{totalCredits().count !== 1 ? 's' : ''}
-              </p>
-              <Show when={summaryQ.data?.sum_amount_credit == null}>
-                <p class="text-xs text-muted-foreground mt-1 m-0">Based on loaded transaction page</p>
+              <Show when={totalCredits().creditTxnCount != null}>
+                <p class="text-xs text-muted-foreground mt-1 m-0">
+                  {totalCredits().creditTxnCount} credit transaction
+                  {totalCredits().creditTxnCount !== 1 ? 's' : ''} on this page
+                </p>
               </Show>
             </CardContent>
           </Card>
