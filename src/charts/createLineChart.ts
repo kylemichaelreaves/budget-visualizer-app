@@ -29,13 +29,20 @@ export function createLineChart(
 
   const parseDateUTC = d3.utcParse('%Y-%m-%dT%H:%M:%S.%LZ')
 
+  const hasExplicitTimezone = (s: string): boolean => /[zZ]$|[+-]\d{2}:?\d{2}$/.test(s.trim())
+
   const createDateFromItem = (item: SummaryTypeBase | DailyInterval): Date => {
     const raw = (item as SummaryTypeBase).period_start ?? item.date
     if (raw) {
-      const parsed = parseDateUTC(raw as string)
+      const str = String(raw).trim()
+      const parsed = parseDateUTC(str)
       if (parsed) return parsed
-      // Fallback: try native Date for formats like "2025-01-01T00:00:00"
-      const fallback = new Date(raw as string)
+      // Timezone-less ISO timestamps: parse as UTC so x-axis matches utc scales
+      if (!hasExplicitTimezone(str) && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(str)) {
+        const utc = new Date(str.endsWith('Z') ? str : `${str.replace(/Z$/i, '')}Z`)
+        if (!Number.isNaN(utc.getTime())) return utc
+      }
+      const fallback = new Date(str)
       if (!Number.isNaN(fallback.getTime())) return fallback
     }
 

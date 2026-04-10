@@ -155,6 +155,8 @@ export interface Memo {
 export interface MemoSummary {
   sum_amount_debit: number
   transactions_count: number
+  /** Optional aggregate from API; when set, UI can show memo-wide credit totals instead of paginated sums. */
+  sum_amount_credit?: number
 }
 
 export type MemoFilters = Partial<Pick<Memo, 'id' | 'name' | 'recurring' | 'necessary'>>

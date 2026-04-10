@@ -25,7 +25,15 @@ export async function updateTransaction(transaction: Transaction): Promise<Trans
     const params: Record<string, string> = { id: String(transaction.id) }
     for (const [frontendKey, backendKey] of Object.entries(fieldMap)) {
       const val = (transaction as Record<string, unknown>)[frontendKey]
-      if (val != null && typeof val !== 'object') {
+      if (val == null) continue
+      if (
+        frontendKey === 'budget_category' &&
+        (Array.isArray(val) || (typeof val === 'object' && val !== null))
+      ) {
+        params[backendKey] = JSON.stringify(val)
+        continue
+      }
+      if (typeof val !== 'object') {
         params[backendKey] = String(val)
       }
     }

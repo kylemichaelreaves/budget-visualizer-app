@@ -192,6 +192,7 @@ export default function MemosTable(): JSX.Element {
   const LIMIT = () => transactionsState.memosTableLimit
 
   const [searchQuery, setSearchQuery] = createSignal('')
+  const [tableMutationError, setTableMutationError] = createSignal<string | null>(null)
   const [sortKey, setSortKey] = createSignal<SortKey | null>(null)
   const [sortDir, setSortDir] = createSignal<SortDir>('asc')
 
@@ -277,6 +278,7 @@ export default function MemosTable(): JSX.Element {
   }
 
   async function toggleAmbiguous(memo: Memo) {
+    setTableMutationError(null)
     try {
       await httpClient.patch(`/memos/${memo.id}`, {
         name: memo.name,
@@ -284,6 +286,8 @@ export default function MemosTable(): JSX.Element {
       })
       await queryClient.invalidateQueries({ queryKey: ['memos'] })
     } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Could not update memo'
+      setTableMutationError(msg)
       devConsole('error', 'toggleAmbiguous failed', e)
     }
   }
@@ -300,6 +304,7 @@ export default function MemosTable(): JSX.Element {
   async function handleCategorySelect(category: string) {
     const target = categoryDialogTarget()
     if (!target) return
+    setTableMutationError(null)
     setMutatingCategoryId(target.id)
     try {
       await httpClient.patch(`/memos/${target.id}`, {
@@ -311,6 +316,8 @@ export default function MemosTable(): JSX.Element {
         queryClient.invalidateQueries({ queryKey: ['transactions'] }),
       ])
     } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Could not assign category'
+      setTableMutationError(msg)
       devConsole('error', 'Failed to update memo category:', e)
     } finally {
       setMutatingCategoryId(null)
@@ -326,6 +333,18 @@ export default function MemosTable(): JSX.Element {
             title={(err() as Error).name}
             message={(err() as Error).message}
             dataTestId="memos-table-error-alert"
+          />
+        )}
+      </Show>
+
+      <Show when={tableMutationError()}>
+        {(msg) => (
+          <AlertComponent
+            type="error"
+            title="Update failed"
+            message={msg()}
+            dataTestId="memos-table-mutation-error"
+            close={() => setTableMutationError(null)}
           />
         )}
       </Show>
@@ -492,7 +511,7 @@ export default function MemosTable(): JSX.Element {
         </CardContent>
       </Card>
 
-      <MemosTablePagination />
+      <MemosTablePagination clientFilteredTotal={() => (searchQuery().trim() ? totalMemos() : undefined)} />
 
       <CategoryTreeSelectDialog
         open={categoryDialogOpen()}

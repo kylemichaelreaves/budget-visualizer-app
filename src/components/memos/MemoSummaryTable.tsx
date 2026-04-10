@@ -4,6 +4,7 @@ import { createEffect, createMemo, createSignal, For, on, Show } from 'solid-js'
 import { useQueryClient } from '@tanstack/solid-query'
 import { formatDate } from '@api/helpers/formatDate'
 import { httpClient } from '@api/httpClient'
+import { devConsole } from '@utils/devConsole'
 import { useMemoById } from '@api/hooks/memos/useMemoById'
 import useMemoSummary from '@api/hooks/memos/useMemoSummary'
 import useMemoTransactionsPage from '@api/hooks/memos/useMemoTransactionsPage'
@@ -205,6 +206,7 @@ export default function MemoSummaryTable(): JSX.Element {
 
   const [categoryDialogOpen, setCategoryDialogOpen] = createSignal(false)
   const [saving, setSaving] = createSignal(false)
+  const [patchError, setPatchError] = createSignal<string | null>(null)
 
   createEffect(
     on(
@@ -248,8 +250,12 @@ export default function MemoSummaryTable(): JSX.Element {
   const frequency = () => memo()?.frequency ?? undefined
   const isResolved = () => !isAmbiguous() && !!budgetCategory()
 
-  // Compute credits from transaction list
   const totalCredits = createMemo(() => {
+    const s = summaryQ.data
+    const apiCredit = s?.sum_amount_credit
+    if (apiCredit != null && Number.isFinite(apiCredit)) {
+      return { sum: apiCredit, count: s?.transactions_count ?? 0 }
+    }
     const txns = txQ.data ?? []
     let sum = 0
     let count = 0
@@ -276,6 +282,7 @@ export default function MemoSummaryTable(): JSX.Element {
   async function patchMemo(fields: Record<string, unknown>) {
     const m = memo()
     if (!m) return
+    setPatchError(null)
     setSaving(true)
     try {
       await httpClient.patch(`/memos/${m.id}`, {
@@ -288,6 +295,10 @@ export default function MemoSummaryTable(): JSX.Element {
         queryClient.invalidateQueries({ queryKey: ['memos'] }),
         queryClient.invalidateQueries({ queryKey: ['transactions'] }),
       ])
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Update failed'
+      setPatchError(msg)
+      devConsole('error', 'patchMemo failed', e)
     } finally {
       setSaving(false)
     }
@@ -329,6 +340,18 @@ export default function MemoSummaryTable(): JSX.Element {
       </Show>
 
       <Show when={!invalidId()}>
+        <Show when={patchError()}>
+          {(msg) => (
+            <AlertComponent
+              type="error"
+              title="Could not save changes"
+              message={msg()}
+              dataTestId="memo-summary-patch-error"
+              close={() => setPatchError(null)}
+            />
+          )}
+        </Show>
+
         {/* ── Header ─────────────────────────────────────────────── */}
         <header class="mb-6">
           <div class="flex items-center gap-3 flex-wrap">
@@ -422,6 +445,9 @@ export default function MemoSummaryTable(): JSX.Element {
               <p class="text-xs text-muted-foreground mt-1 m-0">
                 {totalCredits().count} transaction{totalCredits().count !== 1 ? 's' : ''}
               </p>
+              <Show when={summaryQ.data?.sum_amount_credit == null}>
+                <p class="text-xs text-muted-foreground mt-1 m-0">Based on loaded transaction page</p>
+              </Show>
             </CardContent>
           </Card>
 
