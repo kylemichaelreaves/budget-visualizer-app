@@ -10,11 +10,18 @@ bun run format:check   # prettier (or `bun run format` to fix)
 npx tsc --noEmit       # TypeScript type checking
 ```
 
-## Pre-push (enforced + agents)
+## Git hooks (optional, no extra npm deps)
 
-**Before every `git push`:** run lint and Prettier check. A Husky **pre-push** hook runs `bun run prepush` (`lint` + `format:check`). If it fails, run `bun run format` and fix lint, then push again.
+Tracked hooks live in **`.githooks/`**. Point Git at them once per clone:
 
-Agents and humans should run the same before pushing, even when hooks are skipped (`--no-verify`).
+```bash
+git config core.hooksPath .githooks
+```
+
+- **`pre-push`** runs `bun run prepush` (`lint` + `format:check`).
+- **`pre-commit`** runs `bun test`.
+
+**Before every `git push`:** run `bun run prepush` (or rely on the hook). If it fails, run `bun run format` and fix lint, then push again. Agents should do the same even when using `--no-verify`.
 
 ## Tech stack
 
