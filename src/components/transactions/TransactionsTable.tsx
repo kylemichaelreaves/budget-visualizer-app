@@ -365,12 +365,10 @@ export default function TransactionsTable() {
                                     <Badge
                                       variant="outline"
                                       class="text-xs hover:bg-accent transition-colors"
-                                      style={{
-                                        'border-color': categoryColors().getColorByName(
-                                          String(row.budget_category),
-                                        ),
-                                        color: categoryColors().getColorByName(String(row.budget_category)),
-                                      }}
+                                      style={(() => {
+                                        const c = categoryColors().getColorByName(String(row.budget_category))
+                                        return { 'border-color': c, color: c }
+                                      })()}
                                     >
                                       {String(row.budget_category)}
                                     </Badge>
@@ -393,12 +391,10 @@ export default function TransactionsTable() {
                                   {(split) => (
                                     <span
                                       class="flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs hover:bg-accent transition-colors"
-                                      style={{
-                                        'border-color': categoryColors().getColorByName(
-                                          split.budget_category_id,
-                                        ),
-                                        color: categoryColors().getColorByName(split.budget_category_id),
-                                      }}
+                                      style={(() => {
+                                        const c = categoryColors().getColorByName(split.budget_category_id)
+                                        return { 'border-color': c, color: c }
+                                      })()}
                                     >
                                       <span>{split.budget_category_id}</span>
                                       <span class="text-muted-foreground">

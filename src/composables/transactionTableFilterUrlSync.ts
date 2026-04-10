@@ -35,9 +35,11 @@ export function useTransactionTableFilterUrlSync(): void {
   /** Skip the next URL→store pass — it only reflects `syncUrlFromStore`’s own `navigate`, not a real navigation. */
   let skipOneUrlToStoreApply = false
 
+  /** Reject NaN, non-positive IDs (memo ids are positive; `0` does not enable `useMemoById`). */
   function memoIdQueryParamInvalid(raw: string | null): boolean {
     if (raw == null || raw === '') return false
-    return !Number.isFinite(Number(raw))
+    const n = Number(raw)
+    return !Number.isFinite(n) || n <= 0
   }
 
   function applyUrlParamsToStore() {
@@ -112,7 +114,8 @@ export function useTransactionTableFilterUrlSync(): void {
     const raw = sp.get('memoId')
     if (!raw) return null
     const n = Number(raw)
-    return Number.isFinite(n) ? n : null
+    if (!Number.isFinite(n) || n <= 0) return null
+    return n
   }
 
   const memoFromUrl = useMemoById({ memoId: () => memoIdFromUrl() })
@@ -140,7 +143,7 @@ export function useTransactionTableFilterUrlSync(): void {
     else if (transactionsState.selectedWeek) sp.set('week', transactionsState.selectedWeek)
     else if (transactionsState.selectedMonth) sp.set('month', transactionsState.selectedMonth)
     else if (transactionsState.selectedYear) sp.set('year', transactionsState.selectedYear)
-    else if (transactionsState.selectedMemoId != null)
+    else if (transactionsState.selectedMemoId != null && transactionsState.selectedMemoId > 0)
       sp.set('memoId', String(transactionsState.selectedMemoId))
 
     const qs = sp.toString()

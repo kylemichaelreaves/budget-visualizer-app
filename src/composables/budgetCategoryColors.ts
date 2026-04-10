@@ -43,17 +43,18 @@ export function buildBudgetCategoryColorMap(data: BudgetCategorySummary[] | unde
 }
 
 export function budgetCategoryColorsFromData(data: BudgetCategorySummary[] | undefined) {
-  const colorScheme = () => buildBudgetCategoryColorMap(data)
+  /** One map per summary snapshot — do not rebuild inside getColorByName (hot path for many rows). */
+  const map = buildBudgetCategoryColorMap(data)
 
   const getColorByName = (categoryName?: string): string => {
     if (!categoryName) return 'transparent'
-    return colorScheme().get(categoryName) || '#999999'
+    return map.get(categoryName) || '#999999'
   }
 
   const getColorById = (categoryId?: number): string => {
     if (!categoryId) return 'transparent'
-    return colorScheme().get(String(categoryId)) || '#999999'
+    return map.get(String(categoryId)) || '#999999'
   }
 
-  return { getColorByName, getColorById, colorScheme }
+  return { getColorByName, getColorById, colorScheme: () => map }
 }
