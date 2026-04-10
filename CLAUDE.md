@@ -5,9 +5,16 @@
 Always run these before committing or creating a PR:
 
 ```bash
-bun run lint        # eslint
-npx tsc --noEmit    # TypeScript type checking
+bun run lint           # eslint
+bun run format:check   # prettier (or `bun run format` to fix)
+npx tsc --noEmit       # TypeScript type checking
 ```
+
+## Pre-push (enforced + agents)
+
+**Before every `git push`:** run lint and Prettier check. A Husky **pre-push** hook runs `bun run prepush` (`lint` + `format:check`). If it fails, run `bun run format` and fix lint, then push again.
+
+Agents and humans should run the same before pushing, even when hooks are skipped (`--no-verify`).
 
 ## Tech stack
 

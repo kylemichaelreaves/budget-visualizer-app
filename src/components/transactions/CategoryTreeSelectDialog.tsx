@@ -48,10 +48,7 @@ function TreeNodeRow(props: {
               : 'text-foreground'
         }`}
       >
-        <Show
-          when={hasChildren()}
-          fallback={<span class="shrink-0 w-7 h-7" aria-hidden="true" />}
-        >
+        <Show when={hasChildren()} fallback={<span class="shrink-0 w-7 h-7" aria-hidden="true" />}>
           <button
             type="button"
             aria-expanded={isOpen()}
