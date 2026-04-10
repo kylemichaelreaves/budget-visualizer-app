@@ -1,6 +1,7 @@
 import { useInfiniteQuery } from '@tanstack/solid-query'
 import { createMemo } from 'solid-js'
 import { fetchPendingTransactions } from '@api/transactions/fetchPendingTransactions'
+import { memoQuerySliceFromStore } from '@composables/memoQueryFromTransactionsStore'
 import {
   getPendingTransactionsByOffset,
   setPendingTransactionsByOffset,
@@ -14,7 +15,7 @@ export default function usePendingTransactions() {
       [
         'pending-transactions',
         transactionsState.transactionsTableLimit,
-        transactionsState.selectedMemo,
+        memoQuerySliceFromStore().key,
         transactionsState.selectedStatus,
       ] as const,
   )
@@ -27,9 +28,7 @@ export default function usePendingTransactions() {
       const cached = getPendingTransactionsByOffset(page)
       if (cached.length > 0) return cached
 
-      const memoValue = transactionsState.selectedMemo
-      const isMemoId = memoValue && !Number.isNaN(Number(memoValue))
-      const memoParam = memoValue ? (isMemoId ? { memoId: Number(memoValue) } : { memoName: memoValue }) : {}
+      const { params: memoParam } = memoQuerySliceFromStore()
 
       const rows = (await fetchPendingTransactions({
         limit: transactionsState.transactionsTableLimit,

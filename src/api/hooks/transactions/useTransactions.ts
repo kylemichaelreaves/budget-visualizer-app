@@ -1,6 +1,7 @@
 import { useInfiniteQuery } from '@tanstack/solid-query'
 import { createMemo } from 'solid-js'
 import { fetchTransactions } from '@api/transactions/fetchTransactions'
+import { memoQuerySliceFromStore } from '@composables/memoQueryFromTransactionsStore'
 import { transactionsState } from '@stores/transactionsStore'
 import useTimeframeTypeAndValue from '@api/hooks/timeUnits/useTimeframeTypeAndValue'
 import type { Transaction } from '@types'
@@ -14,13 +15,13 @@ export default function useTransactions() {
       [
         'transactions',
         transactionsState.transactionsTableLimit,
-        transactionsState.selectedMemo,
+        memoQuerySliceFromStore().key,
         timeFrame(),
         selectedValue(),
       ] as const,
   )
 
-  devConsole('log', '[useTransactions] selectedMemo:', transactionsState.selectedMemo)
+  devConsole('log', '[useTransactions] memo query key:', memoQuerySliceFromStore().key)
 
   return useInfiniteQuery(() => ({
     queryKey: queryKey(),
@@ -28,16 +29,7 @@ export default function useTransactions() {
     queryFn: async ({ pageParam }) => {
       const page = Number(pageParam)
 
-      const memoValue = transactionsState.selectedMemo
-      const isMemoId = memoValue && !Number.isNaN(Number(memoValue))
-      let memoParam: { memoId?: number; memoName?: string } = {}
-      if (memoValue) {
-        if (isMemoId) {
-          memoParam = { memoId: Number(memoValue) }
-        } else {
-          memoParam = { memoName: memoValue }
-        }
-      }
+      const { params: memoParam } = memoQuerySliceFromStore()
 
       const rows = (await fetchTransactions({
         limit: transactionsState.transactionsTableLimit,

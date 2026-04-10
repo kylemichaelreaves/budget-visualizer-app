@@ -13,7 +13,14 @@ import {
 } from '@stores/transactionsStore'
 
 /** Query keys written by `syncUrlFromStore`; keep in sync with filter UI. */
-export const TRANSACTION_TABLE_FILTER_URL_PARAMS = ['day', 'week', 'month', 'year', 'memoId'] as const
+export const TRANSACTION_TABLE_FILTER_URL_PARAMS = [
+  'day',
+  'week',
+  'month',
+  'year',
+  'memoId',
+  'memoName',
+] as const
 
 function isBareTransactionsRoute(pathname: string): boolean {
   return /\/transactions\/?$/.test(pathname)
@@ -79,6 +86,7 @@ export function useTransactionTableFilterUrlSync(): void {
     const month = sp.get('month')
     const year = sp.get('year')
     const memoIdParam = sp.get('memoId')
+    const memoNameParam = (sp.get('memoName') ?? '').trim()
 
     hydratingFromUrl = true
     try {
@@ -98,7 +106,12 @@ export function useTransactionTableFilterUrlSync(): void {
         selectYearView(year)
         return
       }
-      if ((!memoIdParam || memoIdParam === '') && isBareTransactionsRoute(loc.pathname)) {
+      const hasMemoId = memoIdParam != null && memoIdParam !== ''
+      if (memoNameParam && !hasMemoId) {
+        selectMemoView(memoNameParam, null)
+        return
+      }
+      if (!hasMemoId && !memoNameParam && isBareTransactionsRoute(loc.pathname)) {
         clearAllFilters()
       }
     } finally {
@@ -170,6 +183,10 @@ export function useTransactionTableFilterUrlSync(): void {
     else if (transactionsState.selectedYear) sp.set('year', transactionsState.selectedYear)
     else if (transactionsState.selectedMemoId != null && transactionsState.selectedMemoId > 0)
       sp.set('memoId', String(transactionsState.selectedMemoId))
+    else if (transactionsState.viewMode === 'memo') {
+      const name = transactionsState.selectedMemo.trim()
+      if (name) sp.set('memoName', name)
+    }
 
     const qs = sp.toString()
     const nextSearch = qs ? `?${qs}` : ''
@@ -194,6 +211,8 @@ export function useTransactionTableFilterUrlSync(): void {
         transactionsState.selectedMonth,
         transactionsState.selectedYear,
         transactionsState.selectedMemoId,
+        transactionsState.selectedMemo,
+        transactionsState.viewMode,
       ],
       () => syncUrlFromStore(),
       { defer: true },

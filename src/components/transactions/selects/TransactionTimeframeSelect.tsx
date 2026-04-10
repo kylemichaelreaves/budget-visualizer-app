@@ -27,12 +27,12 @@ export type TransactionTimeframeSelectProps<T> = {
   clearButtonTestId: string
 }
 
-function InlineSelectClear(props: { testId: string; onClick: () => void }): JSX.Element {
+function InlineSelectClear(props: { testId: string; ariaLabel: string; onClick: () => void }): JSX.Element {
   return (
     <button
       type="button"
       class="absolute right-2 top-1/2 -translate-y-1/2 flex items-center justify-center size-4 rounded-full text-muted-foreground hover:text-foreground cursor-pointer z-10"
-      aria-label="Clear"
+      aria-label={props.ariaLabel}
       data-testid={props.testId}
       onClick={(e) => {
         e.preventDefault()
@@ -95,7 +95,11 @@ export default function TransactionTimeframeSelect<T>(
           </For>
         </select>
         <Show when={props.selectedValue()}>
-          <InlineSelectClear testId={props.clearButtonTestId} onClick={props.onClearFilters} />
+          <InlineSelectClear
+            testId={props.clearButtonTestId}
+            ariaLabel={`Clear ${props.label}`}
+            onClick={props.onClearFilters}
+          />
         </Show>
       </div>
     </label>

@@ -46,7 +46,7 @@ export default function DailyIntervalLineChart(props: {
     if (transactionsState.selectedYear) {
       return `${transactionsState.selectedYear}-12-31`
     }
-    if (transactionsState.selectedMemo) {
+    if (transactionsState.viewMode === 'memo') {
       return DateTime.now().toISODate()
     }
     // After clearing a filter, show nothing

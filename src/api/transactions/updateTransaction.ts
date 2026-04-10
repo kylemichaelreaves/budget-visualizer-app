@@ -31,7 +31,8 @@ export async function updateTransaction(transaction: TransactionPatch): Promise<
 
       if (frontendKey === 'memo_id') {
         if (!Object.prototype.hasOwnProperty.call(src, 'memo_id')) continue
-        body[backendKey] = val == null ? null : val
+        if (val === undefined) continue
+        body[backendKey] = val === null ? null : val
         continue
       }
 

@@ -7,7 +7,7 @@ export function memoQuerySliceFromStore(): {
 } {
   const memoId = transactionsState.selectedMemoId
   const memoName = transactionsState.selectedMemo.trim()
-  if (memoId != null) return { key: `id:${memoId}`, params: { memoId } }
+  if (memoId != null && memoId > 0) return { key: `id:${memoId}`, params: { memoId } }
   if (memoName) return { key: `name:${memoName}`, params: { memoName } }
   return { key: '', params: {} }
 }
