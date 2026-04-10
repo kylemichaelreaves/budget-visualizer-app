@@ -198,11 +198,15 @@ export function selectMemoView(memo: string, memoId?: number | null): void {
   })
 }
 
-/** Memo filter from `memoId` URL param before the memo record loads — keeps `selectedMemoId` in sync for query keys. */
+/** Memo filter from `memoId` URL param before the memo record loads — id for query keys; string id in `selectedMemo` so list/pending hooks that still read `selectedMemo` filter correctly until the name hydrates. */
 export function selectMemoFilterByIdOnly(memoId: number): void {
   batch(() => {
     clearAllSelections()
-    setTransactionsState({ selectedMemo: '', selectedMemoId: memoId, viewMode: 'memo' })
+    setTransactionsState({
+      selectedMemo: String(memoId),
+      selectedMemoId: memoId,
+      viewMode: 'memo',
+    })
   })
 }
 
@@ -233,7 +237,7 @@ export function applyMemoSummaryRoute(memoId: string): void {
   batch(() => {
     clearAllSelections()
     if (valid) {
-      setTransactionsState({ selectedMemoId: n, viewMode: 'memo' })
+      setTransactionsState({ selectedMemo: String(n), selectedMemoId: n, viewMode: 'memo' })
     } else {
       setTransactionsState({ selectedMemoId: null, viewMode: null })
     }
