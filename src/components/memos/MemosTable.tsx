@@ -195,6 +195,17 @@ export default function MemosTable(): JSX.Element {
   const countQuery = useMemosCount()
   const queryClient = useQueryClient()
 
+  /** One `fetchNextPage` at a time so search prefetch and pagination cannot overlap. */
+  let fetchNextPageQueue: Promise<unknown> = Promise.resolve()
+  function enqueueFetchNextPage() {
+    const next = fetchNextPageQueue.then(() => query.fetchNextPage())
+    fetchNextPageQueue = next.then(
+      () => undefined,
+      () => undefined,
+    )
+    return next
+  }
+
   const LIMIT = () => transactionsState.memosTableLimit
 
   const [searchQuery, setSearchQuery] = createSignal('')
@@ -276,7 +287,7 @@ export default function MemosTable(): JSX.Element {
               let pages = 0
               while (!cancelled && query.hasNextPage && pages < MEMOS_SEARCH_PREFETCH_MAX_PAGES) {
                 if (searchQuery().trim() !== q) return
-                await query.fetchNextPage()
+                await enqueueFetchNextPage()
                 pages += 1
               }
             } catch (e) {
@@ -298,7 +309,7 @@ export default function MemosTable(): JSX.Element {
       if (!searchQuery().trim()) {
         const requiredFlat = page * limit
         while (flattenedData().length < requiredFlat && query.hasNextPage) {
-          await query.fetchNextPage()
+          await enqueueFetchNextPage()
         }
         return
       }
@@ -310,7 +321,7 @@ export default function MemosTable(): JSX.Element {
         query.hasNextPage &&
         searchFetchIters < MEMOS_SEARCH_PREFETCH_MAX_PAGES
       ) {
-        await query.fetchNextPage()
+        await enqueueFetchNextPage()
         searchFetchIters += 1
       }
     } catch (e) {

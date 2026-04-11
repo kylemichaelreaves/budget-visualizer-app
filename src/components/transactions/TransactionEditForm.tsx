@@ -1,5 +1,5 @@
 import type { JSX } from 'solid-js'
-import { batch, createEffect, createMemo, untrack } from 'solid-js'
+import { batch, createEffect, createMemo, Show, untrack } from 'solid-js'
 import { createStore, reconcile, unwrap } from 'solid-js/store'
 import { useQueryClient } from '@tanstack/solid-query'
 import type {
@@ -38,6 +38,23 @@ function initBudgetState(txn: Transaction): BudgetCategoryState {
 function getBudgetCategory(state: BudgetCategoryState): string | SplitBudgetCategory[] | null {
   if (state.mode === 'single') return state.categoryId
   return state.splits
+}
+
+function mutationAlertFromError(err: unknown): { title: string; message: string } {
+  if (err instanceof Error) {
+    return {
+      title: err.name?.trim() || 'Error',
+      message: err.message?.trim() || 'Failed to save transaction',
+    }
+  }
+  if (err != null && typeof err === 'object' && 'message' in err) {
+    const msg = (err as { message?: unknown }).message
+    if (typeof msg === 'string' && msg.trim()) {
+      return { title: 'Error', message: msg.trim() }
+    }
+  }
+  const s = err == null ? '' : String(err)
+  return { title: 'Error', message: s.trim() || 'Failed to save transaction' }
 }
 
 export default function TransactionEditForm(props: {
@@ -130,14 +147,24 @@ export default function TransactionEditForm(props: {
 
   return (
     <form data-testid={tid()} aria-label="Transaction Edit Form" class="text-foreground space-y-3">
-      {activeMut().isError && activeMut().error ? (
-        <AlertComponent
-          type="error"
-          title={(activeMut().error as Error).name || 'Error'}
-          message={(activeMut().error as Error).message || 'Failed to save transaction'}
-          dataTestId={`${tid()}-error-alert`}
-        />
-      ) : null}
+      <Show
+        when={() => {
+          const m = activeMut()
+          return m.isError && m.error != null ? m.error : false
+        }}
+      >
+        {(err) => {
+          const { title, message } = mutationAlertFromError(err())
+          return (
+            <AlertComponent
+              type="error"
+              title={title}
+              message={message}
+              dataTestId={`${tid()}-error-alert`}
+            />
+          )
+        }}
+      </Show>
       <Field label="Id" test={`${tid()}-id`}>
         <Input id={`field-${tid()}-id`} value={tx.id ?? ''} disabled />
       </Field>
