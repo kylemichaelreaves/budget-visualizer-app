@@ -11,6 +11,16 @@ import { Input } from '@components/ui/input'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@components/ui/card'
 import type { CategoryNode } from '@types'
 
+/** Stable `data-testid` segment from category path (`node.value`); avoids duplicate/unsafe IDs from labels. */
+function categoryPathTestIdSlug(pathValue: string): string {
+  const s = pathValue.replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_+|_+$/g, '')
+  return s || 'root'
+}
+
+function categoryTreeTestId(prefix: string, pathValue: string): string {
+  return `${prefix}-${categoryPathTestIdSlug(pathValue)}`
+}
+
 // ---------------------------------------------------------------------------
 // Icons (inline SVGs matching existing codebase patterns)
 // ---------------------------------------------------------------------------
@@ -285,7 +295,6 @@ function TreeNode(props: {
   const pad = () => Math.min(props.depth, 12) * 20
 
   const [expanded, setExpanded] = createSignal(true)
-  const [hovered, setHovered] = createSignal(false)
   const [renaming, setRenaming] = createSignal(false)
   const [renameValue, setRenameValue] = createSignal('')
   const [addingChild, setAddingChild] = createSignal(false)
@@ -334,9 +343,7 @@ function TreeNode(props: {
       <div
         class="flex items-center gap-1 rounded-md px-1.5 py-1 transition-colors hover:bg-accent/50 group"
         style={{ 'padding-left': `${pad() + 6}px` }}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-        data-testid={`tree-row-${props.node.label}`}
+        data-testid={categoryTreeTestId('tree-row', props.node.value)}
       >
         {/* Expand / collapse toggle or leaf dot */}
         <Show
@@ -352,7 +359,7 @@ function TreeNode(props: {
             class="flex items-center justify-center size-5 shrink-0 rounded hover:bg-accent text-muted-foreground transition-colors cursor-pointer"
             onClick={() => setExpanded((prev) => !prev)}
             aria-label={expanded() ? 'Collapse' : 'Expand'}
-            data-testid={`tree-toggle-${props.node.label}`}
+            data-testid={categoryTreeTestId('tree-toggle', props.node.value)}
           >
             <Show when={expanded()} fallback={<ChevronRightIcon class="size-3.5" />}>
               <ChevronDownIcon class="size-3.5" />
@@ -406,11 +413,11 @@ function TreeNode(props: {
           </span>
         </Show>
 
-        {/* Action buttons (visible on hover, hidden during rename) */}
-        <Show when={hovered() && !renaming() && !isMutating()}>
+        {/* Action buttons: always in DOM for keyboard/AT; shown via row hover or focus-within */}
+        <Show when={!renaming() && !isMutating()}>
           <div
-            class="flex items-center gap-0.5 shrink-0 ml-auto"
-            data-testid={`tree-actions-${props.node.label}`}
+            class="ml-auto flex shrink-0 items-center gap-0.5 opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto"
+            data-testid={categoryTreeTestId('tree-actions', props.node.value)}
           >
             <Button
               variant="ghost"
@@ -418,7 +425,7 @@ function TreeNode(props: {
               class="size-7 text-muted-foreground hover:text-foreground"
               onClick={() => setAddingChild(true)}
               aria-label={`Add child to ${props.node.label}`}
-              data-testid={`add-child-${props.node.label}`}
+              data-testid={categoryTreeTestId('add-child', props.node.value)}
             >
               <PlusIcon class="size-3.5" />
             </Button>
@@ -428,7 +435,7 @@ function TreeNode(props: {
               class="size-7 text-muted-foreground hover:text-foreground"
               onClick={startRename}
               aria-label={`Rename ${props.node.label}`}
-              data-testid={`rename-${props.node.label}`}
+              data-testid={categoryTreeTestId('rename', props.node.value)}
             >
               <PencilIcon class="size-3.5" />
             </Button>
@@ -438,7 +445,7 @@ function TreeNode(props: {
               class="size-7 text-destructive hover:text-destructive"
               onClick={() => void handleDelete()}
               aria-label={`Delete ${props.node.label}`}
-              data-testid={`delete-${props.node.label}`}
+              data-testid={categoryTreeTestId('delete', props.node.value)}
             >
               <TrashIcon class="size-3.5" />
             </Button>
@@ -453,7 +460,7 @@ function TreeNode(props: {
             placeholder={`New subcategory of ${props.node.label}...`}
             onSubmit={(name) => handleAddChild(name)}
             onCancel={() => setAddingChild(false)}
-            data-testid={`add-child-form-${props.node.label}`}
+            data-testid={categoryTreeTestId('add-child-form', props.node.value)}
           />
         </div>
       </Show>

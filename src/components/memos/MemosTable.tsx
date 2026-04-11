@@ -7,7 +7,6 @@ import useMemosCount from '@api/hooks/memos/useMemosCount'
 import { httpClient } from '@api/httpClient'
 import AlertComponent from '@components/shared/AlertComponent'
 import TableSkeleton from '@components/shared/TableSkeleton'
-import { Badge } from '@components/ui/badge'
 import { Button } from '@components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 import { Input } from '@components/ui/input'
@@ -20,6 +19,8 @@ import MemosTablePagination from './MemosTablePagination'
 
 /** Debounce before prefetching all pages for client search (reduces request bursts while typing). */
 const MEMOS_SEARCH_PREFETCH_DEBOUNCE_MS = 400
+/** Cap background fetches for client-side search so huge datasets cannot unbounded-prefetch. */
+const MEMOS_SEARCH_PREFETCH_MAX_PAGES = 48
 
 // --- Inline SVG Icons ---
 
@@ -272,9 +273,11 @@ export default function MemosTable(): JSX.Element {
           if (cancelled) return
           void (async () => {
             try {
-              while (!cancelled && query.hasNextPage) {
+              let pages = 0
+              while (!cancelled && query.hasNextPage && pages < MEMOS_SEARCH_PREFETCH_MAX_PAGES) {
                 if (searchQuery().trim() !== q) return
                 await query.fetchNextPage()
+                pages += 1
               }
             } catch (e) {
               devConsole('error', 'MemosTable search prefetch failed', e)
@@ -301,8 +304,14 @@ export default function MemosTable(): JSX.Element {
       }
 
       // Client-side search: keep loading pages until the filtered slice can fill the current page or data is exhausted.
-      while (filteredData().length < end && query.hasNextPage) {
+      let searchFetchIters = 0
+      while (
+        filteredData().length < end &&
+        query.hasNextPage &&
+        searchFetchIters < MEMOS_SEARCH_PREFETCH_MAX_PAGES
+      ) {
         await query.fetchNextPage()
+        searchFetchIters += 1
       }
     } catch (e) {
       devConsole('error', 'MemosTable loadMorePagesIfNeeded failed', e)
@@ -483,15 +492,16 @@ export default function MemosTable(): JSX.Element {
                   <tr class="border-b border-border">
                     <For each={sortableColumns}>
                       {(col) => (
-                        <th
-                          class="px-3 py-2.5 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider cursor-pointer select-none hover:text-foreground transition-colors"
-                          data-testid={`column-${col.key}`}
-                          onClick={() => handleSort(col.key)}
-                        >
-                          <div class="flex items-center gap-1">
+                        <th class="px-3 py-2.5 text-left" scope="col" data-testid={`column-${col.key}`}>
+                          <button
+                            type="button"
+                            class="flex w-full min-w-0 items-center gap-1 rounded-sm text-left text-xs font-medium uppercase tracking-wider text-muted-foreground cursor-pointer select-none border-none bg-transparent p-0 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                            onClick={() => handleSort(col.key)}
+                            aria-label={`Sort by ${col.label}`}
+                          >
                             {col.label}
                             <SortIcon columnKey={col.key} />
-                          </div>
+                          </button>
                         </th>
                       )}
                     </For>
@@ -566,13 +576,14 @@ export default function MemosTable(): JSX.Element {
                                 </Button>
                               }
                             >
-                              <Badge
-                                class={`cursor-pointer rounded-full px-2.5 py-0.5 text-xs font-medium border-0 ${getCategoryColor(row.budget_category!)}`}
+                              <button
+                                type="button"
+                                class={`inline-flex cursor-pointer items-center rounded-full border-0 px-2.5 py-0.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${getCategoryColor(row.budget_category!)}`}
                                 onClick={() => handleAssignCategory(row)}
                                 data-testid={`category-badge-${row.id}`}
                               >
                                 {row.budget_category}
-                              </Badge>
+                              </button>
                             </Show>
                           </Show>
                         </td>
