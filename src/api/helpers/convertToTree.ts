@@ -1,5 +1,8 @@
 import type { Categories, CategoryNode } from '@types'
 
+/** Joins parent path and category name in `value`; must not appear inside a single segment (validated in UI). */
+export const BUDGET_CATEGORY_PATH_DELIMITER = ' - '
+
 /**
  * convertToTree: converts the nested categories object into a tree of CategoryNodes.
  * This function handles the actual structure returned by the API: a nested object where
@@ -13,7 +16,9 @@ import type { Categories, CategoryNode } from '@types'
 export function convertToTree(categories: Categories, parentPath: string = ''): CategoryNode[] {
   return Object.keys(categories).map((categoryName) => {
     // Create a unique value path for this category
-    const currentPath = parentPath ? `${parentPath} - ${categoryName}` : categoryName
+    const currentPath = parentPath
+      ? `${parentPath}${BUDGET_CATEGORY_PATH_DELIMITER}${categoryName}`
+      : categoryName
 
     const subcategories = categories[categoryName]
 

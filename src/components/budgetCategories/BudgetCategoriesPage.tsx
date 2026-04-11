@@ -2,7 +2,7 @@ import type { JSX } from 'solid-js'
 import { For, Show, createMemo, createSignal } from 'solid-js'
 import { useQueryClient } from '@tanstack/solid-query'
 import { extractBudgetCategoriesData } from '@api/helpers/extractBudgetCategoriesData'
-import { convertToTree } from '@api/helpers/convertToTree'
+import { BUDGET_CATEGORY_PATH_DELIMITER, convertToTree } from '@api/helpers/convertToTree'
 import { useBudgetCategories } from '@api/hooks/budgetCategories/useBudgetCategories'
 import { httpClient } from '@api/httpClient'
 import AlertComponent from '@components/shared/AlertComponent'
@@ -20,9 +20,6 @@ function categoryPathTestIdSlug(pathValue: string): string {
 function categoryTreeTestId(prefix: string, pathValue: string): string {
   return `${prefix}-${categoryPathTestIdSlug(pathValue)}`
 }
-
-/** Same literal as `convertToTree` uses to join parent and child; must not appear inside a single segment name. */
-const BUDGET_CATEGORY_PATH_DELIMITER = ' - '
 
 function budgetCategorySegmentValidationError(trimmed: string): string | null {
   if (!trimmed.includes(BUDGET_CATEGORY_PATH_DELIMITER)) return null

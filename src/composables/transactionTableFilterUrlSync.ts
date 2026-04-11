@@ -55,9 +55,10 @@ export function useTransactionTableFilterUrlSync(): void {
   /** Skip the next URL→store pass — it only reflects `syncUrlFromStore`’s own `navigate`, not a real navigation. */
   let skipOneUrlToStoreApply = false
 
-  /** Reject NaN, non-positive IDs (memo ids are positive; `0` does not enable `useMemoById`). */
+  /** Reject empty, NaN, non-positive IDs (`?memoId=` is meaningless; absent param is `null`). */
   function memoIdQueryParamInvalid(raw: string | null): boolean {
-    if (raw == null || raw === '') return false
+    if (raw == null) return false
+    if (raw === '') return true
     const n = Number(raw)
     return !Number.isFinite(n) || n <= 0
   }
