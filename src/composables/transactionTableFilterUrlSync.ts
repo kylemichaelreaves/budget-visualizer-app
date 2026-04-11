@@ -103,6 +103,16 @@ export function useTransactionTableFilterUrlSync(): void {
     const memoIdRaw = sp.get('memoId')
     if (memoIdQueryParamInvalid(memoIdRaw)) {
       sp.delete('memoId')
+      const hasTimeframe = !!(sp.get('day') || sp.get('week') || sp.get('month') || sp.get('year'))
+      const memoNameLeft = (sp.get('memoName') ?? '').trim()
+      if (!hasTimeframe && !memoNameLeft && isBareTransactionsRoute(loc.pathname)) {
+        hydratingFromUrl = true
+        try {
+          clearAllFilters()
+        } finally {
+          hydratingFromUrl = false
+        }
+      }
       const qs = sp.toString()
       pushingStoreToUrl = true
       try {
