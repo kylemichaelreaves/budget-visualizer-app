@@ -35,8 +35,8 @@ function initBudgetState(txn: Transaction): BudgetCategoryState {
   }
 }
 
-function getBudgetCategory(state: BudgetCategoryState): string | SplitBudgetCategory[] | undefined {
-  if (state.mode === 'single') return state.categoryId ?? undefined
+function getBudgetCategory(state: BudgetCategoryState): string | SplitBudgetCategory[] | null {
+  if (state.mode === 'single') return state.categoryId
   return state.splits
 }
 

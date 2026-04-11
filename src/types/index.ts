@@ -264,7 +264,8 @@ export type Transaction = {
   balance?: string
   check_number?: string
   fees?: string
-  budget_category?: string | SplitBudgetCategory[]
+  /** `null` in a PATCH clears a single-category assignment (see `updateTransaction`). */
+  budget_category?: string | SplitBudgetCategory[] | null
   is_split?: boolean
 }
 
@@ -279,7 +280,7 @@ export type PendingTransaction = {
   amount_debit: string
   transaction_date: string
   memo_name: string
-  assigned_category?: string | SplitBudgetCategory[]
+  assigned_category?: string | SplitBudgetCategory[] | null
   status: PendingTransactionStatus
 }
 

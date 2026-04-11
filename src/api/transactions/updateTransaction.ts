@@ -36,12 +36,14 @@ export async function updateTransaction(transaction: TransactionPatch): Promise<
         continue
       }
 
-      if (val == null) continue
-
       if (frontendKey === 'budget_category') {
+        if (!Object.prototype.hasOwnProperty.call(src, 'budget_category')) continue
+        if (val === undefined) continue
         body[backendKey] = val
         continue
       }
+
+      if (val == null) continue
 
       if (frontendKey === 'is_split') {
         body[backendKey] = Boolean(val)
