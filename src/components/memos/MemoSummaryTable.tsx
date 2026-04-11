@@ -3,7 +3,7 @@ import type { JSX } from 'solid-js'
 import { createEffect, createMemo, createSignal, For, on, Show } from 'solid-js'
 import { useQueryClient } from '@tanstack/solid-query'
 import { formatDate } from '@api/helpers/formatDate'
-import { httpClient } from '@api/httpClient'
+import { updateMemo } from '@api/memos/updateMemo'
 import { devConsole } from '@utils/devConsole'
 import { useMemoById } from '@api/hooks/memos/useMemoById'
 import useMemoSummary from '@api/hooks/memos/useMemoSummary'
@@ -305,10 +305,7 @@ export default function MemoSummaryTable(): JSX.Element {
     setPatchError(null)
     setSaving(true)
     try {
-      await httpClient.patch(`/memos/${m.id}`, {
-        name: m.name,
-        ...fields,
-      })
+      await updateMemo(Object.assign({ id: m.id, name: m.name }, fields) as Parameters<typeof updateMemo>[0])
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['memo'] }),
         queryClient.invalidateQueries({ queryKey: ['memo-summary'] }),

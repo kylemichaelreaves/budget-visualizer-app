@@ -328,7 +328,7 @@ function TreeNode(props: {
   const [addingChild, setAddingChild] = createSignal(false)
 
   const isMutating = () => props.mutatingPaths.has(props.node.value)
-  const pathSegments = () => props.node.value.split(' - ')
+  const pathSegments = () => props.node.value.split(BUDGET_CATEGORY_PATH_DELIMITER)
 
   // Rename handlers
   const startRename = () => {

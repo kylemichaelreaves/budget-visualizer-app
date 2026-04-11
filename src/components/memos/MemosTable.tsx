@@ -4,7 +4,7 @@ import { createEffect, createMemo, createSignal, For, on, onCleanup, Show } from
 import { useQueryClient } from '@tanstack/solid-query'
 import useMemos from '@api/hooks/memos/useMemos'
 import useMemosCount from '@api/hooks/memos/useMemosCount'
-import { httpClient } from '@api/httpClient'
+import { updateMemo } from '@api/memos/updateMemo'
 import AlertComponent from '@components/shared/AlertComponent'
 import TableSkeleton from '@components/shared/TableSkeleton'
 import { Button } from '@components/ui/button'
@@ -360,7 +360,8 @@ export default function MemosTable(): JSX.Element {
     setTableMutationError(null)
     setTogglingAmbiguousId(memo.id)
     try {
-      await httpClient.patch(`/memos/${memo.id}`, {
+      await updateMemo({
+        id: memo.id,
         name: memo.name,
         ambiguous: !memo.ambiguous,
       })
@@ -389,10 +390,11 @@ export default function MemosTable(): JSX.Element {
     setTableMutationError(null)
     setMutatingCategoryId(target.id)
     try {
-      await httpClient.patch(`/memos/${target.id}`, {
+      await updateMemo({
+        id: target.id,
         name: target.name,
         budgetCategory: category,
-      })
+      } as Parameters<typeof updateMemo>[0])
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['memos'] }),
         queryClient.invalidateQueries({ queryKey: ['transactions'] }),

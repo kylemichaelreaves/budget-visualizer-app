@@ -47,7 +47,7 @@ export default function TransactionsTable() {
   const [categoryDialogTarget, setCategoryDialogTarget] = createSignal<import('@types').Transaction | null>(
     null,
   )
-  const [mutatingCategoryId, setMutatingCategoryId] = createSignal<number | null>(null)
+  const [mutatingTransactionId, setMutatingTransactionId] = createSignal<number | null>(null)
   const [categoryAssignError, setCategoryAssignError] = createSignal<string | null>(null)
 
   function openCategoryDialog(row: import('@types').Transaction) {
@@ -60,7 +60,7 @@ export default function TransactionsTable() {
     const target = categoryDialogTarget()
     if (!target || target.id == null) return
     setCategoryAssignError(null)
-    setMutatingCategoryId(target.id)
+    setMutatingTransactionId(target.id)
     mutation.mutate(
       { transaction: { id: target.id, budget_category: category } },
       {
@@ -70,11 +70,11 @@ export default function TransactionsTable() {
             queryClient.invalidateQueries({ queryKey: ['budget-category-summary'] }),
             queryClient.invalidateQueries({ queryKey: ['historical-summary-for-budget-category'] }),
           ])
-          setMutatingCategoryId(null)
+          setMutatingTransactionId(null)
           setCategoryAssignError(null)
         },
         onError: (err) => {
-          setMutatingCategoryId(null)
+          setMutatingTransactionId(null)
           const msg = err instanceof Error ? err.message : String(err)
           setCategoryAssignError(msg)
           setCategoryDialogOpen(true)
@@ -344,7 +344,7 @@ export default function TransactionsTable() {
                       <div class="flex items-center justify-center flex-wrap gap-1.5 min-w-0">
                         <Show when={!isCredit} fallback={null}>
                           <Show
-                            when={mutatingCategoryId() !== row.id}
+                            when={mutatingTransactionId() !== row.id}
                             fallback={<Skeleton class="h-6 w-24 rounded-full" />}
                           >
                             <Show
