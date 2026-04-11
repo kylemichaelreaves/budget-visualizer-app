@@ -419,7 +419,7 @@ function TreeNode(props: {
                   onKeyDown={handleRenameKeyDown}
                   autofocus
                   class="h-7 text-sm flex-1 min-w-[80px]"
-                  data-testid="rename-input"
+                  data-testid={categoryTreeTestId('rename-input', props.node.value)}
                 />
                 <Button
                   variant="ghost"
@@ -428,7 +428,7 @@ function TreeNode(props: {
                   disabled={!renameValue().trim()}
                   onClick={() => void confirmRename()}
                   aria-label="Confirm rename"
-                  data-testid="rename-confirm"
+                  data-testid={categoryTreeTestId('rename-confirm', props.node.value)}
                 >
                   <CheckIcon class="size-3.5" />
                 </Button>
@@ -441,14 +441,18 @@ function TreeNode(props: {
                     setRenaming(false)
                   }}
                   aria-label="Cancel rename"
-                  data-testid="rename-cancel"
+                  data-testid={categoryTreeTestId('rename-cancel', props.node.value)}
                 >
                   <XIcon class="size-3.5" />
                 </Button>
               </div>
               <Show when={renameError()}>
                 {(msg) => (
-                  <p class="text-destructive text-xs m-0" role="alert" data-testid="rename-validation-error">
+                  <p
+                    class="text-destructive text-xs m-0"
+                    role="alert"
+                    data-testid={categoryTreeTestId('rename-validation-error', props.node.value)}
+                  >
                     {msg()}
                   </p>
                 )}
@@ -562,7 +566,8 @@ export default function BudgetCategoriesPage(): JSX.Element {
   const visibleTree = createMemo(() => filterTree(tree(), filter()))
 
   const handleMutate = async (op: BudgetCategoryOperation) => {
-    const pathKey = op.operation === 'add' ? [...op.path, op.name].join(' - ') : op.path.join(' - ')
+    /** For `add`, lock the parent row (`node.value`); for rename/delete, the target row. */
+    const pathKey = op.path.join(BUDGET_CATEGORY_PATH_DELIMITER)
 
     setError(null)
     setMutatingPaths((prev) => {
