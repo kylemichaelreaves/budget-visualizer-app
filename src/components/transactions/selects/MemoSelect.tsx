@@ -101,7 +101,6 @@ export default function MemoSelect(props: {
         onClear={() => {
           setSearchQuery('')
           setPendingCb(null)
-          props.onChange('')
         }}
         onSearch={(query, callback) => {
           setSearchQuery(query)
