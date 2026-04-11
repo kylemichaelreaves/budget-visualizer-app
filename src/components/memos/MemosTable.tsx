@@ -3,6 +3,7 @@ import type { JSX } from 'solid-js'
 import { createEffect, createMemo, createSignal, For, on, onCleanup, Show } from 'solid-js'
 import { useQueryClient } from '@tanstack/solid-query'
 import useMemos from '@api/hooks/memos/useMemos'
+import useMemosCount from '@api/hooks/memos/useMemosCount'
 import { httpClient } from '@api/httpClient'
 import AlertComponent from '@components/shared/AlertComponent'
 import TableSkeleton from '@components/shared/TableSkeleton'
@@ -190,6 +191,7 @@ function compareMemos(a: Memo, b: Memo, key: SortKey, dir: SortDir): number {
 
 export default function MemosTable(): JSX.Element {
   const query = useMemos()
+  const countQuery = useMemosCount()
   const queryClient = useQueryClient()
 
   const LIMIT = () => transactionsState.memosTableLimit
@@ -230,6 +232,22 @@ export default function MemosTable(): JSX.Element {
 
   const totalMemos = createMemo(() => filteredData().length)
   const ambiguousCount = createMemo(() => filteredData().filter((m) => m.ambiguous).length)
+
+  /** Server total when not searching; matches pagination. Search uses client-filtered rows. */
+  const headerUniqueTotal = createMemo(() => {
+    if (searchQuery().trim()) return totalMemos()
+    if (countQuery.data !== undefined) return countQuery.data
+    if (countQuery.isError) return flattenedData().length
+    return null
+  })
+
+  /** Ambiguous: full filtered set when searching; otherwise only rows fetched so far. */
+  const headerAmbiguousCount = createMemo(() => {
+    if (searchQuery().trim()) return ambiguousCount()
+    return flattenedData().filter((m) => m.ambiguous).length
+  })
+
+  const headerAmbiguousPartial = () => !searchQuery().trim() && query.hasNextPage
 
   const isInitialLoading = () => query.isLoading || (query.isFetching && !query.data?.pages?.length)
 
@@ -408,10 +426,23 @@ export default function MemosTable(): JSX.Element {
       <div class="mb-4">
         <h2 class="text-foreground mt-0 text-2xl font-semibold">Memos</h2>
         <p class="text-muted-foreground text-sm">
-          {totalMemos()} unique memos
-          <Show when={ambiguousCount() > 0}>
+          <Show when={headerUniqueTotal() != null} fallback={<span>Loading memo totals…</span>}>
+            <span>
+              {headerUniqueTotal()} unique memos
+              <Show when={searchQuery().trim()}>
+                <span class="text-muted-foreground font-normal"> (search results)</span>
+              </Show>
+            </span>
+          </Show>
+          <Show when={headerAmbiguousCount() > 0}>
             {' '}
-            <span class="text-amber-600 dark:text-amber-400 font-medium">({ambiguousCount()} ambiguous)</span>
+            <span class="text-amber-600 dark:text-amber-400 font-medium">
+              ({headerAmbiguousCount()} ambiguous
+              <Show when={headerAmbiguousPartial()}>
+                <span class="font-normal text-muted-foreground"> — loaded pages only</span>
+              </Show>
+              )
+            </span>
           </Show>
         </p>
       </div>
