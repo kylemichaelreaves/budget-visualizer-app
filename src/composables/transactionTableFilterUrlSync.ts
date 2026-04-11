@@ -20,6 +20,8 @@ export const TRANSACTION_TABLE_FILTER_URL_PARAMS = [
   'year',
   'memoId',
   'memoName',
+  /** Legacy alias; migrated to `memoId` or `memoName` and dropped from the URL. */
+  'memo',
 ] as const
 
 function isBareTransactionsRoute(pathname: string): boolean {
@@ -68,6 +70,36 @@ export function useTransactionTableFilterUrlSync(): void {
     }
 
     const sp = new URLSearchParams(loc.search)
+
+    /** Legacy `?memo=` deep links → canonical `memoId` / `memoName`; strip `memo` so it does not linger. */
+    const legacyMemoParam = sp.get('memo')
+    if (legacyMemoParam !== null) {
+      sp.delete('memo')
+      const hasTimeframe = !!(sp.get('day') || sp.get('week') || sp.get('month') || sp.get('year'))
+      const existingMemoId = sp.get('memoId')
+      const hasMemoId = existingMemoId != null && existingMemoId !== ''
+      const existingMemoName = (sp.get('memoName') ?? '').trim()
+      if (!hasTimeframe && !hasMemoId && !existingMemoName) {
+        const t = legacyMemoParam.trim()
+        if (t) {
+          const n = Number(t)
+          if (Number.isFinite(n) && n > 0 && String(n) === t) sp.set('memoId', String(n))
+          else sp.set('memoName', t)
+        }
+      }
+      const nextQs = sp.toString()
+      const curQs = (loc.search ?? '').replace(/^\?/, '')
+      if (nextQs !== curQs) {
+        pushingStoreToUrl = true
+        try {
+          navigate(`${loc.pathname}${nextQs ? `?${nextQs}` : ''}`, { replace: true })
+        } finally {
+          pushingStoreToUrl = false
+        }
+        return
+      }
+    }
+
     const memoIdRaw = sp.get('memoId')
     if (memoIdQueryParamInvalid(memoIdRaw)) {
       sp.delete('memoId')

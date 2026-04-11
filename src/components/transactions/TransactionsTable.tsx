@@ -48,8 +48,10 @@ export default function TransactionsTable() {
     null,
   )
   const [mutatingCategoryId, setMutatingCategoryId] = createSignal<number | null>(null)
+  const [categoryAssignError, setCategoryAssignError] = createSignal<string | null>(null)
 
   function openCategoryDialog(row: import('@types').Transaction) {
+    setCategoryAssignError(null)
     setCategoryDialogTarget(row)
     setCategoryDialogOpen(true)
   }
@@ -57,6 +59,7 @@ export default function TransactionsTable() {
   function handleCategorySelect(category: string) {
     const target = categoryDialogTarget()
     if (!target || target.id == null) return
+    setCategoryAssignError(null)
     setMutatingCategoryId(target.id)
     mutation.mutate(
       { transaction: { id: target.id, budget_category: category } },
@@ -68,9 +71,13 @@ export default function TransactionsTable() {
             queryClient.invalidateQueries({ queryKey: ['historical-summary-for-budget-category'] }),
           ])
           setMutatingCategoryId(null)
+          setCategoryAssignError(null)
         },
-        onError: () => {
+        onError: (err) => {
           setMutatingCategoryId(null)
+          const msg = err instanceof Error ? err.message : String(err)
+          setCategoryAssignError(msg)
+          setCategoryDialogOpen(true)
         },
       },
     )
@@ -174,6 +181,18 @@ export default function TransactionsTable() {
             title={(err() as Error).name}
             message={(err() as Error).message}
             dataTestId="transactions-table-error-alert"
+          />
+        )}
+      </Show>
+
+      <Show when={categoryAssignError()}>
+        {(msg) => (
+          <AlertComponent
+            type="error"
+            title="Could not assign category"
+            message={msg()}
+            dataTestId="transactions-table-category-assign-error"
+            close={() => setCategoryAssignError(null)}
           />
         )}
       </Show>
