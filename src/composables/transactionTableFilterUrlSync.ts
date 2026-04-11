@@ -197,6 +197,13 @@ export function useTransactionTableFilterUrlSync(): void {
       (memo) => {
         if (urlHasTimeframeParam()) return
         if (memo?.name) {
+          if (
+            transactionsState.viewMode === 'memo' &&
+            transactionsState.selectedMemoId === memo.id &&
+            transactionsState.selectedMemo === memo.name
+          ) {
+            return
+          }
           selectMemoView(memo.name, memo.id)
         }
       },

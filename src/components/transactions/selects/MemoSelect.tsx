@@ -61,8 +61,13 @@ export default function MemoSelect(props: {
     const idFromOpt = parseMemoOptionValue(raw)
     if (idFromOpt != null) {
       const m = memos.find((x) => x.id === idFromOpt)
-      const name = m?.name?.trim() ?? ''
-      props.onChange(name || raw, idFromOpt)
+      if (m) {
+        const name = m.name?.trim() ?? ''
+        props.onChange(name || String(idFromOpt), idFromOpt)
+      } else {
+        // Avoid persisting internal `m:id` when results no longer include that memo
+        props.onChange(String(idFromOpt), idFromOpt)
+      }
       return
     }
     const trimmed = raw.trim()

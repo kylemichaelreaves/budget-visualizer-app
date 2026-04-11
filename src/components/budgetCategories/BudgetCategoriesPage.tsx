@@ -21,6 +21,14 @@ function categoryTreeTestId(prefix: string, pathValue: string): string {
   return `${prefix}-${categoryPathTestIdSlug(pathValue)}`
 }
 
+/** Same literal as `convertToTree` uses to join parent and child; must not appear inside a single segment name. */
+const BUDGET_CATEGORY_PATH_DELIMITER = ' - '
+
+function budgetCategorySegmentValidationError(trimmed: string): string | null {
+  if (!trimmed.includes(BUDGET_CATEGORY_PATH_DELIMITER)) return null
+  return `Category names cannot contain "${BUDGET_CATEGORY_PATH_DELIMITER}" (that sequence is reserved between path levels).`
+}
+
 // ---------------------------------------------------------------------------
 // Icons (inline SVGs matching existing codebase patterns)
 // ---------------------------------------------------------------------------
@@ -217,10 +225,17 @@ function InlineAddForm(props: {
 }): JSX.Element {
   const [name, setName] = createSignal('')
   const [submitting, setSubmitting] = createSignal(false)
+  const [segmentError, setSegmentError] = createSignal<string | null>(null)
 
   const handleSubmit = async () => {
     const trimmed = name().trim()
     if (!trimmed || submitting()) return
+    const err = budgetCategorySegmentValidationError(trimmed)
+    if (err) {
+      setSegmentError(err)
+      return
+    }
+    setSegmentError(null)
     setSubmitting(true)
     try {
       await props.onSubmit(trimmed)
@@ -243,39 +258,51 @@ function InlineAddForm(props: {
   }
 
   return (
-    <div class="flex items-center gap-1.5 py-1" data-testid={props['data-testid']}>
-      <Input
-        type="text"
-        placeholder={props.placeholder}
-        value={name()}
-        onInput={(e) => setName(e.currentTarget.value)}
-        onKeyDown={handleKeyDown}
-        disabled={submitting()}
-        autofocus
-        class="h-7 text-sm flex-1 min-w-[120px]"
-        data-testid={fieldTestId('input')}
-      />
-      <Button
-        variant="ghost"
-        size="icon"
-        class="size-7 text-green-600 hover:text-green-700"
-        disabled={!name().trim() || submitting()}
-        onClick={() => void handleSubmit()}
-        aria-label="Confirm add"
-        data-testid={fieldTestId('confirm')}
-      >
-        <CheckIcon class="size-3.5" />
-      </Button>
-      <Button
-        variant="ghost"
-        size="icon"
-        class="size-7 text-muted-foreground hover:text-foreground"
-        onClick={props.onCancel}
-        aria-label="Cancel add"
-        data-testid={fieldTestId('cancel')}
-      >
-        <XIcon class="size-3.5" />
-      </Button>
+    <div class="flex flex-col gap-1 py-1 min-w-0" data-testid={props['data-testid']}>
+      <div class="flex items-center gap-1.5">
+        <Input
+          type="text"
+          placeholder={props.placeholder}
+          value={name()}
+          onInput={(e) => {
+            setName(e.currentTarget.value)
+            setSegmentError(null)
+          }}
+          onKeyDown={handleKeyDown}
+          disabled={submitting()}
+          autofocus
+          class="h-7 text-sm flex-1 min-w-[120px]"
+          data-testid={fieldTestId('input')}
+        />
+        <Button
+          variant="ghost"
+          size="icon"
+          class="size-7 text-green-600 hover:text-green-700"
+          disabled={!name().trim() || submitting()}
+          onClick={() => void handleSubmit()}
+          aria-label="Confirm add"
+          data-testid={fieldTestId('confirm')}
+        >
+          <CheckIcon class="size-3.5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          class="size-7 text-muted-foreground hover:text-foreground"
+          onClick={props.onCancel}
+          aria-label="Cancel add"
+          data-testid={fieldTestId('cancel')}
+        >
+          <XIcon class="size-3.5" />
+        </Button>
+      </div>
+      <Show when={segmentError()}>
+        {(msg) => (
+          <p class="text-destructive text-xs m-0" role="alert" data-testid={fieldTestId('validation-error')}>
+            {msg()}
+          </p>
+        )}
+      </Show>
     </div>
   )
 }
@@ -297,6 +324,7 @@ function TreeNode(props: {
   const [expanded, setExpanded] = createSignal(true)
   const [renaming, setRenaming] = createSignal(false)
   const [renameValue, setRenameValue] = createSignal('')
+  const [renameError, setRenameError] = createSignal<string | null>(null)
   const [addingChild, setAddingChild] = createSignal(false)
 
   const isMutating = () => props.mutatingPaths.has(props.node.value)
@@ -305,6 +333,7 @@ function TreeNode(props: {
   // Rename handlers
   const startRename = () => {
     setRenameValue(props.node.label)
+    setRenameError(null)
     setRenaming(true)
   }
 
@@ -314,6 +343,12 @@ function TreeNode(props: {
       setRenaming(false)
       return
     }
+    const err = budgetCategorySegmentValidationError(newName)
+    if (err) {
+      setRenameError(err)
+      return
+    }
+    setRenameError(null)
     await props.onMutate({ operation: 'rename', path: pathSegments(), newName })
     setRenaming(false)
   }
@@ -322,6 +357,7 @@ function TreeNode(props: {
     if (e.key === 'Enter') {
       void confirmRename()
     } else if (e.key === 'Escape') {
+      setRenameError(null)
       setRenaming(false)
     }
   }
@@ -371,37 +407,52 @@ function TreeNode(props: {
         <Show
           when={!renaming()}
           fallback={
-            <div class="flex items-center gap-1 flex-1 min-w-0">
-              <Input
-                type="text"
-                value={renameValue()}
-                onInput={(e) => setRenameValue(e.currentTarget.value)}
-                onKeyDown={handleRenameKeyDown}
-                autofocus
-                class="h-7 text-sm flex-1 min-w-[80px]"
-                data-testid="rename-input"
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                class="size-7 text-green-600 hover:text-green-700"
-                disabled={!renameValue().trim()}
-                onClick={() => void confirmRename()}
-                aria-label="Confirm rename"
-                data-testid="rename-confirm"
-              >
-                <CheckIcon class="size-3.5" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="icon"
-                class="size-7 text-muted-foreground hover:text-foreground"
-                onClick={() => setRenaming(false)}
-                aria-label="Cancel rename"
-                data-testid="rename-cancel"
-              >
-                <XIcon class="size-3.5" />
-              </Button>
+            <div class="flex flex-col gap-1 flex-1 min-w-0">
+              <div class="flex items-center gap-1">
+                <Input
+                  type="text"
+                  value={renameValue()}
+                  onInput={(e) => {
+                    setRenameValue(e.currentTarget.value)
+                    setRenameError(null)
+                  }}
+                  onKeyDown={handleRenameKeyDown}
+                  autofocus
+                  class="h-7 text-sm flex-1 min-w-[80px]"
+                  data-testid="rename-input"
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  class="size-7 text-green-600 hover:text-green-700"
+                  disabled={!renameValue().trim()}
+                  onClick={() => void confirmRename()}
+                  aria-label="Confirm rename"
+                  data-testid="rename-confirm"
+                >
+                  <CheckIcon class="size-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  class="size-7 text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    setRenameError(null)
+                    setRenaming(false)
+                  }}
+                  aria-label="Cancel rename"
+                  data-testid="rename-cancel"
+                >
+                  <XIcon class="size-3.5" />
+                </Button>
+              </div>
+              <Show when={renameError()}>
+                {(msg) => (
+                  <p class="text-destructive text-xs m-0" role="alert" data-testid="rename-validation-error">
+                    {msg()}
+                  </p>
+                )}
+              </Show>
             </div>
           }
         >
