@@ -394,7 +394,7 @@ export default function MemosTable(): JSX.Element {
         id: target.id,
         name: target.name,
         budgetCategory: category,
-      } as Parameters<typeof updateMemo>[0])
+      })
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['memos'] }),
         queryClient.invalidateQueries({ queryKey: ['transactions'] }),

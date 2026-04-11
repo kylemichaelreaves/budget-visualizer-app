@@ -14,7 +14,7 @@ import { setSelectedMemo } from '@stores/transactionsStore'
 import { Badge } from '@components/ui/badge'
 import { Button } from '@components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
-import type { Frequency } from '@types'
+import type { Frequency, MemoPatchFields } from '@types'
 
 // ── Inline SVG icons ──────────────────────────────────────────────────
 
@@ -299,13 +299,13 @@ export default function MemoSummaryTable(): JSX.Element {
 
   // ── Mutations ───────────────────────────────────────────────────────
 
-  async function patchMemo(fields: Record<string, unknown>) {
+  async function patchMemo(fields: MemoPatchFields) {
     const m = memo()
     if (!m) return
     setPatchError(null)
     setSaving(true)
     try {
-      await updateMemo(Object.assign({ id: m.id, name: m.name }, fields) as Parameters<typeof updateMemo>[0])
+      await updateMemo({ id: m.id, name: m.name, ...fields })
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['memo'] }),
         queryClient.invalidateQueries({ queryKey: ['memo-summary'] }),

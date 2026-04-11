@@ -152,6 +152,21 @@ export interface Memo {
   avatar_s3_url?: string
 }
 
+/**
+ * PATCH `/memos/:id` body (camelCase). `updateMemo` requires `id` and `name`; other fields are optional updates.
+ */
+export type MemoUpdateInput = {
+  id: number
+  name: string
+  budgetCategory?: string | null
+  ambiguous?: boolean
+  recurring?: boolean
+  necessary?: boolean
+  frequency?: Frequency | null
+}
+
+export type MemoPatchFields = Partial<Omit<MemoUpdateInput, 'id' | 'name'>>
+
 export interface MemoSummary {
   sum_amount_debit: number
   transactions_count: number

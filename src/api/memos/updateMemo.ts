@@ -1,8 +1,8 @@
-import type { Memo } from '@types'
+import type { Memo, MemoUpdateInput } from '@types'
 import { httpClient } from '@api/httpClient.ts'
 import { devConsole } from '@utils/devConsole'
 
-export async function updateMemo(memo: Partial<Memo> & { id: number }): Promise<Memo> {
+export async function updateMemo(memo: MemoUpdateInput): Promise<Memo> {
   if (!memo.id) {
     throw new Error('Memo ID is required for updates')
   }

@@ -21,7 +21,7 @@ export default function useTransactionsCount(status?: () => PendingTransactionSt
       queryKey: ['transactions-count', st ?? 'regular', tf, date, memoKey],
       queryFn: async () => {
         const params = st
-          ? { status: st }
+          ? { status: st, ...memoParam }
           : { ...memoParam, ...(hasTimeframe ? { timeFrame: tf, date } : {}) }
         const data = await fetchTransactionsCount(params)
         const count = Number(data[0]?.count ?? 0)
