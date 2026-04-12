@@ -128,7 +128,10 @@ export default function TransactionsTable() {
     return defaultMonthForCharts()
   })
 
-  const categorySummaryQuery = useBudgetCategorySummary(chartTimeFrame, chartDate)
+  const categorySummaryQuery = useBudgetCategorySummary(
+    () => chartTimeFrame(),
+    () => chartDate(),
+  )
 
   const categoryColors = createMemo(() => {
     const data = categorySummaryQuery.data as import('@types').BudgetCategorySummary[] | undefined
