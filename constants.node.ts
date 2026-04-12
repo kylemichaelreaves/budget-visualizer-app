@@ -4,10 +4,9 @@
 export const ROUTE_ALIASES: string[] = [
   'api',
   'charts',
-  'composables',
-  'constants',
   'components',
   'composables',
+  'constants',
   'main',
   'mocks',
   'shared',

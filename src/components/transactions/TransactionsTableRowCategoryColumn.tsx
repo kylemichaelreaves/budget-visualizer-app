@@ -6,6 +6,7 @@ import { budgetCategoryColorsFromData } from '@composables/budgetCategoryColors'
 import { Badge } from '@components/ui/badge'
 import { Skeleton } from '@components/ui/skeleton'
 import { TransactionTagIcon } from '@shared/icons'
+import { formatUsd } from '@utils/formatUsd'
 
 type CategoryColorHelpers = ReturnType<typeof budgetCategoryColorsFromData>
 
@@ -86,7 +87,7 @@ export default function TransactionsTableRowCategoryColumn(props: {
                     })()}
                   >
                     <span>{split.budget_category_id}</span>
-                    <span class="text-muted-foreground">${Number(split.amount_debit).toFixed(2)}</span>
+                    <span class="text-muted-foreground">{formatUsd(split.amount_debit)}</span>
                   </span>
                 )}
               </For>
