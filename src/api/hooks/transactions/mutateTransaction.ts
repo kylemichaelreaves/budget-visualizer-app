@@ -9,8 +9,8 @@ export default function mutateTransaction() {
   return useMutation(() => ({
     mutationKey: mutationKeys.mutateTransaction,
     mutationFn: async ({ transaction }: { transaction: TransactionPatch }) => updateTransaction(transaction),
-    onSuccess: async (_data, variables) => {
-      await invalidateAfterTransactionUpdate(queryClient, { transactionId: variables.transaction.id ?? null })
+    onSuccess: (_data, variables) => {
+      void invalidateAfterTransactionUpdate(queryClient, { transactionId: variables.transaction.id ?? null })
     },
   }))
 }

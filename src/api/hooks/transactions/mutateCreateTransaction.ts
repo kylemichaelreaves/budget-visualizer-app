@@ -9,8 +9,8 @@ export default function mutateCreateTransaction() {
   return useMutation(() => ({
     mutationKey: mutationKeys.createTransaction,
     mutationFn: (transaction: Transaction) => createTransaction(transaction),
-    onSuccess: async () => {
-      await invalidateAfterTransactionCreate(queryClient)
+    onSuccess: () => {
+      void invalidateAfterTransactionCreate(queryClient)
     },
   }))
 }
