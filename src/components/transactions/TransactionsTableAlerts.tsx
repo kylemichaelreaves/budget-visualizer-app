@@ -10,7 +10,7 @@ export default function TransactionsTableAlerts(props: {
 }) {
   return (
     <>
-      <Show when={() => (props.queryIsError() ? props.queryError() : false)}>
+      <Show when={props.queryIsError() && props.queryError()}>
         {(err) => {
           const e = err() as unknown
           const error = e instanceof Error ? e : new Error(String(e))

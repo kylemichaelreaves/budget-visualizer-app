@@ -28,7 +28,7 @@ export default function MemoSummaryTransactionsCard(props: {
         <CardTitle class="text-lg">Transactions</CardTitle>
       </CardHeader>
       <CardContent>
-        <Show when={() => (props.txIsError() ? props.txError() : false)}>
+        <Show when={props.txIsError() && props.txError()}>
           {(err) => {
             const e = err() as unknown
             const error = e instanceof Error ? e : new Error(String(e))
