@@ -15,7 +15,7 @@ export async function updateMemo(memo: MemoUpdateInput): Promise<Memo> {
   try {
     const response = await httpClient.patch(
       `/memos/${memo.id}`,
-      toApiPayload(Object.fromEntries(Object.entries(memo)), memoFieldMapping),
+      toApiPayload(memo as Record<string, unknown>, memoFieldMapping),
     )
 
     // Your lambda returns { success: true, memo: {...}, message: "..." }

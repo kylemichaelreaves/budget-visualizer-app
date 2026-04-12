@@ -19,7 +19,7 @@ test.describe('Memo category assignment', () => {
     await expect(memosPage.categoryTreeSelectDialog).toBeVisible({ timeout: 5_000 })
 
     // Click a leaf category in the tree
-    await page.getByRole('option', { name: /Groceries/ }).click()
+    await page.getByRole('button', { name: /Groceries/ }).click()
 
     // Dialog should close after selection
     await expect(memosPage.categoryTreeSelectDialog).toBeHidden({ timeout: 5_000 })
@@ -37,7 +37,7 @@ test.describe('Memo category assignment', () => {
 
     await memosPage.assignCategoryButton(200).click({ timeout: 30_000 })
     await expect(memosPage.categoryTreeSelectDialog).toBeVisible({ timeout: 5_000 })
-    await page.getByRole('option', { name: /Groceries/ }).click()
+    await page.getByRole('button', { name: /Groceries/ }).click()
 
     const patchReq = await patchPromise
     const body = patchReq.postDataJSON()

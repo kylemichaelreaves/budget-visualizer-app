@@ -19,7 +19,7 @@ test.describe('Transaction category assignment', () => {
     await expect(transactionsPage.categoryTreeSelectDialog).toBeVisible({ timeout: 5_000 })
 
     // Click a leaf category in the tree
-    await page.getByRole('option', { name: /Groceries/ }).click()
+    await page.getByRole('button', { name: /Groceries/ }).click()
 
     // Dialog should close and badge should appear on the row
     await expect(transactionsPage.categoryTreeSelectDialog).toBeHidden({ timeout: 5_000 })
@@ -36,7 +36,7 @@ test.describe('Transaction category assignment', () => {
 
     await transactionsPage.assignCategoryButton(100).click({ timeout: 30_000 })
     await expect(transactionsPage.categoryTreeSelectDialog).toBeVisible({ timeout: 5_000 })
-    await page.getByRole('option', { name: /Groceries/ }).click()
+    await page.getByRole('button', { name: /Groceries/ }).click()
 
     const patchReq = await patchPromise
     const body = patchReq.postDataJSON()
