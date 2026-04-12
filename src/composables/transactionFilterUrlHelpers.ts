@@ -24,12 +24,11 @@ export function pathForTransactionFilterSync(pathname: string): string {
   return pathname
 }
 
-/** Reject empty, NaN, non-positive IDs (`?memoId=` is meaningless; absent param is `null`). */
+/** Reject empty, NaN, non-positive, or non-integer IDs (`?memoId=` is meaningless; absent param is `null`). */
 export function memoIdQueryParamInvalid(raw: string | null): boolean {
   if (raw == null) return false
   if (raw === '') return true
-  const n = Number(raw)
-  return !Number.isFinite(n) || n <= 0
+  return !/^\d+$/.test(raw) || Number(raw) <= 0
 }
 
 /**

@@ -34,14 +34,20 @@ export default function TimeframeSummaryTable(props: {
           {props.titleVerb} summary — {props.selectedPeriod()}
         </h3>
         <Show when={props.isError() ? props.error() : undefined}>
-          {(err) => (
-            <AlertComponent
-              type="error"
-              title={(err() as Error).name}
-              message={(err() as Error).message}
-              dataTestId={`${id()}-error`}
-            />
-          )}
+          {(err) => {
+            const value = err()
+            const normalized =
+              value instanceof Error ? value : new Error(typeof value === 'string' ? value : String(value))
+
+            return (
+              <AlertComponent
+                type="error"
+                title={normalized.name}
+                message={normalized.message}
+                dataTestId={`${id()}-error`}
+              />
+            )
+          }}
         </Show>
         <Show when={props.isLoading() || props.isFetching()}>
           <p class="text-muted-foreground">{props.loadingMessage}</p>
