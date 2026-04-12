@@ -219,10 +219,19 @@ export async function installApiMocks(page: Page): Promise<void> {
         return
       }
       if (method === 'GET') {
-        // Return full list only when no timeframe filter is active;
-        // filtered requests return [] to match "no transactions" test expectations.
+        // Filtered requests return [] to match "no transactions" test expectations.
         const hasTimeframeFilter = sp.has('timeFrame') && sp.has('date')
-        await json(route, hasTimeframeFilter ? [] : Object.values(transactions))
+        if (hasTimeframeFilter) {
+          await json(route, [])
+          return
+        }
+        // Filter by memoId when present (memo-scoped views).
+        let rows = Object.values(transactions)
+        const memoId = sp.get('memoId')
+        if (memoId) {
+          rows = rows.filter((t) => String(t.memo_id) === memoId)
+        }
+        await json(route, rows)
         return
       }
     }
