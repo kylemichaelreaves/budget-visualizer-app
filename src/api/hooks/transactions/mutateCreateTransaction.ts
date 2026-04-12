@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/solid-query'
-import { mutationKeys, queryKeys } from '@api/queryKeys'
+import { mutationKeys } from '@api/queryKeys'
+import { invalidateAfterTransactionCreate } from '@api/queryInvalidation'
 import { createTransaction } from '@api/transactions/createTransaction'
 import type { Transaction } from '@types'
 
@@ -9,8 +10,7 @@ export default function mutateCreateTransaction() {
     mutationKey: mutationKeys.createTransaction,
     mutationFn: (transaction: Transaction) => createTransaction(transaction),
     onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: queryKeys.transactions.all })
-      await queryClient.invalidateQueries({ queryKey: queryKeys.transactionsCount.all })
+      await invalidateAfterTransactionCreate(queryClient)
     },
   }))
 }
