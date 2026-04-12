@@ -1,7 +1,7 @@
 import type { Accessor } from 'solid-js'
 import { For, Show } from 'solid-js'
 import { Card, CardContent } from '@components/ui/card'
-import { ArrowDownCircleIcon, ArrowUpCircleIcon, LayoutGridIcon } from '@components/memos/icons'
+import { ArrowDownCircleIcon, ArrowUpCircleIcon, LayoutGridIcon } from '@shared/icons'
 import { MEMO_SUMMARY_FREQUENCY_OPTIONS } from '@components/memos/memoSummaryConstants'
 import { formatUsdAbs } from '@utils/formatUsd'
 

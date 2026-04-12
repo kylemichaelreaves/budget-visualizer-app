@@ -10,6 +10,7 @@ export const ROUTE_ALIASES: string[] = [
   'composables',
   'main',
   'mocks',
+  'shared',
   'stores',
   'test',
   'types',

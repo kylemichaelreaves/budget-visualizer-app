@@ -4,7 +4,7 @@ import { Show } from 'solid-js'
 import type { Memo } from '@types'
 import { Button } from '@components/ui/button'
 import { Skeleton } from '@components/ui/skeleton'
-import { MemosTableCheckIcon, MemosTableWarningIcon } from '@components/memos/icons'
+import { MemosTableCheckIcon, MemosTableWarningIcon } from '@shared/icons'
 import { getMemosTableCategoryColor } from '@components/memos/memosTableSort'
 import { formatUsdOrDash } from '@utils/formatUsd'
 

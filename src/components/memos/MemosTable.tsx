@@ -17,7 +17,7 @@ import {
   MEMOS_SEARCH_PREFETCH_DEBOUNCE_MS,
   MEMOS_SEARCH_PREFETCH_MAX_PAGES,
 } from '@components/memos/memosTableConstants'
-import { MemosTableSearchIcon } from '@components/memos/icons'
+import { MemosTableSearchIcon } from '@shared/icons'
 import {
   compareMemos,
   MEMOS_TABLE_SORTABLE_COLUMNS,

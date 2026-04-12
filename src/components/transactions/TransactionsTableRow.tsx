@@ -5,7 +5,7 @@ import { formatDate } from '@api/helpers/formatDate'
 import type { Transaction } from '@types'
 import { budgetCategoryColorsFromData } from '@composables/budgetCategoryColors'
 import TransactionsTableRowCategoryColumn from '@components/transactions/TransactionsTableRowCategoryColumn'
-import { TrendingDownIcon, TrendingUpIcon } from '@components/icons'
+import { TrendingDownIcon, TrendingUpIcon } from '@shared/icons'
 import { formatUsd } from '@utils/formatUsd'
 
 type CategoryColorHelpers = ReturnType<typeof budgetCategoryColorsFromData>

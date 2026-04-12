@@ -5,7 +5,7 @@ import type { Transaction } from '@types'
 import { budgetCategoryColorsFromData } from '@composables/budgetCategoryColors'
 import { Badge } from '@components/ui/badge'
 import { Skeleton } from '@components/ui/skeleton'
-import { TransactionTagIcon } from '@components/transactions/icons'
+import { TransactionTagIcon } from '@shared/icons'
 
 type CategoryColorHelpers = ReturnType<typeof budgetCategoryColorsFromData>
 

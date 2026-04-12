@@ -4,7 +4,7 @@ import {
   MemosTableChevronDownIcon,
   MemosTableChevronUpDownIcon,
   MemosTableChevronUpIcon,
-} from '@components/memos/icons'
+} from '@shared/icons'
 import type { MemosTableSortDir, MemosTableSortKey } from '@components/memos/memosTableSort'
 
 export default function MemosTableSortIcon(props: {

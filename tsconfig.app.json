@@ -17,7 +17,8 @@
       "@composables/*": ["src/composables/*"],
       "@constants": ["src/constants.ts"],
       "@utils/*": ["src/utils/*"],
-      "@router": ["src/router/index.tsx"]
+      "@router": ["src/router/index.tsx"],
+      "@shared/*": ["src/shared/*"]
     },
 
     /* Bundler mode */

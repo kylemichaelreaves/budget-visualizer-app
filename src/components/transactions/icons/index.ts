@@ -1,1 +1,0 @@
-export { TransactionTagIcon } from './TransactionTagIcon'
