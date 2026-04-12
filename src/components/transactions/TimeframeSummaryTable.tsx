@@ -37,8 +37,8 @@ export default function TimeframeSummaryTable(props: {
           {(err) => (
             <AlertComponent
               type="error"
-              title={(err as Error).name}
-              message={(err as Error).message}
+              title={(err() as Error).name}
+              message={(err() as Error).message}
               dataTestId={`${id()}-error`}
             />
           )}

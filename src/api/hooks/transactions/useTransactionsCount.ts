@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/solid-query'
+import { queryKeys } from '@api/queryKeys'
 import { fetchTransactionsCount } from '@api/transactions/fetchTransactionsCount'
 import { memoQuerySliceFromStore } from '@composables/memoQueryFromTransactionsStore'
 import useTimeframeTypeAndValue from '@api/hooks/timeUnits/useTimeframeTypeAndValue'
@@ -17,7 +18,7 @@ export default function useTransactionsCount(status?: () => PendingTransactionSt
     const date = hasTimeframe ? rawDate : undefined
 
     return {
-      queryKey: ['transactions-count', st ?? 'regular', tf, date, memoKey],
+      queryKey: queryKeys.transactionsCount.detail(st ?? 'regular', tf, date, memoKey),
       queryFn: async () => {
         const params = st
           ? { status: st, ...memoParam }

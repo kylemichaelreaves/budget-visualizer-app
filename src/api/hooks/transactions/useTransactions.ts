@@ -1,4 +1,5 @@
 import { useInfiniteQuery } from '@tanstack/solid-query'
+import { queryKeys } from '@api/queryKeys'
 import { fetchTransactions } from '@api/transactions/fetchTransactions'
 import { memoQuerySliceFromStore } from '@composables/memoQueryFromTransactionsStore'
 import { transactionsState } from '@stores/transactionsStore'
@@ -18,7 +19,7 @@ export default function useTransactions() {
     devConsole('log', '[useTransactions] memo query key:', memoKey)
 
     return {
-      queryKey: ['transactions', limit, memoKey, tf, date] as const,
+      queryKey: queryKeys.transactions.infinite(limit, memoKey, tf, date),
       initialPageParam: 0,
       queryFn: async ({ pageParam }) => {
         const page = Number(pageParam)

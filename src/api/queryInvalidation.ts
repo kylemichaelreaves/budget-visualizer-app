@@ -1,4 +1,5 @@
 import type { QueryClient } from '@tanstack/solid-query'
+import { queryKeys } from '@api/queryKeys'
 
 /** After a regular transaction PATCH (table, edit form, category assign). */
 export async function invalidateAfterTransactionUpdate(
@@ -6,17 +7,17 @@ export async function invalidateAfterTransactionUpdate(
   opts?: { transactionId?: number | null },
 ): Promise<void> {
   const tasks: Promise<unknown>[] = [
-    queryClient.invalidateQueries({ queryKey: ['transactions'] }),
-    queryClient.invalidateQueries({ queryKey: ['transactions-count'] }),
-    queryClient.invalidateQueries({ queryKey: ['budget-category-summary'] }),
-    queryClient.invalidateQueries({ queryKey: ['historical-summary-for-budget-category'] }),
-    queryClient.invalidateQueries({ queryKey: ['memos'] }),
-    queryClient.invalidateQueries({ queryKey: ['memo-transactions'] }),
-    queryClient.invalidateQueries({ queryKey: ['memo-summary'] }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.transactions.all }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.transactionsCount.all }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.budgetCategorySummary.all }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.historicalSummaryForBudgetCategory.all }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.memos.all }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.memoTransactions.all }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.memoSummary.all }),
   ]
   const id = opts?.transactionId
   if (id != null) {
-    tasks.push(queryClient.invalidateQueries({ queryKey: ['transaction', id] }))
+    tasks.push(queryClient.invalidateQueries({ queryKey: queryKeys.transaction.detail(id) }))
   }
   await Promise.all(tasks)
 }
@@ -24,12 +25,12 @@ export async function invalidateAfterTransactionUpdate(
 /** After memo metadata changes (category, flags, name) — keeps transactions in sync. */
 export async function invalidateAfterMemoMutation(queryClient: QueryClient): Promise<void> {
   await Promise.all([
-    queryClient.invalidateQueries({ queryKey: ['memo'] }),
-    queryClient.invalidateQueries({ queryKey: ['memo-summary'] }),
-    queryClient.invalidateQueries({ queryKey: ['memos'] }),
-    queryClient.invalidateQueries({ queryKey: ['memo-transactions'] }),
-    queryClient.invalidateQueries({ queryKey: ['memos-count'] }),
-    queryClient.invalidateQueries({ queryKey: ['transactions'] }),
-    queryClient.invalidateQueries({ queryKey: ['transactions-count'] }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.memo.all }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.memoSummary.all }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.memos.all }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.memoTransactions.all }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.memosCount }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.transactions.all }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.transactionsCount.all }),
   ])
 }

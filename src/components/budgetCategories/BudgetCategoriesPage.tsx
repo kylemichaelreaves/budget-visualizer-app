@@ -1,6 +1,7 @@
 import type { JSX } from 'solid-js'
 import { For, Show, createMemo, createSignal } from 'solid-js'
 import { useQueryClient } from '@tanstack/solid-query'
+import { queryKeys } from '@api/queryKeys'
 import { extractBudgetCategoriesData } from '@api/helpers/extractBudgetCategoriesData'
 import { BUDGET_CATEGORY_PATH_DELIMITER, convertToTree } from '@api/helpers/convertToTree'
 import { useBudgetCategories } from '@api/hooks/budgetCategories/useBudgetCategories'
@@ -594,7 +595,7 @@ export default function BudgetCategoriesPage(): JSX.Element {
 
     try {
       await mutateBudgetCategory(op)
-      await queryClient.invalidateQueries({ queryKey: ['budgetCategories'] })
+      await queryClient.invalidateQueries({ queryKey: queryKeys.budgetCategories.all })
     } catch (err) {
       const message = err instanceof Error ? err.message : 'An unexpected error occurred'
       setError(`Failed to ${op.operation} category: ${message}`)
@@ -665,7 +666,9 @@ export default function BudgetCategoriesPage(): JSX.Element {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => void queryClient.invalidateQueries({ queryKey: ['budgetCategories'] })}
+                onClick={() =>
+                  void queryClient.invalidateQueries({ queryKey: queryKeys.budgetCategories.all })
+                }
                 disabled={q.isLoading || q.isFetching}
                 data-testid="budget-categories-refresh"
               >

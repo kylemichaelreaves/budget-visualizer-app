@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/solid-query'
+import { queryKeys } from '@api/queryKeys'
 import { fetchTransactions } from '@api/transactions/fetchTransactions'
 import type { SummaryTypeBase, Timeframe } from '@types'
 import { memoQuerySliceFromStore } from '@composables/memoQueryFromTransactionsStore'
@@ -11,7 +12,12 @@ export function useHistoricalSummaryForBudgetCategory(
   return useQuery(() => {
     const { key: memoKey, params: memoParams } = memoQuerySliceFromStore()
     return {
-      queryKey: ['historical-summary-for-budget-category', budgetCategory(), timeFrame(), date(), memoKey],
+      queryKey: queryKeys.historicalSummaryForBudgetCategory.detail(
+        budgetCategory(),
+        String(timeFrame()),
+        date(),
+        memoKey,
+      ),
       queryFn: () =>
         fetchTransactions({
           budgetCategory: budgetCategory(),
