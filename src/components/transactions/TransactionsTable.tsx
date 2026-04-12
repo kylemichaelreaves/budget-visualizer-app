@@ -5,7 +5,6 @@ import { formatDate } from '@api/helpers/formatDate'
 import { getPeriodLabel } from '@api/helpers/formatPeriodLabels'
 import { useBudgetCategorySummary } from '@api/hooks/budgetCategories/useBudgetCategorySummary'
 import useTransactions from '@api/hooks/transactions/useTransactions'
-import useSumAmountDebitByDate from '@api/hooks/transactions/useSumAmountDebitByDate'
 import { useQueryClient } from '@tanstack/solid-query'
 import { budgetCategoryColorsFromData } from '@composables/budgetCategoryColors'
 import mutateTransaction from '@api/hooks/transactions/mutateTransaction'
@@ -132,11 +131,6 @@ export default function TransactionsTable() {
     return defaultMonthForCharts()
   })
 
-  const sumDebitQuery = useSumAmountDebitByDate(
-    () => (transactionsState.viewMode ? chartTimeFrame() : ''),
-    () => (transactionsState.viewMode ? chartDate() : ''),
-  )
-
   const categorySummaryQuery = useBudgetCategorySummary(
     () => chartTimeFrame(),
     () => chartDate(),
@@ -201,10 +195,7 @@ export default function TransactionsTable() {
 
       <PeriodHeader />
 
-      <SummaryStatsCards
-        transactions={flattenedData()}
-        debitTotal={sumDebitQuery.data?.[0]?.total_amount_debit}
-      />
+      <SummaryStatsCards transactions={flattenedData()} />
 
       {/* Charts row */}
       <div class="grid gap-6 md:grid-cols-2">
