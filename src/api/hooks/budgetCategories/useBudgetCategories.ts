@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/solid-query'
+import { queryKeys } from '@api/queryKeys'
 import { fetchBudgetCategories } from '@api/budgetCategories/fetchBudgetCategories'
 import type { Timeframe } from '@types'
 
@@ -14,7 +15,7 @@ export function useBudgetCategories(
     const d = date?.()
     const allow = enabled?.() ?? true
     return {
-      queryKey: ['budgetCategories', flatten, tf, d],
+      queryKey: queryKeys.budgetCategories.list(flatten, tf, d),
       queryFn: () => fetchBudgetCategories(flatten, tf, d),
       refetchOnWindowFocus: false,
       enabled: allow && (!d || d.trim() !== ''),

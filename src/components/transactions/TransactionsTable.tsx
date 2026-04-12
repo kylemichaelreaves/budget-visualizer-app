@@ -1,7 +1,6 @@
 import { A } from '@solidjs/router'
 import { DateTime } from 'luxon'
 import { createEffect, createMemo, createSignal, For, on, Show } from 'solid-js'
-import { useQueryClient } from '@tanstack/solid-query'
 import { formatDate } from '@api/helpers/formatDate'
 import { getPeriodLabel } from '@api/helpers/formatPeriodLabels'
 import { useBudgetCategorySummary } from '@api/hooks/budgetCategories/useBudgetCategorySummary'
@@ -40,7 +39,6 @@ function getSelectedValue(): string {
 
 export default function TransactionsTable() {
   const query = useTransactions()
-  const queryClient = useQueryClient()
   const mutation = mutateTransaction()
 
   const [categoryDialogOpen, setCategoryDialogOpen] = createSignal(false)
@@ -65,11 +63,6 @@ export default function TransactionsTable() {
       { transaction: { id: target.id, budget_category: category } },
       {
         onSuccess: async () => {
-          await Promise.all([
-            queryClient.invalidateQueries({ queryKey: ['transactions'] }),
-            queryClient.invalidateQueries({ queryKey: ['budget-category-summary'] }),
-            queryClient.invalidateQueries({ queryKey: ['historical-summary-for-budget-category'] }),
-          ])
           setMutatingTransactionId(null)
           setCategoryAssignError(null)
         },

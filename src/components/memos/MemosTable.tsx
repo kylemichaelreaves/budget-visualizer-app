@@ -2,6 +2,7 @@ import { A } from '@solidjs/router'
 import type { JSX } from 'solid-js'
 import { createEffect, createMemo, createSignal, For, on, onCleanup, Show } from 'solid-js'
 import { useQueryClient } from '@tanstack/solid-query'
+import { invalidateAfterMemoMutation } from '@api/queryInvalidation'
 import useMemos from '@api/hooks/memos/useMemos'
 import useMemosCount from '@api/hooks/memos/useMemosCount'
 import { updateMemo } from '@api/memos/updateMemo'
@@ -376,7 +377,7 @@ export default function MemosTable(): JSX.Element {
         name: memo.name,
         ambiguous: !memo.ambiguous,
       })
-      await queryClient.invalidateQueries({ queryKey: ['memos'] })
+      await invalidateAfterMemoMutation(queryClient)
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Could not update memo'
       setTableMutationError(msg)
@@ -406,10 +407,7 @@ export default function MemosTable(): JSX.Element {
         name: target.name,
         budgetCategory: category,
       })
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['memos'] }),
-        queryClient.invalidateQueries({ queryKey: ['transactions'] }),
-      ])
+      await invalidateAfterMemoMutation(queryClient)
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Could not assign category'
       setTableMutationError(msg)

@@ -2,6 +2,7 @@ import type { JSX } from 'solid-js'
 import { batch, createEffect, createMemo, Show, untrack } from 'solid-js'
 import { createStore, reconcile, unwrap } from 'solid-js/store'
 import { useQueryClient } from '@tanstack/solid-query'
+import { queryKeys } from '@api/queryKeys'
 import type {
   BudgetCategoryState,
   PendingTransaction,
@@ -116,7 +117,7 @@ export default function TransactionEditForm(props: {
         },
         {
           onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: ['pending-transactions'] })
+            await queryClient.invalidateQueries({ queryKey: queryKeys.pendingTransactions.all })
             props.onClose()
           },
         },
@@ -134,8 +135,6 @@ export default function TransactionEditForm(props: {
         { transaction: patch },
         {
           onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: ['transactions'] })
-            await queryClient.invalidateQueries({ queryKey: ['transaction', tx.id] })
             props.onClose()
           },
         },

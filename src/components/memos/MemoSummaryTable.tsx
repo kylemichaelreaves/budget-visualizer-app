@@ -3,6 +3,7 @@ import type { JSX } from 'solid-js'
 import { createEffect, createMemo, createSignal, For, on, Show } from 'solid-js'
 import { useQueryClient } from '@tanstack/solid-query'
 import { formatDate } from '@api/helpers/formatDate'
+import { invalidateAfterMemoMutation } from '@api/queryInvalidation'
 import { updateMemo } from '@api/memos/updateMemo'
 import { devConsole } from '@utils/devConsole'
 import { useMemoById } from '@api/hooks/memos/useMemoById'
@@ -309,14 +310,7 @@ export default function MemoSummaryTable(): JSX.Element {
     setSaving(true)
     try {
       await updateMemo({ id: m.id, name: m.name, ...fields })
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['memo'] }),
-        queryClient.invalidateQueries({ queryKey: ['memo-summary'] }),
-        queryClient.invalidateQueries({ queryKey: ['memos'] }),
-        queryClient.invalidateQueries({ queryKey: ['memo-transactions'] }),
-        queryClient.invalidateQueries({ queryKey: ['memos-count'] }),
-        queryClient.invalidateQueries({ queryKey: ['transactions'] }),
-      ])
+      await invalidateAfterMemoMutation(queryClient)
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Update failed'
       setPatchError(msg)

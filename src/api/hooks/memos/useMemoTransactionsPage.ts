@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/solid-query'
+import { queryKeys } from '@api/queryKeys'
 import { fetchMemoTransactions } from '@api/memos/fetchMemoTransactions'
 
 export default function useMemoTransactionsPage(
@@ -7,7 +8,7 @@ export default function useMemoTransactionsPage(
   offset: () => number,
 ) {
   return useQuery(() => ({
-    queryKey: ['memo-transactions', memoId(), limit(), offset()],
+    queryKey: queryKeys.memoTransactions.page(memoId(), limit(), offset()),
     queryFn: () =>
       fetchMemoTransactions(memoId()!, {
         limit: limit(),

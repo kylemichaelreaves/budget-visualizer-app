@@ -1,4 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/solid-query'
+import { queryKeys } from '@api/queryKeys'
 import { updatePendingTransaction } from '@api/transactions/updatePendingTransaction'
 import { clearPendingTransactionsByOffset } from '@stores/transactionsStore'
 import type { PendingTransaction } from '@types'
@@ -19,7 +20,10 @@ export default function mutatePendingTransaction() {
     onSuccess: async () => {
       devConsole('log', '[mutatePendingTransaction] success, invalidate pending queries')
       clearPendingTransactionsByOffset()
-      await queryClient.invalidateQueries({ queryKey: ['pending-transactions'], refetchType: 'active' })
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.pendingTransactions.all,
+        refetchType: 'active',
+      })
     },
   }))
 }

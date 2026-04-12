@@ -1,4 +1,5 @@
 import { useInfiniteQuery } from '@tanstack/solid-query'
+import { queryKeys } from '@api/queryKeys'
 import { fetchPendingTransactions } from '@api/transactions/fetchPendingTransactions'
 import { memoQuerySliceFromStore } from '@composables/memoQueryFromTransactionsStore'
 import { transactionsState } from '@stores/transactionsStore'
@@ -11,7 +12,7 @@ export default function usePendingTransactions() {
     const status = transactionsState.selectedStatus
 
     return {
-      queryKey: ['pending-transactions', limit, memoKey, status] as const,
+      queryKey: queryKeys.pendingTransactions.list(limit, memoKey, status),
       initialPageParam: 0,
       queryFn: async ({ pageParam }) => {
         const page = Number(pageParam)
