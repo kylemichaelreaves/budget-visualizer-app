@@ -3,7 +3,6 @@ import useTransactionsCount from '@api/hooks/transactions/useTransactionsCount'
 import AlertComponent from '@components/shared/AlertComponent'
 import { Button } from '@components/ui/button'
 import {
-  setTransactionsCount,
   setTransactionsTableLimit,
   transactionsState,
   updateTransactionsTableOffset,
@@ -16,10 +15,6 @@ export default function TransactionsTablePagination(props: { status?: PendingTra
   onMount(() => {
     void countQuery.refetch()
     updateTransactionsTableOffset(0)
-    const d = countQuery.data
-    if (d !== undefined) {
-      setTransactionsCount(d)
-    }
   })
 
   const currentPage = () =>

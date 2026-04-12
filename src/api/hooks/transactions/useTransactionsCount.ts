@@ -1,7 +1,6 @@
 import { useQuery } from '@tanstack/solid-query'
 import { fetchTransactionsCount } from '@api/transactions/fetchTransactionsCount'
 import { memoQuerySliceFromStore } from '@composables/memoQueryFromTransactionsStore'
-import { setTransactionsCount } from '@stores/transactionsStore'
 import useTimeframeTypeAndValue from '@api/hooks/timeUnits/useTimeframeTypeAndValue'
 import type { PendingTransactionStatus } from '@types'
 
@@ -24,9 +23,7 @@ export default function useTransactionsCount(status?: () => PendingTransactionSt
           ? { status: st, ...memoParam }
           : { ...memoParam, ...(hasTimeframe ? { timeFrame: tf, date } : {}) }
         const data = await fetchTransactionsCount(params)
-        const count = Number(data[0]?.count ?? 0)
-        setTransactionsCount(count)
-        return count
+        return Number(data[0]?.count ?? 0)
       },
       refetchOnWindowFocus: false,
       // Query key already includes timeframe/date/memo; avoid refetch churn on remount/navigation.

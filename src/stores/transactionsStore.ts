@@ -5,8 +5,6 @@ import type {
   Memo,
   MonthYear,
   PendingTransaction,
-  SummaryTypeBase,
-  Summaries,
   Transaction,
   ViewMode,
   WeekYear,
@@ -33,11 +31,6 @@ export type TransactionsState = {
   memos: Memo[]
   years: Year[]
   descriptions: string[]
-  OFSummaries: SummaryTypeBase[]
-  MJSummaries: SummaryTypeBase[]
-  daysSummaries: Summaries[]
-  weeksSummaries: Summaries[]
-  monthsSummaries: Summaries[]
   transactionsCurrentPage: number
   transactionsPageSize: number
   filter: Record<string, string>
@@ -48,7 +41,6 @@ export type TransactionsState = {
   transactionsTableLimit: number
   transactionsTableOffset: number
   transactions: Transaction[]
-  transactionsCount: number
   memosCount: number
   pendingTransactionsByOffset: Record<number, PendingTransaction[]>
   pendingTransactionsCount: number
@@ -74,11 +66,6 @@ const initial: TransactionsState = {
   memos: [],
   years: [],
   descriptions: [],
-  OFSummaries: [],
-  MJSummaries: [],
-  daysSummaries: [],
-  weeksSummaries: [],
-  monthsSummaries: [],
   transactionsCurrentPage: 1,
   transactionsPageSize: 100,
   filter: {},
@@ -89,7 +76,6 @@ const initial: TransactionsState = {
   transactionsTableLimit: 100,
   transactionsTableOffset: 0,
   transactions: [],
-  transactionsCount: 0,
   memosCount: 0,
   pendingTransactionsByOffset: {},
   pendingTransactionsCount: 0,
@@ -280,9 +266,6 @@ export function setSelectedYear(year: string): void {
 }
 export function setMonths(monthsArray: MonthYear[]): void {
   setTransactionsState('months', monthsArray)
-}
-export function setTransactionsCount(count: number): void {
-  setTransactionsState('transactionsCount', count)
 }
 export function setTransactionsTableLimit(limit: number): void {
   setTransactionsState('transactionsTableLimit', limit)

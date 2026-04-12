@@ -134,8 +134,6 @@ export default function TransactionEditForm(props: {
         { transaction: patch },
         {
           onSuccess: async () => {
-            await queryClient.invalidateQueries({ queryKey: ['transactions'] })
-            await queryClient.invalidateQueries({ queryKey: ['transaction', tx.id] })
             props.onClose()
           },
         },
