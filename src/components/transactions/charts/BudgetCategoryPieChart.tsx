@@ -4,10 +4,7 @@ import * as d3 from 'd3'
 import type { BudgetCategorySummary } from '@types'
 import { buildBudgetCategoryColorMap } from '@composables/budgetCategoryColors'
 import { Skeleton } from '@components/ui/skeleton'
-
-function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)
-}
+import { formatUsd } from '@utils/formatUsd'
 
 export default function BudgetCategoryPieChart(props: {
   data: BudgetCategorySummary[]
@@ -92,7 +89,7 @@ export default function BudgetCategoryPieChart(props: {
           strong.textContent = d.data.category_name
           tooltip.appendChild(strong)
           tooltip.appendChild(document.createElement('br'))
-          tooltip.appendChild(document.createTextNode(formatCurrency(Math.abs(d.data.total_amount_debit))))
+          tooltip.appendChild(document.createTextNode(formatUsd(Math.abs(d.data.total_amount_debit))))
           const parentRect = container.getBoundingClientRect()
           tooltip.style.left = `${event.clientX - parentRect.left + 12}px`
           tooltip.style.top = `${event.clientY - parentRect.top - 12}px`
@@ -128,7 +125,7 @@ export default function BudgetCategoryPieChart(props: {
       .style('fill', getComputedStyle(svg).getPropertyValue('color') || '#fafafa')
       .style('font-size', '16px')
       .style('font-weight', '600')
-      .text(formatCurrency(total))
+      .text(formatUsd(total))
   })
 
   const legendColorMap = createMemo(() => buildBudgetCategoryColorMap(props.data))
@@ -171,7 +168,7 @@ export default function BudgetCategoryPieChart(props: {
                   }}
                 />
                 <span class="text-xs text-muted-foreground">
-                  {item.category_name} ({formatCurrency(Math.abs(item.total_amount_debit))})
+                  {item.category_name} ({formatUsd(Math.abs(item.total_amount_debit))})
                 </span>
               </div>
             )}

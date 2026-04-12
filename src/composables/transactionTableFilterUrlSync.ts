@@ -2,6 +2,13 @@ import { createEffect, on } from 'solid-js'
 import { useLocation, useNavigate } from '@solidjs/router'
 import { useMemoById } from '@api/hooks/memos/useMemoById'
 import {
+  TRANSACTION_TABLE_FILTER_URL_PARAMS,
+  applyLegacyMemoParamMigration,
+  isBareTransactionsRoute,
+  memoIdQueryParamInvalid,
+  pathForTransactionFilterSync,
+} from '@composables/transactionFilterUrlHelpers'
+import {
   selectDayView,
   selectWeekView,
   selectMonthView,
@@ -12,31 +19,7 @@ import {
   transactionsState,
 } from '@stores/transactionsStore'
 
-/** Query keys written by `syncUrlFromStore`; keep in sync with filter UI. */
-export const TRANSACTION_TABLE_FILTER_URL_PARAMS = [
-  'day',
-  'week',
-  'month',
-  'year',
-  'memoId',
-  'memoName',
-  /** Legacy alias; migrated to `memoId` or `memoName` and dropped from the URL. */
-  'memo',
-] as const
-
-function isBareTransactionsRoute(pathname: string): boolean {
-  return /\/transactions\/?$/.test(pathname)
-}
-
-/** Month/week summary routes embed the period in the path; filter query strings belong on the main transactions list. */
-const TRANSACTIONS_SUMMARY_FILTER_PATH = /\/transactions\/(?:months|weeks)\/[^/]+\/summary\/?$/
-
-function pathForTransactionFilterSync(pathname: string): string {
-  if (TRANSACTIONS_SUMMARY_FILTER_PATH.test(pathname)) {
-    return pathname.replace(TRANSACTIONS_SUMMARY_FILTER_PATH, '/transactions')
-  }
-  return pathname
-}
+export { TRANSACTION_TABLE_FILTER_URL_PARAMS } from '@composables/transactionFilterUrlHelpers'
 
 /**
  * Keeps transactions table timeframe/memo filters in sync with the URL:
@@ -55,14 +38,6 @@ export function useTransactionTableFilterUrlSync(): void {
   /** Skip the next URL→store pass — it only reflects `syncUrlFromStore`’s own `navigate`, not a real navigation. */
   let skipOneUrlToStoreApply = false
 
-  /** Reject empty, NaN, non-positive IDs (`?memoId=` is meaningless; absent param is `null`). */
-  function memoIdQueryParamInvalid(raw: string | null): boolean {
-    if (raw == null) return false
-    if (raw === '') return true
-    const n = Number(raw)
-    return !Number.isFinite(n) || n <= 0
-  }
-
   function applyUrlParamsToStore() {
     if (pushingStoreToUrl) return
     if (skipOneUrlToStoreApply) {
@@ -73,21 +48,8 @@ export function useTransactionTableFilterUrlSync(): void {
     const sp = new URLSearchParams(loc.search)
 
     /** Legacy `?memo=` deep links → canonical `memoId` / `memoName`; strip `memo` so it does not linger. */
-    const legacyMemoParam = sp.get('memo')
-    if (legacyMemoParam !== null) {
-      sp.delete('memo')
-      const hasTimeframe = !!(sp.get('day') || sp.get('week') || sp.get('month') || sp.get('year'))
-      const existingMemoId = sp.get('memoId')
-      const hasMemoId = existingMemoId != null && existingMemoId !== ''
-      const existingMemoName = (sp.get('memoName') ?? '').trim()
-      if (!hasTimeframe && !hasMemoId && !existingMemoName) {
-        const t = legacyMemoParam.trim()
-        if (t) {
-          const n = Number(t)
-          if (Number.isFinite(n) && n > 0 && String(n) === t) sp.set('memoId', String(n))
-          else sp.set('memoName', t)
-        }
-      }
+    if (sp.get('memo') !== null) {
+      applyLegacyMemoParamMigration(sp)
       const nextQs = sp.toString()
       const curQs = (loc.search ?? '').replace(/^\?/, '')
       if (nextQs !== curQs) {

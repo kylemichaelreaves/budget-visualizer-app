@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/solid-query'
+import { queryKeys } from '@api/queryKeys'
 import { fetchMemos } from '@api/memos/fetchMemos'
 
 export function useMemoSearch(params: {
@@ -9,7 +10,7 @@ export function useMemoSearch(params: {
   const limit = () => params.limit ?? 50
 
   return useQuery(() => ({
-    queryKey: ['memos', 'search', params.searchQuery()],
+    queryKey: queryKeys.memos.search(params.searchQuery()),
     queryFn: async () => {
       const q = params.searchQuery()
       if (!q) return fetchMemos({ limit: limit() })

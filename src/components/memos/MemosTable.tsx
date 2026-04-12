@@ -2,6 +2,7 @@ import { A } from '@solidjs/router'
 import type { JSX } from 'solid-js'
 import { createEffect, createMemo, createSignal, For, on, onCleanup, Show } from 'solid-js'
 import { useQueryClient } from '@tanstack/solid-query'
+import { invalidateAfterMemoMutation } from '@api/queryInvalidation'
 import useMemos from '@api/hooks/memos/useMemos'
 import useMemosCount from '@api/hooks/memos/useMemosCount'
 import { updateMemo } from '@api/memos/updateMemo'
@@ -15,6 +16,7 @@ import { transactionsState, updateMemosTableOffset } from '@stores/transactionsS
 import type { Memo } from '@types'
 import CategoryTreeSelectDialog from '@components/transactions/CategoryTreeSelectDialog'
 import { devConsole } from '@utils/devConsole'
+import { formatUsdOrDash } from '@utils/formatUsd'
 import MemosTablePagination from './MemosTablePagination'
 
 /** Debounce before prefetching all pages for client search (reduces request bursts while typing). */
@@ -142,11 +144,6 @@ const sortableColumns: { key: SortKey; label: string }[] = [
   { key: 'budget_category', label: 'Budget Category' },
   { key: 'total_amount_debit', label: 'Total Debit' },
 ]
-
-function formatCurrency(n: number | undefined): string {
-  if (n == null || Number.isNaN(n)) return '--'
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(n)
-}
 
 // Simple deterministic color for category pills
 const categoryColors: Record<string, string> = {}
@@ -376,7 +373,7 @@ export default function MemosTable(): JSX.Element {
         name: memo.name,
         ambiguous: !memo.ambiguous,
       })
-      await queryClient.invalidateQueries({ queryKey: ['memos'] })
+      await invalidateAfterMemoMutation(queryClient)
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Could not update memo'
       setTableMutationError(msg)
@@ -406,10 +403,7 @@ export default function MemosTable(): JSX.Element {
         name: target.name,
         budgetCategory: category,
       })
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['memos'] }),
-        queryClient.invalidateQueries({ queryKey: ['transactions'] }),
-      ])
+      await invalidateAfterMemoMutation(queryClient)
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Could not assign category'
       setTableMutationError(msg)
@@ -606,7 +600,7 @@ export default function MemosTable(): JSX.Element {
                           class="px-3 py-2.5 text-red-600 dark:text-red-400 font-medium tabular-nums"
                           data-testid={`cell-${row.id}-total_amount_debit`}
                         >
-                          {formatCurrency(row.total_amount_debit)}
+                          {formatUsdOrDash(row.total_amount_debit)}
                         </td>
                       </tr>
                     )}

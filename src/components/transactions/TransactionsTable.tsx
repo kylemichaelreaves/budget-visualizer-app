@@ -1,13 +1,14 @@
 import { A } from '@solidjs/router'
 import { DateTime } from 'luxon'
 import { createEffect, createMemo, createSignal, For, on, Show } from 'solid-js'
-import { useQueryClient } from '@tanstack/solid-query'
 import { formatDate } from '@api/helpers/formatDate'
 import { getPeriodLabel } from '@api/helpers/formatPeriodLabels'
 import { useBudgetCategorySummary } from '@api/hooks/budgetCategories/useBudgetCategorySummary'
 import useTransactions from '@api/hooks/transactions/useTransactions'
+import { useQueryClient } from '@tanstack/solid-query'
 import { budgetCategoryColorsFromData } from '@composables/budgetCategoryColors'
 import mutateTransaction from '@api/hooks/transactions/mutateTransaction'
+import { invalidateAfterTransactionUpdate } from '@api/queryInvalidation'
 import AlertComponent from '@components/shared/AlertComponent'
 import CategoryTreeSelectDialog from '@components/transactions/CategoryTreeSelectDialog'
 import BudgetCategorySummaries from '@components/transactions/charts/BudgetCategorySummaries'
@@ -21,14 +22,7 @@ import { Timeframe } from '@types'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 import { Badge } from '@components/ui/badge'
 import { Skeleton } from '@components/ui/skeleton'
-
-const currencyFormatter = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' })
-
-function formatCurrency(value: unknown): string {
-  const num = Number(value)
-  if (!Number.isFinite(num) || value == null || value === '') return ''
-  return currencyFormatter.format(num)
-}
+import { formatUsd } from '@utils/formatUsd'
 
 function getSelectedValue(): string {
   if (transactionsState.viewMode === 'day') return transactionsState.selectedDay
@@ -39,8 +33,8 @@ function getSelectedValue(): string {
 }
 
 export default function TransactionsTable() {
-  const query = useTransactions()
   const queryClient = useQueryClient()
+  const query = useTransactions()
   const mutation = mutateTransaction()
 
   const [categoryDialogOpen, setCategoryDialogOpen] = createSignal(false)
@@ -65,11 +59,7 @@ export default function TransactionsTable() {
       { transaction: { id: target.id, budget_category: category } },
       {
         onSuccess: async () => {
-          await Promise.all([
-            queryClient.invalidateQueries({ queryKey: ['transactions'] }),
-            queryClient.invalidateQueries({ queryKey: ['budget-category-summary'] }),
-            queryClient.invalidateQueries({ queryKey: ['historical-summary-for-budget-category'] }),
-          ])
+          await invalidateAfterTransactionUpdate(queryClient, { transactionId: target.id })
           setMutatingTransactionId(null)
           setCategoryAssignError(null)
         },
@@ -138,7 +128,10 @@ export default function TransactionsTable() {
     return defaultMonthForCharts()
   })
 
-  const categorySummaryQuery = useBudgetCategorySummary(chartTimeFrame, chartDate)
+  const categorySummaryQuery = useBudgetCategorySummary(
+    () => chartTimeFrame(),
+    () => chartDate(),
+  )
 
   const categoryColors = createMemo(() => {
     const data = categorySummaryQuery.data as import('@types').BudgetCategorySummary[] | undefined
@@ -431,17 +424,13 @@ export default function TransactionsTable() {
                       {/* Right: amount */}
                       <div class="flex items-center justify-end gap-3">
                         <Show when={hasDebit}>
-                          <span class="font-semibold text-red-500">{formatCurrency(row.amount_debit)}</span>
+                          <span class="font-semibold text-red-500">{formatUsd(row.amount_debit)}</span>
                         </Show>
                         <Show when={hasCredit}>
-                          <span class="font-semibold text-green-500">
-                            +{formatCurrency(row.amount_credit)}
-                          </span>
+                          <span class="font-semibold text-green-500">+{formatUsd(row.amount_credit)}</span>
                         </Show>
                         <Show when={row.balance != null}>
-                          <span class="text-sm text-muted-foreground">
-                            Bal: {formatCurrency(row.balance)}
-                          </span>
+                          <span class="text-sm text-muted-foreground">Bal: {formatUsd(row.balance)}</span>
                         </Show>
                       </div>
                     </li>

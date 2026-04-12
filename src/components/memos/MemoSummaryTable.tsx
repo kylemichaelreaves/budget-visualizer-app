@@ -3,6 +3,7 @@ import type { JSX } from 'solid-js'
 import { createEffect, createMemo, createSignal, For, on, Show } from 'solid-js'
 import { useQueryClient } from '@tanstack/solid-query'
 import { formatDate } from '@api/helpers/formatDate'
+import { invalidateAfterMemoMutation } from '@api/queryInvalidation'
 import { updateMemo } from '@api/memos/updateMemo'
 import { devConsole } from '@utils/devConsole'
 import { useMemoById } from '@api/hooks/memos/useMemoById'
@@ -15,6 +16,7 @@ import { Badge } from '@components/ui/badge'
 import { Button } from '@components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 import type { Frequency, MemoPatchFields } from '@types'
+import { formatUsdAbs } from '@utils/formatUsd'
 
 // ── Inline SVG icons ──────────────────────────────────────────────────
 
@@ -177,14 +179,6 @@ function TrendingDownIcon(props: { class?: string }): JSX.Element {
   )
 }
 
-// ── Helpers ───────────────────────────────────────────────────────────
-
-function formatCurrency(value: number | string | undefined): string {
-  const num = typeof value === 'string' ? parseFloat(value) : value
-  if (num == null || Number.isNaN(num)) return '$0.00'
-  return `$${Math.abs(num).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
-}
-
 const FREQUENCY_OPTIONS: Frequency[] = ['daily', 'weekly', 'monthly', 'yearly']
 
 // ── Component ─────────────────────────────────────────────────────────
@@ -309,14 +303,7 @@ export default function MemoSummaryTable(): JSX.Element {
     setSaving(true)
     try {
       await updateMemo({ id: m.id, name: m.name, ...fields })
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ['memo'] }),
-        queryClient.invalidateQueries({ queryKey: ['memo-summary'] }),
-        queryClient.invalidateQueries({ queryKey: ['memos'] }),
-        queryClient.invalidateQueries({ queryKey: ['memo-transactions'] }),
-        queryClient.invalidateQueries({ queryKey: ['memos-count'] }),
-        queryClient.invalidateQueries({ queryKey: ['transactions'] }),
-      ])
+      await invalidateAfterMemoMutation(queryClient)
     } catch (e) {
       const msg = e instanceof Error ? e.message : 'Update failed'
       setPatchError(msg)
@@ -471,7 +458,7 @@ export default function MemoSummaryTable(): JSX.Element {
                 class="text-2xl font-bold text-green-600 dark:text-green-400 m-0"
                 data-testid="memo-summary-total-credit"
               >
-                {formatCurrency(totalCredits().sum)}
+                {formatUsdAbs(totalCredits().sum)}
               </p>
               <Show when={totalCredits().creditTxnCount != null}>
                 <p class="text-xs text-muted-foreground mt-1 m-0">
@@ -497,7 +484,7 @@ export default function MemoSummaryTable(): JSX.Element {
                 class="text-2xl font-bold text-red-600 dark:text-red-400 m-0"
                 data-testid="memo-summary-total-debit"
               >
-                {formatCurrency(totalDebits().sum)}
+                {formatUsdAbs(totalDebits().sum)}
               </p>
               <Show when={totalDebits().debitTxnCount != null}>
                 <p class="text-xs text-muted-foreground mt-1 m-0">
@@ -688,7 +675,7 @@ export default function MemoSummaryTable(): JSX.Element {
                           class={`text-sm font-semibold tabular-nums whitespace-nowrap ${isCredit() ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}
                         >
                           {isCredit() ? '+' : '-'}
-                          {formatCurrency(isCredit() ? credit() : debit())}
+                          {formatUsdAbs(isCredit() ? credit() : debit())}
                         </span>
                       </div>
                     )

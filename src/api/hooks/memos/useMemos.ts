@@ -1,11 +1,12 @@
 import { useInfiniteQuery } from '@tanstack/solid-query'
 import { createMemo } from 'solid-js'
+import { queryKeys } from '@api/queryKeys'
 import { fetchMemos } from '@api/memos/fetchMemos'
 import { transactionsState } from '@stores/transactionsStore'
 import type { Memo } from '@types'
 
 export default function useMemos() {
-  const queryKey = createMemo(() => ['memos', transactionsState.memosTableLimit] as const)
+  const queryKey = createMemo(() => queryKeys.memos.infinite(transactionsState.memosTableLimit))
 
   return useInfiniteQuery(() => ({
     queryKey: queryKey(),

@@ -1,6 +1,7 @@
 import { useNavigate, useSearchParams } from '@solidjs/router'
 import { createMemo, createSignal } from 'solid-js'
 import { useMutation } from '@tanstack/solid-query'
+import { mutationKeys } from '@api/queryKeys'
 import { extractApiErrorMessage } from '@api/extractApiErrorMessage'
 import { loginRequest, persistSession } from '@stores/authStore'
 import { safeRedirectPath } from '@utils/safeRedirectPath'
@@ -25,7 +26,7 @@ export default function Login() {
   )
 
   const loginMut = useMutation(() => ({
-    mutationKey: ['login'],
+    mutationKey: mutationKeys.login,
     mutationFn: async () => loginRequest(username(), password()),
     onSuccess: (data) => {
       devConsole('log', 'Login successful', data)
