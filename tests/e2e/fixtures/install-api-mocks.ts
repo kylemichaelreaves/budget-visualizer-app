@@ -197,12 +197,30 @@ export async function installApiMocks(page: Page): Promise<void> {
     }
 
     if (path.endsWith('/transactions') || path.match(/\/transactions$/)) {
+      // Shared filtering: memoId scoping and timeframe filter.
+      const filteredRows = () => {
+        let rows = Object.values(transactions)
+        const memoId = sp.get('memoId')
+        if (memoId) rows = rows.filter((t) => String(t.memo_id) === memoId)
+        const hasTimeframeFilter = sp.has('timeFrame') && sp.has('date')
+        if (hasTimeframeFilter) return []
+        return rows
+      }
+
       if (sp.get('count') === 'true') {
-        await json(route, [{ count: Object.keys(transactions).length }])
+        await json(route, [{ count: filteredRows().length }])
         return
       }
       if (sp.has('interval') && sp.get('dailyTotals') === 'true' && !sp.has('date')) {
         await json(route, false)
+        return
+      }
+      if (sp.get('totalAmountDebit') === 'true') {
+        const total = filteredRows().reduce((sum, t) => {
+          const n = Number(t.amount_debit ?? 0)
+          return sum + (Number.isFinite(n) ? n : 0)
+        }, 0)
+        await json(route, [{ total_amount_debit: total }])
         return
       }
       if (
@@ -219,18 +237,7 @@ export async function installApiMocks(page: Page): Promise<void> {
         return
       }
       if (method === 'GET') {
-        // Filtered requests return [] to match "no transactions" test expectations.
-        const hasTimeframeFilter = sp.has('timeFrame') && sp.has('date')
-        if (hasTimeframeFilter) {
-          await json(route, [])
-          return
-        }
-        // Filter by memoId when present (memo-scoped views).
-        let rows = Object.values(transactions)
-        const memoId = sp.get('memoId')
-        if (memoId) {
-          rows = rows.filter((t) => String(t.memo_id) === memoId)
-        }
+        const rows = filteredRows()
         await json(route, rows)
         return
       }
