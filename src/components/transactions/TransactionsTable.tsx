@@ -5,8 +5,10 @@ import { formatDate } from '@api/helpers/formatDate'
 import { getPeriodLabel } from '@api/helpers/formatPeriodLabels'
 import { useBudgetCategorySummary } from '@api/hooks/budgetCategories/useBudgetCategorySummary'
 import useTransactions from '@api/hooks/transactions/useTransactions'
+import { useQueryClient } from '@tanstack/solid-query'
 import { budgetCategoryColorsFromData } from '@composables/budgetCategoryColors'
 import mutateTransaction from '@api/hooks/transactions/mutateTransaction'
+import { invalidateAfterTransactionUpdate } from '@api/queryInvalidation'
 import AlertComponent from '@components/shared/AlertComponent'
 import CategoryTreeSelectDialog from '@components/transactions/CategoryTreeSelectDialog'
 import BudgetCategorySummaries from '@components/transactions/charts/BudgetCategorySummaries'
@@ -31,6 +33,7 @@ function getSelectedValue(): string {
 }
 
 export default function TransactionsTable() {
+  const queryClient = useQueryClient()
   const query = useTransactions()
   const mutation = mutateTransaction()
 
@@ -56,6 +59,7 @@ export default function TransactionsTable() {
       { transaction: { id: target.id, budget_category: category } },
       {
         onSuccess: async () => {
+          await invalidateAfterTransactionUpdate(queryClient, { transactionId: target.id })
           setMutatingTransactionId(null)
           setCategoryAssignError(null)
         },
