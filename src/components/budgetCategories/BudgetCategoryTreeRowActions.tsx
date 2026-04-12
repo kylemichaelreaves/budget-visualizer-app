@@ -1,6 +1,6 @@
 import type { JSX } from 'solid-js'
 import { Button } from '@components/ui/button'
-import { PencilIcon, PlusIcon, TrashIcon } from './budgetCategoryIcons'
+import { PencilIcon, PlusIcon, TrashIcon } from './icons'
 import { categoryTreeTestId } from './budgetCategoryTreeUtils'
 
 export default function BudgetCategoryTreeRowActions(props: {

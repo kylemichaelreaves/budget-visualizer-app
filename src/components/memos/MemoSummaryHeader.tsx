@@ -2,12 +2,7 @@ import { A } from '@solidjs/router'
 import type { Accessor } from 'solid-js'
 import { Show } from 'solid-js'
 import { Badge } from '@components/ui/badge'
-import {
-  CheckCircleIcon,
-  ChevronLeftIcon,
-  RefreshIcon,
-  WarningTriangleIcon,
-} from '@components/memos/memoSummaryIcons'
+import { CheckCircleIcon, ChevronLeftIcon, RefreshIcon, WarningTriangleIcon } from '@components/memos/icons'
 
 export default function MemoSummaryHeader(props: {
   memoId: string

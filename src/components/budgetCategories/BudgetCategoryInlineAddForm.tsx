@@ -1,6 +1,6 @@
 import type { JSX } from 'solid-js'
 import { Show, createSignal } from 'solid-js'
-import { CheckIcon, XIcon } from './budgetCategoryIcons'
+import { CheckIcon, XIcon } from './icons'
 import { budgetCategorySegmentValidationError } from './budgetCategoryTreeUtils'
 import { Button } from '@components/ui/button'
 import { Input } from '@components/ui/input'

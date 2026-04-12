@@ -12,7 +12,7 @@ import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle }
 import type { CategoryNode } from '@types'
 import BudgetCategoryInlineAddForm from './BudgetCategoryInlineAddForm'
 import BudgetCategoryTreeNode from './BudgetCategoryTreeNode'
-import { FolderTreeIcon, PlusIcon, RefreshCwIcon } from './budgetCategoryIcons'
+import { FolderTreeIcon, PlusIcon, RefreshCwIcon } from './icons'
 import { mutateBudgetCategory, type BudgetCategoryOperation } from './mutateBudgetCategory'
 import { filterTree } from './budgetCategoryTreeUtils'
 

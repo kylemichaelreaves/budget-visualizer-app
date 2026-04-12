@@ -3,7 +3,7 @@ import { createMemo, Show } from 'solid-js'
 import { formatDate } from '@api/helpers/formatDate'
 import type { Transaction } from '@types'
 import { Badge } from '@components/ui/badge'
-import { TrendingDownIcon, TrendingUpIcon } from '@components/memos/memoSummaryIcons'
+import { TrendingDownIcon, TrendingUpIcon } from '@components/memos/icons'
 import { formatUsdAbs } from '@utils/formatUsd'
 
 export default function MemoSummaryTransactionRow(props: { row: Transaction }) {

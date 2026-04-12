@@ -4,7 +4,7 @@ import { Show } from 'solid-js'
 import type { Memo } from '@types'
 import { Button } from '@components/ui/button'
 import { Skeleton } from '@components/ui/skeleton'
-import { CheckIcon, WarningIcon } from '@components/memos/memosTableIcons'
+import { MemosTableCheckIcon, MemosTableWarningIcon } from '@components/memos/icons'
 import { getMemosTableCategoryColor } from '@components/memos/memosTableSort'
 import { formatUsdOrDash } from '@utils/formatUsd'
 
@@ -49,11 +49,11 @@ export default function MemosTableRow(props: {
             when={row().ambiguous}
             fallback={
               <>
-                <CheckIcon /> No
+                <MemosTableCheckIcon /> No
               </>
             }
           >
-            <WarningIcon /> Yes
+            <MemosTableWarningIcon /> Yes
           </Show>
         </button>
       </td>

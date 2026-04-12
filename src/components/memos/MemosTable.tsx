@@ -17,7 +17,7 @@ import {
   MEMOS_SEARCH_PREFETCH_DEBOUNCE_MS,
   MEMOS_SEARCH_PREFETCH_MAX_PAGES,
 } from '@components/memos/memosTableConstants'
-import { SearchIcon } from '@components/memos/memosTableIcons'
+import { MemosTableSearchIcon } from '@components/memos/icons'
 import {
   compareMemos,
   MEMOS_TABLE_SORTABLE_COLUMNS,
@@ -293,7 +293,7 @@ export default function MemosTable(): JSX.Element {
             <CardTitle class="text-lg">All Memos</CardTitle>
             <div class="relative w-64">
               <span class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground">
-                <SearchIcon />
+                <MemosTableSearchIcon />
               </span>
               <Input
                 type="text"
