@@ -19,9 +19,10 @@ import TransactionsTablePagination from '@components/transactions/TransactionsTa
 import TransactionsTableSelects from '@components/transactions/TransactionsTableSelects'
 import { transactionsState } from '@stores/transactionsStore'
 import { Timeframe } from '@types'
+import type { BudgetCategorySummary } from '@types'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
-import { Badge } from '@components/ui/badge'
 import { Skeleton } from '@components/ui/skeleton'
+import { Badge } from '@components/ui/badge'
 import { formatUsd } from '@utils/formatUsd'
 
 function getSelectedValue(): string {
@@ -123,6 +124,8 @@ export default function TransactionsTable() {
   const chartDate = createMemo(() => {
     if (transactionsState.selectedDay) return transactionsState.selectedDay
     if (transactionsState.selectedWeek) return transactionsState.selectedWeek
+    if (transactionsState.viewMode === 'year' && transactionsState.selectedYear)
+      return transactionsState.selectedYear
     if (transactionsState.selectedMonth) return transactionsState.selectedMonth
     if (transactionsState.selectedYear) return transactionsState.selectedYear
     return defaultMonthForCharts()
@@ -134,7 +137,7 @@ export default function TransactionsTable() {
   )
 
   const categoryColors = createMemo(() => {
-    const data = categorySummaryQuery.data as import('@types').BudgetCategorySummary[] | undefined
+    const data = categorySummaryQuery.data as BudgetCategorySummary[] | undefined
     return budgetCategoryColorsFromData(data)
   })
 

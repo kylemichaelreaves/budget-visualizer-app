@@ -92,6 +92,7 @@ function TreeNodeRow(props: {
         </Show>
         <button
           type="button"
+          aria-current={isSelected() ? 'true' : undefined}
           class="flex-1 min-w-0 flex items-center gap-2 py-0.5 text-left rounded-md"
           onClick={() => props.onSelect(props.node.value)}
         >
@@ -266,7 +267,7 @@ export default function CategoryTreeSelectDialog(props: {
         if (!v) setSearch('')
       }}
     >
-      <DialogContent class="max-w-xs p-0 overflow-hidden">
+      <DialogContent class="max-w-xs p-0 overflow-hidden" data-testid="category-tree-select-dialog">
         <DialogHeader class="px-4 pt-4 pb-0">
           <DialogTitle>{props.title ?? 'Assign Budget Category'}</DialogTitle>
           <Show when={props.subtitle}>
@@ -292,6 +293,7 @@ export default function CategoryTreeSelectDialog(props: {
               autofocus
               class="h-8 pl-8 text-sm"
               placeholder="Search categories..."
+              data-testid="category-tree-search"
               value={search()}
               onInput={(e) => setSearch(e.currentTarget.value)}
               onKeyDown={handleKeyDown}
@@ -312,43 +314,46 @@ export default function CategoryTreeSelectDialog(props: {
                   when={searchResults()!.length > 0}
                   fallback={<p class="text-sm text-muted-foreground text-center py-6">No categories found</p>}
                 >
-                  <For each={searchResults()!}>
-                    {({ node, breadcrumb }, index) => (
-                      <button
-                        type="button"
-                        onClick={() => handleSelect(node.value)}
-                        onMouseEnter={() => setHighlight(index())}
-                        data-highlight={highlight() === index()}
-                        class={`w-full text-left px-3 py-1.5 rounded-md text-sm transition-colors ${
-                          highlight() === index()
-                            ? 'bg-accent text-accent-foreground'
-                            : props.value === node.value
-                              ? 'bg-primary/10 text-primary font-medium'
-                              : ''
-                        }`}
-                      >
-                        <Show when={breadcrumb.length > 0}>
-                          <span class="text-xs text-muted-foreground">
-                            {breadcrumb.join(' \u203A ')} {'\u203A'}{' '}
-                          </span>
-                        </Show>
-                        {node.label}
-                        <Show when={props.value === node.value}>
-                          <svg
-                            class="size-3.5 inline ml-1.5 text-primary"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          >
-                            <path d="M20 6 9 17l-5-5" />
-                          </svg>
-                        </Show>
-                      </button>
-                    )}
-                  </For>
+                  <div>
+                    <For each={searchResults()!}>
+                      {({ node, breadcrumb }, index) => (
+                        <button
+                          type="button"
+                          aria-current={props.value === node.value ? 'true' : undefined}
+                          onClick={() => handleSelect(node.value)}
+                          onMouseEnter={() => setHighlight(index())}
+                          data-highlight={highlight() === index()}
+                          class={`w-full text-left px-3 py-1.5 rounded-md text-sm transition-colors ${
+                            highlight() === index()
+                              ? 'bg-accent text-accent-foreground'
+                              : props.value === node.value
+                                ? 'bg-primary/10 text-primary font-medium'
+                                : ''
+                          }`}
+                        >
+                          <Show when={breadcrumb.length > 0}>
+                            <span class="text-xs text-muted-foreground">
+                              {breadcrumb.join(' \u203A ')} {'\u203A'}{' '}
+                            </span>
+                          </Show>
+                          {node.label}
+                          <Show when={props.value === node.value}>
+                            <svg
+                              class="size-3.5 inline ml-1.5 text-primary"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            >
+                              <path d="M20 6 9 17l-5-5" />
+                            </svg>
+                          </Show>
+                        </button>
+                      )}
+                    </For>
+                  </div>
                 </Show>
               }
             >

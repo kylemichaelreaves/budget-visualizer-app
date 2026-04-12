@@ -7,7 +7,7 @@ Always run these before committing or creating a PR:
 ```bash
 bun run lint           # eslint
 bun run format:check   # prettier (or `bun run format` to fix)
-npx tsc --noEmit       # TypeScript type checking
+npx tsc -b             # TypeScript type checking (build mode — matches CI)
 ```
 
 ## Git hooks (optional, no extra npm deps)
@@ -31,7 +31,7 @@ When new Copilot (or similar) inline review comments appear on an open PR, **imp
 
 After implementing fixes on a branch with an open PR (or any pushed branch):
 
-1. Run **`bun run prepush`**, **`npx tsc --noEmit`**, and **`bun run test`**; fix anything that fails (including `bun run format` if Prettier complains).
+1. Run **`bun run prepush`**, **`npx tsc -b`**, and **`bun run test`**; fix anything that fails (including `bun run format` if Prettier complains).
 2. **Commit** with a clear message.
 3. **`git push`** to the remote branch—**do not ask** whether to push once checks pass.
 
@@ -59,17 +59,29 @@ Use **`git commit --no-verify`** only when a hook is misbehaving in the agent en
 - Transaction updates: send via request body (`httpClient.patch(url, body)`), map snake_case frontend fields to camelCase for the API
 - Memo updates: `PATCH /memos/{id}` with JSON body
 
-## Query invalidation
+## Query keys and invalidation
 
-- After mutations, use `queryClient.invalidateQueries({ queryKey: [...] })`
-- Memo updates should invalidate both `['memos']` and `['transactions']` (category propagation)
+- All query keys live in `@api/queryKeys.ts` — import `queryKeys` / `mutationKeys` instead of writing string literals
+  - Use `.all` for prefix invalidation (e.g., `queryKeys.transactions.all`)
+  - Use builder functions for specific queries (e.g., `queryKeys.transactions.infinite(limit, memoKey, tf, date)`)
+- Centralized invalidation helpers in `@api/queryInvalidation.ts`:
+  - `invalidateAfterTransactionCreate(queryClient)` — broad (transactions + memos + budget summaries)
+  - `invalidateAfterTransactionUpdate(queryClient, { transactionId })` — same scope + single transaction
+  - `invalidateAfterMemoMutation(queryClient)` — memos + transactions
+- **Do not** `await` invalidation inside hook-level `onSuccess` for `mutateTransaction` — TanStack Query v5 blocks `mutate()`-level callbacks, which prevents `history.back()` navigation. Call `invalidateAfterTransactionUpdate` at the call site instead.
 - Don't use store-level caches that short-circuit `queryFn` — let TanStack manage caching
 - For loading states during mutations, only show skeleton on initial load (`!query.data?.pages?.length`), not on background refetches — this preserves scroll position
+
+## Utilities
+
+- **Currency formatting**: use `formatUsd`, `formatUsdOrDash`, or `formatUsdAbs` from `@utils/formatUsd` — do not create local `Intl.NumberFormat` instances
+- **Budget category path delimiter**: use `BUDGET_CATEGORY_PATH_DELIMITER` from `@api/helpers/convertToTree` (not hardcoded `' - '`)
 
 ## Store
 
 - `transactionsStore.ts` holds filter state: `selectedDay`, `selectedWeek`, `selectedMonth`, `selectedYear`, `selectedMemo`, `selectedMemoId`
 - Filter URL sync lives in `composables/transactionTableFilterUrlSync.ts` (used from `TransactionsTableSelects.tsx`) — all filters persist as query params
+- URL helper functions (param validation, legacy migration) are in `composables/transactionFilterUrlHelpers.ts`
 - `viewMode` determines which filter is active; `null` means no filter
 
 ## Charts

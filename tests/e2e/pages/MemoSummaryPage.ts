@@ -3,20 +3,32 @@ import type { Locator, Page } from '@playwright/test'
 export class MemoSummaryPage {
   readonly page: Page
   readonly title: Locator
+  readonly editLink: Locator
   readonly backButton: Locator
   readonly totalCreditStat: Locator
   readonly totalDebitStat: Locator
   readonly transactionsTable: Locator
   readonly noTransactionsMessage: Locator
+  readonly ambiguousBadge: Locator
+  readonly resolvedBadge: Locator
+  readonly recurringBadge: Locator
+  readonly budgetCategoryHeading: Locator
+  readonly budgetCategoryBadge: Locator
 
   constructor(page: Page) {
     this.page = page
     this.title = page.getByTestId('memo-summary-title')
+    this.editLink = page.getByTestId('memo-summary-edit-link')
     this.backButton = page.getByTestId('memo-summary-back-to-list')
     this.totalCreditStat = page.getByTestId('memo-summary-total-credit')
     this.totalDebitStat = page.getByTestId('memo-summary-total-debit')
     this.transactionsTable = page.getByTestId('memo-summary-transactions-table')
     this.noTransactionsMessage = page.getByText('No transactions for this memo.')
+    this.ambiguousBadge = page.getByText('Ambiguous', { exact: true })
+    this.resolvedBadge = page.getByText('Resolved', { exact: true })
+    this.recurringBadge = page.getByText('Recurring', { exact: true })
+    this.budgetCategoryHeading = page.getByRole('heading', { name: 'Budget Category' })
+    this.budgetCategoryBadge = page.getByTestId('memo-summary-budget-category-badge')
   }
 
   async goto(memoId: number) {
@@ -34,11 +46,6 @@ export class MemoSummaryPage {
   /** @deprecated Use backButton instead */
   get allMemosLink() {
     return this.backButton
-  }
-
-  /** Link to the memo edit route (`/memos/:id/edit`). */
-  get editLink() {
-    return this.page.getByTestId('memo-summary-edit-link')
   }
 
   /** Total transaction count line in the memo summary header (memo summary API). Not the same as total debit/credit amounts. */
