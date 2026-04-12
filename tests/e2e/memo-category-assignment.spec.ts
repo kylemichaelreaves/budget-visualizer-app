@@ -18,7 +18,8 @@ test.describe('Memo category assignment', () => {
     await memosPage.assignCategoryButton(200).click({ timeout: 30_000 })
     await expect(memosPage.categoryTreeSelectDialog).toBeVisible({ timeout: 5_000 })
 
-    // Click a leaf category in the tree
+    // Search to switch the dialog into search mode (role="option" items)
+    await memosPage.categoryTreeSearch.fill('Groceries')
     await page.getByRole('option', { name: /Groceries/ }).click()
 
     // Dialog should close after selection
@@ -37,6 +38,8 @@ test.describe('Memo category assignment', () => {
 
     await memosPage.assignCategoryButton(200).click({ timeout: 30_000 })
     await expect(memosPage.categoryTreeSelectDialog).toBeVisible({ timeout: 5_000 })
+    // Search to switch into search mode (role="option" items)
+    await memosPage.categoryTreeSearch.fill('Groceries')
     await page.getByRole('option', { name: /Groceries/ }).click()
 
     const patchReq = await patchPromise
