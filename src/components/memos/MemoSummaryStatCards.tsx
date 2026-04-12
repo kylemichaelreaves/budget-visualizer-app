@@ -7,8 +7,6 @@ import type {
   MemoSummaryDebitAggregate,
 } from '@components/memos/memoSummaryStatCardTypes'
 
-export type { MemoSummaryCreditAggregate, MemoSummaryDebitAggregate }
-
 export default function MemoSummaryStatCards(props: {
   totalCredits: Accessor<MemoSummaryCreditAggregate>
   totalDebits: Accessor<MemoSummaryDebitAggregate>

@@ -9,7 +9,7 @@ import {
   type MemosTableSortDir,
   type MemosTableSortKey,
 } from '@components/memos/memosTableSort'
-import { MemosTableSearchIcon } from '@shared/icons'
+import { SearchIcon } from '@shared/icons'
 import type { Memo } from '@types'
 
 export default function MemosTableListCard(props: {
@@ -33,7 +33,7 @@ export default function MemosTableListCard(props: {
           <CardTitle class="text-lg">All Memos</CardTitle>
           <div class="relative w-64">
             <span class="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground">
-              <MemosTableSearchIcon />
+              <SearchIcon class="size-4" />
             </span>
             <Input
               type="text"

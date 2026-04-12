@@ -1,10 +1,9 @@
 import type { JSX } from 'solid-js'
 
-export function MemosTableSearchIcon(): JSX.Element {
+export function ChevronUpDownIcon(props: { class?: string }): JSX.Element {
   return (
     <svg
-      width="16"
-      height="16"
+      class={props.class ?? 'size-4'}
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -12,8 +11,8 @@ export function MemosTableSearchIcon(): JSX.Element {
       stroke-linecap="round"
       stroke-linejoin="round"
     >
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.3-4.3" />
+      <path d="m7 15 5 5 5-5" />
+      <path d="m7 9 5-5 5 5" />
     </svg>
   )
 }

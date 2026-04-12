@@ -22,7 +22,7 @@ export default function BudgetCategoryTreeExpandToggle(props: {
         type="button"
         class="flex items-center justify-center size-5 shrink-0 rounded hover:bg-accent text-muted-foreground transition-colors cursor-pointer"
         onClick={() => props.onToggle()}
-        aria-label={props.expanded ? 'Collapse' : 'Expand'}
+        aria-label={`${props.expanded ? 'Collapse' : 'Expand'} ${props.pathValue}`}
         data-testid={categoryTreeTestId('tree-toggle', props.pathValue)}
       >
         <Show when={props.expanded} fallback={<ChevronRightIcon class="size-3.5" />}>
