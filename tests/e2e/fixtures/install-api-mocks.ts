@@ -242,7 +242,16 @@ export async function installApiMocks(page: Page): Promise<void> {
     }
     if (path.includes('/memos')) {
       if (method === 'GET') {
-        await json(route, Object.values(memos))
+        if (sp.get('count') === 'true') {
+          await json(route, [{ count: Object.values(memos).length }])
+          return
+        }
+        const rows = Object.values(memos)
+        const offsetParam = Number(sp.get('offset'))
+        const limitParam = Number(sp.get('limit'))
+        const offset = Number.isInteger(offsetParam) && offsetParam >= 0 ? offsetParam : 0
+        const limit = Number.isInteger(limitParam) && limitParam > 0 ? limitParam : null
+        await json(route, limit === null ? rows.slice(offset) : rows.slice(offset, offset + limit))
         return
       }
       if (method === 'PATCH') {
