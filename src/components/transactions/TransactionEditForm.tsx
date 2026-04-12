@@ -1,12 +1,19 @@
 import type { JSX } from 'solid-js'
-import { batch, createEffect, createMemo, untrack } from 'solid-js'
-import { createStore, reconcile } from 'solid-js/store'
+import { batch, createEffect, createMemo, Show, untrack } from 'solid-js'
+import { createStore, reconcile, unwrap } from 'solid-js/store'
 import { useQueryClient } from '@tanstack/solid-query'
-import type { BudgetCategoryState, PendingTransaction, SplitBudgetCategory, Transaction } from '@types'
+import type {
+  BudgetCategoryState,
+  PendingTransaction,
+  SplitBudgetCategory,
+  Transaction,
+  TransactionPatch,
+} from '@types'
 import mutateTransaction from '@api/hooks/transactions/mutateTransaction'
 import mutatePendingTransaction from '@api/hooks/transactions/mutatePendingTransaction'
 import MemoSelect from '@components/transactions/selects/MemoSelect'
 import BudgetCategoryFormField from '@components/transactions/BudgetCategoryFormField'
+import AlertComponent from '@components/shared/AlertComponent'
 import { Button } from '@components/ui/button'
 import { Input } from '@components/ui/input'
 import { Label } from '@components/ui/label'
@@ -28,9 +35,26 @@ function initBudgetState(txn: Transaction): BudgetCategoryState {
   }
 }
 
-function getBudgetCategory(state: BudgetCategoryState): string | SplitBudgetCategory[] | undefined {
-  if (state.mode === 'single') return state.categoryId ?? undefined
+function getBudgetCategory(state: BudgetCategoryState): string | SplitBudgetCategory[] | null {
+  if (state.mode === 'single') return state.categoryId
   return state.splits
+}
+
+function mutationAlertFromError(err: unknown): { title: string; message: string } {
+  if (err instanceof Error) {
+    return {
+      title: err.name?.trim() || 'Error',
+      message: err.message?.trim() || 'Failed to save transaction',
+    }
+  }
+  if (err != null && typeof err === 'object' && 'message' in err) {
+    const msg = (err as { message?: unknown }).message
+    if (typeof msg === 'string' && msg.trim()) {
+      return { title: 'Error', message: msg.trim() }
+    }
+  }
+  const s = err == null ? '' : String(err)
+  return { title: 'Error', message: s.trim() || 'Failed to save transaction' }
 }
 
 export default function TransactionEditForm(props: {
@@ -69,7 +93,7 @@ export default function TransactionEditForm(props: {
     const budgetCategory = getBudgetCategory(budgetState)
 
     const transactionData: Transaction = {
-      ...tx,
+      ...unwrap(tx),
       budget_category: budgetCategory,
       is_split: budgetState.mode === 'split',
     }
@@ -98,8 +122,16 @@ export default function TransactionEditForm(props: {
         },
       )
     } else {
+      const id = tx.id
+      if (id == null) return
+      const patch: TransactionPatch = {
+        ...unwrap(tx),
+        id,
+        budget_category: budgetCategory,
+        is_split: budgetState.mode === 'split',
+      }
       regMut.mutate(
-        { transaction: transactionData },
+        { transaction: patch },
         {
           onSuccess: async () => {
             await queryClient.invalidateQueries({ queryKey: ['transactions'] })
@@ -111,8 +143,29 @@ export default function TransactionEditForm(props: {
     }
   }
 
+  const activeMut = () => (props.isPending ? pendMut : regMut)
+
+  const activeMutationError = createMemo(() => {
+    const m = activeMut()
+    if (!m.isError || m.error == null) return undefined
+    return m.error
+  })
+
   return (
     <form data-testid={tid()} aria-label="Transaction Edit Form" class="text-foreground space-y-3">
+      <Show when={activeMutationError()}>
+        {(err) => {
+          const { title, message } = mutationAlertFromError(err())
+          return (
+            <AlertComponent
+              type="error"
+              title={title}
+              message={message}
+              dataTestId={`${tid()}-error-alert`}
+            />
+          )
+        }}
+      </Show>
       <Field label="Id" test={`${tid()}-id`}>
         <Input id={`field-${tid()}-id`} value={tx.id ?? ''} disabled />
       </Field>
@@ -151,7 +204,16 @@ export default function TransactionEditForm(props: {
         />
       </Field>
       <Field label="Memo" test={`${tid()}-memo`} hasInput={false}>
-        <MemoSelect value={tx.memo} onChange={(v) => setTx('memo', v)} dataTestId={`${tid()}-memo-select`} />
+        <MemoSelect
+          value={tx.memo}
+          onChange={(v, memoId) =>
+            batch(() => {
+              setTx('memo', v)
+              setTx('memo_id', memoId ?? null)
+            })
+          }
+          dataTestId={`${tid()}-memo-select`}
+        />
       </Field>
       <Field label="Balance" test={`${tid()}-balance`}>
         <Input
@@ -183,8 +245,8 @@ export default function TransactionEditForm(props: {
           onInput={(e) => setTx('fees', e.currentTarget.value)}
         />
       </Field>
-      <Button type="button" onClick={saveTransaction} class="mt-4">
-        Save
+      <Button type="button" onClick={saveTransaction} class="mt-4" disabled={activeMut().isPending}>
+        {activeMut().isPending ? 'Saving\u2026' : 'Save'}
       </Button>
     </form>
   )

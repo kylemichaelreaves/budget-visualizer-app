@@ -8,6 +8,7 @@ export default function LineChart(props: {
   handleOnClickSelection: (intervalDate: string) => void
   dataTestId?: string
   loading?: boolean
+  stackedDateLabels?: boolean
 }): JSX.Element {
   let svgEl: SVGSVGElement | undefined
   let wrapperEl: HTMLDivElement | undefined
@@ -30,7 +31,9 @@ export default function LineChart(props: {
     rafId = requestAnimationFrame(() => {
       rafId = undefined
       if (svgEl && svgEl.parentElement && svgEl.parentElement.getBoundingClientRect().width > 0) {
-        createLineChart(svgEl, summaries, onClickSelection)
+        createLineChart(svgEl, summaries, onClickSelection, {
+          stackedDateLabels: props.stackedDateLabels,
+        })
       }
     })
   })

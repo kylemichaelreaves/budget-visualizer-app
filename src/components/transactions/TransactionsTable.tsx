@@ -1,10 +1,15 @@
 import { A } from '@solidjs/router'
 import { DateTime } from 'luxon'
-import { createEffect, createMemo, For, on, Show } from 'solid-js'
+import { createEffect, createMemo, createSignal, For, on, Show } from 'solid-js'
+import { useQueryClient } from '@tanstack/solid-query'
 import { formatDate } from '@api/helpers/formatDate'
 import { getPeriodLabel } from '@api/helpers/formatPeriodLabels'
+import { useBudgetCategorySummary } from '@api/hooks/budgetCategories/useBudgetCategorySummary'
 import useTransactions from '@api/hooks/transactions/useTransactions'
+import { budgetCategoryColorsFromData } from '@composables/budgetCategoryColors'
+import mutateTransaction from '@api/hooks/transactions/mutateTransaction'
 import AlertComponent from '@components/shared/AlertComponent'
+import CategoryTreeSelectDialog from '@components/transactions/CategoryTreeSelectDialog'
 import BudgetCategorySummaries from '@components/transactions/charts/BudgetCategorySummaries'
 import DailyIntervalLineChart from '@components/transactions/charts/DailyIntervalLineChart/DailyIntervalLineChart'
 import PeriodHeader from '@components/transactions/PeriodHeader'
@@ -35,11 +40,48 @@ function getSelectedValue(): string {
 
 export default function TransactionsTable() {
   const query = useTransactions()
+  const queryClient = useQueryClient()
+  const mutation = mutateTransaction()
 
-  const isPaginationDisabled = () =>
-    Boolean(
-      transactionsState.selectedDay || transactionsState.selectedWeek || transactionsState.selectedMonth,
+  const [categoryDialogOpen, setCategoryDialogOpen] = createSignal(false)
+  const [categoryDialogTarget, setCategoryDialogTarget] = createSignal<import('@types').Transaction | null>(
+    null,
+  )
+  const [mutatingTransactionId, setMutatingTransactionId] = createSignal<number | null>(null)
+  const [categoryAssignError, setCategoryAssignError] = createSignal<string | null>(null)
+
+  function openCategoryDialog(row: import('@types').Transaction) {
+    setCategoryAssignError(null)
+    setCategoryDialogTarget(row)
+    setCategoryDialogOpen(true)
+  }
+
+  function handleCategorySelect(category: string) {
+    const target = categoryDialogTarget()
+    if (!target || target.id == null) return
+    setCategoryAssignError(null)
+    setMutatingTransactionId(target.id)
+    mutation.mutate(
+      { transaction: { id: target.id, budget_category: category } },
+      {
+        onSuccess: async () => {
+          await Promise.all([
+            queryClient.invalidateQueries({ queryKey: ['transactions'] }),
+            queryClient.invalidateQueries({ queryKey: ['budget-category-summary'] }),
+            queryClient.invalidateQueries({ queryKey: ['historical-summary-for-budget-category'] }),
+          ])
+          setMutatingTransactionId(null)
+          setCategoryAssignError(null)
+        },
+        onError: (err) => {
+          setMutatingTransactionId(null)
+          const msg = err instanceof Error ? err.message : String(err)
+          setCategoryAssignError(msg)
+          setCategoryDialogOpen(true)
+        },
+      },
     )
+  }
 
   const LIMIT = () => transactionsState.transactionsTableLimit
 
@@ -81,12 +123,32 @@ export default function TransactionsTable() {
     return DateTime.now().toFormat('MM-yyyy')
   })
 
+  const chartTimeFrame = createMemo(() => {
+    if (transactionsState.selectedDay) return Timeframe.Day
+    if (transactionsState.selectedWeek) return Timeframe.Week
+    if (transactionsState.selectedYear) return Timeframe.Year
+    return Timeframe.Month
+  })
+
+  const chartDate = createMemo(() => {
+    if (transactionsState.selectedDay) return transactionsState.selectedDay
+    if (transactionsState.selectedWeek) return transactionsState.selectedWeek
+    if (transactionsState.selectedMonth) return transactionsState.selectedMonth
+    if (transactionsState.selectedYear) return transactionsState.selectedYear
+    return defaultMonthForCharts()
+  })
+
+  const categorySummaryQuery = useBudgetCategorySummary(chartTimeFrame, chartDate)
+
+  const categoryColors = createMemo(() => {
+    const data = categorySummaryQuery.data as import('@types').BudgetCategorySummary[] | undefined
+    return budgetCategoryColorsFromData(data)
+  })
+
+  const isInitialLoading = () => query.isLoading || (query.isFetching && !query.data?.pages?.length)
+
   const isLoadingCondition = () =>
-    query.isLoading ||
-    query.isFetching ||
-    query.isRefetching ||
-    query.isFetchingNextPage ||
-    query.isFetchingPreviousPage
+    isInitialLoading() || query.isFetchingNextPage || query.isFetchingPreviousPage
 
   async function loadMorePagesIfNeeded() {
     const requiredDataCount = currentPage() * LIMIT()
@@ -123,6 +185,18 @@ export default function TransactionsTable() {
         )}
       </Show>
 
+      <Show when={categoryAssignError()}>
+        {(msg) => (
+          <AlertComponent
+            type="error"
+            title="Could not assign category"
+            message={msg()}
+            dataTestId="transactions-table-category-assign-error"
+            close={() => setCategoryAssignError(null)}
+          />
+        )}
+      </Show>
+
       <PeriodHeader />
 
       <SummaryStatsCards transactions={paginatedData()} />
@@ -143,40 +217,11 @@ export default function TransactionsTable() {
             <CardTitle>Spending by Category</CardTitle>
           </CardHeader>
           <CardContent class="px-3 pb-0 mt-auto">
-            <Show when={transactionsState.selectedMonth}>
-              <BudgetCategorySummaries
-                timeFrame={Timeframe.Month}
-                date={() => transactionsState.selectedMonth}
-                dataTestId="transactions-month-budget-summaries"
-              />
-            </Show>
-            <Show when={transactionsState.selectedWeek}>
-              <BudgetCategorySummaries
-                timeFrame={Timeframe.Week}
-                date={() => transactionsState.selectedWeek}
-                dataTestId="transactions-week-budget-summaries"
-              />
-            </Show>
-            <Show when={transactionsState.selectedDay}>
-              <BudgetCategorySummaries
-                timeFrame={Timeframe.Day}
-                date={() => transactionsState.selectedDay}
-                dataTestId="transactions-day-budget-summaries"
-              />
-            </Show>
-            <Show
-              when={
-                !transactionsState.selectedDay &&
-                !transactionsState.selectedWeek &&
-                !transactionsState.selectedMonth
-              }
-            >
-              <BudgetCategorySummaries
-                timeFrame={Timeframe.Month}
-                date={defaultMonthForCharts}
-                dataTestId="transactions-default-budget-summaries"
-              />
-            </Show>
+            <BudgetCategorySummaries
+              timeFrame={chartTimeFrame()}
+              date={chartDate}
+              dataTestId="transactions-budget-summaries"
+            />
           </CardContent>
         </Card>
       </div>
@@ -299,64 +344,86 @@ export default function TransactionsTable() {
                       <div class="flex items-center justify-center flex-wrap gap-1.5 min-w-0">
                         <Show when={!isCredit} fallback={null}>
                           <Show
-                            when={Array.isArray(row.budget_category) && row.budget_category.length > 0}
-                            fallback={
-                              <Show
-                                when={typeof row.budget_category === 'string' && row.budget_category}
-                                fallback={
-                                  <A
-                                    href={`/budget-visualizer/transactions/${row.id}/edit`}
-                                    class="flex items-center gap-1.5 text-xs text-muted-foreground border border-dashed rounded-full px-3 py-1 hover:border-brand hover:text-brand transition-colors no-underline"
-                                  >
-                                    <svg
-                                      class="size-3"
-                                      viewBox="0 0 24 24"
-                                      fill="none"
-                                      stroke="currentColor"
-                                      stroke-width="2"
-                                      stroke-linecap="round"
-                                      stroke-linejoin="round"
-                                    >
-                                      <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
-                                      <line x1="7" y1="7" x2="7.01" y2="7" />
-                                    </svg>
-                                    Assign category
-                                  </A>
-                                }
-                              >
-                                <A
-                                  href={`/budget-visualizer/transactions/${row.id}/edit`}
-                                  class="no-underline"
-                                >
-                                  <Badge variant="outline" class="text-xs hover:bg-accent transition-colors">
-                                    {String(row.budget_category)}
-                                  </Badge>
-                                </A>
-                              </Show>
-                            }
+                            when={mutatingTransactionId() !== row.id}
+                            fallback={<Skeleton class="h-6 w-24 rounded-full" />}
                           >
-                            <A
-                              href={`/budget-visualizer/transactions/${row.id}/edit`}
-                              class="flex flex-wrap gap-1.5 items-center no-underline"
+                            <Show
+                              when={Array.isArray(row.budget_category) && row.budget_category.length > 0}
+                              fallback={
+                                <Show
+                                  when={typeof row.budget_category === 'string' && row.budget_category}
+                                  fallback={
+                                    <button
+                                      type="button"
+                                      onClick={() => openCategoryDialog(row)}
+                                      class="flex items-center gap-1.5 text-xs text-muted-foreground border border-dashed rounded-full px-3 py-1 hover:border-brand hover:text-brand transition-colors cursor-pointer bg-transparent"
+                                      data-testid={`assign-category-${row.id}`}
+                                    >
+                                      <svg
+                                        class="size-3"
+                                        viewBox="0 0 24 24"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        stroke-width="2"
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                      >
+                                        <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z" />
+                                        <line x1="7" y1="7" x2="7.01" y2="7" />
+                                      </svg>
+                                      Assign category
+                                    </button>
+                                  }
+                                >
+                                  <button
+                                    type="button"
+                                    onClick={() => openCategoryDialog(row)}
+                                    class="cursor-pointer bg-transparent border-none p-0"
+                                    data-testid={`category-badge-${row.id}`}
+                                  >
+                                    <Badge
+                                      variant="outline"
+                                      class="text-xs hover:bg-accent transition-colors"
+                                      style={(() => {
+                                        const c = categoryColors().getColorByName(String(row.budget_category))
+                                        return { 'border-color': c, color: c }
+                                      })()}
+                                    >
+                                      {String(row.budget_category)}
+                                    </Badge>
+                                  </button>
+                                </Show>
+                              }
                             >
-                              <For
-                                each={
-                                  row.budget_category as {
-                                    budget_category_id: string
-                                    amount_debit: number
-                                  }[]
-                                }
+                              <A
+                                href={`/budget-visualizer/transactions/${row.id}/edit`}
+                                class="flex flex-wrap gap-1.5 items-center no-underline"
                               >
-                                {(split) => (
-                                  <span class="flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs hover:bg-accent transition-colors">
-                                    <span>{split.budget_category_id}</span>
-                                    <span class="text-muted-foreground">
-                                      ${Number(split.amount_debit).toFixed(2)}
+                                <For
+                                  each={
+                                    row.budget_category as {
+                                      budget_category_id: string
+                                      amount_debit: number
+                                    }[]
+                                  }
+                                >
+                                  {(split) => (
+                                    <span
+                                      class="flex items-center gap-1 rounded-full border px-2 py-0.5 text-xs hover:bg-accent transition-colors"
+                                      style={(() => {
+                                        const c = categoryColors().getColorByName(split.budget_category_id)
+                                        return { 'border-color': c, color: c }
+                                      })()}
+                                    >
+                                      <span>{split.budget_category_id}</span>
+                                      <span class="text-muted-foreground">
+                                        ${Number(split.amount_debit).toFixed(2)}
+                                      </span>
                                     </span>
-                                  </span>
-                                )}
-                              </For>
-                            </A>
+                                  )}
+                                </For>
+                              </A>
+                            </Show>
                           </Show>
                         </Show>
                       </div>
@@ -390,9 +457,19 @@ export default function TransactionsTable() {
         </CardContent>
       </Card>
 
-      <Show when={!isPaginationDisabled()}>
-        <TransactionsTablePagination />
-      </Show>
+      <TransactionsTablePagination />
+
+      <CategoryTreeSelectDialog
+        open={categoryDialogOpen()}
+        onOpenChange={setCategoryDialogOpen}
+        value={
+          typeof categoryDialogTarget()?.budget_category === 'string'
+            ? (categoryDialogTarget()!.budget_category as string)
+            : ''
+        }
+        onSelect={handleCategorySelect}
+        subtitle={categoryDialogTarget()?.memo || categoryDialogTarget()?.description || undefined}
+      />
     </div>
   )
 }

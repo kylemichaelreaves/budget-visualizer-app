@@ -16,6 +16,10 @@ export default function AutocompleteComponent(props: {
   dataTestId?: string
   minCharacters?: number
   ariaLabel?: string
+  /** Fires when the text input loses focus (e.g. commit free-text). */
+  onInputBlur?: () => void
+  /** Fires on Enter when there are no suggestions (e.g. commit typed filter text). */
+  onEnterNoSuggestions?: () => void
 }): JSX.Element {
   const [open, setOpen] = createSignal(false)
   const [query, setQuery] = createSignal('')
@@ -110,6 +114,12 @@ export default function AutocompleteComponent(props: {
               setQuery('')
             }
           }}
+          onBlur={(e) => {
+            const rt = e.relatedTarget as Node | null
+            const stayingInside = !!(rt && root?.contains(rt))
+            setOpen(false)
+            if (!stayingInside) props.onInputBlur?.()
+          }}
           onKeyDown={(e) => {
             const list = suggestions()
             if (e.key === 'ArrowDown') {
@@ -126,6 +136,11 @@ export default function AutocompleteComponent(props: {
                 setOpen(false)
                 setQuery('')
               }
+            } else if (e.key === 'Enter' && list.length === 0 && props.onEnterNoSuggestions) {
+              e.preventDefault()
+              props.onEnterNoSuggestions()
+              setOpen(false)
+              setQuery('')
             } else if (e.key === 'Escape') {
               setOpen(false)
             }
@@ -138,8 +153,11 @@ export default function AutocompleteComponent(props: {
             aria-label="Clear"
             onClick={(ev) => {
               ev.stopPropagation()
-              props.onChange('')
               setQuery('')
+              setAsyncSuggestions([])
+              setOpen(false)
+              setHighlight(0)
+              props.onChange('')
               props.onClear?.()
             }}
           >

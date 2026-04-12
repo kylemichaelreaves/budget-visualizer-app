@@ -1,6 +1,6 @@
 import { useInfiniteQuery } from '@tanstack/solid-query'
-import { createMemo } from 'solid-js'
 import { fetchTransactions } from '@api/transactions/fetchTransactions'
+import { memoQuerySliceFromStore } from '@composables/memoQueryFromTransactionsStore'
 import { transactionsState } from '@stores/transactionsStore'
 import useTimeframeTypeAndValue from '@api/hooks/timeUnits/useTimeframeTypeAndValue'
 import type { Transaction } from '@types'
@@ -9,52 +9,35 @@ import { devConsole } from '@utils/devConsole'
 export default function useTransactions() {
   const { timeFrame, selectedValue } = useTimeframeTypeAndValue()
 
-  const queryKey = createMemo(
-    () =>
-      [
-        'transactions',
-        transactionsState.transactionsTableLimit,
-        transactionsState.selectedMemo,
-        timeFrame(),
-        selectedValue(),
-      ] as const,
-  )
+  return useInfiniteQuery(() => {
+    const limit = transactionsState.transactionsTableLimit
+    const { key: memoKey, params: memoParams } = memoQuerySliceFromStore()
+    const tf = timeFrame()
+    const date = selectedValue()
 
-  devConsole('log', '[useTransactions] selectedMemo:', transactionsState.selectedMemo)
+    devConsole('log', '[useTransactions] memo query key:', memoKey)
 
-  return useInfiniteQuery(() => ({
-    queryKey: queryKey(),
-    initialPageParam: 0,
-    queryFn: async ({ pageParam }) => {
-      const page = Number(pageParam)
+    return {
+      queryKey: ['transactions', limit, memoKey, tf, date] as const,
+      initialPageParam: 0,
+      queryFn: async ({ pageParam }) => {
+        const page = Number(pageParam)
 
-      const memoValue = transactionsState.selectedMemo
-      const isMemoId = memoValue && !Number.isNaN(Number(memoValue))
-      let memoParam: { memoId?: number; memoName?: string } = {}
-      if (memoValue) {
-        if (isMemoId) {
-          memoParam = { memoId: Number(memoValue) }
-        } else {
-          memoParam = { memoName: memoValue }
+        return (await fetchTransactions({
+          limit,
+          offset: page,
+          ...memoParams,
+          timeFrame: tf,
+          date,
+        })) as Transaction[]
+      },
+      getNextPageParam: (lastPage, allPages) => {
+        if (lastPage.length < limit) {
+          return undefined
         }
-      }
-
-      const rows = (await fetchTransactions({
-        limit: transactionsState.transactionsTableLimit,
-        offset: page,
-        ...memoParam,
-        timeFrame: timeFrame(),
-        date: selectedValue(),
-      })) as Transaction[]
-
-      return rows
-    },
-    getNextPageParam: (lastPage, allPages) => {
-      if (lastPage.length < transactionsState.transactionsTableLimit) {
-        return undefined
-      }
-      return allPages.length * transactionsState.transactionsTableLimit
-    },
-    refetchOnWindowFocus: false,
-  }))
+        return allPages.length * limit
+      },
+      refetchOnWindowFocus: false,
+    }
+  })
 }

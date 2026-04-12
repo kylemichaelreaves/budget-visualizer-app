@@ -18,6 +18,7 @@ export type TransactionsState = {
   selectedMonth: string
   selectedYear: string
   selectedMemo: string
+  selectedMemoId: number | null
   selectedWeek: string
   selectedType: string
   selectedBudgetCategory: string | null
@@ -58,6 +59,7 @@ const initial: TransactionsState = {
   selectedMonth: '',
   selectedYear: '',
   selectedMemo: '',
+  selectedMemoId: null,
   selectedWeek: '',
   selectedType: 'Amount Debit',
   selectedBudgetCategory: '',
@@ -130,6 +132,7 @@ export function clearSelectionForSummary(): void {
     selectedMonth: '',
     selectedYear: '',
     selectedMemo: '',
+    selectedMemoId: null,
   })
 }
 
@@ -140,6 +143,7 @@ export function clearSelectionForPending(): void {
     selectedMonth: '',
     selectedYear: '',
     selectedMemo: '',
+    selectedMemoId: null,
   })
 }
 
@@ -154,6 +158,7 @@ function clearAllSelections(): void {
     selectedMonth: '',
     selectedYear: '',
     selectedMemo: '',
+    selectedMemoId: null,
     transactionsTableOffset: 0,
   })
 }
@@ -186,10 +191,40 @@ export function selectYearView(year: string): void {
   })
 }
 
-export function selectMemoView(memo: string): void {
+export function selectMemoView(memo: string, memoId?: number | null): void {
   batch(() => {
     clearAllSelections()
-    setTransactionsState({ selectedMemo: memo, viewMode: 'memo' })
+    setTransactionsState({ selectedMemo: memo, selectedMemoId: memoId ?? null, viewMode: 'memo' })
+  })
+}
+
+/**
+ * When memo summary data loads: set `viewMode` + memo fields without resetting
+ * `transactionsTableOffset` if we are already scoped to this memo (e.g. name hydrate
+ * after `applyMemoSummaryRoute`). Otherwise full `selectMemoView` clears stray timeframe state.
+ */
+export function syncMemoFromSummaryData(memo: string, memoId: number): void {
+  if (transactionsState.viewMode === 'memo' && transactionsState.selectedMemoId === memoId) {
+    setTransactionsState('selectedMemo', memo)
+    return
+  }
+  selectMemoView(memo, memoId)
+}
+
+/**
+ * Apply memo filter from `memoId` URL param before the memo record loads.
+ * `selectedMemoId` drives memo-scoped fetches (via `memoQuerySliceFromStore()`).
+ * `selectedMemo` is set to the numeric string so the memo label in the UI, memo filter field,
+ * and store→URL sync have a stable display value until `useMemoById` hydrates the real name.
+ */
+export function selectMemoFilterByIdOnly(memoId: number): void {
+  batch(() => {
+    clearAllSelections()
+    setTransactionsState({
+      selectedMemo: String(memoId),
+      selectedMemoId: memoId,
+      viewMode: 'memo',
+    })
   })
 }
 
@@ -215,9 +250,15 @@ export function applyWeekSummaryRoute(week: string): void {
 }
 
 export function applyMemoSummaryRoute(memoId: string): void {
+  const n = Number(memoId)
+  const valid = Number.isFinite(n) && n > 0
   batch(() => {
     clearAllSelections()
-    setTransactionsState({ selectedMemo: memoId, viewMode: 'memo' })
+    if (valid) {
+      setTransactionsState({ selectedMemo: String(n), selectedMemoId: n, viewMode: 'memo' })
+    } else {
+      setTransactionsState({ selectedMemoId: null, viewMode: null })
+    }
   })
 }
 
@@ -227,8 +268,9 @@ export function setSelectedDay(day: string): void {
 export function setSelectedMonth(month: string): void {
   setTransactionsState('selectedMonth', month)
 }
-export function setSelectedMemo(memo: string): void {
+export function setSelectedMemo(memo: string, memoId?: number | null): void {
   setTransactionsState('selectedMemo', memo)
+  if (memoId !== undefined) setTransactionsState('selectedMemoId', memoId ?? null)
 }
 export function setSelectedWeek(week: string): void {
   setTransactionsState('selectedWeek', week)

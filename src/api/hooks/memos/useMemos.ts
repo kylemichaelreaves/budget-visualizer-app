@@ -1,7 +1,7 @@
 import { useInfiniteQuery } from '@tanstack/solid-query'
 import { createMemo } from 'solid-js'
 import { fetchMemos } from '@api/memos/fetchMemos'
-import { getMemosByOffset, setMemosByOffset, transactionsState } from '@stores/transactionsStore'
+import { transactionsState } from '@stores/transactionsStore'
 import type { Memo } from '@types'
 
 export default function useMemos() {
@@ -12,15 +12,12 @@ export default function useMemos() {
     initialPageParam: 0,
     queryFn: async ({ pageParam }) => {
       const page = Number(pageParam)
-      const cached = getMemosByOffset(page)
-      if (cached.length > 0) return cached
 
       const rows = (await fetchMemos({
         limit: transactionsState.memosTableLimit,
         offset: page,
       })) as Memo[]
 
-      setMemosByOffset(page, rows)
       return rows
     },
     getNextPageParam: (lastPage, allPages) => {

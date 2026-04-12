@@ -2,13 +2,213 @@ import type { JSX } from 'solid-js'
 import { For, Show, createMemo, createSignal } from 'solid-js'
 import { useQueryClient } from '@tanstack/solid-query'
 import { extractBudgetCategoriesData } from '@api/helpers/extractBudgetCategoriesData'
-import { convertToTree } from '@api/helpers/convertToTree'
+import { BUDGET_CATEGORY_PATH_DELIMITER, convertToTree } from '@api/helpers/convertToTree'
 import { useBudgetCategories } from '@api/hooks/budgetCategories/useBudgetCategories'
+import { httpClient } from '@api/httpClient'
 import AlertComponent from '@components/shared/AlertComponent'
 import { Button } from '@components/ui/button'
 import { Input } from '@components/ui/input'
-import { Card, CardContent } from '@components/ui/card'
+import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@components/ui/card'
 import type { CategoryNode } from '@types'
+
+/** Stable `data-testid` segment from category path (`node.value`); avoids duplicate/unsafe IDs from labels. */
+function categoryPathTestIdSlug(pathValue: string): string {
+  const s = pathValue.replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_+|_+$/g, '')
+  return s || 'root'
+}
+
+function categoryTreeTestId(prefix: string, pathValue: string): string {
+  return `${prefix}-${categoryPathTestIdSlug(pathValue)}`
+}
+
+function budgetCategorySegmentValidationError(trimmed: string): string | null {
+  if (!trimmed.includes(BUDGET_CATEGORY_PATH_DELIMITER)) return null
+  return `Category names cannot contain "${BUDGET_CATEGORY_PATH_DELIMITER}" (that sequence is reserved between path levels).`
+}
+
+// ---------------------------------------------------------------------------
+// Icons (inline SVGs matching existing codebase patterns)
+// ---------------------------------------------------------------------------
+
+function ChevronRightIcon(props: { class?: string }): JSX.Element {
+  return (
+    <svg
+      class={props.class ?? 'size-4'}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="m9 18 6-6-6-6" />
+    </svg>
+  )
+}
+
+function ChevronDownIcon(props: { class?: string }): JSX.Element {
+  return (
+    <svg
+      class={props.class ?? 'size-4'}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="m6 9 6 6 6-6" />
+    </svg>
+  )
+}
+
+function FolderTreeIcon(props: { class?: string }): JSX.Element {
+  return (
+    <svg
+      class={props.class ?? 'size-4'}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M20 10a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2.5a1 1 0 0 1-.8-.4l-1.9-2.2a1 1 0 0 0-.8-.4H9a1 1 0 0 0-1 1v5a1 1 0 0 0 1 1Z" />
+      <path d="M20 21a1 1 0 0 0 1-1v-3a1 1 0 0 0-1-1h-2.9a1 1 0 0 1-.88-.55l-.42-.85a1 1 0 0 0-.88-.55H9a1 1 0 0 0-1 1v4a1 1 0 0 0 1 1Z" />
+      <path d="M3 5a2 2 0 0 0 2 2h3" />
+      <path d="M3 3v13a2 2 0 0 0 2 2h3" />
+    </svg>
+  )
+}
+
+function PlusIcon(props: { class?: string }): JSX.Element {
+  return (
+    <svg
+      class={props.class ?? 'size-4'}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M5 12h14" />
+      <path d="M12 5v14" />
+    </svg>
+  )
+}
+
+function RefreshCwIcon(props: { class?: string }): JSX.Element {
+  return (
+    <svg
+      class={props.class ?? 'size-3.5'}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 3" />
+      <path d="M21 3v5h-5" />
+      <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 21" />
+      <path d="M8 16H3v5" />
+    </svg>
+  )
+}
+
+function PencilIcon(props: { class?: string }): JSX.Element {
+  return (
+    <svg
+      class={props.class ?? 'size-4'}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z" />
+    </svg>
+  )
+}
+
+function TrashIcon(props: { class?: string }): JSX.Element {
+  return (
+    <svg
+      class={props.class ?? 'size-4'}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M3 6h18" />
+      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+    </svg>
+  )
+}
+
+function CheckIcon(props: { class?: string }): JSX.Element {
+  return (
+    <svg
+      class={props.class ?? 'size-4'}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  )
+}
+
+function XIcon(props: { class?: string }): JSX.Element {
+  return (
+    <svg
+      class={props.class ?? 'size-4'}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M18 6 6 18" />
+      <path d="m6 6 12 12" />
+    </svg>
+  )
+}
+
+function DotIcon(props: { class?: string }): JSX.Element {
+  return (
+    <svg class={props.class ?? 'size-4'} viewBox="0 0 24 24" fill="currentColor">
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// API helpers
+// ---------------------------------------------------------------------------
+
+type BudgetCategoryOperation =
+  | { operation: 'add'; path: string[]; name: string }
+  | { operation: 'rename'; path: string[]; newName: string }
+  | { operation: 'delete'; path: string[] }
+  | { operation: 'move'; path: string[]; newParentPath: string[] }
+
+async function mutateBudgetCategory(body: BudgetCategoryOperation): Promise<void> {
+  await httpClient.patch('/budget-categories', body)
+}
+
+// ---------------------------------------------------------------------------
+// Filter helper
+// ---------------------------------------------------------------------------
 
 function filterTree(nodes: CategoryNode[], q: string): CategoryNode[] {
   const needle = q.trim().toLowerCase()
@@ -29,31 +229,335 @@ function filterTree(nodes: CategoryNode[], q: string): CategoryNode[] {
   return nodes.map(keep).filter((x): x is CategoryNode => x != null)
 }
 
-function TreeNode(props: { node: CategoryNode; depth: number }): JSX.Element {
-  const children = () => props.node.children ?? []
-  const pad = () => Math.min(props.depth, 12) * 14
+// ---------------------------------------------------------------------------
+// Inline add form
+// ---------------------------------------------------------------------------
+
+function InlineAddForm(props: {
+  placeholder: string
+  onSubmit: (name: string) => void | Promise<void>
+  onCancel: () => void
+  'data-testid'?: string
+}): JSX.Element {
+  const [name, setName] = createSignal('')
+  const [submitting, setSubmitting] = createSignal(false)
+  const [segmentError, setSegmentError] = createSignal<string | null>(null)
+
+  const handleSubmit = async () => {
+    const trimmed = name().trim()
+    if (!trimmed || submitting()) return
+    const err = budgetCategorySegmentValidationError(trimmed)
+    if (err) {
+      setSegmentError(err)
+      return
+    }
+    setSegmentError(null)
+    setSubmitting(true)
+    try {
+      await props.onSubmit(trimmed)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const handleKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      void handleSubmit()
+    } else if (e.key === 'Escape') {
+      props.onCancel()
+    }
+  }
+
+  const fieldTestId = (suffix: string) => {
+    const base = props['data-testid'] ?? 'inline-add'
+    return `${base}-${suffix}`
+  }
 
   return (
-    <li
-      class="my-1.5 list-none"
-      style={{ 'padding-left': `${pad()}px` }}
-      classList={{ 'border-l': props.depth > 0, 'border-border': props.depth > 0 }}
-      data-testid={`budget-category-node-${props.depth}`}
-    >
-      <div class="flex flex-wrap gap-2.5 items-baseline">
-        <span class="text-foreground font-semibold">{props.node.label}</span>
-        <code class="text-xs text-muted-foreground break-all" data-testid="budget-category-path">
-          {props.node.value}
-        </code>
+    <div class="flex flex-col gap-1 py-1 min-w-0" data-testid={props['data-testid']}>
+      <div class="flex items-center gap-1.5">
+        <Input
+          type="text"
+          placeholder={props.placeholder}
+          value={name()}
+          onInput={(e) => {
+            setName(e.currentTarget.value)
+            setSegmentError(null)
+          }}
+          onKeyDown={handleKeyDown}
+          disabled={submitting()}
+          autofocus
+          class="h-7 text-sm flex-1 min-w-[120px]"
+          data-testid={fieldTestId('input')}
+        />
+        <Button
+          variant="ghost"
+          size="icon"
+          class="size-7 text-green-600 hover:text-green-700"
+          disabled={!name().trim() || submitting()}
+          onClick={() => void handleSubmit()}
+          aria-label="Confirm add"
+          data-testid={fieldTestId('confirm')}
+        >
+          <CheckIcon class="size-3.5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          class="size-7 text-muted-foreground hover:text-foreground"
+          onClick={props.onCancel}
+          aria-label="Cancel add"
+          data-testid={fieldTestId('cancel')}
+        >
+          <XIcon class="size-3.5" />
+        </Button>
       </div>
-      <Show when={children().length > 0}>
-        <ul class="mt-2 m-0 p-0">
-          <For each={children()}>{(c) => <TreeNode node={c} depth={props.depth + 1} />}</For>
+      <Show when={segmentError()}>
+        {(msg) => (
+          <p class="text-destructive text-xs m-0" role="alert" data-testid={fieldTestId('validation-error')}>
+            {msg()}
+          </p>
+        )}
+      </Show>
+    </div>
+  )
+}
+
+// ---------------------------------------------------------------------------
+// Tree node component
+// ---------------------------------------------------------------------------
+
+function TreeNode(props: {
+  node: CategoryNode
+  depth: number
+  onMutate: (op: BudgetCategoryOperation) => Promise<void>
+  mutatingPaths: Set<string>
+}): JSX.Element {
+  const children = () => props.node.children ?? []
+  const hasChildren = () => children().length > 0
+  const pad = () => Math.min(props.depth, 12) * 20
+
+  const [expanded, setExpanded] = createSignal(true)
+  const [renaming, setRenaming] = createSignal(false)
+  const [renameValue, setRenameValue] = createSignal('')
+  const [renameError, setRenameError] = createSignal<string | null>(null)
+  const [addingChild, setAddingChild] = createSignal(false)
+
+  const isMutating = () => props.mutatingPaths.has(props.node.value)
+  const pathSegments = () => props.node.value.split(BUDGET_CATEGORY_PATH_DELIMITER)
+
+  // Rename handlers
+  const startRename = () => {
+    setRenameValue(props.node.label)
+    setRenameError(null)
+    setRenaming(true)
+  }
+
+  const confirmRename = async () => {
+    const newName = renameValue().trim()
+    if (!newName || newName === props.node.label) {
+      setRenaming(false)
+      return
+    }
+    const err = budgetCategorySegmentValidationError(newName)
+    if (err) {
+      setRenameError(err)
+      return
+    }
+    setRenameError(null)
+    await props.onMutate({ operation: 'rename', path: pathSegments(), newName })
+    setRenaming(false)
+  }
+
+  const handleRenameKeyDown = (e: KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      void confirmRename()
+    } else if (e.key === 'Escape') {
+      setRenameError(null)
+      setRenaming(false)
+    }
+  }
+
+  // Add child handler
+  const handleAddChild = async (name: string) => {
+    await props.onMutate({ operation: 'add', path: pathSegments(), name })
+    setAddingChild(false)
+    setExpanded(true)
+  }
+
+  // Delete handler
+  const handleDelete = async () => {
+    await props.onMutate({ operation: 'delete', path: pathSegments() })
+  }
+
+  return (
+    <li class="list-none" data-testid={`budget-category-node-${props.depth}`}>
+      <div
+        class="flex items-center gap-1 rounded-md px-1.5 py-1 transition-colors hover:bg-accent/50 group"
+        style={{ 'padding-left': `${pad() + 6}px` }}
+        data-testid={categoryTreeTestId('tree-row', props.node.value)}
+      >
+        {/* Expand / collapse toggle or leaf dot */}
+        <Show
+          when={hasChildren()}
+          fallback={
+            <span class="flex items-center justify-center size-5 shrink-0 text-muted-foreground">
+              <DotIcon class="size-3" />
+            </span>
+          }
+        >
+          <button
+            type="button"
+            class="flex items-center justify-center size-5 shrink-0 rounded hover:bg-accent text-muted-foreground transition-colors cursor-pointer"
+            onClick={() => setExpanded((prev) => !prev)}
+            aria-label={expanded() ? 'Collapse' : 'Expand'}
+            data-testid={categoryTreeTestId('tree-toggle', props.node.value)}
+          >
+            <Show when={expanded()} fallback={<ChevronRightIcon class="size-3.5" />}>
+              <ChevronDownIcon class="size-3.5" />
+            </Show>
+          </button>
+        </Show>
+
+        {/* Name or inline rename input */}
+        <Show
+          when={!renaming()}
+          fallback={
+            <div class="flex flex-col gap-1 flex-1 min-w-0">
+              <div class="flex items-center gap-1">
+                <Input
+                  type="text"
+                  value={renameValue()}
+                  onInput={(e) => {
+                    setRenameValue(e.currentTarget.value)
+                    setRenameError(null)
+                  }}
+                  onKeyDown={handleRenameKeyDown}
+                  autofocus
+                  class="h-7 text-sm flex-1 min-w-[80px]"
+                  data-testid={categoryTreeTestId('rename-input', props.node.value)}
+                />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  class="size-7 text-green-600 hover:text-green-700"
+                  disabled={!renameValue().trim()}
+                  onClick={() => void confirmRename()}
+                  aria-label="Confirm rename"
+                  data-testid={categoryTreeTestId('rename-confirm', props.node.value)}
+                >
+                  <CheckIcon class="size-3.5" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  class="size-7 text-muted-foreground hover:text-foreground"
+                  onClick={() => {
+                    setRenameError(null)
+                    setRenaming(false)
+                  }}
+                  aria-label="Cancel rename"
+                  data-testid={categoryTreeTestId('rename-cancel', props.node.value)}
+                >
+                  <XIcon class="size-3.5" />
+                </Button>
+              </div>
+              <Show when={renameError()}>
+                {(msg) => (
+                  <p
+                    class="text-destructive text-xs m-0"
+                    role="alert"
+                    data-testid={categoryTreeTestId('rename-validation-error', props.node.value)}
+                  >
+                    {msg()}
+                  </p>
+                )}
+              </Show>
+            </div>
+          }
+        >
+          <span
+            class="text-sm font-medium truncate flex-1 min-w-0"
+            classList={{ 'opacity-50': isMutating() }}
+          >
+            {props.node.label}
+          </span>
+        </Show>
+
+        {/* Action buttons: always in DOM for keyboard/AT; shown via row hover or focus-within */}
+        <Show when={!renaming() && !isMutating()}>
+          <div
+            class="ml-auto flex shrink-0 items-center gap-0.5 opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto"
+            data-testid={categoryTreeTestId('tree-actions', props.node.value)}
+          >
+            <Button
+              variant="ghost"
+              size="icon"
+              class="size-7 text-muted-foreground hover:text-foreground"
+              onClick={() => setAddingChild(true)}
+              aria-label={`Add child to ${props.node.label}`}
+              data-testid={categoryTreeTestId('add-child', props.node.value)}
+            >
+              <PlusIcon class="size-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              class="size-7 text-muted-foreground hover:text-foreground"
+              onClick={startRename}
+              aria-label={`Rename ${props.node.label}`}
+              data-testid={categoryTreeTestId('rename', props.node.value)}
+            >
+              <PencilIcon class="size-3.5" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              class="size-7 text-destructive hover:text-destructive"
+              onClick={() => void handleDelete()}
+              aria-label={`Delete ${props.node.label}`}
+              data-testid={categoryTreeTestId('delete', props.node.value)}
+            >
+              <TrashIcon class="size-3.5" />
+            </Button>
+          </div>
+        </Show>
+      </div>
+
+      {/* Inline add child form */}
+      <Show when={addingChild()}>
+        <div style={{ 'padding-left': `${pad() + 26}px` }}>
+          <InlineAddForm
+            placeholder={`New subcategory of ${props.node.label}...`}
+            onSubmit={(name) => handleAddChild(name)}
+            onCancel={() => setAddingChild(false)}
+            data-testid={categoryTreeTestId('add-child-form', props.node.value)}
+          />
+        </div>
+      </Show>
+
+      {/* Children */}
+      <Show when={hasChildren() && expanded()}>
+        <ul class="m-0 p-0">
+          <For each={children()}>
+            {(child) => (
+              <TreeNode
+                node={child}
+                depth={props.depth + 1}
+                onMutate={props.onMutate}
+                mutatingPaths={props.mutatingPaths}
+              />
+            )}
+          </For>
         </ul>
       </Show>
     </li>
   )
 }
+
+// ---------------------------------------------------------------------------
+// Main page component
+// ---------------------------------------------------------------------------
 
 export default function BudgetCategoriesPage(): JSX.Element {
   const q = useBudgetCategories(
@@ -62,7 +566,11 @@ export default function BudgetCategoriesPage(): JSX.Element {
     false,
   )
   const queryClient = useQueryClient()
+
   const [filter, setFilter] = createSignal('')
+  const [addingRoot, setAddingRoot] = createSignal(false)
+  const [mutatingPaths, setMutatingPaths] = createSignal<Set<string>>(new Set())
+  const [error, setError] = createSignal<string | null>(null)
 
   const tree = createMemo(() => {
     const raw = q.data as unknown
@@ -73,16 +581,50 @@ export default function BudgetCategoriesPage(): JSX.Element {
 
   const visibleTree = createMemo(() => filterTree(tree(), filter()))
 
+  const handleMutate = async (op: BudgetCategoryOperation) => {
+    /** For `add`, lock the parent row (`node.value`); for rename/delete, the target row. */
+    const pathKey = op.path.join(BUDGET_CATEGORY_PATH_DELIMITER)
+
+    setError(null)
+    setMutatingPaths((prev) => {
+      const next = new Set(prev)
+      next.add(pathKey)
+      return next
+    })
+
+    try {
+      await mutateBudgetCategory(op)
+      await queryClient.invalidateQueries({ queryKey: ['budgetCategories'] })
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'An unexpected error occurred'
+      setError(`Failed to ${op.operation} category: ${message}`)
+    } finally {
+      setMutatingPaths((prev) => {
+        const next = new Set(prev)
+        next.delete(pathKey)
+        return next
+      })
+    }
+  }
+
+  const handleAddRoot = async (name: string) => {
+    await handleMutate({ operation: 'add', path: [], name })
+    setAddingRoot(false)
+  }
+
   return (
     <div class="text-foreground max-w-[960px]" data-testid="budget-categories-page">
-      <header class="mb-4">
-        <h1 class="mb-2 text-xl">Budget categories</h1>
+      {/* Page header */}
+      <header class="mb-6">
+        <h1 class="mb-1 text-2xl font-bold" data-testid="budget-categories-page-heading">
+          Budget categories
+        </h1>
         <p class="m-0 text-muted-foreground text-sm">
-          Hierarchy from the API (read-only). Use this path string when assigning categories on transactions
-          and memos.
+          Set spending limits and manage your category hierarchy
         </p>
       </header>
 
+      {/* API error */}
       <Show when={q.isError && q.error}>
         {(err) => (
           <AlertComponent
@@ -94,49 +636,110 @@ export default function BudgetCategoriesPage(): JSX.Element {
         )}
       </Show>
 
-      <div class="flex flex-wrap gap-3 items-center my-3">
-        <Input
-          type="search"
-          placeholder="Filter by name or path..."
-          value={filter()}
-          onInput={(e) => setFilter(e.currentTarget.value)}
-          disabled={q.isLoading || q.isFetching}
-          aria-label="Filter categories"
-          data-testid="budget-categories-filter"
-          class="flex-[1_1_220px] min-w-[180px]"
-        />
-        <Button
-          variant="outline"
-          type="button"
-          data-testid="budget-categories-refresh"
-          disabled={q.isFetching}
-          onClick={() => void queryClient.invalidateQueries({ queryKey: ['budgetCategories'] })}
-        >
-          {q.isFetching ? 'Refreshing...' : 'Refresh'}
-        </Button>
-      </div>
-
-      <Show when={q.isLoading}>
-        <p class="text-muted-foreground" data-testid="budget-categories-loading">
-          Loading categories...
-        </p>
+      {/* Mutation error */}
+      <Show when={error()}>
+        {(msg) => (
+          <AlertComponent
+            type="error"
+            title="Operation failed"
+            message={msg()}
+            dataTestId="budget-categories-mutation-error"
+          />
+        )}
       </Show>
 
-      <Show when={!q.isLoading && visibleTree().length === 0}>
-        <p class="text-muted-foreground" data-testid="budget-categories-empty">
-          {tree().length === 0 ? 'No categories returned from the API.' : 'No categories match your filter.'}
-        </p>
-      </Show>
+      {/* Main card */}
+      <Card data-testid="budget-categories-tree">
+        <CardHeader>
+          <div class="flex items-center gap-2">
+            <FolderTreeIcon class="size-5 text-muted-foreground" />
+            <CardTitle>Budget Categories</CardTitle>
+          </div>
+          <CardDescription>
+            Edit the hierarchy used in the category selector. Hover over any row to rename, add children, or
+            delete.
+          </CardDescription>
+          <CardAction>
+            <div class="flex flex-wrap items-center justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => void queryClient.invalidateQueries({ queryKey: ['budgetCategories'] })}
+                disabled={q.isLoading || q.isFetching}
+                data-testid="budget-categories-refresh"
+              >
+                <RefreshCwIcon class="size-3.5" />
+                Refresh
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setAddingRoot(true)}
+                disabled={addingRoot()}
+                data-testid="add-root-category-button"
+              >
+                <PlusIcon class="size-3.5" />
+                Add Category
+              </Button>
+            </div>
+          </CardAction>
+        </CardHeader>
 
-      <Show when={!q.isLoading && visibleTree().length > 0}>
-        <Card data-testid="budget-categories-tree">
-          <CardContent class="pt-4">
+        <CardContent>
+          {/* Filter input */}
+          <div class="mb-4">
+            <Input
+              type="search"
+              placeholder="Filter by name or path..."
+              value={filter()}
+              onInput={(e) => setFilter(e.currentTarget.value)}
+              disabled={q.isLoading || q.isFetching}
+              aria-label="Filter categories"
+              data-testid="budget-categories-filter"
+            />
+          </div>
+
+          {/* Loading state */}
+          <Show when={q.isLoading}>
+            <p class="text-muted-foreground text-sm py-4 text-center" data-testid="budget-categories-loading">
+              Loading categories...
+            </p>
+          </Show>
+
+          {/* Root add form */}
+          <Show when={addingRoot()}>
+            <div class="mb-2">
+              <InlineAddForm
+                placeholder="New root category..."
+                onSubmit={(name) => handleAddRoot(name)}
+                onCancel={() => setAddingRoot(false)}
+                data-testid="add-root-form"
+              />
+            </div>
+          </Show>
+
+          {/* Empty state */}
+          <Show when={!q.isLoading && visibleTree().length === 0}>
+            <p class="text-muted-foreground text-sm py-4 text-center" data-testid="budget-categories-empty">
+              {tree().length === 0
+                ? 'No categories yet. Click "Add Category" to create one.'
+                : 'No categories match your filter.'}
+            </p>
+          </Show>
+
+          {/* Category tree */}
+          <Show when={!q.isLoading && visibleTree().length > 0}>
             <ul class="m-0 p-0">
-              <For each={visibleTree()}>{(n) => <TreeNode node={n} depth={0} />}</For>
+              <For each={visibleTree()}>
+                {(node) => (
+                  <TreeNode node={node} depth={0} onMutate={handleMutate} mutatingPaths={mutatingPaths()} />
+                )}
+              </For>
             </ul>
-          </CardContent>
-        </Card>
-      </Show>
+          </Show>
+        </CardContent>
+      </Card>
     </div>
   )
 }

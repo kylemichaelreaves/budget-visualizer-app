@@ -14,6 +14,7 @@ import { BudgetCategoriesPage } from '../pages/BudgetCategoriesPage'
 import { LoanCalculatorPage } from '../pages/LoanCalculatorPage'
 import { NavBar } from '../pages/NavBar'
 import { SplitBudgetCategoryDrawer } from '../pages/SplitBudgetCategoryDrawer'
+import { CategoryTreeSelectDialog } from '../pages/CategoryTreeSelectDialog'
 
 type Fixtures = {
   loginPage: LoginPage
@@ -29,6 +30,7 @@ type Fixtures = {
   budgetCategoriesPage: BudgetCategoriesPage
   loanCalculatorPage: LoanCalculatorPage
   splitBudgetCategoryDrawer: SplitBudgetCategoryDrawer
+  categoryTreeSelectDialog: CategoryTreeSelectDialog
 }
 
 /**
@@ -74,6 +76,9 @@ export const test = base.extend<Fixtures>({
   },
   splitBudgetCategoryDrawer: async ({ page }, use) => {
     await use(new SplitBudgetCategoryDrawer(page))
+  },
+  categoryTreeSelectDialog: async ({ page }, use) => {
+    await use(new CategoryTreeSelectDialog(page))
   },
 })
 
@@ -131,6 +136,9 @@ export const authenticatedTest = base.extend<Fixtures>({
   },
   splitBudgetCategoryDrawer: async ({ page }, use) => {
     await use(new SplitBudgetCategoryDrawer(page))
+  },
+  categoryTreeSelectDialog: async ({ page }, use) => {
+    await use(new CategoryTreeSelectDialog(page))
   },
 })
 

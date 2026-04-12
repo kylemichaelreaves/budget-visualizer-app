@@ -5,9 +5,50 @@ import { useMemoSearch } from '@api/hooks/memos/useMemoSearch'
 import AlertComponent from '@components/shared/AlertComponent'
 import AutocompleteComponent from '@components/shared/AutocompleteComponent'
 
+const MEMO_OPT_PREFIX = 'm:'
+
+function optionValueForMemoId(id: number): string {
+  return `${MEMO_OPT_PREFIX}${id}`
+}
+
+function parseMemoOptionValue(v: string): number | null {
+  if (!v.startsWith(MEMO_OPT_PREFIX)) return null
+  const n = Number(v.slice(MEMO_OPT_PREFIX.length))
+  return Number.isFinite(n) && n > 0 ? n : null
+}
+
+function toOptions(memos: Memo[]): { value: string; label: string }[] {
+  const nameCounts = new Map<string, number>()
+  for (const m of memos) {
+    const name = m.name?.trim()
+    if (!name) continue
+    nameCounts.set(name, (nameCounts.get(name) ?? 0) + 1)
+  }
+  const out: { value: string; label: string }[] = []
+  for (const m of memos) {
+    const name = m.name?.trim()
+    if (!name) continue
+    const dup = (nameCounts.get(name) ?? 0) > 1
+    const label = dup ? `${name} (#${m.id})` : name
+    out.push({ value: optionValueForMemoId(m.id), label })
+  }
+  return out
+}
+
+function memoIdForUniqueTypedName(memos: Memo[], trimmed: string): number | undefined {
+  const hits = memos.filter((m) => m.name?.trim() === trimmed)
+  if (hits.length === 1) return hits[0]!.id
+  return undefined
+}
+
 export default function MemoSelect(props: {
   value: string
-  onChange: (v: string) => void
+  onChange: (v: string, memoId?: number) => void
+  /**
+   * Called when the input blurs so parents can commit a memo-name filter when `memoId`
+   * is still unknown (ambiguous name, slow search, or free-text match).
+   */
+  onCommit?: (v: string, memoId?: number) => void
   placeholder?: string
   dataTestId?: string
 }): JSX.Element {
@@ -18,6 +59,27 @@ export default function MemoSelect(props: {
     ((results: { value: string; label: string }[]) => void) | null
   >(null)
 
+  const memoOptions = createMemo(() => toOptions(memosQuery.data ?? []))
+
+  function applyChange(raw: string) {
+    const memos = memosQuery.data ?? []
+    const idFromOpt = parseMemoOptionValue(raw)
+    if (idFromOpt != null) {
+      const m = memos.find((x) => x.id === idFromOpt)
+      if (m) {
+        const name = m.name?.trim() ?? ''
+        props.onChange(name || String(idFromOpt), idFromOpt)
+      } else {
+        // Avoid persisting internal `m:id` when results no longer include that memo
+        props.onChange(String(idFromOpt), idFromOpt)
+      }
+      return
+    }
+    const trimmed = raw.trim()
+    const id = trimmed ? memoIdForUniqueTypedName(memos, trimmed) : undefined
+    props.onChange(raw, id)
+  }
+
   createEffect(() => {
     const data = memosQuery.data
     const cb = pendingCb()
@@ -27,7 +89,16 @@ export default function MemoSelect(props: {
     }
   })
 
-  const memoOptions = createMemo(() => toOptions(memosQuery.data ?? []))
+  function commitFromCurrentValue() {
+    const trimmed = props.value.trim()
+    if (!trimmed) {
+      props.onCommit?.('', undefined)
+      return
+    }
+    const memos = memosQuery.data ?? []
+    const id = memoIdForUniqueTypedName(memos, trimmed)
+    props.onCommit?.(trimmed, id)
+  }
 
   return (
     <div aria-label="Memo Selector">
@@ -43,12 +114,21 @@ export default function MemoSelect(props: {
       </Show>
       <AutocompleteComponent
         value={props.value}
-        onChange={props.onChange}
+        onChange={(v) => applyChange(v)}
+        onInputBlur={() => {
+          if (props.onCommit) commitFromCurrentValue()
+        }}
+        onEnterNoSuggestions={() => {
+          if (props.onCommit) commitFromCurrentValue()
+        }}
         placeholder={props.placeholder ?? 'Select a memo'}
         options={memoOptions()}
         dataTestId={props.dataTestId ?? 'transactions-table-memo-select'}
         minCharacters={1}
-        onClear={() => props.onChange('')}
+        onClear={() => {
+          setSearchQuery('')
+          setPendingCb(null)
+        }}
         onSearch={(query, callback) => {
           setSearchQuery(query)
           setPendingCb(() => callback)
@@ -57,16 +137,4 @@ export default function MemoSelect(props: {
       />
     </div>
   )
-}
-
-function toOptions(memos: Memo[]): { value: string; label: string }[] {
-  const seen = new Set<string>()
-  const out: { value: string; label: string }[] = []
-  for (const m of memos) {
-    const name = m.name?.trim()
-    if (!name || seen.has(name)) continue
-    seen.add(name)
-    out.push({ value: name, label: name })
-  }
-  return out
 }

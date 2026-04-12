@@ -11,6 +11,12 @@ export class TransactionsPage {
   readonly daySelect: Locator
   readonly clearButton: Locator
 
+  /** Inline clear buttons inside each select */
+  readonly yearClearButton: Locator
+  readonly monthClearButton: Locator
+  readonly weekClearButton: Locator
+  readonly dayClearButton: Locator
+
   /** Period header */
   readonly periodHeader: Locator
   readonly periodLabel: Locator
@@ -32,7 +38,12 @@ export class TransactionsPage {
     this.monthSelect = this.filtersSection.getByLabel('Month')
     this.weekSelect = this.filtersSection.getByLabel('Week')
     this.daySelect = this.filtersSection.getByLabel('Day')
-    this.clearButton = this.filtersSection.getByRole('button', { name: 'Clear' })
+    this.clearButton = this.filtersSection.getByTestId('transactions-table-selects-clear-timeframe')
+
+    this.yearClearButton = this.filtersSection.getByTestId('transactions-table-selects-year-clear')
+    this.monthClearButton = this.filtersSection.getByTestId('transactions-table-selects-month-clear')
+    this.weekClearButton = this.filtersSection.getByTestId('transactions-table-selects-week-clear')
+    this.dayClearButton = this.filtersSection.getByTestId('transactions-table-selects-day-clear')
 
     this.periodHeader = page.getByTestId('period-header')
     this.periodLabel = page.getByTestId('period-header-label')
@@ -67,6 +78,22 @@ export class TransactionsPage {
     await this.daySelect.selectOption(day)
   }
 
+  async clearYear() {
+    await this.yearClearButton.click()
+  }
+
+  async clearMonth() {
+    await this.monthClearButton.click()
+  }
+
+  async clearWeek() {
+    await this.weekClearButton.click()
+  }
+
+  async clearDay() {
+    await this.dayClearButton.click()
+  }
+
   async clearFilters() {
     await this.clearButton.click()
   }
@@ -77,5 +104,13 @@ export class TransactionsPage {
 
   async clickNextPeriod() {
     await this.nextPeriodButton.click()
+  }
+
+  assignCategoryButton(transactionId: number | string): Locator {
+    return this.page.getByTestId(`assign-category-${transactionId}`)
+  }
+
+  categoryBadge(transactionId: number | string): Locator {
+    return this.page.getByTestId(`category-badge-${transactionId}`)
   }
 }

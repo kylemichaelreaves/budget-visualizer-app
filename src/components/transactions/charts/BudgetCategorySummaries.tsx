@@ -5,6 +5,7 @@ import { useHistoricalSummaryForBudgetCategory } from '@api/hooks/budgetCategori
 import LineChart from '@charts/LineChart'
 import type { BudgetCategorySummary, Timeframe } from '@types'
 import AlertComponent from '@components/shared/AlertComponent'
+import { Skeleton } from '@components/ui/skeleton'
 import BudgetCategoryPieChart from './BudgetCategoryPieChart'
 
 export default function BudgetCategorySummaries(props: {
@@ -24,7 +25,7 @@ export default function BudgetCategorySummaries(props: {
   createEffect(() => {
     const list = rows()
     const top = list.find((r) => r.parent_id === null && Math.abs(r.total_amount_debit) > 0)
-    const name = top?.budget_category || top?.category_name || ''
+    const name = top?.full_path || top?.budget_category || top?.category_name || ''
     if (name && !selectedCategory()) {
       setSelectedCategory(name)
     }
@@ -62,7 +63,7 @@ export default function BudgetCategorySummaries(props: {
           showLegend={false}
           dataTestId={`${id()}-pie`}
           onSliceClick={(cat) => {
-            const n = cat.budget_category || cat.category_name
+            const n = cat.full_path || cat.budget_category || cat.category_name
             if (n) setSelectedCategory(n)
           }}
         />
@@ -78,14 +79,30 @@ export default function BudgetCategorySummaries(props: {
               />
             )}
           </Show>
-          <div>
-            <LineChart
-              summaries={historicalQuery.data ?? []}
-              handleOnClickSelection={() => undefined}
-              dataTestId={`${id()}-historical-line`}
-              loading={historicalQuery.isLoading || historicalQuery.isFetching}
-            />
-          </div>
+          <Show
+            when={!historicalQuery.isLoading && !historicalQuery.isFetching}
+            fallback={
+              <div class="flex flex-col gap-2 pt-2" data-testid={`${id()}-historical-skeleton`}>
+                <Skeleton class="h-[240px] w-full rounded-lg" />
+                <div class="flex justify-between px-2">
+                  <Skeleton class="h-3 w-12" />
+                  <Skeleton class="h-3 w-12" />
+                  <Skeleton class="h-3 w-12" />
+                  <Skeleton class="h-3 w-12" />
+                </div>
+              </div>
+            }
+          >
+            <div>
+              <LineChart
+                summaries={historicalQuery.data ?? []}
+                handleOnClickSelection={() => undefined}
+                dataTestId={`${id()}-historical-line`}
+                loading={false}
+                stackedDateLabels
+              />
+            </div>
+          </Show>
         </div>
       </div>
     </Show>

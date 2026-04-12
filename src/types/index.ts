@@ -152,9 +152,26 @@ export interface Memo {
   avatar_s3_url?: string
 }
 
+/**
+ * PATCH `/memos/:id` body (camelCase). `updateMemo` requires `id` and `name`; other fields are optional updates.
+ */
+export type MemoUpdateInput = {
+  id: number
+  name: string
+  budgetCategory?: string | null
+  ambiguous?: boolean
+  recurring?: boolean
+  necessary?: boolean
+  frequency?: Frequency | null
+}
+
+export type MemoPatchFields = Partial<Omit<MemoUpdateInput, 'id' | 'name'>>
+
 export interface MemoSummary {
   sum_amount_debit: number
   transactions_count: number
+  /** Optional aggregate from API; when set, UI can show memo-wide credit totals instead of paginated sums. */
+  sum_amount_credit?: number
 }
 
 export type MemoFilters = Partial<Pick<Memo, 'id' | 'name' | 'recurring' | 'necessary'>>
@@ -228,6 +245,7 @@ export type SummaryTypeBase = {
   month_number?: string
   json?: JsonObjectType
   date?: string
+  period_start?: string
 }
 
 export type Summaries = {
@@ -254,15 +272,20 @@ export type Transaction = {
   date: string
   description: string
   memo: string
-  memo_id?: number
+  /** Set to `null` in the edit form when the memo text is not tied to a resolved memo id (clears stale associations on PATCH). */
+  memo_id?: number | null
   amount_debit: string
   amount_credit: string
   balance?: string
   check_number?: string
   fees?: string
-  budget_category?: string | SplitBudgetCategory[]
+  /** `null` in a PATCH clears a single-category assignment (see `updateTransaction`). */
+  budget_category?: string | SplitBudgetCategory[] | null
   is_split?: boolean
 }
+
+/** PATCH `/transactions/:id` — `id` required; other fields optional. */
+export type TransactionPatch = Partial<Transaction> & { id: number }
 
 export type PendingTransaction = {
   id: number
@@ -272,7 +295,7 @@ export type PendingTransaction = {
   amount_debit: string
   transaction_date: string
   memo_name: string
-  assigned_category?: string | SplitBudgetCategory[]
+  assigned_category?: string | SplitBudgetCategory[] | null
   status: PendingTransactionStatus
 }
 

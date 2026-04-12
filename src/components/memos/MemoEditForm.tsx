@@ -71,7 +71,7 @@ export default function MemoEditForm(props: {
         necessary: form.necessary,
         ambiguous: form.ambiguous,
         frequency: form.frequency || undefined,
-        budget_category: form.budget_category || null,
+        budgetCategory: form.budget_category,
       },
       { onSuccess: () => props.onSuccess?.() },
     )

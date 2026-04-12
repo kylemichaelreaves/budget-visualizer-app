@@ -1,3 +1,4 @@
+import type { Accessor } from 'solid-js'
 import { onMount, Show } from 'solid-js'
 import useMemosCount from '@api/hooks/memos/useMemosCount'
 import AlertComponent from '@components/shared/AlertComponent'
@@ -10,7 +11,12 @@ import {
   updateMemosTableOffset,
 } from '@stores/transactionsStore'
 
-export default function MemosTablePagination() {
+export default function MemosTablePagination(
+  props: {
+    /** When set (e.g. client-side search), drives page count instead of the server memos total */
+    clientFilteredTotal?: Accessor<number | undefined>
+  } = {},
+) {
   const countQuery = useMemosCount()
 
   onMount(() => {
@@ -25,8 +31,13 @@ export default function MemosTablePagination() {
   const currentPage = () =>
     Math.floor(transactionsState.memosTableOffset / transactionsState.memosTableLimit) + 1
 
-  const totalPages = () =>
-    Math.max(1, Math.ceil(Number(countQuery.data ?? 0) / transactionsState.memosTableLimit))
+  const effectiveTotal = () => {
+    const override = props.clientFilteredTotal?.()
+    if (override !== undefined) return override
+    return Number(countQuery.data ?? 0)
+  }
+
+  const totalPages = () => Math.max(1, Math.ceil(effectiveTotal() / transactionsState.memosTableLimit))
 
   function goPrev() {
     if (currentPage() > 1) {
@@ -74,7 +85,7 @@ export default function MemosTablePagination() {
           Previous
         </Button>
         <span class="text-foreground">
-          Page {currentPage()} / {totalPages()} ({countQuery.data ?? 0} total)
+          Page {currentPage()} / {totalPages()} ({effectiveTotal()} total)
         </span>
         <Button
           variant="outline"
