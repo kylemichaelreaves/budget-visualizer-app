@@ -2,14 +2,19 @@ import type { QueryClient } from '@tanstack/solid-query'
 import { queryKeys } from '@api/queryKeys'
 
 /**
- * After POSTing a new transaction. Narrower than {@link invalidateAfterTransactionUpdate}:
- * the new row only affects the infinite list and total count until memo/category summaries
- * need explicit refresh (handled on PATCH paths).
+ * After POSTing a new transaction. A new row can affect memo totals and
+ * budget category summaries when the create dialog is used from any page,
+ * so invalidate broadly (same scope as updates minus the single-transaction key).
  */
 export async function invalidateAfterTransactionCreate(queryClient: QueryClient): Promise<void> {
   await Promise.all([
     queryClient.invalidateQueries({ queryKey: queryKeys.transactions.all }),
     queryClient.invalidateQueries({ queryKey: queryKeys.transactionsCount.all }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.budgetCategorySummary.all }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.historicalSummaryForBudgetCategory.all }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.memos.all }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.memoTransactions.all }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.memoSummary.all }),
   ])
 }
 

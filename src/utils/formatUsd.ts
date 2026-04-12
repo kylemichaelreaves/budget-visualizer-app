@@ -7,9 +7,9 @@ export function formatUsd(value: unknown): string {
   return usd.format(num)
 }
 
-/** Memo list and similar: `--` when missing or NaN. */
+/** Memo list and similar: `--` when missing or non-finite. */
 export function formatUsdOrDash(value: number | undefined): string {
-  if (value == null || Number.isNaN(value)) return '--'
+  if (value == null || !Number.isFinite(value)) return '--'
   return usd.format(value)
 }
 
