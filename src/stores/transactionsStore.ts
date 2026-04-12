@@ -211,7 +211,12 @@ export function syncMemoFromSummaryData(memo: string, memoId: number): void {
   selectMemoView(memo, memoId)
 }
 
-/** Memo filter from `memoId` URL param before the memo record loads — id for query keys; string id in `selectedMemo` so list/pending hooks that still read `selectedMemo` filter correctly until the name hydrates. */
+/**
+ * Apply memo filter from `memoId` URL param before the memo record loads.
+ * `selectedMemoId` drives memo-scoped fetches (via `memoQuerySliceFromStore()`).
+ * `selectedMemo` is set to the numeric string so the memo label in the UI, memo filter field,
+ * and store→URL sync have a stable display value until `useMemoById` hydrates the real name.
+ */
 export function selectMemoFilterByIdOnly(memoId: number): void {
   batch(() => {
     clearAllSelections()
