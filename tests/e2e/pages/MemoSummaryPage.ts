@@ -24,9 +24,9 @@ export class MemoSummaryPage {
     this.totalDebitStat = page.getByTestId('memo-summary-total-debit')
     this.transactionsTable = page.getByTestId('memo-summary-transactions-table')
     this.noTransactionsMessage = page.getByText('No transactions for this memo.')
-    this.ambiguousBadge = page.getByText('Ambiguous')
-    this.resolvedBadge = page.getByText('Resolved')
-    this.recurringBadge = page.getByText('Recurring')
+    this.ambiguousBadge = page.getByText('Ambiguous', { exact: true })
+    this.resolvedBadge = page.getByText('Resolved', { exact: true })
+    this.recurringBadge = page.getByText('Recurring', { exact: true })
     this.budgetCategoryHeading = page.getByRole('heading', { name: 'Budget Category' })
     this.budgetCategoryBadge = page.getByTestId('memo-summary-budget-category-badge')
   }

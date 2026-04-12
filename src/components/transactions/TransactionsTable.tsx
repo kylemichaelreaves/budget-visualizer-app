@@ -195,7 +195,7 @@ export default function TransactionsTable() {
 
       <PeriodHeader />
 
-      <SummaryStatsCards transactions={flattenedData()} />
+      <SummaryStatsCards transactions={paginatedData()} />
 
       {/* Charts row */}
       <div class="grid gap-6 md:grid-cols-2">
