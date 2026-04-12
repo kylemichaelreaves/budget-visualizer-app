@@ -10,7 +10,7 @@ import useMemoSummary from '@api/hooks/memos/useMemoSummary'
 import useMemoTransactionsPage from '@api/hooks/memos/useMemoTransactionsPage'
 import AlertComponent from '@components/shared/AlertComponent'
 import CategoryTreeSelectDialog from '@components/transactions/CategoryTreeSelectDialog'
-import { setSelectedMemo } from '@stores/transactionsStore'
+import { syncMemoFromSummaryData } from '@stores/transactionsStore'
 import { Badge } from '@components/ui/badge'
 import { Button } from '@components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
@@ -212,7 +212,7 @@ export default function MemoSummaryTable(): JSX.Element {
     on(
       () => memoQ.data,
       (memo) => {
-        if (memo?.name) setSelectedMemo(memo.name, memo.id)
+        if (memo?.name) syncMemoFromSummaryData(memo.name, memo.id)
       },
       { defer: true },
     ),

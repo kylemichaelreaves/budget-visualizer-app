@@ -198,6 +198,19 @@ export function selectMemoView(memo: string, memoId?: number | null): void {
   })
 }
 
+/**
+ * When memo summary data loads: set `viewMode` + memo fields without resetting
+ * `transactionsTableOffset` if we are already scoped to this memo (e.g. name hydrate
+ * after `applyMemoSummaryRoute`). Otherwise full `selectMemoView` clears stray timeframe state.
+ */
+export function syncMemoFromSummaryData(memo: string, memoId: number): void {
+  if (transactionsState.viewMode === 'memo' && transactionsState.selectedMemoId === memoId) {
+    setTransactionsState('selectedMemo', memo)
+    return
+  }
+  selectMemoView(memo, memoId)
+}
+
 /** Memo filter from `memoId` URL param before the memo record loads — id for query keys; string id in `selectedMemo` so list/pending hooks that still read `selectedMemo` filter correctly until the name hydrates. */
 export function selectMemoFilterByIdOnly(memoId: number): void {
   batch(() => {
