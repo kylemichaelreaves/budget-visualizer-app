@@ -314,7 +314,7 @@ export default function CategoryTreeSelectDialog(props: {
                   when={searchResults()!.length > 0}
                   fallback={<p class="text-sm text-muted-foreground text-center py-6">No categories found</p>}
                 >
-                  <div role="listbox">
+                  <div role="listbox" aria-label="Search results">
                     <For each={searchResults()!}>
                       {({ node, breadcrumb }, index) => (
                         <button
