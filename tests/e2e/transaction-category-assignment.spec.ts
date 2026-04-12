@@ -23,7 +23,7 @@ test.describe('Transaction category assignment', () => {
 
     // Dialog should close and badge should appear on the row
     await expect(transactionsPage.categoryTreeSelectDialog).toBeHidden({ timeout: 5_000 })
-    await expect(transactionsPage.changeCategoryButton(100)).toBeVisible({ timeout: 5_000 })
+    await expect(transactionsPage.categoryBadge(100)).toBeVisible({ timeout: 5_000 })
   })
 
   test('sends camelCase budgetCategory in PATCH request', async ({ transactionsPage, page }) => {

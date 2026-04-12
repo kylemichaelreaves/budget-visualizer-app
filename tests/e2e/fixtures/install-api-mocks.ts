@@ -219,7 +219,10 @@ export async function installApiMocks(page: Page): Promise<void> {
         return
       }
       if (method === 'GET') {
-        await json(route, Object.values(transactions))
+        // Return full list only when no timeframe filter is active;
+        // filtered requests return [] to match "no transactions" test expectations.
+        const hasTimeframeFilter = sp.has('timeFrame') && sp.has('date')
+        await json(route, hasTimeframeFilter ? [] : Object.values(transactions))
         return
       }
     }

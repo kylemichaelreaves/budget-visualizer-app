@@ -24,7 +24,7 @@ test.describe('Memo category assignment', () => {
     // Dialog should close after selection
     await expect(memosPage.categoryTreeSelectDialog).toBeHidden({ timeout: 5_000 })
     // Badge appears after refetch — wait for the table to settle
-    await expect(memosPage.changeCategoryButton(200)).toBeVisible({ timeout: 15_000 })
+    await expect(memosPage.categoryBadge(200)).toBeVisible({ timeout: 15_000 })
   })
 
   test('sends camelCase budgetCategory in PATCH request', async ({ memosPage, page }) => {

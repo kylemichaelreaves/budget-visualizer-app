@@ -92,6 +92,8 @@ function TreeNodeRow(props: {
         </Show>
         <button
           type="button"
+          role="option"
+          aria-selected={isSelected()}
           class="flex-1 min-w-0 flex items-center gap-2 py-0.5 text-left rounded-md"
           onClick={() => props.onSelect(props.node.value)}
         >
@@ -266,7 +268,7 @@ export default function CategoryTreeSelectDialog(props: {
         if (!v) setSearch('')
       }}
     >
-      <DialogContent class="max-w-xs p-0 overflow-hidden">
+      <DialogContent class="max-w-xs p-0 overflow-hidden" data-testid="category-tree-select-dialog">
         <DialogHeader class="px-4 pt-4 pb-0">
           <DialogTitle>{props.title ?? 'Assign Budget Category'}</DialogTitle>
           <Show when={props.subtitle}>
@@ -292,6 +294,7 @@ export default function CategoryTreeSelectDialog(props: {
               autofocus
               class="h-8 pl-8 text-sm"
               placeholder="Search categories..."
+              data-testid="category-tree-search"
               value={search()}
               onInput={(e) => setSearch(e.currentTarget.value)}
               onKeyDown={handleKeyDown}
@@ -299,7 +302,11 @@ export default function CategoryTreeSelectDialog(props: {
           </div>
         </div>
 
-        <div class="px-2 pb-3 max-h-72 overflow-y-auto space-y-0.5" ref={(el) => (listRef = el)}>
+        <div
+          role="listbox"
+          class="px-2 pb-3 max-h-72 overflow-y-auto space-y-0.5"
+          ref={(el) => (listRef = el)}
+        >
           <Show when={q.isLoading || q.isFetching}>
             <p class="text-sm text-muted-foreground text-center py-6">Loading categories...</p>
           </Show>
@@ -316,6 +323,7 @@ export default function CategoryTreeSelectDialog(props: {
                     {({ node, breadcrumb }, index) => (
                       <button
                         type="button"
+                        role="option"
                         onClick={() => handleSelect(node.value)}
                         onMouseEnter={() => setHighlight(index())}
                         data-highlight={highlight() === index()}
