@@ -1,10 +1,13 @@
 import type { JSX } from 'solid-js'
 import { createMemo } from 'solid-js'
 import { Badge } from '@components/ui/badge'
+import { BUDGET_CATEGORY_PATH_DELIMITER } from '@api/helpers/convertToTree'
 
 /** Extract the leaf category name from a path like "Food - Groceries" → "Groceries". */
 function leafName(categoryPath: string): string {
-  return categoryPath.includes(' - ') ? categoryPath.split(' - ').pop()! : categoryPath
+  return categoryPath.includes(BUDGET_CATEGORY_PATH_DELIMITER)
+    ? categoryPath.split(BUDGET_CATEGORY_PATH_DELIMITER).pop()!
+    : categoryPath
 }
 
 /** Convert a hex or rgb() color string to rgba() with the given alpha. */
