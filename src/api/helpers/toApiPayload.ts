@@ -1,6 +1,7 @@
 /**
- * Converts an object's keys from frontend snake_case to the camelCase keys the API expects,
- * using the provided field mapping. Keys not in the mapping are passed through unchanged.
+ * Simple key-mapping for payloads that don't need per-field logic (e.g. memo updates).
+ * Transaction updates use their own mapping in `updateTransaction.ts` because fields
+ * like `memo_id`, `budget_category`, and `is_split` need special null/type handling.
  */
 export function toApiPayload(
   data: Record<string, unknown>,
