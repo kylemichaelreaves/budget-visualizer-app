@@ -118,6 +118,9 @@ export default function MemoSelect(props: {
         onInputBlur={() => {
           if (props.onCommit) commitFromCurrentValue()
         }}
+        onEnterNoSuggestions={() => {
+          if (props.onCommit) commitFromCurrentValue()
+        }}
         placeholder={props.placeholder ?? 'Select a memo'}
         options={memoOptions()}
         dataTestId={props.dataTestId ?? 'transactions-table-memo-select'}
