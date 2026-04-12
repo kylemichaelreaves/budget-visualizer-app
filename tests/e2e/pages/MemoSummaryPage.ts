@@ -12,7 +12,7 @@ export class MemoSummaryPage {
   readonly ambiguousBadge: Locator
   readonly resolvedBadge: Locator
   readonly recurringBadge: Locator
-  readonly budgetCategoryCard: Locator
+  readonly budgetCategoryHeading: Locator
   readonly budgetCategoryBadge: Locator
 
   constructor(page: Page) {
@@ -27,7 +27,7 @@ export class MemoSummaryPage {
     this.ambiguousBadge = page.getByText('Ambiguous')
     this.resolvedBadge = page.getByText('Resolved')
     this.recurringBadge = page.getByText('Recurring')
-    this.budgetCategoryCard = page.getByRole('heading', { name: 'Budget Category' })
+    this.budgetCategoryHeading = page.getByRole('heading', { name: 'Budget Category' })
     this.budgetCategoryBadge = page.getByTestId('memo-summary-budget-category-badge')
   }
 

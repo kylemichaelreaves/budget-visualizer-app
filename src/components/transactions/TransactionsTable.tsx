@@ -132,7 +132,10 @@ export default function TransactionsTable() {
     return defaultMonthForCharts()
   })
 
-  const sumDebitQuery = useSumAmountDebitByDate(chartTimeFrame, chartDate)
+  const sumDebitQuery = useSumAmountDebitByDate(
+    () => (transactionsState.viewMode ? chartTimeFrame() : ''),
+    () => (transactionsState.viewMode ? chartDate() : ''),
+  )
 
   const categorySummaryQuery = useBudgetCategorySummary(
     () => chartTimeFrame(),

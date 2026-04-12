@@ -92,8 +92,7 @@ function TreeNodeRow(props: {
         </Show>
         <button
           type="button"
-          role="option"
-          aria-selected={isSelected()}
+          aria-current={isSelected() ? 'true' : undefined}
           class="flex-1 min-w-0 flex items-center gap-2 py-0.5 text-left rounded-md"
           onClick={() => props.onSelect(props.node.value)}
         >
@@ -315,45 +314,47 @@ export default function CategoryTreeSelectDialog(props: {
                   when={searchResults()!.length > 0}
                   fallback={<p class="text-sm text-muted-foreground text-center py-6">No categories found</p>}
                 >
-                  <For each={searchResults()!}>
-                    {({ node, breadcrumb }, index) => (
-                      <button
-                        type="button"
-                        role="option"
-                        aria-selected={props.value === node.value}
-                        onClick={() => handleSelect(node.value)}
-                        onMouseEnter={() => setHighlight(index())}
-                        data-highlight={highlight() === index()}
-                        class={`w-full text-left px-3 py-1.5 rounded-md text-sm transition-colors ${
-                          highlight() === index()
-                            ? 'bg-accent text-accent-foreground'
-                            : props.value === node.value
-                              ? 'bg-primary/10 text-primary font-medium'
-                              : ''
-                        }`}
-                      >
-                        <Show when={breadcrumb.length > 0}>
-                          <span class="text-xs text-muted-foreground">
-                            {breadcrumb.join(' \u203A ')} {'\u203A'}{' '}
-                          </span>
-                        </Show>
-                        {node.label}
-                        <Show when={props.value === node.value}>
-                          <svg
-                            class="size-3.5 inline ml-1.5 text-primary"
-                            viewBox="0 0 24 24"
-                            fill="none"
-                            stroke="currentColor"
-                            stroke-width="2"
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                          >
-                            <path d="M20 6 9 17l-5-5" />
-                          </svg>
-                        </Show>
-                      </button>
-                    )}
-                  </For>
+                  <div role="listbox">
+                    <For each={searchResults()!}>
+                      {({ node, breadcrumb }, index) => (
+                        <button
+                          type="button"
+                          role="option"
+                          aria-selected={props.value === node.value}
+                          onClick={() => handleSelect(node.value)}
+                          onMouseEnter={() => setHighlight(index())}
+                          data-highlight={highlight() === index()}
+                          class={`w-full text-left px-3 py-1.5 rounded-md text-sm transition-colors ${
+                            highlight() === index()
+                              ? 'bg-accent text-accent-foreground'
+                              : props.value === node.value
+                                ? 'bg-primary/10 text-primary font-medium'
+                                : ''
+                          }`}
+                        >
+                          <Show when={breadcrumb.length > 0}>
+                            <span class="text-xs text-muted-foreground">
+                              {breadcrumb.join(' \u203A ')} {'\u203A'}{' '}
+                            </span>
+                          </Show>
+                          {node.label}
+                          <Show when={props.value === node.value}>
+                            <svg
+                              class="size-3.5 inline ml-1.5 text-primary"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              stroke="currentColor"
+                              stroke-width="2"
+                              stroke-linecap="round"
+                              stroke-linejoin="round"
+                            >
+                              <path d="M20 6 9 17l-5-5" />
+                            </svg>
+                          </Show>
+                        </button>
+                      )}
+                    </For>
+                  </div>
                 </Show>
               }
             >
