@@ -1,4 +1,3 @@
-import { A } from '@solidjs/router'
 import type { JSX } from 'solid-js'
 import { createEffect, createMemo, createSignal, For, on, onCleanup, Show } from 'solid-js'
 import { useQueryClient } from '@tanstack/solid-query'
@@ -8,191 +7,32 @@ import useMemosCount from '@api/hooks/memos/useMemosCount'
 import { updateMemo } from '@api/memos/updateMemo'
 import AlertComponent from '@components/shared/AlertComponent'
 import TableSkeleton from '@components/shared/TableSkeleton'
-import { Button } from '@components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 import { Input } from '@components/ui/input'
-import { Skeleton } from '@components/ui/skeleton'
 import { transactionsState, updateMemosTableOffset } from '@stores/transactionsStore'
 import type { Memo } from '@types'
 import CategoryTreeSelectDialog from '@components/transactions/CategoryTreeSelectDialog'
 import { devConsole } from '@utils/devConsole'
-import { formatUsdOrDash } from '@utils/formatUsd'
+import {
+  MEMOS_SEARCH_PREFETCH_DEBOUNCE_MS,
+  MEMOS_SEARCH_PREFETCH_MAX_PAGES,
+} from '@components/memos/memosTableConstants'
+import { SearchIcon } from '@components/memos/memosTableIcons'
+import {
+  compareMemos,
+  MEMOS_TABLE_SORTABLE_COLUMNS,
+  type MemosTableSortDir,
+  type MemosTableSortKey,
+} from '@components/memos/memosTableSort'
 import MemosTablePagination from './MemosTablePagination'
-
-/** Debounce before prefetching all pages for client search (reduces request bursts while typing). */
-const MEMOS_SEARCH_PREFETCH_DEBOUNCE_MS = 400
-/** Cap background fetches for client-side search so huge datasets cannot unbounded-prefetch. */
-const MEMOS_SEARCH_PREFETCH_MAX_PAGES = 48
-
-// --- Inline SVG Icons ---
-
-function ChevronUpIcon() {
-  return (
-    <svg
-      width="12"
-      height="12"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <path d="m18 15-6-6-6 6" />
-    </svg>
-  )
-}
-
-function ChevronDownIcon() {
-  return (
-    <svg
-      width="12"
-      height="12"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <path d="m6 9 6 6 6-6" />
-    </svg>
-  )
-}
-
-function ChevronUpDownIcon() {
-  return (
-    <svg
-      width="12"
-      height="12"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <path d="m7 15 5 5 5-5" />
-      <path d="m7 9 5-5 5 5" />
-    </svg>
-  )
-}
-
-function WarningIcon() {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-      <path d="M12 9v4" />
-      <path d="M12 17h.01" />
-    </svg>
-  )
-}
-
-function CheckIcon() {
-  return (
-    <svg
-      width="14"
-      height="14"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <path d="M20 6 9 17l-5-5" />
-    </svg>
-  )
-}
-
-function SearchIcon() {
-  return (
-    <svg
-      width="16"
-      height="16"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <circle cx="11" cy="11" r="8" />
-      <path d="m21 21-4.3-4.3" />
-    </svg>
-  )
-}
-
-// --- Helpers ---
-
-type SortKey = 'name' | 'transactions_count' | 'ambiguous' | 'budget_category' | 'total_amount_debit'
-type SortDir = 'asc' | 'desc'
-
-const sortableColumns: { key: SortKey; label: string }[] = [
-  { key: 'name', label: 'Memo' },
-  { key: 'transactions_count', label: 'Transactions' },
-  { key: 'ambiguous', label: 'Ambiguous' },
-  { key: 'budget_category', label: 'Budget Category' },
-  { key: 'total_amount_debit', label: 'Total Debit' },
-]
-
-// Simple deterministic color for category pills
-const categoryColors: Record<string, string> = {}
-const palette = [
-  'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200',
-  'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200',
-  'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200',
-  'bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200',
-  'bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200',
-  'bg-teal-100 text-teal-800 dark:bg-teal-900 dark:text-teal-200',
-  'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200',
-  'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200',
-]
-
-function getCategoryColor(category: string): string {
-  if (!categoryColors[category]) {
-    let hash = 0
-    for (let i = 0; i < category.length; i++) {
-      hash = (hash * 31 + category.charCodeAt(i)) | 0
-    }
-    categoryColors[category] = palette[Math.abs(hash) % palette.length]
-  }
-  return categoryColors[category]
-}
-
-function compareMemos(a: Memo, b: Memo, key: SortKey, dir: SortDir): number {
-  const av = a[key]
-  const bv = b[key]
-
-  let result: number
-  if (av == null && bv == null) result = 0
-  else if (av == null) result = 1
-  else if (bv == null) result = -1
-  else if (typeof av === 'string' && typeof bv === 'string') result = av.localeCompare(bv)
-  else if (typeof av === 'boolean' && typeof bv === 'boolean') result = Number(av) - Number(bv)
-  else if (typeof av === 'number' && typeof bv === 'number') result = av - bv
-  else result = String(av).localeCompare(String(bv))
-
-  return dir === 'desc' ? -result : result
-}
-
-// --- Component ---
+import MemosTableRow from '@components/memos/MemosTableRow'
+import MemosTableSortIcon from '@components/memos/MemosTableSortIcon'
 
 export default function MemosTable(): JSX.Element {
   const query = useMemos()
   const countQuery = useMemosCount()
   const queryClient = useQueryClient()
 
-  /** One `fetchNextPage` at a time so search prefetch and pagination cannot overlap. */
   let fetchNextPageQueue: Promise<unknown> = Promise.resolve()
   function enqueueFetchNextPage() {
     const next = fetchNextPageQueue.then(() => query.fetchNextPage())
@@ -208,8 +48,8 @@ export default function MemosTable(): JSX.Element {
   const [searchQuery, setSearchQuery] = createSignal('')
   const [tableMutationError, setTableMutationError] = createSignal<string | null>(null)
   const [togglingAmbiguousId, setTogglingAmbiguousId] = createSignal<number | null>(null)
-  const [sortKey, setSortKey] = createSignal<SortKey | null>(null)
-  const [sortDir, setSortDir] = createSignal<SortDir>('asc')
+  const [sortKey, setSortKey] = createSignal<MemosTableSortKey | null>(null)
+  const [sortDir, setSortDir] = createSignal<MemosTableSortDir>('asc')
 
   const flattenedData = createMemo(() => query.data?.pages.flat() ?? [])
 
@@ -242,7 +82,6 @@ export default function MemosTable(): JSX.Element {
   const totalMemos = createMemo(() => filteredData().length)
   const ambiguousCount = createMemo(() => filteredData().filter((m) => m.ambiguous).length)
 
-  /** Server total when not searching; matches pagination. Search uses client-filtered rows. */
   const headerUniqueTotal = createMemo(() => {
     if (searchQuery().trim()) return totalMemos()
     if (countQuery.data !== undefined) return countQuery.data
@@ -250,7 +89,6 @@ export default function MemosTable(): JSX.Element {
     return null
   })
 
-  /** Ambiguous: full filtered set when searching; otherwise only rows fetched so far. */
   const headerAmbiguousCount = createMemo(() => {
     if (searchQuery().trim()) return ambiguousCount()
     return flattenedData().filter((m) => m.ambiguous).length
@@ -260,11 +98,9 @@ export default function MemosTable(): JSX.Element {
 
   const isInitialLoading = () => query.isLoading || (query.isFetching && !query.data?.pages?.length)
 
-  /** With active client search, prefetch extra pages in the background — do not swap the table for skeleton on each page. */
   const isLoadingCondition = () =>
     isInitialLoading() || query.isFetchingPreviousPage || (query.isFetchingNextPage && !searchQuery().trim())
 
-  /** Load every page while searching so filtered totals / page counts match the full memo list. */
   createEffect(
     on(
       () => searchQuery().trim(),
@@ -311,7 +147,6 @@ export default function MemosTable(): JSX.Element {
         return
       }
 
-      // Client-side search: keep loading pages until the filtered slice can fill the current page or data is exhausted.
       let searchFetchIters = 0
       while (
         filteredData().length < end &&
@@ -345,23 +180,13 @@ export default function MemosTable(): JSX.Element {
     ),
   )
 
-  // Query auto-refetches when memosTableLimit changes (it's in the query key)
-
-  function handleSort(key: SortKey) {
+  function handleSort(key: MemosTableSortKey) {
     if (sortKey() === key) {
       setSortDir((prev) => (prev === 'asc' ? 'desc' : 'asc'))
     } else {
       setSortKey(key)
       setSortDir('asc')
     }
-  }
-
-  function SortIcon(props: { columnKey: SortKey }) {
-    return (
-      <Show when={sortKey() === props.columnKey} fallback={<ChevronUpDownIcon />}>
-        {sortDir() === 'asc' ? <ChevronUpIcon /> : <ChevronDownIcon />}
-      </Show>
-    )
   }
 
   async function toggleAmbiguous(memo: Memo) {
@@ -438,7 +263,6 @@ export default function MemosTable(): JSX.Element {
         )}
       </Show>
 
-      {/* Page header */}
       <div class="mb-4">
         <h2 class="text-foreground mt-0 text-2xl font-semibold">Memos</h2>
         <p class="text-muted-foreground text-sm">
@@ -486,7 +310,7 @@ export default function MemosTable(): JSX.Element {
         <CardContent>
           <Show when={isLoadingCondition()}>
             <TableSkeleton
-              columns={sortableColumns.map((c) => ({ prop: c.key, label: c.label }))}
+              columns={MEMOS_TABLE_SORTABLE_COLUMNS.map((c) => ({ prop: c.key, label: c.label }))}
               rows={LIMIT()}
               dataTestId="memos-table-skeleton"
             />
@@ -497,7 +321,7 @@ export default function MemosTable(): JSX.Element {
               <table data-testid="memos-table" class="w-full border-collapse text-foreground text-sm">
                 <thead>
                   <tr class="border-b border-border">
-                    <For each={sortableColumns}>
+                    <For each={MEMOS_TABLE_SORTABLE_COLUMNS}>
                       {(col) => (
                         <th class="px-3 py-2.5 text-left" scope="col" data-testid={`column-${col.key}`}>
                           <button
@@ -507,7 +331,7 @@ export default function MemosTable(): JSX.Element {
                             aria-label={`Sort by ${col.label}`}
                           >
                             {col.label}
-                            <SortIcon columnKey={col.key} />
+                            <MemosTableSortIcon columnKey={col.key} sortKey={sortKey} sortDir={sortDir} />
                           </button>
                         </th>
                       )}
@@ -517,92 +341,13 @@ export default function MemosTable(): JSX.Element {
                 <tbody>
                   <For each={paginatedData()}>
                     {(row) => (
-                      <tr class="border-b border-border hover:bg-muted/50 transition-colors">
-                        {/* Memo name (link) */}
-                        <td class="px-3 py-2.5" data-testid={`cell-${row.id}-name`}>
-                          <A
-                            href={`/budget-visualizer/memos/${row.id}/summary`}
-                            class="text-primary hover:underline font-medium"
-                            data-testid={`memo-name-link-${row.id}`}
-                          >
-                            {row.name}
-                          </A>
-                        </td>
-
-                        {/* Transactions count */}
-                        <td
-                          class="px-3 py-2.5 text-muted-foreground"
-                          data-testid={`cell-${row.id}-transactions_count`}
-                        >
-                          {row.transactions_count ?? 0}
-                        </td>
-
-                        {/* Ambiguous toggle */}
-                        <td class="px-3 py-2.5" data-testid={`cell-${row.id}-ambiguous`}>
-                          <button
-                            type="button"
-                            disabled={togglingAmbiguousId() === row.id}
-                            class={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
-                              row.ambiguous
-                                ? 'bg-amber-100 text-amber-800 hover:bg-amber-200 dark:bg-amber-900/50 dark:text-amber-300 dark:hover:bg-amber-900/70'
-                                : 'bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-900/70'
-                            }`}
-                            onClick={() => void toggleAmbiguous(row)}
-                            data-testid={`ambiguous-toggle-${row.id}`}
-                          >
-                            <Show
-                              when={row.ambiguous}
-                              fallback={
-                                <>
-                                  <CheckIcon /> No
-                                </>
-                              }
-                            >
-                              <WarningIcon /> Yes
-                            </Show>
-                          </button>
-                        </td>
-
-                        {/* Budget category */}
-                        <td class="px-3 py-2.5" data-testid={`cell-${row.id}-budget_category`}>
-                          <Show
-                            when={mutatingCategoryId() !== row.id}
-                            fallback={<Skeleton class="h-6 w-24 rounded-full" />}
-                          >
-                            <Show
-                              when={row.budget_category}
-                              fallback={
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  class="border-dashed text-muted-foreground text-xs h-7"
-                                  onClick={() => handleAssignCategory(row)}
-                                  data-testid={`assign-category-${row.id}`}
-                                >
-                                  Assign category
-                                </Button>
-                              }
-                            >
-                              <button
-                                type="button"
-                                class={`inline-flex cursor-pointer items-center rounded-full border-0 px-2.5 py-0.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${getCategoryColor(row.budget_category!)}`}
-                                onClick={() => handleAssignCategory(row)}
-                                data-testid={`category-badge-${row.id}`}
-                              >
-                                {row.budget_category}
-                              </button>
-                            </Show>
-                          </Show>
-                        </td>
-
-                        {/* Total debit */}
-                        <td
-                          class="px-3 py-2.5 text-red-600 dark:text-red-400 font-medium tabular-nums"
-                          data-testid={`cell-${row.id}-total_amount_debit`}
-                        >
-                          {formatUsdOrDash(row.total_amount_debit)}
-                        </td>
-                      </tr>
+                      <MemosTableRow
+                        row={row}
+                        togglingAmbiguousId={togglingAmbiguousId}
+                        mutatingCategoryId={mutatingCategoryId}
+                        onToggleAmbiguous={toggleAmbiguous}
+                        onAssignCategory={handleAssignCategory}
+                      />
                     )}
                   </For>
                 </tbody>
