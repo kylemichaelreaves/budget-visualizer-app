@@ -314,13 +314,12 @@ export default function CategoryTreeSelectDialog(props: {
                   when={searchResults()!.length > 0}
                   fallback={<p class="text-sm text-muted-foreground text-center py-6">No categories found</p>}
                 >
-                  <div role="listbox" aria-label="Search results">
+                  <div>
                     <For each={searchResults()!}>
                       {({ node, breadcrumb }, index) => (
                         <button
                           type="button"
-                          role="option"
-                          aria-selected={props.value === node.value}
+                          aria-current={props.value === node.value ? 'true' : undefined}
                           onClick={() => handleSelect(node.value)}
                           onMouseEnter={() => setHighlight(index())}
                           data-highlight={highlight() === index()}

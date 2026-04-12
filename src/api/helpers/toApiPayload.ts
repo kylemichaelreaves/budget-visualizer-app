@@ -15,16 +15,6 @@ export function toApiPayload(
   return payload
 }
 
-export const transactionFieldMapping: Record<string, string> = {
-  transaction_number: 'transactionNumber',
-  amount_debit: 'amountDebit',
-  amount_credit: 'amountCredit',
-  check_number: 'checkNumber',
-  memo_id: 'memoId',
-  budget_category: 'budgetCategory',
-  is_split: 'isSplit',
-}
-
 export const memoFieldMapping: Record<string, string> = {
   budget_category: 'budgetCategory',
 }
