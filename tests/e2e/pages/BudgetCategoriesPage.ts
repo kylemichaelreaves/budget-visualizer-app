@@ -12,9 +12,9 @@ export class BudgetCategoriesPage {
 
   constructor(page: Page) {
     this.page = page
-    this.heading = page.getByRole('heading', { name: /budget categories/i })
+    this.heading = page.getByTestId('budget-categories-page-heading')
     this.filterInput = page.getByLabel('Filter categories')
-    this.refreshButton = page.getByRole('button', { name: /refresh/i })
+    this.refreshButton = page.getByTestId('budget-categories-refresh')
     this.tree = page.getByTestId('budget-categories-tree')
     this.loadingMessage = page.getByTestId('budget-categories-loading')
     this.emptyMessage = page.getByTestId('budget-categories-empty')

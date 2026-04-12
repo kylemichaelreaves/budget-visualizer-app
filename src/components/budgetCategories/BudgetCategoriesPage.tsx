@@ -98,6 +98,25 @@ function PlusIcon(props: { class?: string }): JSX.Element {
   )
 }
 
+function RefreshCwIcon(props: { class?: string }): JSX.Element {
+  return (
+    <svg
+      class={props.class ?? 'size-3.5'}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="2"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    >
+      <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 3" />
+      <path d="M21 3v5h-5" />
+      <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 21" />
+      <path d="M8 16H3v5" />
+    </svg>
+  )
+}
+
 function PencilIcon(props: { class?: string }): JSX.Element {
   return (
     <svg
@@ -597,7 +616,9 @@ export default function BudgetCategoriesPage(): JSX.Element {
     <div class="text-foreground max-w-[960px]" data-testid="budget-categories-page">
       {/* Page header */}
       <header class="mb-6">
-        <h1 class="mb-1 text-2xl font-bold">Budget Management</h1>
+        <h1 class="mb-1 text-2xl font-bold" data-testid="budget-categories-page-heading">
+          Budget categories
+        </h1>
         <p class="m-0 text-muted-foreground text-sm">
           Set spending limits and manage your category hierarchy
         </p>
@@ -639,16 +660,29 @@ export default function BudgetCategoriesPage(): JSX.Element {
             delete.
           </CardDescription>
           <CardAction>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setAddingRoot(true)}
-              disabled={addingRoot()}
-              data-testid="add-root-category-button"
-            >
-              <PlusIcon class="size-3.5" />
-              Add Category
-            </Button>
+            <div class="flex flex-wrap items-center justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => void queryClient.invalidateQueries({ queryKey: ['budgetCategories'] })}
+                disabled={q.isLoading || q.isFetching}
+                data-testid="budget-categories-refresh"
+              >
+                <RefreshCwIcon class="size-3.5" />
+                Refresh
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setAddingRoot(true)}
+                disabled={addingRoot()}
+                data-testid="add-root-category-button"
+              >
+                <PlusIcon class="size-3.5" />
+                Add Category
+              </Button>
+            </div>
           </CardAction>
         </CardHeader>
 
