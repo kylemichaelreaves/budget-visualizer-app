@@ -29,14 +29,18 @@ export default function MemoSummaryTransactionsCard(props: {
       </CardHeader>
       <CardContent>
         <Show when={() => (props.txIsError() ? props.txError() : false)}>
-          {(err) => (
-            <AlertComponent
-              type="error"
-              title={(err() as Error).name}
-              message={(err() as Error).message}
-              dataTestId="memo-summary-tx-error"
-            />
-          )}
+          {(err) => {
+            const e = err() as unknown
+            const error = e instanceof Error ? e : new Error(String(e))
+            return (
+              <AlertComponent
+                type="error"
+                title={error.name}
+                message={error.message}
+                dataTestId="memo-summary-tx-error"
+              />
+            )
+          }}
         </Show>
 
         <Show when={props.txIsLoading() || props.txIsFetching()}>

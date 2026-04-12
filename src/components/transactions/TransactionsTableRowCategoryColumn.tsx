@@ -26,7 +26,10 @@ export default function TransactionsTableRowCategoryColumn(props: {
           fallback={<Skeleton class="h-6 w-24 rounded-full" />}
         >
           <Show
-            when={Array.isArray(row().budget_category) && row().budget_category.length > 0}
+            when={(() => {
+              const bc = row().budget_category
+              return Array.isArray(bc) && bc.length > 0
+            })()}
             fallback={
               <Show
                 when={typeof row().budget_category === 'string' && row().budget_category}

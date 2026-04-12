@@ -11,14 +11,18 @@ export default function MemosTableAlerts(props: {
   return (
     <>
       <Show when={props.queryIsError() && props.queryError()}>
-        {(err) => (
-          <AlertComponent
-            type="error"
-            title={(err() as Error).name}
-            message={(err() as Error).message}
-            dataTestId="memos-table-error-alert"
-          />
-        )}
+        {(err) => {
+          const e = err() as unknown
+          const error = e instanceof Error ? e : new Error(String(e))
+          return (
+            <AlertComponent
+              type="error"
+              title={error.name}
+              message={error.message}
+              dataTestId="memos-table-error-alert"
+            />
+          )
+        }}
       </Show>
 
       <Show when={props.tableMutationError()}>
