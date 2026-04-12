@@ -199,7 +199,7 @@ export default function TransactionsTable() {
       <PeriodHeader />
 
       <SummaryStatsCards
-        transactions={paginatedData()}
+        transactions={flattenedData()}
         debitTotal={sumDebitQuery.data?.[0]?.total_amount_debit}
       />
 

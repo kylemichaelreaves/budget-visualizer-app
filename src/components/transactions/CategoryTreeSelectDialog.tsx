@@ -324,6 +324,7 @@ export default function CategoryTreeSelectDialog(props: {
                       <button
                         type="button"
                         role="option"
+                        aria-selected={props.value === node.value}
                         onClick={() => handleSelect(node.value)}
                         onMouseEnter={() => setHighlight(index())}
                         data-highlight={highlight() === index()}
