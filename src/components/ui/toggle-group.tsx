@@ -59,6 +59,15 @@ type ToggleGroupProps = ToggleGroupSingleProps | ToggleGroupMultipleProps
 
 function ToggleGroup(props: ToggleGroupProps) {
   const [local, rest] = splitProps(props, ['class', 'variant', 'size', 'children'])
+  /** Getters so reads of `local.*` happen when consumers access context (tracked). */
+  const contextValue: ToggleGroupContextValue = {
+    get variant() {
+      return local.variant ?? 'default'
+    },
+    get size() {
+      return local.size ?? 'default'
+    },
+  }
   return (
     <ToggleGroupPrimitive.Root
       data-slot="toggle-group"
@@ -70,11 +79,7 @@ function ToggleGroup(props: ToggleGroupProps) {
       )}
       {...rest}
     >
-      <ToggleGroupContext.Provider
-        value={{ variant: local.variant ?? 'default', size: local.size ?? 'default' }}
-      >
-        {local.children}
-      </ToggleGroupContext.Provider>
+      <ToggleGroupContext.Provider value={contextValue}>{local.children}</ToggleGroupContext.Provider>
     </ToggleGroupPrimitive.Root>
   )
 }

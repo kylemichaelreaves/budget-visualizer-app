@@ -24,7 +24,7 @@ export default function WeekSummaryTable(props: { dataTestId?: string }): JSX.El
       amountHeader="Weekly debit"
       loadingMessage="Loading week summary..."
       memoLinkTestId="week-summary-memo-link"
-      rows={() => rows()}
+      rows={rows}
       isError={() => q.isError}
       error={() => q.error}
       isLoading={() => q.isLoading}

@@ -65,7 +65,7 @@ export default function DailyIntervalLineChart(props: {
     return intervalValue()
   })
 
-  const chartQuery = useDailyTotalAmountDebit(intervalForView, () => selectedValue())
+  const chartQuery = useDailyTotalAmountDebit(() => intervalForView(), () => selectedValue())
 
   const handleOnDayClicked = (selection: string) => {
     selectDayView(selection)

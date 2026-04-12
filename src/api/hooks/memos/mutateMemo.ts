@@ -9,8 +9,8 @@ export default function mutateMemo() {
   return useMutation(() => ({
     mutationKey: mutationKeys.mutateMemo,
     mutationFn: (memo: MemoUpdateInput) => updateMemo(memo),
-    onSuccess: () => {
-      void invalidateAfterMemoMutation(queryClient)
+    onSuccess: async () => {
+      await invalidateAfterMemoMutation(queryClient)
     },
   }))
 }

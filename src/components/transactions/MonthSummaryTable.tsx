@@ -24,7 +24,7 @@ export default function MonthSummaryTable(props: { dataTestId?: string }): JSX.E
       amountHeader="Total debit"
       loadingMessage="Loading month summary..."
       memoLinkTestId="month-summary-memo-link"
-      rows={() => rows()}
+      rows={rows}
       isError={() => q.isError}
       error={() => q.error}
       isLoading={() => q.isLoading}
