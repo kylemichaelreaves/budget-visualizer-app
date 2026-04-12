@@ -145,14 +145,15 @@ export default function TransactionEditForm(props: {
 
   const activeMut = () => (props.isPending ? pendMut : regMut)
 
+  const activeMutationError = createMemo(() => {
+    const m = activeMut()
+    if (!m.isError || m.error == null) return undefined
+    return m.error
+  })
+
   return (
     <form data-testid={tid()} aria-label="Transaction Edit Form" class="text-foreground space-y-3">
-      <Show
-        when={() => {
-          const m = activeMut()
-          return m.isError && m.error != null ? m.error : false
-        }}
-      >
+      <Show when={activeMutationError()}>
         {(err) => {
           const { title, message } = mutationAlertFromError(err())
           return (
