@@ -35,6 +35,17 @@ export default function TransactionMemoFilterField(props: { dataTestId: string }
             selectMemoView(v.trim(), memoId)
           }
         }}
+        onCommit={(v, memoId) => {
+          if (!v.trim()) {
+            clearAllFilters()
+            return
+          }
+          if (memoId != null && memoId > 0) {
+            selectMemoView(v.trim(), memoId)
+            return
+          }
+          selectMemoView(v.trim(), null)
+        }}
         placeholder="Search memos"
       />
     </label>

@@ -16,6 +16,8 @@ export default function AutocompleteComponent(props: {
   dataTestId?: string
   minCharacters?: number
   ariaLabel?: string
+  /** Fires when the text input loses focus (e.g. commit free-text). */
+  onInputBlur?: () => void
 }): JSX.Element {
   const [open, setOpen] = createSignal(false)
   const [query, setQuery] = createSignal('')
@@ -109,6 +111,12 @@ export default function AutocompleteComponent(props: {
             } else {
               setQuery('')
             }
+          }}
+          onBlur={(e) => {
+            const rt = e.relatedTarget as Node | null
+            const stayingInside = !!(rt && root?.contains(rt))
+            setOpen(false)
+            if (!stayingInside) props.onInputBlur?.()
           }}
           onKeyDown={(e) => {
             const list = suggestions()

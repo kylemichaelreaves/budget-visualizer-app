@@ -44,6 +44,11 @@ function memoIdForUniqueTypedName(memos: Memo[], trimmed: string): number | unde
 export default function MemoSelect(props: {
   value: string
   onChange: (v: string, memoId?: number) => void
+  /**
+   * Called when the input blurs so parents can commit a memo-name filter when `memoId`
+   * is still unknown (ambiguous name, slow search, or free-text match).
+   */
+  onCommit?: (v: string, memoId?: number) => void
   placeholder?: string
   dataTestId?: string
 }): JSX.Element {
@@ -84,6 +89,17 @@ export default function MemoSelect(props: {
     }
   })
 
+  function commitFromCurrentValue() {
+    const trimmed = props.value.trim()
+    if (!trimmed) {
+      props.onCommit?.('', undefined)
+      return
+    }
+    const memos = memosQuery.data ?? []
+    const id = memoIdForUniqueTypedName(memos, trimmed)
+    props.onCommit?.(trimmed, id)
+  }
+
   return (
     <div aria-label="Memo Selector">
       <Show when={memosQuery.isError && memosQuery.error}>
@@ -99,6 +115,9 @@ export default function MemoSelect(props: {
       <AutocompleteComponent
         value={props.value}
         onChange={(v) => applyChange(v)}
+        onInputBlur={() => {
+          if (props.onCommit) commitFromCurrentValue()
+        }}
         placeholder={props.placeholder ?? 'Select a memo'}
         options={memoOptions()}
         dataTestId={props.dataTestId ?? 'transactions-table-memo-select'}
