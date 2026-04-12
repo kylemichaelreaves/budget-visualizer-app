@@ -5,7 +5,7 @@ import { formatDate } from '@api/helpers/formatDate'
 import type { Transaction } from '@types'
 import { budgetCategoryColorsFromData } from '@composables/budgetCategoryColors'
 import TransactionsTableRowCategoryColumn from '@components/transactions/TransactionsTableRowCategoryColumn'
-import { TransactionTrendingDownIcon, TransactionTrendingUpIcon } from '@components/transactions/icons'
+import { TrendingDownIcon, TrendingUpIcon } from '@components/icons'
 import { formatUsd } from '@utils/formatUsd'
 
 type CategoryColorHelpers = ReturnType<typeof budgetCategoryColorsFromData>
@@ -31,8 +31,8 @@ export default function TransactionsTableRow(props: {
             isCredit() ? 'bg-green-950' : 'bg-red-950'
           }`}
         >
-          <Show when={isCredit()} fallback={<TransactionTrendingDownIcon />}>
-            <TransactionTrendingUpIcon />
+          <Show when={isCredit()} fallback={<TrendingDownIcon class="size-4 text-red-500" />}>
+            <TrendingUpIcon class="size-4 text-green-500" />
           </Show>
         </div>
 
