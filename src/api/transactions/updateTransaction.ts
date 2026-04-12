@@ -1,20 +1,22 @@
 import { httpClient } from '@api/httpClient'
+import { snakeToCamelMap } from '@api/helpers/fieldMappings'
 import type { Transaction, TransactionPatch } from '@types'
 import { devConsole } from '@utils/devConsole'
 
-const fieldMap = {
-  date: 'date',
-  description: 'description',
-  memo: 'memo',
-  memo_id: 'memoId',
-  amount_debit: 'amountDebit',
-  amount_credit: 'amountCredit',
-  balance: 'balance',
-  check_number: 'checkNumber',
-  fees: 'fees',
-  budget_category: 'budgetCategory',
-  is_split: 'isSplit',
-} as const satisfies Record<string, string>
+/** Transaction fields sent in the PATCH body (snake→camel mapped, plus identity keys). */
+const TRANSACTION_FIELDS = [
+  'date',
+  'description',
+  'memo',
+  'memo_id',
+  'amount_debit',
+  'amount_credit',
+  'balance',
+  'check_number',
+  'fees',
+  'budget_category',
+  'is_split',
+] as const
 
 export async function updateTransaction(transaction: TransactionPatch): Promise<Transaction> {
   if (!transaction.id) {
@@ -26,7 +28,8 @@ export async function updateTransaction(transaction: TransactionPatch): Promise<
     const body: Record<string, unknown> = { id: transaction.id }
     const src = transaction as Record<string, unknown>
 
-    for (const [frontendKey, backendKey] of Object.entries(fieldMap)) {
+    for (const frontendKey of TRANSACTION_FIELDS) {
+      const backendKey = snakeToCamelMap.get(frontendKey) ?? frontendKey
       const val = src[frontendKey]
 
       if (frontendKey === 'memo_id') {

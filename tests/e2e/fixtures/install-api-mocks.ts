@@ -1,5 +1,6 @@
 import type { Page, Route } from '@playwright/test'
 import { E2E_AUTH_TOKEN, E2E_AUTH_USER } from './auth-storage'
+import { mapCamelToSnake } from '../../../src/api/helpers/fieldMappings'
 
 function json(route: Route, body: unknown, status = 200) {
   return route.fulfill({
@@ -7,27 +8,6 @@ function json(route: Route, body: unknown, status = 200) {
     contentType: 'application/json',
     body: JSON.stringify(body),
   })
-}
-
-/** Maps camelCase keys from PATCH payload back to snake_case for GET consistency. */
-function camelToSnake(obj: Record<string, unknown>): Record<string, unknown> {
-  const mapped: Record<string, unknown> = {}
-  const keyMap: Record<string, string> = {
-    budgetCategory: 'budget_category',
-    isSplit: 'is_split',
-    amountDebit: 'amount_debit',
-    amountCredit: 'amount_credit',
-    transactionNumber: 'transaction_number',
-    checkNumber: 'check_number',
-    memoId: 'memo_id',
-    totalAmountDebit: 'total_amount_debit',
-    transactionsCount: 'transactions_count',
-    avatarS3Url: 'avatar_s3_url',
-  }
-  for (const [key, value] of Object.entries(obj)) {
-    mapped[keyMap[key] ?? key] = value
-  }
-  return mapped
 }
 
 /**
@@ -187,7 +167,7 @@ export async function installApiMocks(page: Page): Promise<void> {
       }
       if (method === 'PATCH' || method === 'PUT') {
         const body = req.postDataJSON()
-        const updates = camelToSnake(body)
+        const updates = mapCamelToSnake(body)
         if (transactions[id]) {
           Object.assign(transactions[id], updates)
         }
@@ -267,7 +247,7 @@ export async function installApiMocks(page: Page): Promise<void> {
       }
       if (method === 'PATCH') {
         const body = req.postDataJSON()
-        const updates = camelToSnake(body)
+        const updates = mapCamelToSnake(body)
         const id = Number(updates.id ?? body.id)
         if (memos[id]) {
           Object.assign(memos[id], updates)
