@@ -251,12 +251,15 @@ export default function MemoSummaryTable(): JSX.Element {
   const frequency = () => memo()?.frequency ?? undefined
   const isResolved = () => !isAmbiguous() && !!budgetCategory()
 
-  /** `creditTxnCount` is null when sum comes from memo summary API (no credit-specific count there). */
+  /**
+   * `creditTxnCount` is null when sum comes from memo summary API (no credit-specific count there).
+   * `aggregateScope` is `page` when the API omits the aggregate and we sum only the current tx page.
+   */
   const totalCredits = createMemo(() => {
     const s = summaryQ.data
     const apiCredit = s?.sum_amount_credit
     if (apiCredit != null && Number.isFinite(apiCredit)) {
-      return { sum: apiCredit, creditTxnCount: null as number | null }
+      return { sum: apiCredit, creditTxnCount: null as number | null, aggregateScope: 'memo' as const }
     }
     const txns = txQ.data ?? []
     let sum = 0
@@ -271,15 +274,15 @@ export default function MemoSummaryTable(): JSX.Element {
         count++
       }
     }
-    return { sum, creditTxnCount: count }
+    return { sum, creditTxnCount: count, aggregateScope: 'page' as const }
   })
 
-  /** `debitTxnCount` is null when sum comes from memo summary API (total `transactions_count` is not debit-only). */
+  /** Same shape as `totalCredits`: memo-level API aggregate vs current page only. */
   const totalDebits = createMemo(() => {
     const s = summaryQ.data
     const apiDebit = s?.sum_amount_debit
     if (apiDebit != null && Number.isFinite(apiDebit)) {
-      return { sum: apiDebit, debitTxnCount: null as number | null }
+      return { sum: apiDebit, debitTxnCount: null as number | null, aggregateScope: 'memo' as const }
     }
     const txns = txQ.data ?? []
     let sum = 0
@@ -294,7 +297,7 @@ export default function MemoSummaryTable(): JSX.Element {
         count++
       }
     }
-    return { sum, debitTxnCount: count }
+    return { sum, debitTxnCount: count, aggregateScope: 'page' as const }
   })
 
   // ── Mutations ───────────────────────────────────────────────────────
@@ -460,7 +463,9 @@ export default function MemoSummaryTable(): JSX.Element {
                 <div class="rounded-full bg-green-100 dark:bg-green-900/40 p-2">
                   <ArrowUpCircleIcon class="size-5 text-green-600 dark:text-green-400" />
                 </div>
-                <span class="text-sm font-medium text-muted-foreground">Total Credits</span>
+                <span class="text-sm font-medium text-muted-foreground">
+                  {totalCredits().aggregateScope === 'page' ? 'Credits (this page)' : 'Total Credits'}
+                </span>
               </div>
               <p
                 class="text-2xl font-bold text-green-600 dark:text-green-400 m-0"
@@ -484,7 +489,9 @@ export default function MemoSummaryTable(): JSX.Element {
                 <div class="rounded-full bg-red-100 dark:bg-red-900/40 p-2">
                   <ArrowDownCircleIcon class="size-5 text-red-600 dark:text-red-400" />
                 </div>
-                <span class="text-sm font-medium text-muted-foreground">Total Debits</span>
+                <span class="text-sm font-medium text-muted-foreground">
+                  {totalDebits().aggregateScope === 'page' ? 'Debits (this page)' : 'Total Debits'}
+                </span>
               </div>
               <p
                 class="text-2xl font-bold text-red-600 dark:text-red-400 m-0"

@@ -163,6 +163,7 @@ export default function CategoryTreeSelectDialog(props: {
     () => undefined,
     () => undefined,
     false,
+    () => props.open,
   )
 
   const tree = createMemo(() => {
