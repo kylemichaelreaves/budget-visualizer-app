@@ -302,11 +302,7 @@ export default function CategoryTreeSelectDialog(props: {
           </div>
         </div>
 
-        <div
-          role="listbox"
-          class="px-2 pb-3 max-h-72 overflow-y-auto space-y-0.5"
-          ref={(el) => (listRef = el)}
-        >
+        <div class="px-2 pb-3 max-h-72 overflow-y-auto space-y-0.5" ref={(el) => (listRef = el)}>
           <Show when={q.isLoading || q.isFetching}>
             <p class="text-sm text-muted-foreground text-center py-6">Loading categories...</p>
           </Show>
