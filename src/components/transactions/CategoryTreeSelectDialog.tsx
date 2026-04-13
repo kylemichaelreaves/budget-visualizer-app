@@ -39,7 +39,10 @@ export default function CategoryTreeSelectDialog(props: {
 
         <div class="px-4 pt-3 pb-2">
           <div class="relative">
-            <span class="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none">
+            <span
+              class="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+              aria-hidden="true"
+            >
               <SearchIcon class="size-3.5" />
             </span>
             <Input

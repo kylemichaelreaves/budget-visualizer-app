@@ -43,6 +43,7 @@ export default function CategoryTreeNodeRow(props: {
           stopPropagation
           leafSpacer="blank"
           buttonClass="size-7 rounded-md hover:bg-muted/80 hover:text-foreground"
+          ariaLabel={isOpen() ? 'Collapse category' : 'Expand category'}
         />
         <button
           type="button"

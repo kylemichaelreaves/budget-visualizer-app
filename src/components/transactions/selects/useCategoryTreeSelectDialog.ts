@@ -26,6 +26,8 @@ export function useCategoryTreeSelectDialog(props: {
     () => props.open(),
   )
 
+  let didInitExpand = false
+
   const tree = createMemo(() => {
     const raw = q.data as unknown
     const categoryData = extractBudgetCategoriesData(raw)
@@ -35,7 +37,8 @@ export function useCategoryTreeSelectDialog(props: {
 
   createEffect(() => {
     const nodes = tree()
-    if (nodes.length > 0 && expanded().size === 0) {
+    if (!didInitExpand && nodes.length > 0) {
+      didInitExpand = true
       setExpanded(new Set(nodes.map((n) => n.value)))
     }
   })

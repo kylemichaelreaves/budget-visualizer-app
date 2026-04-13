@@ -15,6 +15,8 @@ export default function BudgetCategoryTreeExpandToggle(props: {
   leafSpacer?: 'dot' | 'blank'
   buttonClass?: string
   leafClass?: string
+  /** Override the default aria-label which includes pathValue. */
+  ariaLabel?: string
 }): JSX.Element {
   const leafMode = () => props.leafSpacer ?? 'dot'
 
@@ -46,7 +48,7 @@ export default function BudgetCategoryTreeExpandToggle(props: {
           if (props.stopPropagation) e.stopPropagation()
           props.onToggle()
         }}
-        aria-label={`${props.expanded ? 'Collapse' : 'Expand'} ${props.pathValue}`}
+        aria-label={props.ariaLabel ?? `${props.expanded ? 'Collapse' : 'Expand'} ${props.pathValue}`}
         data-testid={categoryTreeTestId('tree-toggle', props.pathValue)}
       >
         <Show when={props.expanded} fallback={<ChevronRightIcon class="size-3.5" />}>
