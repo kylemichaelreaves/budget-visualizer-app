@@ -26,20 +26,6 @@ export function useCategoryTreeSelectDialog(props: {
     () => props.open(),
   )
 
-  let didInitExpand = false
-
-  // Reset expand state each time the dialog opens so categories auto-expand on reopen / refetch
-  createEffect(
-    on(
-      () => props.open(),
-      (open) => {
-        if (open) {
-          didInitExpand = false
-        }
-      },
-    ),
-  )
-
   const tree = createMemo(() => {
     const raw = q.data as unknown
     const categoryData = extractBudgetCategoriesData(raw)
@@ -47,9 +33,26 @@ export function useCategoryTreeSelectDialog(props: {
     return convertToTree(categoryData)
   })
 
+  // Auto-expand all nodes whenever the dialog opens (handles both cached and freshly-fetched data)
+  createEffect(
+    on(
+      () => props.open(),
+      (open) => {
+        if (open) {
+          const nodes = tree()
+          if (nodes.length > 0) {
+            setExpanded(new Set(nodes.map((n) => n.value)))
+          }
+        }
+      },
+    ),
+  )
+
+  // Also auto-expand when tree data arrives for the first time while the dialog is already open
+  let didInitExpand = false
   createEffect(() => {
     const nodes = tree()
-    if (!didInitExpand && nodes.length > 0) {
+    if (!didInitExpand && nodes.length > 0 && props.open()) {
       didInitExpand = true
       setExpanded(new Set(nodes.map((n) => n.value)))
     }
