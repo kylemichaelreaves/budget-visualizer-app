@@ -3,7 +3,6 @@ import { Show } from 'solid-js'
 import { CheckIcon } from '@shared/icons'
 
 export default function CategoryTreeSearchResultRow(props: {
-  value: string
   label: string
   breadcrumb: string[]
   selected: boolean

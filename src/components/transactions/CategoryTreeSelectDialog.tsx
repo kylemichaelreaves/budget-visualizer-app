@@ -17,7 +17,6 @@ export default function CategoryTreeSelectDialog(props: {
 }): JSX.Element {
   const state = useCategoryTreeSelectDialog({
     open: () => props.open,
-    value: () => props.value,
     onSelect: (v) => props.onSelect(v),
     onOpenChange: (v) => props.onOpenChange(v),
   })
@@ -72,7 +71,6 @@ export default function CategoryTreeSelectDialog(props: {
                     <For each={state.searchResults()!}>
                       {({ node, breadcrumb }, index) => (
                         <CategoryTreeSearchResultRow
-                          value={node.value}
                           label={node.label}
                           breadcrumb={breadcrumb}
                           selected={props.value === node.value}

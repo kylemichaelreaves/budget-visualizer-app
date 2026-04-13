@@ -7,7 +7,6 @@ import { flattenWithBreadcrumb, getVisibleNodes } from './categoryTreeSelectDial
 
 export function useCategoryTreeSelectDialog(props: {
   open: () => boolean
-  value: () => string
   onSelect: (value: string) => void
   onOpenChange: (open: boolean) => void
 }) {
