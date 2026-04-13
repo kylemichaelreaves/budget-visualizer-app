@@ -1,6 +1,6 @@
 import CategoryTreeSelectDialog from '@components/transactions/CategoryTreeSelectDialog'
-import PeriodHeader from '@components/transactions/PeriodHeader'
-import SummaryStatsCards from '@components/transactions/SummaryStatsCards'
+import PeriodHeader from '@components/transactions/summaries/PeriodHeader'
+import SummaryStatsCards from '@components/transactions/summaries/SummaryStatsCards'
 import { createTransactionsTableCategoryAssignment } from '@components/transactions/table/createTransactionsTableCategoryAssignment'
 import { createTransactionsTableDerivedData } from '@components/transactions/table/createTransactionsTableDerivedData'
 import TransactionsTableAlerts from '@components/transactions/table/TransactionsTableAlerts'

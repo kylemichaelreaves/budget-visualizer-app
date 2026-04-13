@@ -13,7 +13,7 @@ import type {
 import mutateTransaction from '@api/hooks/transactions/mutateTransaction'
 import mutatePendingTransaction from '@api/hooks/transactions/mutatePendingTransaction'
 import MemoSelect from '@components/transactions/selects/MemoSelect'
-import BudgetCategoryFormField from '@components/transactions/BudgetCategoryFormField'
+import BudgetCategoryFormField from './BudgetCategoryFormField'
 import AlertComponent from '@components/shared/AlertComponent'
 import { Button } from '@components/ui/button'
 import { Input } from '@components/ui/input'

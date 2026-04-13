@@ -8,10 +8,10 @@ import MemoSummaryPage from '@components/memos/MemoSummaryPage'
 import MemosTable from '@components/memos/MemosTable'
 import BudgetCategoriesPage from '@components/budgetCategories/BudgetCategoriesPage'
 import PendingTransactionsTable from '@components/transactions/PendingTransactionsTable'
-import TransactionEditPage from '@components/transactions/TransactionEditPage'
+import TransactionEditPage from '@components/transactions/forms/TransactionEditPage'
 import TransactionsTable from '@components/transactions/table/TransactionsTable'
-import TransactionsWithMonthSummary from '@components/transactions/TransactionsWithMonthSummary'
-import TransactionsWithWeekSummary from '@components/transactions/TransactionsWithWeekSummary'
+import TransactionsWithMonthSummary from '@components/transactions/summaries/TransactionsWithMonthSummary'
+import TransactionsWithWeekSummary from '@components/transactions/summaries/TransactionsWithWeekSummary'
 import type { JSX } from 'solid-js'
 
 function AppLayout(props: { children?: JSX.Element }) {

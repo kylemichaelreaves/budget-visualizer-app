@@ -1,7 +1,7 @@
 import type { JSX } from 'solid-js'
 import { createMemo } from 'solid-js'
 import useMonthSummary from '@api/hooks/timeUnits/months/useMonthSummary'
-import TimeframeSummaryTable from '@components/transactions/TimeframeSummaryTable'
+import TimeframeSummaryTable from './TimeframeSummaryTable'
 import { transactionsState } from '@stores/transactionsStore'
 
 export default function MonthSummaryTable(props: { dataTestId?: string }): JSX.Element | null {
