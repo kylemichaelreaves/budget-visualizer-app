@@ -2,8 +2,8 @@ import { createEffect, createMemo, on } from 'solid-js'
 import { getPeriodLabel } from '@api/helpers/formatPeriodLabels'
 import useTransactions from '@api/hooks/transactions/useTransactions'
 import { transactionsState } from '@stores/transactionsStore'
-import { createTransactionsTableChartSlice } from '@components/transactions/createTransactionsTableChartSlice'
-import { getTransactionsTableSelectedValue } from '@components/transactions/transactionsTableSelectedValue'
+import { createTransactionsTableChartSlice } from '@components/transactions/table/createTransactionsTableChartSlice'
+import { getTransactionsTableSelectedValue } from '@components/transactions/table/transactionsTableSelectedValue'
 
 export function createTransactionsTableDerivedData() {
   const query = useTransactions()

@@ -80,7 +80,7 @@ Use **`git commit --no-verify`** only when a hook is misbehaving in the agent en
 ## Store
 
 - `transactionsStore.ts` holds filter state: `selectedDay`, `selectedWeek`, `selectedMonth`, `selectedYear`, `selectedMemo`, `selectedMemoId`
-- Filter URL sync lives in `composables/transactionTableFilterUrlSync.ts` (used from `TransactionsTableSelects.tsx`) — all filters persist as query params
+- Filter URL sync lives in `composables/transactionTableFilterUrlSync.ts` (used from `components/transactions/table/TransactionsTableSelects.tsx`) — all filters persist as query params
 - URL helper functions (param validation, legacy migration) are in `composables/transactionFilterUrlHelpers.ts`
 - `viewMode` determines which filter is active; `null` means no filter
 

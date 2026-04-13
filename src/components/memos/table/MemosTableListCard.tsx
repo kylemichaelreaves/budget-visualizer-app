@@ -1,14 +1,14 @@
 import type { Accessor } from 'solid-js'
 import { Show } from 'solid-js'
 import TableSkeleton from '@components/shared/TableSkeleton'
-import MemosTableDataTable from '@components/memos/MemosTableDataTable'
+import MemosTableDataTable from '@components/memos/table/MemosTableDataTable'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 import { Input } from '@components/ui/input'
 import {
   MEMOS_TABLE_SORTABLE_COLUMNS,
   type MemosTableSortDir,
   type MemosTableSortKey,
-} from '@components/memos/memosTableSort'
+} from '@components/memos/table/memosTableSort'
 import { SearchIcon } from '@shared/icons'
 import type { Memo } from '@types'
 

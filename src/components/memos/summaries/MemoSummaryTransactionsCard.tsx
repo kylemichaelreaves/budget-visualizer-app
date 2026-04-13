@@ -2,7 +2,7 @@ import type { Accessor } from 'solid-js'
 import { For, Show } from 'solid-js'
 import type { Transaction } from '@types'
 import AlertComponent from '@components/shared/AlertComponent'
-import MemoSummaryTransactionRow from '@components/memos/MemoSummaryTransactionRow'
+import MemoSummaryTransactionRow from './MemoSummaryTransactionRow'
 import { Button } from '@components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 

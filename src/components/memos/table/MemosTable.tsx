@@ -1,11 +1,11 @@
 import type { JSX } from 'solid-js'
 import CategoryTreeSelectDialog from '@components/transactions/CategoryTreeSelectDialog'
-import { createMemosTableDerivedData } from '@components/memos/createMemosTableDerivedData'
-import { createMemosTableMutations } from '@components/memos/createMemosTableMutations'
-import MemosTableAlerts from '@components/memos/MemosTableAlerts'
-import MemosTableListCard from '@components/memos/MemosTableListCard'
-import MemosTablePageIntro from '@components/memos/MemosTablePageIntro'
-import MemosTablePagination from '@components/memos/MemosTablePagination'
+import { createMemosTableDerivedData } from '@components/memos/table/createMemosTableDerivedData'
+import { createMemosTableMutations } from '@components/memos/table/createMemosTableMutations'
+import MemosTableAlerts from '@components/memos/table/MemosTableAlerts'
+import MemosTableListCard from '@components/memos/table/MemosTableListCard'
+import MemosTablePageIntro from '@components/memos/table/MemosTablePageIntro'
+import MemosTablePagination from '@components/memos/table/MemosTablePagination'
 
 export default function MemosTable(): JSX.Element {
   const data = createMemosTableDerivedData()

@@ -1,10 +1,10 @@
 import type { Accessor } from 'solid-js'
 import type { Transaction } from '@types'
 import { budgetCategoryColorsFromData } from '@composables/budgetCategoryColors'
-import { createTransactionsTableRowMoney } from '@components/transactions/createTransactionsTableRowMoney'
-import TransactionsTableRowAmounts from '@components/transactions/TransactionsTableRowAmounts'
-import TransactionsTableRowCategoryColumn from '@components/transactions/TransactionsTableRowCategoryColumn'
-import TransactionsTableRowPrimaryColumn from '@components/transactions/TransactionsTableRowPrimaryColumn'
+import { createTransactionsTableRowMoney } from '@components/transactions/table/createTransactionsTableRowMoney'
+import TransactionsTableRowAmounts from '@components/transactions/table/TransactionsTableRowAmounts'
+import TransactionsTableRowCategoryColumn from '@components/transactions/table/TransactionsTableRowCategoryColumn'
+import TransactionsTableRowPrimaryColumn from '@components/transactions/table/TransactionsTableRowPrimaryColumn'
 
 type CategoryColorHelpers = ReturnType<typeof budgetCategoryColorsFromData>
 

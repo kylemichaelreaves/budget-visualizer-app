@@ -1,10 +1,10 @@
 import type { Accessor } from 'solid-js'
 import { createEffect, on, onCleanup } from 'solid-js'
-import type { MemosTableSortDir, MemosTableSortKey } from '@components/memos/memosTableSort'
+import type { MemosTableSortDir, MemosTableSortKey } from '@components/memos/table/memosTableSort'
 import {
   MEMOS_SEARCH_PREFETCH_DEBOUNCE_MS,
   MEMOS_SEARCH_PREFETCH_MAX_PAGES,
-} from '@components/memos/memosTableConstants'
+} from '@components/memos/table/memosTableConstants'
 import { updateMemosTableOffset } from '@stores/transactionsStore'
 import type { Memo } from '@types'
 import { devConsole } from '@utils/devConsole'

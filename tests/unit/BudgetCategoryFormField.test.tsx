@@ -12,7 +12,8 @@ vi.mock('@api/hooks/budgetCategories/useBudgetCategories', () => ({
   useBudgetCategories: () => ({ data: undefined, isLoading: false }),
 }))
 
-const { default: BudgetCategoryFormField } = await import('@components/transactions/BudgetCategoryFormField')
+const { default: BudgetCategoryFormField } =
+  await import('@components/transactions/forms/BudgetCategoryFormField')
 
 describe('BudgetCategoryFormField', () => {
   const defaultProps = {

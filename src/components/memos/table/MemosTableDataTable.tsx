@@ -4,9 +4,9 @@ import {
   MEMOS_TABLE_SORTABLE_COLUMNS,
   type MemosTableSortDir,
   type MemosTableSortKey,
-} from '@components/memos/memosTableSort'
-import MemosTableRow from '@components/memos/MemosTableRow'
-import MemosTableSortIcon from '@components/memos/MemosTableSortIcon'
+} from '@components/memos/table/memosTableSort'
+import MemosTableRow from '@components/memos/table/MemosTableRow'
+import MemosTableSortIcon from '@components/memos/table/MemosTableSortIcon'
 import type { Memo } from '@types'
 
 export default function MemosTableDataTable(props: {

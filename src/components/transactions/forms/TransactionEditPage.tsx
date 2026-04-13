@@ -5,7 +5,7 @@ import usePendingTransaction from '@api/hooks/transactions/usePendingTransaction
 import useTransaction from '@api/hooks/transactions/useTransaction'
 import type { PendingTransaction, Transaction } from '@types'
 import AlertComponent from '@components/shared/AlertComponent'
-import TransactionEditForm from '@components/transactions/TransactionEditForm'
+import TransactionEditForm from './TransactionEditForm'
 import { Button } from '@components/ui/button'
 import { Card, CardContent } from '@components/ui/card'
 

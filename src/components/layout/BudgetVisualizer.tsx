@@ -1,7 +1,7 @@
 import type { JSX } from 'solid-js'
 import { A, useLocation, useNavigate } from '@solidjs/router'
 import { createSignal, For, onMount, Show } from 'solid-js'
-import TransactionCreateForm from '@components/transactions/TransactionCreateForm'
+import TransactionCreateForm from '@components/transactions/forms/TransactionCreateForm'
 import { Button } from '@components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@components/ui/dialog'
 import { authState } from '@stores/authStore'

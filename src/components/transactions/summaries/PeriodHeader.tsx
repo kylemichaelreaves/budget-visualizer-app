@@ -10,7 +10,7 @@ import {
 } from '@stores/transactionsStore'
 import { getPeriodLabel } from '@api/helpers/formatPeriodLabels'
 import { Button } from '@components/ui/button'
-import ClearFilterButton from './ClearFilterButton'
+import ClearFilterButton from '@components/shared/ClearFilterButton'
 import PeriodNavigationGroup from './PeriodNavigationGroup'
 
 function getSelectedValue(): string {
