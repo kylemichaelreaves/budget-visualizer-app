@@ -3,10 +3,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 // Mock constants before httpClient is imported so the module-level
 // initBaseApiUrl() resolves immediately with a known value.
-vi.mock('@constants', () => ({
-  getBaseApiUrl: () => 'http://test-api',
-  initBaseApiUrl: () => Promise.resolve('http://test-api'),
-}))
+vi.mock(
+  '@constants',
+  (): Pick<typeof import('@constants'), 'getBaseApiUrl' | 'initBaseApiUrl'> => ({
+    getBaseApiUrl: () => 'http://test-api',
+    initBaseApiUrl: () => Promise.resolve('http://test-api'),
+  }),
+)
 
 // Silence devConsole calls during tests.
 vi.mock('@utils/devConsole', () => ({
@@ -91,13 +94,12 @@ describe('httpClient', () => {
       const originalAdapter = httpClient.defaults.adapter
 
       httpClient.defaults.adapter = async (config) => {
-        const error = Object.assign(new Error('Unauthorized'), {
+        throw Object.assign(new Error('Unauthorized'), {
           config,
           response: { status: 401, data: {}, headers: {}, statusText: 'Unauthorized', config },
           isAxiosError: true,
           toJSON: () => ({}),
         })
-        throw error
       }
 
       try {
@@ -116,13 +118,12 @@ describe('httpClient', () => {
       const originalAdapter = httpClient.defaults.adapter
 
       httpClient.defaults.adapter = async (config) => {
-        const error = Object.assign(new Error('Server Error'), {
+        throw Object.assign(new Error('Server Error'), {
           config,
           response: { status: 500, data: {}, headers: {}, statusText: 'Server Error', config },
           isAxiosError: true,
           toJSON: () => ({}),
         })
-        throw error
       }
 
       try {
@@ -141,13 +142,12 @@ describe('httpClient', () => {
       const originalAdapter = httpClient.defaults.adapter
 
       httpClient.defaults.adapter = async (config) => {
-        const error = Object.assign(new Error('Unauthorized'), {
+        throw Object.assign(new Error('Unauthorized'), {
           config,
           response: { status: 401, data: {}, headers: {}, statusText: 'Unauthorized', config },
           isAxiosError: true,
           toJSON: () => ({}),
         })
-        throw error
       }
 
       try {
@@ -167,13 +167,12 @@ describe('httpClient', () => {
       const originalAdapter = httpClient.defaults.adapter
 
       httpClient.defaults.adapter = async (config) => {
-        const error = Object.assign(new Error('Unauthorized'), {
+        throw Object.assign(new Error('Unauthorized'), {
           config,
           response: { status: 401, data: {}, headers: {}, statusText: 'Unauthorized', config },
           isAxiosError: true,
           toJSON: () => ({}),
         })
-        throw error
       }
 
       try {
@@ -182,7 +181,7 @@ describe('httpClient', () => {
         expect(handler).toHaveBeenCalledOnce()
 
         // Flush microtask queue so handlingUnauthorized resets
-        await new Promise((r) => queueMicrotask(r))
+        await new Promise<void>((r) => queueMicrotask(() => r()))
 
         // Second 401 should trigger again
         await httpClient.get('/second').catch(() => {})
