@@ -1,4 +1,4 @@
-import { createEffect, createMemo, createSignal } from 'solid-js'
+import { createEffect, createMemo, createSignal, on } from 'solid-js'
 import { extractBudgetCategoriesData } from '@api/helpers/extractBudgetCategoriesData'
 import { convertToTree } from '@api/helpers/convertToTree'
 import { useBudgetCategories } from '@api/hooks/budgetCategories/useBudgetCategories'
@@ -27,6 +27,18 @@ export function useCategoryTreeSelectDialog(props: {
   )
 
   let didInitExpand = false
+
+  // Reset expand state each time the dialog opens so categories auto-expand on reopen / refetch
+  createEffect(
+    on(
+      () => props.open(),
+      (open) => {
+        if (open) {
+          didInitExpand = false
+        }
+      },
+    ),
+  )
 
   const tree = createMemo(() => {
     const raw = q.data as unknown

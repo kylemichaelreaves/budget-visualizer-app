@@ -27,7 +27,6 @@ export function usePendingTransactionsTable() {
       () => {
         clearPendingTransactionsByOffset()
         updateTransactionsTableOffset(0)
-        void query.refetch()
       },
     ),
   )
