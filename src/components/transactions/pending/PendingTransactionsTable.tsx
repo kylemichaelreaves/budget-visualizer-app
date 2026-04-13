@@ -28,11 +28,17 @@ export default function PendingTransactionsTable(): JSX.Element {
 
       <header class="flex justify-between items-center mb-3">
         <h2 class="m-0 text-foreground">Pending Transactions</h2>
-        <div data-testid="view-mode-segmented" class="flex gap-1">
+        <div
+          data-testid="view-mode-segmented"
+          class="flex gap-1"
+          role="group"
+          aria-label="Transaction view mode"
+        >
           <Button
             variant={state.viewMode() === 'pending' ? 'default' : 'outline'}
             size="sm"
             type="button"
+            aria-pressed={state.viewMode() === 'pending'}
             onClick={() => state.setViewMode('pending')}
           >
             <Badge variant={state.viewMode() === 'pending' ? 'default' : 'secondary'}>Pending</Badge>
@@ -41,6 +47,7 @@ export default function PendingTransactionsTable(): JSX.Element {
             variant={state.viewMode() === 'reviewed' ? 'default' : 'outline'}
             size="sm"
             type="button"
+            aria-pressed={state.viewMode() === 'reviewed'}
             onClick={() => state.setViewMode('reviewed')}
           >
             <Badge variant={state.viewMode() === 'reviewed' ? 'default' : 'secondary'}>Reviewed</Badge>
