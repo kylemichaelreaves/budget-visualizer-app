@@ -28,7 +28,7 @@ export default function PendingTransactionsTable(): JSX.Element {
 
       <header class="flex justify-between items-center mb-3">
         <h2 class="m-0 text-foreground">Pending Transactions</h2>
-        <div role="tablist" data-testid="view-mode-segmented" class="flex gap-1">
+        <div data-testid="view-mode-segmented" class="flex gap-1">
           <Button
             variant={state.viewMode() === 'pending' ? 'default' : 'outline'}
             size="sm"
