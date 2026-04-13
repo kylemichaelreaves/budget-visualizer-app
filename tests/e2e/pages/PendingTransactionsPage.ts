@@ -15,9 +15,9 @@ export class PendingTransactionsPage {
     this.table = page.getByTestId('pending-transactions-table')
     this.skeleton = page.getByTestId('pending-transactions-table-skeleton')
     this.errorAlert = page.getByTestId('pending-transactions-table-error-alert')
-    const tablist = page.getByRole('tablist')
-    this.pendingTab = tablist.getByRole('button', { name: 'Pending' })
-    this.reviewedTab = tablist.getByRole('button', { name: 'Reviewed' })
+    const segmented = page.getByTestId('view-mode-segmented')
+    this.pendingTab = segmented.getByRole('button', { name: 'Pending' })
+    this.reviewedTab = segmented.getByRole('button', { name: 'Reviewed' })
   }
 
   async goto() {
