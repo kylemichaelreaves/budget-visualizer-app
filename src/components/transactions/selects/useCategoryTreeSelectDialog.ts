@@ -33,14 +33,17 @@ export function useCategoryTreeSelectDialog(props: {
     return convertToTree(categoryData)
   })
 
-  // Auto-expand all nodes whenever the dialog opens (handles both cached and freshly-fetched data)
+  // Auto-expand top-level nodes whenever the dialog opens (handles cached data)
+  let didInitExpand = false
   createEffect(
     on(
       () => props.open(),
       (open) => {
         if (open) {
+          didInitExpand = false
           const nodes = tree()
           if (nodes.length > 0) {
+            didInitExpand = true
             setExpanded(new Set(nodes.map((n) => n.value)))
           }
         }
@@ -48,8 +51,7 @@ export function useCategoryTreeSelectDialog(props: {
     ),
   )
 
-  // Also auto-expand when tree data arrives for the first time while the dialog is already open
-  let didInitExpand = false
+  // Auto-expand top-level nodes when tree data arrives while the dialog is already open
   createEffect(() => {
     const nodes = tree()
     if (!didInitExpand && nodes.length > 0 && props.open()) {
