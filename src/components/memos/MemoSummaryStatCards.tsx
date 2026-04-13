@@ -1,0 +1,46 @@
+import type { Accessor } from 'solid-js'
+import MemoSummaryStatCardBudget from '@components/memos/MemoSummaryStatCardBudget'
+import MemoSummaryStatCardCredit from '@components/memos/MemoSummaryStatCardCredit'
+import MemoSummaryStatCardDebit from '@components/memos/MemoSummaryStatCardDebit'
+import type {
+  MemoSummaryCreditAggregate,
+  MemoSummaryDebitAggregate,
+} from '@components/memos/memoSummaryStatCardTypes'
+
+export default function MemoSummaryStatCards(props: {
+  totalCredits: Accessor<MemoSummaryCreditAggregate>
+  totalDebits: Accessor<MemoSummaryDebitAggregate>
+  budgetCategory: Accessor<string | null>
+  memoReady: Accessor<boolean>
+  saving: Accessor<boolean>
+  onOpenCategoryDialog: () => void
+  onAmbiguousChange: (checked: boolean) => void
+  onRecurringChange: (checked: boolean) => void
+  onNecessaryChange: (checked: boolean) => void
+  onFrequencyChange: (value: string) => void
+  isAmbiguous: Accessor<boolean>
+  isRecurring: Accessor<boolean>
+  isNecessary: Accessor<boolean>
+  frequency: Accessor<string | undefined>
+}) {
+  return (
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+      <MemoSummaryStatCardCredit totalCredits={props.totalCredits} />
+      <MemoSummaryStatCardDebit totalDebits={props.totalDebits} />
+      <MemoSummaryStatCardBudget
+        budgetCategory={props.budgetCategory}
+        memoReady={props.memoReady}
+        saving={props.saving}
+        onOpenCategoryDialog={props.onOpenCategoryDialog}
+        onAmbiguousChange={props.onAmbiguousChange}
+        onRecurringChange={props.onRecurringChange}
+        onNecessaryChange={props.onNecessaryChange}
+        onFrequencyChange={props.onFrequencyChange}
+        isAmbiguous={props.isAmbiguous}
+        isRecurring={props.isRecurring}
+        isNecessary={props.isNecessary}
+        frequency={props.frequency}
+      />
+    </div>
+  )
+}

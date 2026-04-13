@@ -1,8 +1,7 @@
-import { A, useParams } from '@solidjs/router'
+import { useParams } from '@solidjs/router'
 import type { JSX } from 'solid-js'
-import { createEffect, createMemo, createSignal, For, on, Show } from 'solid-js'
+import { createEffect, createMemo, createSignal, on, Show } from 'solid-js'
 import { useQueryClient } from '@tanstack/solid-query'
-import { formatDate } from '@api/helpers/formatDate'
 import { invalidateAfterMemoMutation } from '@api/queryInvalidation'
 import { updateMemo } from '@api/memos/updateMemo'
 import { devConsole } from '@utils/devConsole'
@@ -11,177 +10,12 @@ import useMemoSummary from '@api/hooks/memos/useMemoSummary'
 import useMemoTransactionsPage from '@api/hooks/memos/useMemoTransactionsPage'
 import AlertComponent from '@components/shared/AlertComponent'
 import CategoryTreeSelectDialog from '@components/transactions/CategoryTreeSelectDialog'
+import { MEMO_SUMMARY_FREQUENCY_OPTIONS } from '@components/memos/memoSummaryConstants'
+import MemoSummaryHeader from '@components/memos/MemoSummaryHeader'
+import MemoSummaryStatCards from '@components/memos/MemoSummaryStatCards'
+import MemoSummaryTransactionsCard from '@components/memos/MemoSummaryTransactionsCard'
 import { syncMemoFromSummaryData } from '@stores/transactionsStore'
-import { Badge } from '@components/ui/badge'
-import { Button } from '@components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 import type { Frequency, MemoPatchFields } from '@types'
-import { formatUsdAbs } from '@utils/formatUsd'
-
-// ── Inline SVG icons ──────────────────────────────────────────────────
-
-function ChevronLeftIcon(props: { class?: string }): JSX.Element {
-  return (
-    <svg
-      class={props.class ?? 'size-5'}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <path d="m15 18-6-6 6-6" />
-    </svg>
-  )
-}
-
-function WarningTriangleIcon(props: { class?: string }): JSX.Element {
-  return (
-    <svg
-      class={props.class ?? 'size-3.5'}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" />
-      <path d="M12 9v4" />
-      <path d="M12 17h.01" />
-    </svg>
-  )
-}
-
-function CheckCircleIcon(props: { class?: string }): JSX.Element {
-  return (
-    <svg
-      class={props.class ?? 'size-3.5'}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-      <path d="m9 11 3 3L22 4" />
-    </svg>
-  )
-}
-
-function RefreshIcon(props: { class?: string }): JSX.Element {
-  return (
-    <svg
-      class={props.class ?? 'size-3.5'}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
-      <path d="M3 3v5h5" />
-      <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
-      <path d="M16 16h5v5" />
-    </svg>
-  )
-}
-
-function ArrowUpCircleIcon(props: { class?: string }): JSX.Element {
-  return (
-    <svg
-      class={props.class ?? 'size-5'}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <circle cx="12" cy="12" r="10" />
-      <path d="m16 12-4-4-4 4" />
-      <path d="M12 16V8" />
-    </svg>
-  )
-}
-
-function ArrowDownCircleIcon(props: { class?: string }): JSX.Element {
-  return (
-    <svg
-      class={props.class ?? 'size-5'}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <circle cx="12" cy="12" r="10" />
-      <path d="m8 12 4 4 4-4" />
-      <path d="M12 8v8" />
-    </svg>
-  )
-}
-
-function LayoutGridIcon(props: { class?: string }): JSX.Element {
-  return (
-    <svg
-      class={props.class ?? 'size-5'}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <rect width="7" height="7" x="3" y="3" rx="1" />
-      <rect width="7" height="7" x="14" y="3" rx="1" />
-      <rect width="7" height="7" x="14" y="14" rx="1" />
-      <rect width="7" height="7" x="3" y="14" rx="1" />
-    </svg>
-  )
-}
-
-function TrendingUpIcon(props: { class?: string }): JSX.Element {
-  return (
-    <svg
-      class={props.class ?? 'size-4'}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
-      <polyline points="16 7 22 7 22 13" />
-    </svg>
-  )
-}
-
-function TrendingDownIcon(props: { class?: string }): JSX.Element {
-  return (
-    <svg
-      class={props.class ?? 'size-4'}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <polyline points="22 17 13.5 8.5 8.5 13.5 2 7" />
-      <polyline points="16 17 22 17 22 11" />
-    </svg>
-  )
-}
-
-const FREQUENCY_OPTIONS: Frequency[] = ['daily', 'weekly', 'monthly', 'yearly']
-
-// ── Component ─────────────────────────────────────────────────────────
 
 export default function MemoSummaryTable(): JSX.Element {
   const params = useParams<{ memoId: string }>()
@@ -212,8 +46,6 @@ export default function MemoSummaryTable(): JSX.Element {
     ),
   )
 
-  // ── Pagination ──────────────────────────────────────────────────────
-
   const canPrev = () => txOffset() > 0
   const canNext = () => {
     const rows = txQ.data?.length ?? 0
@@ -234,8 +66,6 @@ export default function MemoSummaryTable(): JSX.Element {
     setTxOffset(txOffset() + txLimit())
   }
 
-  // ── Derived memo data ───────────────────────────────────────────────
-
   const memo = () => memoQ.data
   const memoReady = createMemo(() => !!memoQ.data)
   const isAmbiguous = () => memo()?.ambiguous ?? false
@@ -245,10 +75,6 @@ export default function MemoSummaryTable(): JSX.Element {
   const frequency = () => memo()?.frequency ?? undefined
   const isResolved = () => !isAmbiguous() && !!budgetCategory()
 
-  /**
-   * `creditTxnCount` is null when sum comes from memo summary API (no credit-specific count there).
-   * `aggregateScope` is `page` when the API omits the aggregate and we sum only the current tx page.
-   */
   const totalCredits = createMemo(() => {
     const s = summaryQ.data
     const apiCredit = s?.sum_amount_credit
@@ -271,7 +97,6 @@ export default function MemoSummaryTable(): JSX.Element {
     return { sum, creditTxnCount: count, aggregateScope: 'page' as const }
   })
 
-  /** Same shape as `totalCredits`: memo-level API aggregate vs current page only. */
   const totalDebits = createMemo(() => {
     const s = summaryQ.data
     const apiDebit = s?.sum_amount_debit
@@ -293,8 +118,6 @@ export default function MemoSummaryTable(): JSX.Element {
     }
     return { sum, debitTxnCount: count, aggregateScope: 'page' as const }
   })
-
-  // ── Mutations ───────────────────────────────────────────────────────
 
   async function patchMemo(fields: MemoPatchFields) {
     const m = memo()
@@ -335,12 +158,10 @@ export default function MemoSummaryTable(): JSX.Element {
       patchMemo({ frequency: null, recurring: true })
       return
     }
-    if (FREQUENCY_OPTIONS.includes(v as Frequency)) {
+    if (MEMO_SUMMARY_FREQUENCY_OPTIONS.includes(v as Frequency)) {
       patchMemo({ frequency: v as Frequency, recurring: true })
     }
   }
-
-  // ── Render ──────────────────────────────────────────────────────────
 
   const invalidId = () => memoIdNum() == null
 
@@ -368,57 +189,16 @@ export default function MemoSummaryTable(): JSX.Element {
           )}
         </Show>
 
-        {/* ── Header ─────────────────────────────────────────────── */}
-        <header class="mb-6">
-          <div class="flex items-center gap-3 flex-wrap">
-            <A
-              href="/budget-visualizer/memos"
-              class="inline-flex items-center justify-center rounded-md border border-input bg-background p-1.5 hover:bg-accent hover:text-accent-foreground transition-colors"
-              data-testid="memo-summary-back-to-list"
-            >
-              <ChevronLeftIcon class="size-5" />
-            </A>
+        <MemoSummaryHeader
+          memoId={params.memoId}
+          memoName={() => memo()?.name}
+          transactionsCount={() => summaryQ.data?.transactions_count}
+          isAmbiguous={isAmbiguous}
+          isResolved={isResolved}
+          isRecurring={isRecurring}
+          frequency={frequency}
+        />
 
-            <h1 class="text-2xl font-bold m-0 flex-1" data-testid="memo-summary-title">
-              {memo()?.name ?? `Memo ${params.memoId}`}
-            </h1>
-
-            <A
-              href={`/budget-visualizer/memos/${params.memoId}/edit`}
-              class="text-sm font-medium text-primary hover:underline shrink-0"
-              data-testid="memo-summary-edit-link"
-            >
-              Edit memo
-            </A>
-
-            <div class="flex items-center gap-2 flex-wrap">
-              <Show when={isAmbiguous()}>
-                <Badge variant="outline" class="border-amber-500/50 text-amber-600 dark:text-amber-400">
-                  <WarningTriangleIcon class="size-3.5" />
-                  Ambiguous
-                </Badge>
-              </Show>
-              <Show when={isResolved()}>
-                <Badge variant="outline" class="border-green-500/50 text-green-600 dark:text-green-400">
-                  <CheckCircleIcon class="size-3.5" />
-                  Resolved
-                </Badge>
-              </Show>
-              <Show when={isRecurring()}>
-                <Badge variant="outline" class="border-blue-500/50 text-blue-600 dark:text-blue-400">
-                  <RefreshIcon class="size-3.5" />
-                  {frequency() ?? 'Recurring'}
-                </Badge>
-              </Show>
-            </div>
-          </div>
-
-          <p class="text-muted-foreground mt-1 mb-0" data-testid="memo-summary-tx-count">
-            {summaryQ.data?.transactions_count ?? '...'} transactions
-          </p>
-        </header>
-
-        {/* ── Errors ─────────────────────────────────────────────── */}
         <Show when={memoQ.isError && memoQ.error}>
           {(err) => (
             <AlertComponent
@@ -441,157 +221,23 @@ export default function MemoSummaryTable(): JSX.Element {
           )}
         </Show>
 
-        {/* ── Summary cards (3-column grid) ──────────────────────── */}
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          {/* Total Credits */}
-          <Card>
-            <CardContent class="pt-5 pb-4">
-              <div class="flex items-center gap-3 mb-3">
-                <div class="rounded-full bg-green-100 dark:bg-green-900/40 p-2">
-                  <ArrowUpCircleIcon class="size-5 text-green-600 dark:text-green-400" />
-                </div>
-                <span class="text-sm font-medium text-muted-foreground">
-                  {totalCredits().aggregateScope === 'page' ? 'Credits (this page)' : 'Total Credits'}
-                </span>
-              </div>
-              <p
-                class="text-2xl font-bold text-green-600 dark:text-green-400 m-0"
-                data-testid="memo-summary-total-credit"
-              >
-                {formatUsdAbs(totalCredits().sum)}
-              </p>
-              <Show when={totalCredits().creditTxnCount != null}>
-                <p class="text-xs text-muted-foreground mt-1 m-0">
-                  {totalCredits().creditTxnCount} credit transaction
-                  {totalCredits().creditTxnCount !== 1 ? 's' : ''} on this page
-                </p>
-              </Show>
-            </CardContent>
-          </Card>
+        <MemoSummaryStatCards
+          totalCredits={totalCredits}
+          totalDebits={totalDebits}
+          budgetCategory={budgetCategory}
+          memoReady={memoReady}
+          saving={saving}
+          onOpenCategoryDialog={() => setCategoryDialogOpen(true)}
+          onAmbiguousChange={handleAmbiguousChange}
+          onRecurringChange={handleRecurringChange}
+          onNecessaryChange={handleNecessaryChange}
+          onFrequencyChange={handleFrequencyChange}
+          isAmbiguous={isAmbiguous}
+          isRecurring={isRecurring}
+          isNecessary={isNecessary}
+          frequency={frequency}
+        />
 
-          {/* Total Debits */}
-          <Card>
-            <CardContent class="pt-5 pb-4">
-              <div class="flex items-center gap-3 mb-3">
-                <div class="rounded-full bg-red-100 dark:bg-red-900/40 p-2">
-                  <ArrowDownCircleIcon class="size-5 text-red-600 dark:text-red-400" />
-                </div>
-                <span class="text-sm font-medium text-muted-foreground">
-                  {totalDebits().aggregateScope === 'page' ? 'Debits (this page)' : 'Total Debits'}
-                </span>
-              </div>
-              <p
-                class="text-2xl font-bold text-red-600 dark:text-red-400 m-0"
-                data-testid="memo-summary-total-debit"
-              >
-                {formatUsdAbs(totalDebits().sum)}
-              </p>
-              <Show when={totalDebits().debitTxnCount != null}>
-                <p class="text-xs text-muted-foreground mt-1 m-0">
-                  {totalDebits().debitTxnCount} debit transaction
-                  {totalDebits().debitTxnCount !== 1 ? 's' : ''} on this page
-                </p>
-              </Show>
-            </CardContent>
-          </Card>
-
-          {/* Budget Category card */}
-          <Card>
-            <CardContent class="pt-5 pb-4">
-              <div class="flex items-center gap-3 mb-3">
-                <div class="rounded-full bg-violet-100 dark:bg-violet-900/40 p-2">
-                  <LayoutGridIcon class="size-5 text-violet-600 dark:text-violet-400" />
-                </div>
-                <span class="text-sm font-medium text-muted-foreground">Budget Category</span>
-              </div>
-
-              {/* Category pill */}
-              <div class="mb-3">
-                <Show
-                  when={budgetCategory()}
-                  fallback={
-                    <button
-                      type="button"
-                      disabled={!memoReady() || saving()}
-                      onClick={() => setCategoryDialogOpen(true)}
-                      class="text-sm text-muted-foreground hover:text-foreground border border-dashed border-border rounded-full px-3 py-1 transition-colors disabled:opacity-50 disabled:pointer-events-none"
-                    >
-                      + Assign category
-                    </button>
-                  }
-                >
-                  <button
-                    type="button"
-                    disabled={!memoReady() || saving()}
-                    onClick={() => setCategoryDialogOpen(true)}
-                    class="inline-flex items-center rounded-full bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 px-3 py-1 text-sm font-medium hover:bg-violet-200 dark:hover:bg-violet-900/60 transition-colors cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
-                  >
-                    {budgetCategory()}
-                  </button>
-                </Show>
-              </div>
-
-              {/* Checkboxes */}
-              <div class="space-y-2">
-                <label
-                  class="flex items-center gap-2 text-sm"
-                  classList={{ 'cursor-pointer': memoReady(), 'cursor-not-allowed opacity-60': !memoReady() }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={isAmbiguous()}
-                    disabled={!memoReady() || saving()}
-                    onChange={(e) => handleAmbiguousChange(e.currentTarget.checked)}
-                    class="rounded border-border accent-amber-500"
-                  />
-                  <span>Ambiguous category</span>
-                </label>
-
-                <label
-                  class="flex items-center gap-2 text-sm"
-                  classList={{ 'cursor-pointer': memoReady(), 'cursor-not-allowed opacity-60': !memoReady() }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={isRecurring()}
-                    disabled={!memoReady() || saving()}
-                    onChange={(e) => handleRecurringChange(e.currentTarget.checked)}
-                    class="rounded border-border accent-blue-500"
-                  />
-                  <span>Recurring</span>
-                  <Show when={isRecurring()}>
-                    <select
-                      value={frequency() ?? ''}
-                      onChange={(e) => handleFrequencyChange(e.currentTarget.value)}
-                      disabled={!memoReady() || saving()}
-                      class="ml-1 text-xs border border-input rounded px-1.5 py-0.5 bg-background"
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      <option value="">interval...</option>
-                      <For each={FREQUENCY_OPTIONS}>{(f) => <option value={f}>{f}</option>}</For>
-                    </select>
-                  </Show>
-                </label>
-
-                <label
-                  class="flex items-center gap-2 text-sm"
-                  classList={{ 'cursor-pointer': memoReady(), 'cursor-not-allowed opacity-60': !memoReady() }}
-                >
-                  <input
-                    type="checkbox"
-                    checked={isNecessary()}
-                    disabled={!memoReady() || saving()}
-                    onChange={(e) => handleNecessaryChange(e.currentTarget.checked)}
-                    class="rounded border-border accent-green-500"
-                  />
-                  <span>Necessary purchase</span>
-                </label>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* ── Category dialog ────────────────────────────────────── */}
         <CategoryTreeSelectDialog
           open={categoryDialogOpen()}
           onOpenChange={setCategoryDialogOpen}
@@ -601,125 +247,22 @@ export default function MemoSummaryTable(): JSX.Element {
           subtitle={memo()?.name}
         />
 
-        {/* ── Transactions list card ─────────────────────────────── */}
-        <Card>
-          <CardHeader>
-            <CardTitle class="text-lg">Transactions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Show when={txQ.isError && txQ.error}>
-              {(err) => (
-                <AlertComponent
-                  type="error"
-                  title={(err() as Error).name}
-                  message={(err() as Error).message}
-                  dataTestId="memo-summary-tx-error"
-                />
-              )}
-            </Show>
-
-            <Show when={txQ.isLoading || txQ.isFetching}>
-              <p class="text-muted-foreground">Loading transactions...</p>
-            </Show>
-
-            <Show when={!txQ.isLoading && !txQ.isFetching && (txQ.data?.length ?? 0) > 0}>
-              <div class="divide-y divide-border" data-testid="memo-summary-transactions-table">
-                <For each={txQ.data ?? []}>
-                  {(row) => {
-                    const debit = () => parseFloat(String(row.amount_debit ?? '0'))
-                    const credit = () => parseFloat(String(row.amount_credit ?? '0'))
-                    const isCredit = () => credit() > 0 && debit() === 0
-
-                    return (
-                      <div class="flex items-center gap-3 py-3 px-1">
-                        {/* Icon */}
-                        <div
-                          class={`rounded-full p-1.5 ${isCredit() ? 'bg-green-100 dark:bg-green-900/40' : 'bg-red-100 dark:bg-red-900/40'}`}
-                        >
-                          <Show
-                            when={isCredit()}
-                            fallback={<TrendingDownIcon class={`size-4 text-red-600 dark:text-red-400`} />}
-                          >
-                            <TrendingUpIcon class={`size-4 text-green-600 dark:text-green-400`} />
-                          </Show>
-                        </div>
-
-                        {/* Description + date */}
-                        <div class="flex-1 min-w-0">
-                          <Show
-                            when={row.id != null}
-                            fallback={<p class="text-sm font-medium truncate m-0">{row.description}</p>}
-                          >
-                            <A
-                              href={`/budget-visualizer/transactions/${row.id}/edit`}
-                              class="text-sm font-medium truncate block hover:underline"
-                              data-testid={`memo-summary-tx-edit-${row.id}`}
-                            >
-                              {row.description}
-                            </A>
-                          </Show>
-                          <p class="text-xs text-muted-foreground m-0">
-                            {formatDate(String(row.date ?? ''))}
-                          </p>
-                        </div>
-
-                        {/* Category */}
-                        <Show when={typeof row.budget_category === 'string' && row.budget_category}>
-                          <Badge variant="secondary" class="hidden sm:inline-flex text-xs">
-                            {row.budget_category as string}
-                          </Badge>
-                        </Show>
-
-                        {/* Amount */}
-                        <span
-                          class={`text-sm font-semibold tabular-nums whitespace-nowrap ${isCredit() ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}
-                        >
-                          {isCredit() ? '+' : '-'}
-                          {formatUsdAbs(isCredit() ? credit() : debit())}
-                        </span>
-                      </div>
-                    )
-                  }}
-                </For>
-              </div>
-            </Show>
-
-            <Show when={!txQ.isLoading && !txQ.isFetching && (txQ.data?.length ?? 0) === 0}>
-              <p class="text-muted-foreground">No transactions for this memo.</p>
-            </Show>
-
-            {/* ── Pagination controls ──────────────────────────────── */}
-            <div class="flex items-center gap-3 flex-wrap mt-4 pt-3 border-t border-border">
-              <label class="flex items-center gap-2">
-                <span class="text-muted-foreground text-sm">Rows</span>
-                <select
-                  value={txLimit()}
-                  onChange={(e) => {
-                    setTxLimit(Number(e.currentTarget.value))
-                    setTxOffset(0)
-                  }}
-                  class="p-1.5 rounded border border-input bg-background text-sm"
-                >
-                  <option value={25}>25</option>
-                  <option value={50}>50</option>
-                  <option value={100}>100</option>
-                </select>
-              </label>
-              <Button variant="outline" size="sm" type="button" onClick={goPrevTx} disabled={!canPrev()}>
-                Previous
-              </Button>
-              <Button variant="outline" size="sm" type="button" onClick={goNextTx} disabled={!canNext()}>
-                Next
-              </Button>
-              <span class="text-muted-foreground text-sm">
-                Offset {txOffset()}
-                {summaryQ.data?.transactions_count != null
-                  ? ` / ${summaryQ.data.transactions_count} total`
-                  : ''}
-              </span>
-            </div>
-          </CardContent>
-        </Card>
+        <MemoSummaryTransactionsCard
+          txIsError={() => txQ.isError}
+          txError={() => txQ.error}
+          txIsLoading={() => txQ.isLoading}
+          txIsFetching={() => txQ.isFetching}
+          txRows={() => txQ.data}
+          summaryTransactionsCount={() => summaryQ.data?.transactions_count}
+          txLimit={txLimit}
+          setTxLimit={setTxLimit}
+          txOffset={txOffset}
+          setTxOffset={setTxOffset}
+          canPrev={canPrev}
+          canNext={canNext}
+          goPrevTx={goPrevTx}
+          goNextTx={goNextTx}
+        />
       </Show>
     </div>
   )
