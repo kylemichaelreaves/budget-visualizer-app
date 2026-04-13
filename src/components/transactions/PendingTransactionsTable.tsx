@@ -6,7 +6,7 @@ import usePendingTransactions from '@api/hooks/transactions/usePendingTransactio
 import AlertComponent from '@components/shared/AlertComponent'
 import TableSkeleton from '@components/shared/TableSkeleton'
 import TransactionEditForm from '@components/transactions/TransactionEditForm'
-import TransactionsTablePagination from '@components/transactions/TransactionsTablePagination'
+import TransactionsTablePagination from '@components/transactions/table/TransactionsTablePagination'
 import { Badge } from '@components/ui/badge'
 import { Button } from '@components/ui/button'
 import {

@@ -1,13 +1,13 @@
 import CategoryTreeSelectDialog from '@components/transactions/CategoryTreeSelectDialog'
-import { createTransactionsTableCategoryAssignment } from '@components/transactions/createTransactionsTableCategoryAssignment'
-import { createTransactionsTableDerivedData } from '@components/transactions/createTransactionsTableDerivedData'
 import PeriodHeader from '@components/transactions/PeriodHeader'
 import SummaryStatsCards from '@components/transactions/SummaryStatsCards'
-import TransactionsTableAlerts from '@components/transactions/TransactionsTableAlerts'
-import TransactionsTableChartsRow from '@components/transactions/TransactionsTableChartsRow'
-import TransactionsTableListCard from '@components/transactions/TransactionsTableListCard'
-import TransactionsTablePagination from '@components/transactions/TransactionsTablePagination'
-import TransactionsTableSelects from '@components/transactions/TransactionsTableSelects'
+import { createTransactionsTableCategoryAssignment } from '@components/transactions/table/createTransactionsTableCategoryAssignment'
+import { createTransactionsTableDerivedData } from '@components/transactions/table/createTransactionsTableDerivedData'
+import TransactionsTableAlerts from '@components/transactions/table/TransactionsTableAlerts'
+import TransactionsTableChartsRow from '@components/transactions/table/TransactionsTableChartsRow'
+import TransactionsTableListCard from '@components/transactions/table/TransactionsTableListCard'
+import TransactionsTablePagination from '@components/transactions/table/TransactionsTablePagination'
+import TransactionsTableSelects from '@components/transactions/table/TransactionsTableSelects'
 
 export default function TransactionsTable() {
   const data = createTransactionsTableDerivedData()

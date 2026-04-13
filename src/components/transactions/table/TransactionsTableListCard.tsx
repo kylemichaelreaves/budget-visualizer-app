@@ -4,7 +4,7 @@ import type { Transaction } from '@types'
 import { budgetCategoryColorsFromData } from '@composables/budgetCategoryColors'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 import { Skeleton } from '@components/ui/skeleton'
-import TransactionsTableRow from '@components/transactions/TransactionsTableRow'
+import TransactionsTableRow from '@components/transactions/table/TransactionsTableRow'
 
 type CategoryColorHelpers = ReturnType<typeof budgetCategoryColorsFromData>
 
