@@ -1,11 +1,8 @@
 import type { Accessor } from 'solid-js'
-import MemoSummaryStatCardBudget from '@components/memos/MemoSummaryStatCardBudget'
-import MemoSummaryStatCardCredit from '@components/memos/MemoSummaryStatCardCredit'
-import MemoSummaryStatCardDebit from '@components/memos/MemoSummaryStatCardDebit'
-import type {
-  MemoSummaryCreditAggregate,
-  MemoSummaryDebitAggregate,
-} from '@components/memos/memoSummaryStatCardTypes'
+import MemoSummaryStatCardBudget from './MemoSummaryStatCardBudget'
+import MemoSummaryStatCardCredit from './MemoSummaryStatCardCredit'
+import MemoSummaryStatCardDebit from './MemoSummaryStatCardDebit'
+import type { MemoSummaryCreditAggregate, MemoSummaryDebitAggregate } from './memoSummaryStatCardTypes'
 
 export default function MemoSummaryStatCards(props: {
   totalCredits: Accessor<MemoSummaryCreditAggregate>

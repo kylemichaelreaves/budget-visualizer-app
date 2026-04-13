@@ -1,12 +1,12 @@
 import { createMemo, createSignal } from 'solid-js'
 import useMemos from '@api/hooks/memos/useMemos'
 import useMemosCount from '@api/hooks/memos/useMemosCount'
-import { createMemosTableInfiniteSync } from '@components/memos/createMemosTableInfiniteSync'
+import { createMemosTableInfiniteSync } from '@components/memos/table/createMemosTableInfiniteSync'
 import {
   compareMemos,
   type MemosTableSortDir,
   type MemosTableSortKey,
-} from '@components/memos/memosTableSort'
+} from '@components/memos/table/memosTableSort'
 import { transactionsState } from '@stores/transactionsStore'
 
 export function createMemosTableDerivedData() {

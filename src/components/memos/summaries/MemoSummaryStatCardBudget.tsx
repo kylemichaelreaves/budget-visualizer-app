@@ -2,7 +2,7 @@ import type { Accessor } from 'solid-js'
 import { For, Show } from 'solid-js'
 import { Card, CardContent } from '@components/ui/card'
 import { LayoutGridIcon } from '@shared/icons'
-import { MEMO_SUMMARY_FREQUENCY_OPTIONS } from '@components/memos/memoSummaryConstants'
+import { MEMO_SUMMARY_FREQUENCY_OPTIONS } from './memoSummaryConstants'
 
 export default function MemoSummaryStatCardBudget(props: {
   budgetCategory: Accessor<string | null>

@@ -5,7 +5,7 @@ import type { Memo } from '@types'
 import { Button } from '@components/ui/button'
 import { Skeleton } from '@components/ui/skeleton'
 import { CheckIcon, WarningIcon } from '@shared/icons'
-import { getMemosTableCategoryColor } from '@components/memos/memosTableSort'
+import { getMemosTableCategoryColor } from '@components/memos/table/memosTableSort'
 import { formatUsdOrDash } from '@utils/formatUsd'
 
 export default function MemosTableRow(props: {

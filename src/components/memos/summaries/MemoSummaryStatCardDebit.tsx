@@ -3,7 +3,7 @@ import { Show } from 'solid-js'
 import { Card, CardContent } from '@components/ui/card'
 import { ArrowDownCircleIcon } from '@shared/icons'
 import { formatUsdAbs } from '@utils/formatUsd'
-import type { MemoSummaryDebitAggregate } from '@components/memos/memoSummaryStatCardTypes'
+import type { MemoSummaryDebitAggregate } from './memoSummaryStatCardTypes'
 
 export default function MemoSummaryStatCardDebit(props: {
   totalDebits: Accessor<MemoSummaryDebitAggregate>
