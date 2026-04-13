@@ -13,7 +13,7 @@ export const transactionColumns = [
 ]
 
 export function getCell(row: PendingTransaction, prop: string): unknown {
-  if (prop === 'memo_name') return row.memo_name ?? (row as unknown as { memo?: string }).memo
+  if (prop === 'memo_name') return row.memo_name
   return (row as unknown as Record<string, unknown>)[prop]
 }
 
