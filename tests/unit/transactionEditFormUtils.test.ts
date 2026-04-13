@@ -36,8 +36,8 @@ describe('initBudgetState', () => {
 
   it('returns split mode with mapped splits for a split transaction', () => {
     const splits = [
-      { budget_category_id: 'cat-1', amount_debit: '30.00' },
-      { budget_category_id: 'cat-2', amount_debit: '20.00' },
+      { budget_category_id: 'cat-1', amount_debit: 30 },
+      { budget_category_id: 'cat-2', amount_debit: 20 },
     ]
     const txn = { ...baseTxn, is_split: true, budget_category: splits } as unknown as Transaction
     const result = initBudgetState(txn)
@@ -45,11 +45,11 @@ describe('initBudgetState', () => {
     if (result.mode !== 'split') throw new Error('expected split mode')
     expect(result.splits).toHaveLength(2)
     expect(result.splits[0].budget_category_id).toBe('cat-1')
-    expect(result.splits[0].amount_debit).toBe('30.00')
+    expect(result.splits[0].amount_debit).toBe(30)
     expect(result.splits[1].budget_category_id).toBe('cat-2')
-    expect(result.splits[1].amount_debit).toBe('20.00')
-    expect(result.splits[0].id).toMatch(/^split_0_/)
-    expect(result.splits[1].id).toMatch(/^split_1_/)
+    expect(result.splits[1].amount_debit).toBe(20)
+    expect(result.splits[0].id).toMatch(/^\d+-\d+$/)
+    expect(result.splits[1].id).toMatch(/^\d+-\d+$/)
   })
 })
 
@@ -65,7 +65,7 @@ describe('getBudgetCategory', () => {
   })
 
   it('returns splits array in split mode', () => {
-    const splits = [{ id: '1', budget_category_id: 'cat-1', amount_debit: '50.00' }]
+    const splits = [{ id: '1', budget_category_id: 'cat-1', amount_debit: 50 }]
     const state: BudgetCategoryState = { mode: 'split', splits }
     expect(getBudgetCategory(state)).toBe(splits)
   })

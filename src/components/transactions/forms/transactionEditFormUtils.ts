@@ -1,11 +1,12 @@
 import type { BudgetCategoryState, SplitBudgetCategory, Transaction } from '@types'
+import { generateId } from '@components/transactions/helpers/generateId'
 
 export function initBudgetState(txn: Transaction): BudgetCategoryState {
   if (txn.is_split && Array.isArray(txn.budget_category)) {
     return {
       mode: 'split',
-      splits: txn.budget_category.map((split, index) => ({
-        id: `split_${index}_${Date.now()}`,
+      splits: txn.budget_category.map((split) => ({
+        id: generateId(),
         budget_category_id: split.budget_category_id,
         amount_debit: split.amount_debit,
       })),
