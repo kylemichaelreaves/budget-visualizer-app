@@ -182,7 +182,7 @@ describe('httpClient', () => {
         expect(handler).toHaveBeenCalledOnce()
 
         // Flush microtask queue so handlingUnauthorized resets
-        await new Promise((r) => queueMicrotask(r))
+        await new Promise<void>((r) => queueMicrotask(() => r()))
 
         // Second 401 should trigger again
         await httpClient.get('/second').catch(() => {})
