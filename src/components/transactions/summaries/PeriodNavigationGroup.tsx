@@ -1,7 +1,7 @@
 import type { JSX } from 'solid-js'
 import { Show } from 'solid-js'
 import { Button } from '@components/ui/button'
-import ClearFilterButton from './ClearFilterButton'
+import ClearFilterButton from '@components/shared/ClearFilterButton'
 
 /**
  * Prev / Next / Clear button group for navigating periods.

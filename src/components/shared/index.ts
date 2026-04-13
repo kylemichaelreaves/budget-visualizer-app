@@ -1,6 +1,7 @@
 export { default as AlertComponent, type AlertType } from './AlertComponent'
 export { default as AutocompleteComponent, type AutocompleteOption } from './AutocompleteComponent'
 export { default as BackButton } from './BackButton'
+export { default as ClearFilterButton } from './ClearFilterButton'
 export { default as EquationComponent } from './EquationComponent'
 export { default as NavigationButtonGroup } from './NavigationButtonGroup'
 export { default as SelectComponent } from './SelectComponent'
