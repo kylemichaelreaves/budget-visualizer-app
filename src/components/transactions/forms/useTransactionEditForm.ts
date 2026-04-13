@@ -82,8 +82,8 @@ export function useTransactionEditForm(props: {
       regMut.mutate(
         { transaction: patch },
         {
-          onSuccess: async () => {
-            await invalidateAfterTransactionUpdate(queryClient, { transactionId: id })
+          onSuccess: () => {
+            void invalidateAfterTransactionUpdate(queryClient, { transactionId: id })
             props.onClose()
           },
         },
@@ -91,7 +91,8 @@ export function useTransactionEditForm(props: {
     }
   }
 
-  const activeMut = () => (props.isPending ? pendMut : regMut)
+  const isPendingMutation = () => Boolean(props.isPending && props.pendingTransactionId != null)
+  const activeMut = () => (isPendingMutation() ? pendMut : regMut)
 
   const activeMutationError = createMemo(() => {
     const m = activeMut()
