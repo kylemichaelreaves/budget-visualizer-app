@@ -6,6 +6,7 @@ import LineChart from '@charts/LineChart'
 import type { BudgetCategorySummary, Timeframe } from '@types'
 import AlertComponent from '@components/shared/AlertComponent'
 import { Skeleton } from '@components/ui/skeleton'
+import { setSelectedBudgetCategory } from '@stores/transactionsStore'
 import BudgetCategoryPieChart from './BudgetCategoryPieChart'
 
 export default function BudgetCategorySummaries(props: {
@@ -64,7 +65,10 @@ export default function BudgetCategorySummaries(props: {
           dataTestId={`${id()}-pie`}
           onSliceClick={(cat) => {
             const n = cat.full_path || cat.budget_category || cat.category_name
-            if (n) setSelectedCategory(n)
+            if (n) {
+              setSelectedCategory(n)
+              setSelectedBudgetCategory(n)
+            }
           }}
         />
         <div class="min-w-0">

@@ -15,11 +15,12 @@ export default function useTransactions() {
     const { key: memoKey, params: memoParams } = memoQuerySliceFromStore()
     const tf = timeFrame()
     const date = selectedValue()
+    const budgetCategory = transactionsState.selectedBudgetCategory
 
     devConsole('log', '[useTransactions] memo query key:', memoKey)
 
     return {
-      queryKey: queryKeys.transactions.infinite(limit, memoKey, tf, date),
+      queryKey: queryKeys.transactions.infinite(limit, memoKey, tf, date, budgetCategory),
       initialPageParam: 0,
       queryFn: async ({ pageParam }) => {
         const page = Number(pageParam)
@@ -30,6 +31,7 @@ export default function useTransactions() {
           ...memoParams,
           timeFrame: tf,
           date,
+          budgetCategory: budgetCategory ?? undefined,
         })) as Transaction[]
       },
       getNextPageParam: (lastPage, allPages) => {
