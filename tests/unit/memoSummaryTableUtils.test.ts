@@ -13,8 +13,8 @@ const txn = (overrides: Partial<Transaction> = {}): Transaction => ({
   memo_id: null,
   budget_category: null,
   balance: '0',
-  check_number: null,
-  fees: null,
+  check_number: undefined,
+  fees: undefined,
   is_split: false,
   ...overrides,
 })
