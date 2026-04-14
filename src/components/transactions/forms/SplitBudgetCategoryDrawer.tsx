@@ -97,6 +97,7 @@ export default function SplitBudgetCategoryDrawer(props: {
                   variant="ghost"
                   size="icon"
                   class="h-9 w-9 shrink-0"
+                  aria-label={`Remove split ${index() + 1}`}
                   onClick={() => state.removeSplit(index())}
                   disabled={state.local().length === 1}
                   data-testid={`split-remove-${index()}`}

@@ -13,13 +13,14 @@ import {
   updateSplitCategoryAt,
 } from './splitBudgetCategoryDrawerUtils'
 
-/** Subset of SplitBudgetCategoryDrawer props the hook reads reactively. */
+/**
+ * Props accepted by the split budget category drawer hook.
+ * Only `open`, `splits`, and `transactionAmount` are read reactively.
+ */
 export type UseSplitBudgetCategoryDrawerProps = {
   open: boolean
   splits: SplitBudgetCategory[]
   transactionAmount: number
-  onSubmit: (splits: SplitBudgetCategory[]) => void
-  onCancel: () => void
 }
 
 export function useSplitBudgetCategoryDrawer(props: UseSplitBudgetCategoryDrawerProps) {
