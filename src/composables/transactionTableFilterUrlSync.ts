@@ -97,32 +97,24 @@ export function useTransactionTableFilterUrlSync(): void {
 
     hydratingFromUrl = true
     try {
-      setSelectedBudgetCategory(budgetCategoryParam)
-
       if (day) {
         selectDayView(day)
-        return
-      }
-      if (week) {
+      } else if (week) {
         selectWeekView(week)
-        return
-      }
-      if (month) {
+      } else if (month) {
         selectMonthView(month)
-        return
-      }
-      if (year) {
+      } else if (year) {
         selectYearView(year)
-        return
+      } else {
+        const hasMemoId = memoIdParam != null && memoIdParam !== ''
+        if (memoNameParam && !hasMemoId) {
+          selectMemoView(memoNameParam, null)
+        } else if (!hasMemoId && !memoNameParam && isBareTransactionsRoute(loc.pathname)) {
+          clearAllFilters()
+        }
       }
-      const hasMemoId = memoIdParam != null && memoIdParam !== ''
-      if (memoNameParam && !hasMemoId) {
-        selectMemoView(memoNameParam, null)
-        return
-      }
-      if (!hasMemoId && !memoNameParam && isBareTransactionsRoute(loc.pathname)) {
-        clearAllFilters()
-      }
+
+      setSelectedBudgetCategory(budgetCategoryParam)
     } finally {
       hydratingFromUrl = false
     }
