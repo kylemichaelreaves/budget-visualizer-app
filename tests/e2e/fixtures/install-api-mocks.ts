@@ -130,7 +130,7 @@ export async function installApiMocks(page: Page): Promise<void> {
         {
           memo: 'Plain text memo',
           total_amount_debit: 3,
-          budget_category: '',
+          budget_category: 'Uncategorized',
         },
       ])
       return

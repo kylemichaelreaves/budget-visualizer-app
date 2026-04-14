@@ -207,7 +207,7 @@ export type MemoKeys =
 export interface MonthSummary {
   memo: string
   total_amount_debit: number
-  budget_category: string
+  budget_category: string | null
   category_id?: number
 }
 
