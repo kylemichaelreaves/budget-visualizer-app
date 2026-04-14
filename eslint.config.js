@@ -1,3 +1,6 @@
+// For more info, see https://github.com/storybookjs/eslint-plugin-storybook#configuration-flat-config-format
+import storybook from 'eslint-plugin-storybook'
+
 import js from '@eslint/js'
 import tseslint from 'typescript-eslint'
 import solid from 'eslint-plugin-solid/configs/typescript'
@@ -11,6 +14,8 @@ export default tseslint.config(
       'playwright-report',
       'test-results',
       'coverage',
+      'storybook-static/**',
+      'public/mockServiceWorker.js',
       'tests/e2e/**',
       'playwright.config.ts',
       'vitest.config.ts',
@@ -35,5 +40,13 @@ export default tseslint.config(
       '@typescript-eslint/no-non-null-assertion': 'off',
     },
   },
+  {
+    files: ['src/stories/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-explicit-any': 'off',
+      'solid/reactivity': 'off',
+    },
+  },
   prettier,
+  storybook.configs['flat/recommended'],
 )
