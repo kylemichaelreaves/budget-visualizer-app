@@ -78,7 +78,7 @@ export function useMemoSummaryTable() {
 
   async function patchMemo(fields: MemoPatchFields) {
     const m = memo()
-    if (!m) return
+    if (!m || saving()) return
     setPatchError(null)
     setSaving(true)
     try {
