@@ -11,7 +11,7 @@ export default function TransactionsTableChartsRow(props: {
 }) {
   return (
     <div class="grid gap-6 md:grid-cols-2">
-      <Card class="gap-0 justify-between min-h-[340px]">
+      <Card class="gap-0 justify-between overflow-hidden">
         <CardHeader class="pt-3 pb-0 px-4">
           <CardTitle>Transaction History</CardTitle>
         </CardHeader>
@@ -20,7 +20,7 @@ export default function TransactionsTableChartsRow(props: {
         </CardContent>
       </Card>
 
-      <Card class="gap-0 justify-between min-h-[340px]">
+      <Card class="gap-0 justify-between overflow-hidden">
         <CardHeader class="pt-3 pb-0 px-4">
           <CardTitle>Spending by Category</CardTitle>
         </CardHeader>

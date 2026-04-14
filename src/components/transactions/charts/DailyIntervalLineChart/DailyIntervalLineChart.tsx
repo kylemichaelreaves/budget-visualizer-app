@@ -94,11 +94,9 @@ export default function DailyIntervalLineChart(props: {
         <IntervalForm dataTestId={`${id()}-form`} onIntervalValueChange={setIntervalValue} />
       </Show>
       <Show
-        when={
-          !chartQuery.isLoading && !chartQuery.isFetching && chartQuery.data && chartQuery.data.length > 0
-        }
+        when={chartQuery.data && chartQuery.data.length > 0}
         fallback={
-          <Show when={chartQuery.isLoading || chartQuery.isFetching}>
+          <Show when={chartQuery.isLoading || (chartQuery.isFetching && !chartQuery.data?.length)}>
             <div class="flex flex-col gap-2 p-4" data-testid={`${id()}-skeleton`}>
               <Skeleton class="h-[240px] w-full rounded-lg" />
               <div class="flex justify-between px-2">
