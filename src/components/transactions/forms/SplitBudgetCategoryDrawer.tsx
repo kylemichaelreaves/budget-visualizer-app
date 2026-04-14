@@ -1,11 +1,12 @@
 import type { JSX } from 'solid-js'
-import { createEffect, createSignal, For, Show } from 'solid-js'
+import { For, Show } from 'solid-js'
 import type { SplitBudgetCategory, Timeframe } from '@types'
 import BudgetCategoriesTreeSelect from '@components/transactions/selects/BudgetCategoriesTreeSelect'
-import { generateId } from '@components/transactions/helpers/generateId'
+import { TrashIcon } from '@shared/icons'
 import { Button } from '@components/ui/button'
 import { Input } from '@components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@components/ui/dialog'
+import { useSplitBudgetCategoryDrawer } from './useSplitBudgetCategoryDrawer'
 
 export default function SplitBudgetCategoryDrawer(props: {
   open: boolean
@@ -21,49 +22,7 @@ export default function SplitBudgetCategoryDrawer(props: {
   onCancel: () => void
   onClear?: () => void
 }): JSX.Element {
-  const [local, setLocal] = createSignal<SplitBudgetCategory[]>([])
-
-  createEffect(() => {
-    if (props.open) {
-      setLocal(
-        props.splits.length
-          ? [...props.splits]
-          : [{ id: generateId(), budget_category_id: '', amount_debit: 0 }],
-      )
-    }
-  })
-
-  const totalAllocated = () => local().reduce((a, s) => a + (Number(s.amount_debit) || 0), 0)
-  const remaining = () => props.transactionAmount - totalAllocated()
-  const isBalanced = () => Math.abs(remaining()) < 0.01
-  const isValid = () =>
-    isBalanced() && totalAllocated() > 0 && local().length > 0 && local().every((s) => s.budget_category_id)
-
-  function updateAmount(index: number, v: number) {
-    setLocal((rows) => {
-      const next = [...rows]
-      const row = next[index]
-      if (row) next[index] = { ...row, amount_debit: v }
-      return next
-    })
-  }
-
-  function updateCategory(index: number, id: string | null) {
-    setLocal((rows) => {
-      const next = [...rows]
-      const row = next[index]
-      if (row) next[index] = { ...row, budget_category_id: id ?? '' }
-      return next
-    })
-  }
-
-  function addSplit() {
-    setLocal((rows) => [...rows, { id: generateId(), budget_category_id: '', amount_debit: 0 }])
-  }
-
-  function removeSplit(index: number) {
-    setLocal((rows) => (rows.length > 1 ? rows.filter((_, i) => i !== index) : rows))
-  }
+  const state = useSplitBudgetCategoryDrawer(props)
 
   return (
     <Dialog open={props.open} onOpenChange={(open) => !open && props.onCancel()}>
@@ -75,7 +34,6 @@ export default function SplitBudgetCategoryDrawer(props: {
           </p>
         </DialogHeader>
 
-        {/* Transaction summary */}
         <div class="rounded-lg border bg-muted/40 p-4 space-y-1">
           <div class="flex items-center justify-between">
             <span class="font-medium">{props.transactionDescription ?? 'Transaction'}</span>
@@ -95,16 +53,15 @@ export default function SplitBudgetCategoryDrawer(props: {
           </Show>
         </div>
 
-        {/* Split rows */}
         <div class="space-y-3 py-2">
           <div class="flex items-center justify-between">
             <span class="text-sm font-medium">Splits</span>
-            <Button size="sm" variant="outline" onClick={addSplit}>
+            <Button size="sm" variant="outline" onClick={state.addSplit}>
               + Add Split
             </Button>
           </div>
 
-          <For each={local()}>
+          <For each={state.local()}>
             {(split, index) => (
               <div class="flex items-center gap-2" data-testid="split-row">
                 <span class="text-xs text-muted-foreground w-5 shrink-0 text-right">{index() + 1}.</span>
@@ -112,7 +69,7 @@ export default function SplitBudgetCategoryDrawer(props: {
                 <div class="flex-1 min-w-0">
                   <BudgetCategoriesTreeSelect
                     value={split.budget_category_id}
-                    onChange={(v) => updateCategory(index(), v)}
+                    onChange={(v) => state.updateCategory(index(), v)}
                     dataTestId={`split-category-${index()}`}
                     timeframe={props.timeframe}
                     date={props.date}
@@ -132,7 +89,7 @@ export default function SplitBudgetCategoryDrawer(props: {
                     placeholder="0.00"
                     class="pl-6 h-9 text-sm"
                     data-testid={`split-amount-${index()}`}
-                    onInput={(e) => updateAmount(index(), Number(e.currentTarget.value) || 0)}
+                    onInput={(e) => state.updateAmount(index(), Number(e.currentTarget.value) || 0)}
                   />
                 </div>
 
@@ -140,29 +97,17 @@ export default function SplitBudgetCategoryDrawer(props: {
                   variant="ghost"
                   size="icon"
                   class="h-9 w-9 shrink-0"
-                  onClick={() => removeSplit(index())}
-                  disabled={local().length === 1}
+                  aria-label={`Remove split ${index() + 1}`}
+                  onClick={() => state.removeSplit(index())}
+                  disabled={state.local().length === 1}
                   data-testid={`split-remove-${index()}`}
                 >
-                  <svg
-                    class="size-4 text-red-500"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    stroke-width="2"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                  >
-                    <path d="M3 6h18" />
-                    <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
-                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
-                  </svg>
+                  <TrashIcon class="size-4 text-red-500" />
                 </Button>
               </div>
             )}
           </For>
 
-          {/* Balance summary */}
           <div class="rounded-lg border p-3 space-y-2 mt-2">
             <div class="flex items-center justify-between text-sm">
               <span class="text-muted-foreground">Transaction total</span>
@@ -170,23 +115,29 @@ export default function SplitBudgetCategoryDrawer(props: {
             </div>
             <div class="flex items-center justify-between text-sm">
               <span class="text-muted-foreground">Allocated</span>
-              <span>${totalAllocated().toFixed(2)}</span>
+              <span>${state.totalAllocated().toFixed(2)}</span>
             </div>
             <div class="border-t pt-2 flex items-center justify-between text-sm font-medium">
               <span>Remaining</span>
               <span
-                class={isBalanced() ? 'text-green-500' : remaining() < 0 ? 'text-red-500' : 'text-yellow-500'}
+                class={
+                  state.isBalanced()
+                    ? 'text-green-500'
+                    : state.remaining() < 0
+                      ? 'text-red-500'
+                      : 'text-yellow-500'
+                }
               >
-                ${remaining().toFixed(2)}
+                ${state.remaining().toFixed(2)}
               </span>
             </div>
           </div>
 
-          <Show when={!isBalanced()}>
+          <Show when={!state.isBalanced()}>
             <p class="text-xs text-muted-foreground">
-              {remaining() > 0
-                ? `$${remaining().toFixed(2)} still unallocated.`
-                : `Over-allocated by $${Math.abs(remaining()).toFixed(2)}.`}
+              {state.remaining() > 0
+                ? `$${state.remaining().toFixed(2)} still unallocated.`
+                : `Over-allocated by $${Math.abs(state.remaining()).toFixed(2)}.`}
             </p>
           </Show>
         </div>
@@ -200,7 +151,7 @@ export default function SplitBudgetCategoryDrawer(props: {
               Clear splits
             </Button>
           </Show>
-          <Button class="flex-1" onClick={() => props.onSubmit(local())} disabled={!isValid()}>
+          <Button class="flex-1" onClick={() => props.onSubmit(state.local())} disabled={!state.isValid()}>
             Save splits
           </Button>
         </div>
