@@ -93,33 +93,35 @@ export default function DailyIntervalLineChart(props: {
       <Show when={showIntervalForm()}>
         <IntervalForm dataTestId={`${id()}-form`} onIntervalValueChange={setIntervalValue} />
       </Show>
-      <Show
-        when={
-          !chartQuery.isLoading && !chartQuery.isFetching && chartQuery.data && chartQuery.data.length > 0
-        }
-        fallback={
-          <Show when={chartQuery.isLoading || chartQuery.isFetching}>
-            <div class="flex flex-col gap-2 p-4" data-testid={`${id()}-skeleton`}>
-              <Skeleton class="h-[240px] w-full rounded-lg" />
-              <div class="flex justify-between px-2">
-                <Skeleton class="h-3 w-12" />
-                <Skeleton class="h-3 w-12" />
-                <Skeleton class="h-3 w-12" />
-                <Skeleton class="h-3 w-12" />
+      <div class="min-h-[278px]">
+        <Show
+          when={
+            !chartQuery.isLoading && !chartQuery.isFetching && chartQuery.data && chartQuery.data.length > 0
+          }
+          fallback={
+            <Show when={chartQuery.isLoading || chartQuery.isFetching}>
+              <div class="flex flex-col gap-2 p-4" data-testid={`${id()}-skeleton`}>
+                <Skeleton class="h-[240px] w-full rounded-lg" />
+                <div class="flex justify-between px-2">
+                  <Skeleton class="h-3 w-12" />
+                  <Skeleton class="h-3 w-12" />
+                  <Skeleton class="h-3 w-12" />
+                  <Skeleton class="h-3 w-12" />
+                </div>
               </div>
-            </div>
-          </Show>
-        }
-      >
-        <div>
-          <LineChart
-            summaries={chartQuery.data!}
-            handleOnClickSelection={handleOnDayClicked}
-            dataTestId={`${id()}-line-chart`}
-            loading={false}
-          />
-        </div>
-      </Show>
+            </Show>
+          }
+        >
+          <div>
+            <LineChart
+              summaries={chartQuery.data!}
+              handleOnClickSelection={handleOnDayClicked}
+              dataTestId={`${id()}-line-chart`}
+              loading={false}
+            />
+          </div>
+        </Show>
+      </div>
     </div>
   )
 }
