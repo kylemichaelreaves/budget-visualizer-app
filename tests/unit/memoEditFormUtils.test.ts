@@ -71,7 +71,7 @@ describe('buildMemoUpdateInput', () => {
     })
   })
 
-  it('omits frequency in payload when form frequency is empty string', () => {
+  it('sends frequency null when form frequency is blank so PATCH can clear an existing value', () => {
     const emptyFreq: MemoEditFormState = { ...form, frequency: '' }
     expect(buildMemoUpdateInput(emptyFreq, 'Name')).toEqual({
       id: 12,
@@ -79,7 +79,7 @@ describe('buildMemoUpdateInput', () => {
       recurring: false,
       necessary: true,
       ambiguous: false,
-      frequency: undefined,
+      frequency: null,
       budgetCategory: 'Transport',
     })
   })

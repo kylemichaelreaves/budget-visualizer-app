@@ -37,7 +37,7 @@ export function buildMemoUpdateInput(form: MemoEditFormState, trimmedName: strin
     recurring: form.recurring,
     necessary: form.necessary,
     ambiguous: form.ambiguous,
-    frequency: form.frequency || undefined,
+    frequency: form.frequency === '' ? null : form.frequency,
     budgetCategory: form.budget_category,
   }
 }
