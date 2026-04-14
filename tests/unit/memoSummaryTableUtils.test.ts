@@ -45,7 +45,11 @@ describe('computeTotalCredits', () => {
   })
 
   it('skips transactions with zero or negative credit', () => {
-    const txns = [txn({ amount_credit: '0' }), txn({ amount_credit: '5.00' })]
+    const txns = [
+      txn({ amount_credit: '0' }),
+      txn({ amount_credit: '-3.00' }),
+      txn({ amount_credit: '5.00' }),
+    ]
     const result = computeTotalCredits(undefined, txns)
     expect(result).toEqual({ sum: 5, creditTxnCount: 1, aggregateScope: 'page' })
   })

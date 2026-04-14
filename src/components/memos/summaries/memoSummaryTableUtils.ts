@@ -16,7 +16,7 @@ export function computeTotalCredits(
       typeof tx.amount_credit === 'string'
         ? parseFloat(tx.amount_credit)
         : ((tx.amount_credit as unknown as number) ?? 0)
-    if (credit > 0) {
+    if (Number.isFinite(credit) && credit > 0) {
       sum += credit
       count++
     }
