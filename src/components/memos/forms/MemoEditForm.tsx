@@ -1,98 +1,37 @@
 import type { JSX } from 'solid-js'
-import { For, Show, createRenderEffect } from 'solid-js'
-import { createStore } from 'solid-js/store'
-import useTimeframeTypeAndValue from '@api/hooks/timeUnits/useTimeframeTypeAndValue'
-import mutateMemo from '@api/hooks/memos/mutateMemo'
+import { For, Show } from 'solid-js'
 import AlertComponent from '@components/shared/AlertComponent'
 import BudgetCategoriesTreeSelect from '@components/transactions/selects/BudgetCategoriesTreeSelect'
-import type { Frequency, Memo } from '@types'
+import type { Memo } from '@types'
 import { Button } from '@components/ui/button'
 import { Input } from '@components/ui/input'
 import { Label } from '@components/ui/label'
-
-type FormState = {
-  id: number
-  name: string
-  recurring: boolean
-  necessary: boolean
-  ambiguous: boolean
-  frequency: Frequency | ''
-  budget_category: string | null
-}
-
-const frequencyOptions: { value: Frequency | ''; label: string }[] = [
-  { value: '', label: '\u2014' },
-  { value: 'daily', label: 'Daily' },
-  { value: 'weekly', label: 'Weekly' },
-  { value: 'monthly', label: 'Monthly' },
-  { value: 'yearly', label: 'Yearly' },
-]
+import { MEMO_EDIT_FREQUENCY_OPTIONS } from './memoEditFormUtils'
+import { useMemoEditForm } from './useMemoEditForm'
 
 export default function MemoEditForm(props: {
   memo: Memo
   onSuccess?: () => void
   dataTestId?: string
 }): JSX.Element {
-  const tid = () => props.dataTestId ?? 'memo-edit-form'
-  const [form, setForm] = createStore<FormState>({
-    id: 0,
-    name: '',
-    recurring: false,
-    necessary: false,
-    ambiguous: false,
-    frequency: '',
-    budget_category: null,
-  })
-
-  createRenderEffect(() => {
-    const m = props.memo
-    setForm({
-      id: m.id,
-      name: m.name,
-      recurring: m.recurring,
-      necessary: m.necessary,
-      ambiguous: m.ambiguous,
-      frequency: m.frequency ?? '',
-      budget_category: m.budget_category ?? null,
-    })
-  })
-
-  const mutation = mutateMemo()
-  const { timeFrame, selectedValue } = useTimeframeTypeAndValue()
-
-  function save() {
-    const name = form.name.trim()
-    if (!name) return
-    mutation.mutate(
-      {
-        id: form.id,
-        name,
-        recurring: form.recurring,
-        necessary: form.necessary,
-        ambiguous: form.ambiguous,
-        frequency: form.frequency || undefined,
-        budgetCategory: form.budget_category,
-      },
-      { onSuccess: () => props.onSuccess?.() },
-    )
-  }
+  const state = useMemoEditForm(props)
 
   return (
     <form
-      data-testid={tid()}
+      data-testid={state.tid()}
       onSubmit={(e) => {
         e.preventDefault()
-        save()
+        state.save()
       }}
       class="flex flex-col gap-3.5 max-w-[480px]"
     >
-      <Show when={mutation.isError && mutation.error}>
+      <Show when={state.mutation.isError && state.mutation.error}>
         {(err) => (
           <AlertComponent
             type="error"
             title={(err() as Error).name}
             message={(err() as Error).message}
-            dataTestId={`${tid()}-error`}
+            dataTestId={`${state.tid()}-error`}
           />
         )}
       </Show>
@@ -103,9 +42,9 @@ export default function MemoEditForm(props: {
         </Label>
         <Input
           id="memo-name"
-          data-testid={`${tid()}-name`}
-          value={form.name}
-          onInput={(e) => setForm('name', e.currentTarget.value)}
+          data-testid={`${state.tid()}-name`}
+          value={state.form.name}
+          onInput={(e) => state.setForm('name', e.currentTarget.value)}
           required
         />
       </div>
@@ -114,9 +53,9 @@ export default function MemoEditForm(props: {
         <input
           id="memo-recurring"
           type="checkbox"
-          data-testid={`${tid()}-recurring`}
-          checked={form.recurring}
-          onChange={(e) => setForm('recurring', e.currentTarget.checked)}
+          data-testid={`${state.tid()}-recurring`}
+          checked={state.form.recurring}
+          onChange={(e) => state.setForm('recurring', e.currentTarget.checked)}
         />
         Recurring
       </Label>
@@ -125,9 +64,9 @@ export default function MemoEditForm(props: {
         <input
           id="memo-necessary"
           type="checkbox"
-          data-testid={`${tid()}-necessary`}
-          checked={form.necessary}
-          onChange={(e) => setForm('necessary', e.currentTarget.checked)}
+          data-testid={`${state.tid()}-necessary`}
+          checked={state.form.necessary}
+          onChange={(e) => state.setForm('necessary', e.currentTarget.checked)}
         />
         Necessary
       </Label>
@@ -136,9 +75,9 @@ export default function MemoEditForm(props: {
         <input
           id="memo-ambiguous"
           type="checkbox"
-          data-testid={`${tid()}-ambiguous`}
-          checked={form.ambiguous}
-          onChange={(e) => setForm('ambiguous', e.currentTarget.checked)}
+          data-testid={`${state.tid()}-ambiguous`}
+          checked={state.form.ambiguous}
+          onChange={(e) => state.setForm('ambiguous', e.currentTarget.checked)}
         />
         Ambiguous
       </Label>
@@ -149,12 +88,14 @@ export default function MemoEditForm(props: {
         </Label>
         <select
           id="memo-frequency"
-          data-testid={`${tid()}-frequency`}
-          value={form.frequency}
-          onChange={(e) => setForm('frequency', e.currentTarget.value as Frequency | '')}
+          data-testid={`${state.tid()}-frequency`}
+          value={state.form.frequency}
+          onChange={(e) => state.setForm('frequency', e.currentTarget.value as typeof state.form.frequency)}
           class="block w-full mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
         >
-          <For each={frequencyOptions}>{(opt) => <option value={opt.value}>{opt.label}</option>}</For>
+          <For each={MEMO_EDIT_FREQUENCY_OPTIONS}>
+            {(opt) => <option value={opt.value}>{opt.label}</option>}
+          </For>
         </select>
       </div>
 
@@ -162,19 +103,19 @@ export default function MemoEditForm(props: {
         <Label class="text-muted-foreground text-sm">Budget category</Label>
         <div class="mt-1">
           <BudgetCategoriesTreeSelect
-            value={form.budget_category}
-            onChange={(v) => setForm('budget_category', v)}
-            dataTestId={`${tid()}-budget-category`}
-            timeframe={() => timeFrame()}
-            date={() => selectedValue()}
+            value={state.form.budget_category}
+            onChange={(v) => state.setForm('budget_category', v)}
+            dataTestId={`${state.tid()}-budget-category`}
+            timeframe={() => state.timeFrame()}
+            date={() => state.selectedValue()}
             filterable
           />
         </div>
       </div>
 
       <div class="flex gap-2.5 mt-2">
-        <Button type="submit" disabled={mutation.isPending} data-testid={`${tid()}-submit`}>
-          {mutation.isPending ? 'Saving\u2026' : 'Save'}
+        <Button type="submit" disabled={state.mutation.isPending} data-testid={`${state.tid()}-submit`}>
+          {state.mutation.isPending ? 'Saving\u2026' : 'Save'}
         </Button>
       </div>
     </form>
