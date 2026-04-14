@@ -11,20 +11,20 @@ export default function TransactionsTableChartsRow(props: {
 }) {
   return (
     <div class="grid gap-6 md:grid-cols-2">
-      <Card class="gap-0 justify-between">
+      <Card class="gap-0 justify-between min-h-[340px]">
         <CardHeader class="pt-3 pb-0 px-4">
           <CardTitle>Transaction History</CardTitle>
         </CardHeader>
-        <CardContent class="px-3 pb-0 mt-auto min-h-[300px]">
+        <CardContent class="px-3 pb-0 mt-auto">
           <DailyIntervalLineChart dataTestId="transactions-daily-interval-chart" firstDay={props.firstDay} />
         </CardContent>
       </Card>
 
-      <Card class="gap-0 justify-between">
+      <Card class="gap-0 justify-between min-h-[340px]">
         <CardHeader class="pt-3 pb-0 px-4">
           <CardTitle>Spending by Category</CardTitle>
         </CardHeader>
-        <CardContent class="px-3 pb-0 mt-auto min-h-[300px]">
+        <CardContent class="px-3 pb-0 mt-auto">
           <BudgetCategorySummaries
             timeFrame={props.chartTimeFrame}
             date={props.chartDate}
