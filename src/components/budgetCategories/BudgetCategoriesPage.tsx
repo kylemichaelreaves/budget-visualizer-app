@@ -1,10 +1,5 @@
 import type { JSX } from 'solid-js'
-import { For, Show, createMemo, createSignal } from 'solid-js'
-import { useQueryClient } from '@tanstack/solid-query'
-import { queryKeys } from '@api/queryKeys'
-import { extractBudgetCategoriesData } from '@api/helpers/extractBudgetCategoriesData'
-import { BUDGET_CATEGORY_PATH_DELIMITER, convertToTree } from '@api/helpers/convertToTree'
-import { useBudgetCategories } from '@api/hooks/budgetCategories/useBudgetCategories'
+import { For, Show } from 'solid-js'
 import AlertComponent from '@components/shared/AlertComponent'
 import { Button } from '@components/ui/button'
 import { Input } from '@components/ui/input'
@@ -13,60 +8,10 @@ import type { CategoryNode } from '@types'
 import BudgetCategoryInlineAddForm from './BudgetCategoryInlineAddForm'
 import BudgetCategoryTreeNode from './BudgetCategoryTreeNode'
 import { FolderTreeIcon, PlusIcon, RefreshCwIcon } from '@shared/icons'
-import { mutateBudgetCategory, type BudgetCategoryOperation } from './mutateBudgetCategory'
-import { filterTree } from './budgetCategoryTreeUtils'
+import { useBudgetCategoriesPage } from './useBudgetCategoriesPage'
 
 export default function BudgetCategoriesPage(): JSX.Element {
-  const q = useBudgetCategories(
-    () => undefined,
-    () => undefined,
-    false,
-  )
-  const queryClient = useQueryClient()
-
-  const [filter, setFilter] = createSignal('')
-  const [addingRoot, setAddingRoot] = createSignal(false)
-  const [mutatingPaths, setMutatingPaths] = createSignal<Set<string>>(new Set())
-  const [error, setError] = createSignal<string | null>(null)
-
-  const tree = createMemo(() => {
-    const raw = q.data as unknown
-    const data = extractBudgetCategoriesData(raw)
-    if (!data || typeof data !== 'object') return [] as CategoryNode[]
-    return convertToTree(data)
-  })
-
-  const visibleTree = createMemo(() => filterTree(tree(), filter()))
-
-  const handleMutate = async (op: BudgetCategoryOperation) => {
-    const pathKey = op.path.join(BUDGET_CATEGORY_PATH_DELIMITER)
-
-    setError(null)
-    setMutatingPaths((prev) => {
-      const next = new Set(prev)
-      next.add(pathKey)
-      return next
-    })
-
-    try {
-      await mutateBudgetCategory(op)
-      await queryClient.invalidateQueries({ queryKey: queryKeys.budgetCategories.all })
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'An unexpected error occurred'
-      setError(`Failed to ${op.operation} category: ${message}`)
-    } finally {
-      setMutatingPaths((prev) => {
-        const next = new Set(prev)
-        next.delete(pathKey)
-        return next
-      })
-    }
-  }
-
-  const handleAddRoot = async (name: string) => {
-    await handleMutate({ operation: 'add', path: [], name })
-    setAddingRoot(false)
-  }
+  const state = useBudgetCategoriesPage()
 
   return (
     <div class="text-foreground max-w-[960px]" data-testid="budget-categories-page">
@@ -79,7 +24,7 @@ export default function BudgetCategoriesPage(): JSX.Element {
         </p>
       </header>
 
-      <Show when={q.isError && q.error}>
+      <Show when={state.q.isError && state.q.error}>
         {(err) => (
           <AlertComponent
             type="error"
@@ -90,7 +35,7 @@ export default function BudgetCategoriesPage(): JSX.Element {
         )}
       </Show>
 
-      <Show when={error()}>
+      <Show when={state.error()}>
         {(msg) => (
           <AlertComponent
             type="error"
@@ -117,10 +62,8 @@ export default function BudgetCategoriesPage(): JSX.Element {
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() =>
-                  void queryClient.invalidateQueries({ queryKey: queryKeys.budgetCategories.all })
-                }
-                disabled={q.isLoading || q.isFetching}
+                onClick={state.refreshCategories}
+                disabled={state.q.isLoading || state.q.isFetching}
                 data-testid="budget-categories-refresh"
               >
                 <RefreshCwIcon class="size-3.5" />
@@ -129,8 +72,8 @@ export default function BudgetCategoriesPage(): JSX.Element {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setAddingRoot(true)}
-                disabled={addingRoot()}
+                onClick={() => state.setAddingRoot(true)}
+                disabled={state.addingRoot()}
                 data-testid="add-root-category-button"
               >
                 <PlusIcon class="size-3.5" />
@@ -145,48 +88,48 @@ export default function BudgetCategoriesPage(): JSX.Element {
             <Input
               type="search"
               placeholder="Filter by name or path..."
-              value={filter()}
-              onInput={(e) => setFilter(e.currentTarget.value)}
-              disabled={q.isLoading || q.isFetching}
+              value={state.filter()}
+              onInput={(e) => state.setFilter(e.currentTarget.value)}
+              disabled={state.q.isLoading || state.q.isFetching}
               aria-label="Filter categories"
               data-testid="budget-categories-filter"
             />
           </div>
 
-          <Show when={q.isLoading}>
+          <Show when={state.q.isLoading}>
             <p class="text-muted-foreground text-sm py-4 text-center" data-testid="budget-categories-loading">
               Loading categories...
             </p>
           </Show>
 
-          <Show when={addingRoot()}>
+          <Show when={state.addingRoot()}>
             <div class="mb-2">
               <BudgetCategoryInlineAddForm
                 placeholder="New root category..."
-                onSubmit={(name) => handleAddRoot(name)}
-                onCancel={() => setAddingRoot(false)}
+                onSubmit={(name) => state.handleAddRoot(name)}
+                onCancel={() => state.setAddingRoot(false)}
                 data-testid="add-root-form"
               />
             </div>
           </Show>
 
-          <Show when={!q.isLoading && visibleTree().length === 0}>
+          <Show when={!state.q.isLoading && state.visibleTree().length === 0}>
             <p class="text-muted-foreground text-sm py-4 text-center" data-testid="budget-categories-empty">
-              {tree().length === 0
+              {state.tree().length === 0
                 ? 'No categories yet. Click "Add Category" to create one.'
                 : 'No categories match your filter.'}
             </p>
           </Show>
 
-          <Show when={!q.isLoading && visibleTree().length > 0}>
+          <Show when={!state.q.isLoading && state.visibleTree().length > 0}>
             <ul class="m-0 p-0">
-              <For each={visibleTree()}>
-                {(node) => (
+              <For each={state.visibleTree()}>
+                {(node: CategoryNode) => (
                   <BudgetCategoryTreeNode
                     node={node}
                     depth={0}
-                    onMutate={handleMutate}
-                    mutatingPaths={mutatingPaths()}
+                    onMutate={state.handleMutate}
+                    mutatingPaths={state.mutatingPaths()}
                   />
                 )}
               </For>
