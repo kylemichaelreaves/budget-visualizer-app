@@ -81,7 +81,14 @@ export default function MemosTablePagination(
             <option value={100}>100</option>
           </select>
         </label>
-        <Button variant="outline" size="sm" type="button" onClick={goPrev} disabled={currentPage() <= 1}>
+        <Button
+          variant="outline"
+          size="sm"
+          type="button"
+          data-testid="memos-table-pagination-prev"
+          onClick={goPrev}
+          disabled={currentPage() <= 1}
+        >
           Previous
         </Button>
         <span class="text-foreground">
@@ -91,6 +98,7 @@ export default function MemosTablePagination(
           variant="outline"
           size="sm"
           type="button"
+          data-testid="memos-table-pagination-next"
           onClick={goNext}
           disabled={currentPage() >= totalPages()}
         >

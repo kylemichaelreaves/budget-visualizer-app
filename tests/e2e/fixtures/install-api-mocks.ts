@@ -62,6 +62,26 @@ export async function installApiMocks(page: Page): Promise<void> {
       total_amount_debit: 15.99,
       transactions_count: 1,
     },
+    7: {
+      id: 7,
+      name: 'Week summary memo',
+      recurring: false,
+      necessary: true,
+      ambiguous: false,
+      budget_category: 'Transport',
+      total_amount_debit: 99,
+      transactions_count: 2,
+    },
+    42: {
+      id: 42,
+      name: 'Month summary memo',
+      recurring: false,
+      necessary: true,
+      ambiguous: false,
+      budget_category: 'Food - Groceries',
+      total_amount_debit: 12.5,
+      transactions_count: 1,
+    },
   }
 
   await page.route(/\/api\/v1\//, async (route: Route) => {
@@ -101,11 +121,28 @@ export async function installApiMocks(page: Page): Promise<void> {
     }
 
     if (path.match(/\/transactions\/months\/[^/]+\/summary$/)) {
-      await json(route, [])
+      await json(route, [
+        {
+          memo: '42',
+          total_amount_debit: 12.5,
+          budget_category: 'Food - Groceries',
+        },
+        {
+          memo: 'Plain text memo',
+          total_amount_debit: 3,
+          budget_category: null,
+        },
+      ])
       return
     }
     if (path.match(/\/transactions\/weeks\/[^/]+\/summary$/)) {
-      await json(route, [])
+      await json(route, [
+        {
+          memo: '7',
+          weekly_amount_debit: 99.0,
+          budget_category: 'Transport',
+        },
+      ])
       return
     }
     if (path.match(/\/transactions\/months\/[^/]+\/weeks$/)) {

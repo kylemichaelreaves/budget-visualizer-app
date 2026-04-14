@@ -1,6 +1,8 @@
 import CategoryTreeSelectDialog from '@components/transactions/CategoryTreeSelectDialog'
+import MonthSummaryTable from '@components/transactions/summaries/MonthSummaryTable'
 import PeriodHeader from '@components/transactions/summaries/PeriodHeader'
 import SummaryStatsCards from '@components/transactions/summaries/SummaryStatsCards'
+import WeekSummaryTable from '@components/transactions/summaries/WeekSummaryTable'
 import { createTransactionsTableCategoryAssignment } from '@components/transactions/table/createTransactionsTableCategoryAssignment'
 import { createTransactionsTableDerivedData } from '@components/transactions/table/createTransactionsTableDerivedData'
 import TransactionsTableAlerts from '@components/transactions/table/TransactionsTableAlerts'
@@ -25,6 +27,9 @@ export default function TransactionsTable() {
       <PeriodHeader />
 
       <SummaryStatsCards transactions={data.paginatedData()} />
+
+      <MonthSummaryTable />
+      <WeekSummaryTable />
 
       <TransactionsTableChartsRow
         firstDay={data.firstDay()}
