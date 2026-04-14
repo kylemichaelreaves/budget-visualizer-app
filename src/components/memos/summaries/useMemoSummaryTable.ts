@@ -18,7 +18,7 @@ export function useMemoSummaryTable() {
 
   const memoIdNum = createMemo(() => {
     const n = Number(params.memoId)
-    return Number.isFinite(n) && !Number.isNaN(n) ? n : undefined
+    return Number.isFinite(n) && n > 0 ? n : undefined
   })
 
   const memoQ = useMemoById({ memoId: () => memoIdNum() ?? null })
@@ -71,7 +71,7 @@ export function useMemoSummaryTable() {
   const budgetCategory = () => memo()?.budget_category ?? null
   const frequency = () => memo()?.frequency ?? undefined
   const isResolved = () => !isAmbiguous() && !!budgetCategory()
-  const invalidId = () => memoIdNum() == null || memoIdNum()! <= 0
+  const invalidId = () => memoIdNum() == null
 
   const totalCredits = createMemo(() => computeTotalCredits(summaryQ.data, txQ.data ?? []))
   const totalDebits = createMemo(() => computeTotalDebits(summaryQ.data, txQ.data ?? []))
