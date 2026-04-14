@@ -8,6 +8,7 @@ export const TRANSACTION_TABLE_FILTER_URL_PARAMS = [
   'memoName',
   /** Legacy alias; migrated to `memoId` or `memoName` and dropped from the URL. */
   'memo',
+  'budgetCategory',
 ] as const
 
 export function isBareTransactionsRoute(pathname: string): boolean {
