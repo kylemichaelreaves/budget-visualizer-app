@@ -18,7 +18,8 @@
       "@constants": ["src/constants.ts"],
       "@utils/*": ["src/utils/*"],
       "@router": ["src/router/index.tsx"],
-      "@shared/*": ["src/shared/*"]
+      "@shared/*": ["src/shared/*"],
+      "@mocks/*": ["src/mocks/*"]
     },
 
     /* Bundler mode */

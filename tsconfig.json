@@ -12,7 +12,8 @@
       "@constants": ["src/constants.ts"],
       "@utils/*": ["src/utils/*"],
       "@router": ["src/router/index.tsx"],
-      "@shared/*": ["src/shared/*"]
+      "@shared/*": ["src/shared/*"],
+      "@mocks/*": ["src/mocks/*"]
     }
   },
   "references": [{ "path": "./tsconfig.app.json" }, { "path": "./tsconfig.node.json" }]
