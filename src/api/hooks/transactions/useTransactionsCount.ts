@@ -3,6 +3,7 @@ import { queryKeys } from '@api/queryKeys'
 import { fetchTransactionsCount } from '@api/transactions/fetchTransactionsCount'
 import { memoQuerySliceFromStore } from '@composables/memoQueryFromTransactionsStore'
 import useTimeframeTypeAndValue from '@api/hooks/timeUnits/useTimeframeTypeAndValue'
+import { transactionsState } from '@stores/transactionsStore'
 import type { PendingTransactionStatus } from '@types'
 
 /** When `status` is set, counts pending rows for that status; otherwise counts regular transactions. */
@@ -16,18 +17,23 @@ export default function useTransactionsCount(status?: () => PendingTransactionSt
     const hasTimeframe = Boolean(rawDate && String(rawDate).trim() !== '')
     const tf = hasTimeframe ? timeFrame() : undefined
     const date = hasTimeframe ? rawDate : undefined
+    const budgetCategory = transactionsState.selectedBudgetCategory
 
     return {
-      queryKey: queryKeys.transactionsCount.detail(st ?? 'regular', tf, date, memoKey),
+      queryKey: queryKeys.transactionsCount.detail(st ?? 'regular', tf, date, memoKey, budgetCategory),
       queryFn: async () => {
         const params = st
           ? { status: st, ...memoParam }
-          : { ...memoParam, ...(hasTimeframe ? { timeFrame: tf, date } : {}) }
+          : {
+              ...memoParam,
+              ...(hasTimeframe ? { timeFrame: tf, date } : {}),
+              ...(budgetCategory ? { budgetCategory } : {}),
+            }
         const data = await fetchTransactionsCount(params)
         return Number(data[0]?.count ?? 0)
       },
       refetchOnWindowFocus: false,
-      // Query key already includes timeframe/date/memo; avoid refetch churn on remount/navigation.
+      // Query key already includes timeframe/date/memo/budgetCategory; avoid refetch churn on remount/navigation.
       staleTime: 2 * 60 * 1000,
     }
   })

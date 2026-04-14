@@ -279,7 +279,10 @@ export function updateTransactionsPageSize(pageSize: number): void {
 }
 
 export function setSelectedBudgetCategory(category: string | null): void {
-  setTransactionsState('selectedBudgetCategory', category)
+  batch(() => {
+    setTransactionsState('selectedBudgetCategory', category)
+    setTransactionsState('transactionsTableOffset', 0)
+  })
 }
 
 export function setSelectedStatus(status: 'pending' | 'reviewed'): void {

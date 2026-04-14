@@ -17,8 +17,8 @@ export const queryKeys = {
   },
   transactionsCount: {
     all: ['transactions-count'] as const,
-    detail: (st: string, tf: unknown, date: unknown, memoKey: string) =>
-      ['transactions-count', st, tf, date, memoKey] as const,
+    detail: (st: string, tf: unknown, date: unknown, memoKey: string, budgetCategory?: string | null) =>
+      ['transactions-count', st, tf, date, memoKey, budgetCategory] as const,
   },
   transaction: {
     detail: (id: number | undefined) => ['transaction', id] as const,
