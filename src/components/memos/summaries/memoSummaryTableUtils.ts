@@ -39,8 +39,8 @@ export function computeTotalDebits(
       typeof tx.amount_debit === 'string'
         ? parseFloat(tx.amount_debit)
         : ((tx.amount_debit as unknown as number) ?? 0)
-    if (debit > 0) {
-      sum += debit
+    if (Number.isFinite(debit) && debit !== 0) {
+      sum += Math.abs(debit)
       count++
     }
   }

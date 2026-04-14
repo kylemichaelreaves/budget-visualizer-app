@@ -59,9 +59,15 @@ describe('computeTotalDebits', () => {
   })
 
   it('falls back to page-level sum when summary is undefined', () => {
-    const txns = [txn({ amount_debit: '40.00' }), txn({ amount_debit: '60.00' })]
+    const txns = [txn({ amount_debit: '-40.00' }), txn({ amount_debit: '-60.00' })]
     const result = computeTotalDebits(undefined, txns)
     expect(result).toEqual({ sum: 100, debitTxnCount: 2, aggregateScope: 'page' })
+  })
+
+  it('handles positive debit strings', () => {
+    const txns = [txn({ amount_debit: '25.00' })]
+    const result = computeTotalDebits(undefined, txns)
+    expect(result).toEqual({ sum: 25, debitTxnCount: 1, aggregateScope: 'page' })
   })
 
   it('returns zero sum for empty transactions', () => {
@@ -70,7 +76,7 @@ describe('computeTotalDebits', () => {
   })
 
   it('skips transactions with zero debit', () => {
-    const txns = [txn({ amount_debit: '0' }), txn({ amount_debit: '12.50' })]
+    const txns = [txn({ amount_debit: '0' }), txn({ amount_debit: '-12.50' })]
     const result = computeTotalDebits(undefined, txns)
     expect(result).toEqual({ sum: 12.5, debitTxnCount: 1, aggregateScope: 'page' })
   })

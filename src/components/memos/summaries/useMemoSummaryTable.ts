@@ -43,7 +43,9 @@ export function useMemoSummaryTable() {
 
   const canPrev = () => txOffset() > 0
   const canNext = () => {
+    if (txQ.isLoading || txQ.isFetching) return false
     const rows = txQ.data?.length ?? 0
+    if (rows === 0) return false
     const cap = summaryQ.data?.transactions_count
     if (cap != null) {
       return txOffset() + rows < cap
@@ -69,7 +71,7 @@ export function useMemoSummaryTable() {
   const budgetCategory = () => memo()?.budget_category ?? null
   const frequency = () => memo()?.frequency ?? undefined
   const isResolved = () => !isAmbiguous() && !!budgetCategory()
-  const invalidId = () => memoIdNum() == null
+  const invalidId = () => memoIdNum() == null || memoIdNum()! <= 0
 
   const totalCredits = createMemo(() => computeTotalCredits(summaryQ.data, txQ.data ?? []))
   const totalDebits = createMemo(() => computeTotalDebits(summaryQ.data, txQ.data ?? []))
