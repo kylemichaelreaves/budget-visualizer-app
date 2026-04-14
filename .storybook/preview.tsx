@@ -7,22 +7,23 @@ initialize({
   onUnhandledRequest: 'bypass',
 })
 
-const storyQueryClient = new QueryClient({
-  defaultOptions: {
-    queries: { retry: false },
-  },
-})
-
 const preview: Preview = {
   loaders: [mswLoader],
   decorators: [
-    (Story) => (
-      <QueryClientProvider client={storyQueryClient}>
-        <div class="min-h-[120px] bg-background p-4 text-foreground">
-          <Story />
-        </div>
-      </QueryClientProvider>
-    ),
+    (Story) => {
+      const queryClient = new QueryClient({
+        defaultOptions: {
+          queries: { retry: false },
+        },
+      })
+      return (
+        <QueryClientProvider client={queryClient}>
+          <div class="min-h-[120px] bg-background p-4 text-foreground">
+            <Story />
+          </div>
+        </QueryClientProvider>
+      )
+    },
   ],
   parameters: {
     controls: {
