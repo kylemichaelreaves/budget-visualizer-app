@@ -15,7 +15,7 @@ export default function TransactionsTableChartsRow(props: {
         <CardHeader class="pt-3 pb-0 px-4">
           <CardTitle>Transaction History</CardTitle>
         </CardHeader>
-        <CardContent class="px-3 pb-0 mt-auto">
+        <CardContent class="px-3 pb-0 mt-auto min-h-[300px]">
           <DailyIntervalLineChart dataTestId="transactions-daily-interval-chart" firstDay={props.firstDay} />
         </CardContent>
       </Card>
@@ -24,7 +24,7 @@ export default function TransactionsTableChartsRow(props: {
         <CardHeader class="pt-3 pb-0 px-4">
           <CardTitle>Spending by Category</CardTitle>
         </CardHeader>
-        <CardContent class="px-3 pb-0 mt-auto">
+        <CardContent class="px-3 pb-0 mt-auto min-h-[300px]">
           <BudgetCategorySummaries
             timeFrame={props.chartTimeFrame}
             date={props.chartDate}
