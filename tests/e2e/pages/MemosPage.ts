@@ -10,6 +10,11 @@ export class MemosPage {
   readonly searchInput: Locator
   readonly cardTitle: Locator
 
+  readonly pagination: Locator
+  readonly paginationPrev: Locator
+  readonly paginationNext: Locator
+  readonly rowsPerPageSelect: Locator
+
   /** Category assignment dialog */
   readonly categoryTreeSelectDialog: Locator
   readonly categoryTreeSearch: Locator
@@ -23,6 +28,11 @@ export class MemosPage {
     this.errorAlert = page.getByTestId('memos-table-error-alert')
     this.searchInput = page.getByTestId('memos-search-input')
     this.cardTitle = page.getByRole('heading', { name: 'All Memos' })
+
+    this.pagination = page.getByTestId('memos-table-pagination')
+    this.paginationPrev = page.getByTestId('memos-table-pagination-prev')
+    this.paginationNext = page.getByTestId('memos-table-pagination-next')
+    this.rowsPerPageSelect = this.pagination.getByLabel('Rows')
 
     this.categoryTreeSelectDialog = page.getByTestId('category-tree-select-dialog')
     this.categoryTreeSearch = page.getByTestId('category-tree-search')

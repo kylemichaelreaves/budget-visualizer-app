@@ -15,6 +15,8 @@ import { LoanCalculatorPage } from '../pages/LoanCalculatorPage'
 import { NavBar } from '../pages/NavBar'
 import { SplitBudgetCategoryDrawer } from '../pages/SplitBudgetCategoryDrawer'
 import { CategoryTreeSelectDialog } from '../pages/CategoryTreeSelectDialog'
+import { MonthSummaryTablePage } from '../pages/MonthSummaryTablePage'
+import { WeekSummaryTablePage } from '../pages/WeekSummaryTablePage'
 
 type Fixtures = {
   loginPage: LoginPage
@@ -31,6 +33,8 @@ type Fixtures = {
   loanCalculatorPage: LoanCalculatorPage
   splitBudgetCategoryDrawer: SplitBudgetCategoryDrawer
   categoryTreeSelectDialog: CategoryTreeSelectDialog
+  monthSummaryTablePage: MonthSummaryTablePage
+  weekSummaryTablePage: WeekSummaryTablePage
 }
 
 /**
@@ -79,6 +83,12 @@ export const test = base.extend<Fixtures>({
   },
   categoryTreeSelectDialog: async ({ page }, use) => {
     await use(new CategoryTreeSelectDialog(page))
+  },
+  monthSummaryTablePage: async ({ page }, use) => {
+    await use(new MonthSummaryTablePage(page))
+  },
+  weekSummaryTablePage: async ({ page }, use) => {
+    await use(new WeekSummaryTablePage(page))
   },
 })
 
@@ -139,6 +149,12 @@ export const authenticatedTest = base.extend<Fixtures>({
   },
   categoryTreeSelectDialog: async ({ page }, use) => {
     await use(new CategoryTreeSelectDialog(page))
+  },
+  monthSummaryTablePage: async ({ page }, use) => {
+    await use(new MonthSummaryTablePage(page))
+  },
+  weekSummaryTablePage: async ({ page }, use) => {
+    await use(new WeekSummaryTablePage(page))
   },
 })
 
