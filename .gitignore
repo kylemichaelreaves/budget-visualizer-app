@@ -36,3 +36,4 @@ playwright/.cache
 
 *storybook.log
 storybook-static
+storybook-static-preview

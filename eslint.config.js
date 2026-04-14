@@ -15,6 +15,7 @@ export default tseslint.config(
       'test-results',
       'coverage',
       'storybook-static/**',
+      'storybook-static-preview/**',
       'public/mockServiceWorker.js',
       'tests/e2e/**',
       'playwright.config.ts',
