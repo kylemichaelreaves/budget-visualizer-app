@@ -41,13 +41,6 @@ export default tseslint.config(
       '@typescript-eslint/no-non-null-assertion': 'off',
     },
   },
-  {
-    files: ['src/stories/**/*.{ts,tsx}'],
-    rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
-      'solid/reactivity': 'off',
-    },
-  },
-  prettier,
   storybook.configs['flat/recommended'],
+  prettier,
 )

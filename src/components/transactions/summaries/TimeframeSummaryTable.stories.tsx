@@ -14,7 +14,7 @@ function WithRouter(props: { children: JSX.Element }) {
 
 const sampleRows: TimeframeSummaryRow[] = [
   { memo: '42', budget_category: 'Food - Groceries', amount: 12.5 },
-  { memo: 'Plain text memo', budget_category: '', amount: 3 },
+  { memo: 'Plain text memo', budget_category: null, amount: 3 },
   { memo: '7', budget_category: 'Transport', amount: 99 },
 ]
 
