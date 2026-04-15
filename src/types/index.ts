@@ -209,6 +209,7 @@ export interface MonthSummary {
   total_amount_debit: number
   budget_category: string | null
   category_id?: number
+  transaction_count?: number
 }
 
 export interface MonthYear {
@@ -361,6 +362,7 @@ export interface WeekSummary {
   weekly_amount_debit: number
   budget_category?: string
   category_id?: number
+  transaction_count?: number
 }
 
 export interface WeekYear {

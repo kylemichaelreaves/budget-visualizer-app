@@ -7,7 +7,7 @@ import type { BudgetCategorySummary, Timeframe } from '@types'
 import AlertComponent from '@components/shared/AlertComponent'
 import { Skeleton } from '@components/ui/skeleton'
 import { setSelectedBudgetCategory } from '@stores/transactionsStore'
-import BudgetCategoryPieChart from './BudgetCategoryPieChart'
+import BudgetCategorySunburst from './BudgetCategorySunburst'
 
 export default function BudgetCategorySummaries(props: {
   timeFrame: Timeframe
@@ -58,11 +58,13 @@ export default function BudgetCategorySummaries(props: {
             />
           )}
         </Show>
-        <BudgetCategoryPieChart
+        <BudgetCategorySunburst
           data={rows()}
           isLoading={summaryQuery.isLoading || summaryQuery.isFetching}
           showLegend={false}
-          dataTestId={`${id()}-pie`}
+          timeFrame={props.timeFrame}
+          date={props.date()}
+          dataTestId={`${id()}-sunburst`}
           onSliceClick={(cat) => {
             const n = cat.full_path || cat.budget_category || cat.category_name
             if (n) {
