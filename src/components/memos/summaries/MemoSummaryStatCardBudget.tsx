@@ -1,5 +1,6 @@
 import type { Accessor } from 'solid-js'
 import { For, Show } from 'solid-js'
+import { AssignCategoryTrigger, BudgetCategoryPill } from '@components/shared/BudgetCategoryUi'
 import { Card, CardContent } from '@components/ui/card'
 import { LayoutGridIcon } from '@shared/icons'
 import { MEMO_SUMMARY_FREQUENCY_OPTIONS } from './memoSummaryConstants'
@@ -32,24 +33,25 @@ export default function MemoSummaryStatCardBudget(props: {
           <Show
             when={props.budgetCategory()}
             fallback={
-              <button
-                type="button"
+              <AssignCategoryTrigger
+                showIcon={false}
+                label="+ Assign category"
                 disabled={!props.memoReady() || props.saving()}
                 onClick={() => props.onOpenCategoryDialog()}
-                class="text-sm text-muted-foreground hover:text-foreground border border-dashed border-border rounded-full px-3 py-1 transition-colors disabled:opacity-50 disabled:pointer-events-none"
-              >
-                + Assign category
-              </button>
+                dataTestId="memo-summary-assign-category"
+                class="text-sm text-muted-foreground hover:text-foreground border-border"
+              />
             }
           >
-            <button
-              type="button"
+            <BudgetCategoryPill
+              interactive
               disabled={!props.memoReady() || props.saving()}
+              label={props.budgetCategory()!}
+              dataTestId="memo-summary-budget-category-badge"
               onClick={() => props.onOpenCategoryDialog()}
-              class="inline-flex items-center rounded-full bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 px-3 py-1 text-sm font-medium hover:bg-violet-200 dark:hover:bg-violet-900/60 transition-colors cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
-            >
-              {props.budgetCategory()}
-            </button>
+              class="text-sm font-medium border-0 bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 px-3 py-1"
+              buttonClass="rounded-full hover:bg-violet-200 dark:hover:bg-violet-900/60 transition-colors"
+            />
           </Show>
         </div>
 

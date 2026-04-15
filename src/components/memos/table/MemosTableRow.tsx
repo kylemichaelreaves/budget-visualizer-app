@@ -2,7 +2,7 @@ import { A } from '@solidjs/router'
 import type { Accessor } from 'solid-js'
 import { Show } from 'solid-js'
 import type { Memo } from '@types'
-import { Button } from '@components/ui/button'
+import { AssignCategoryTrigger, BudgetCategoryPill } from '@components/shared/BudgetCategoryUi'
 import { Skeleton } from '@components/ui/skeleton'
 import { CheckIcon, WarningIcon } from '@shared/icons'
 import { getMemosTableCategoryColor } from '@components/memos/table/memosTableSort'
@@ -66,25 +66,21 @@ export default function MemosTableRow(props: {
           <Show
             when={row().budget_category}
             fallback={
-              <Button
-                variant="outline"
-                size="sm"
-                class="border-dashed text-muted-foreground text-xs h-7"
+              <AssignCategoryTrigger
                 onClick={() => props.onAssignCategory(row())}
-                data-testid={`assign-category-${row().id}`}
-              >
-                Assign category
-              </Button>
+                dataTestId={`assign-category-${row().id}`}
+                class="h-7 py-0"
+              />
             }
           >
-            <button
-              type="button"
-              class={`inline-flex cursor-pointer items-center rounded-full border-0 px-2.5 py-0.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${getMemosTableCategoryColor(row().budget_category!)}`}
+            <BudgetCategoryPill
+              interactive
+              label={row().budget_category!}
+              class={`rounded-full border-0 px-2.5 py-0.5 font-medium ${getMemosTableCategoryColor(row().budget_category!)}`}
               onClick={() => props.onAssignCategory(row())}
-              data-testid={`category-badge-${row().id}`}
-            >
-              {row().budget_category}
-            </button>
+              dataTestId={`category-badge-${row().id}`}
+              buttonClass="rounded-full"
+            />
           </Show>
         </Show>
       </td>

@@ -2,7 +2,7 @@ import { A } from '@solidjs/router'
 import { createMemo, Show } from 'solid-js'
 import { formatDate } from '@api/helpers/formatDate'
 import type { Transaction } from '@types'
-import { Badge } from '@components/ui/badge'
+import { BudgetCategoryPill } from '@components/shared/BudgetCategoryUi'
 import { TrendingDownIcon, TrendingUpIcon } from '@shared/icons'
 import { formatUsdAbs } from '@utils/formatUsd'
 
@@ -38,9 +38,10 @@ export default function MemoSummaryTransactionRow(props: { row: Transaction }) {
       </div>
 
       <Show when={typeof props.row.budget_category === 'string' && props.row.budget_category}>
-        <Badge variant="secondary" class="hidden sm:inline-flex text-xs">
-          {props.row.budget_category as string}
-        </Badge>
+        <BudgetCategoryPill
+          label={props.row.budget_category as string}
+          class="hidden sm:inline-flex text-xs"
+        />
       </Show>
 
       <span
