@@ -15,6 +15,7 @@ export default function TransactionsTableListCard(props: {
   categoryColors: Accessor<CategoryColorHelpers>
   mutatingTransactionId: Accessor<number | null>
   openCategoryDialog: (row: Transaction) => void
+  openSplitDrawer?: (row: Transaction) => void
 }): JSX.Element {
   return (
     <Card>
@@ -50,6 +51,7 @@ export default function TransactionsTableListCard(props: {
                   categoryColors={props.categoryColors}
                   mutatingTransactionId={props.mutatingTransactionId}
                   openCategoryDialog={props.openCategoryDialog}
+                  openSplitDrawer={props.openSplitDrawer}
                 />
               )}
             </For>
