@@ -26,7 +26,7 @@ export async function installApiMocks(page: Page): Promise<void> {
       amount_credit: '0',
       balance: '1000.00',
       budget_category: null,
-      memo_id: 1,
+      memo_id: 200,
     },
     101: {
       id: 101,
@@ -39,6 +39,18 @@ export async function installApiMocks(page: Page): Promise<void> {
       balance: '3000.00',
       budget_category: null,
     },
+    102: {
+      id: 102,
+      transaction_number: '100003',
+      date: '2025-01-13',
+      description: 'COFFEE SHOP',
+      memo: 'STARBUCKS',
+      amount_debit: '-12.50',
+      amount_credit: '0',
+      balance: '987.50',
+      budget_category: 'Food - Restaurants',
+      memo_id: 202,
+    },
   }
 
   const memos: Record<number, Record<string, unknown>> = {
@@ -47,10 +59,20 @@ export async function installApiMocks(page: Page): Promise<void> {
       name: 'WHOLEFDS',
       recurring: true,
       necessary: true,
-      ambiguous: false,
+      ambiguous: true,
       budget_category: null,
       total_amount_debit: 150.0,
       transactions_count: 5,
+    },
+    202: {
+      id: 202,
+      name: 'STARBUCKS',
+      recurring: false,
+      necessary: false,
+      ambiguous: true,
+      budget_category: 'Food - Restaurants',
+      total_amount_debit: 12.5,
+      transactions_count: 3,
     },
     201: {
       id: 201,

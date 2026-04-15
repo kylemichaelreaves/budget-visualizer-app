@@ -32,6 +32,9 @@ export class TransactionsPage {
   readonly categoryTreeSelectDialog: Locator
   readonly categoryTreeSearch: Locator
 
+  /** Active budget category filter chip (after clicking a row pill) */
+  readonly budgetCategoryFilterChip: Locator
+
   /** Backward-compat alias */
   readonly clearTimeframeButton: Locator
 
@@ -60,6 +63,9 @@ export class TransactionsPage {
 
     this.categoryTreeSelectDialog = page.getByTestId('category-tree-select-dialog')
     this.categoryTreeSearch = page.getByTestId('category-tree-search')
+    this.budgetCategoryFilterChip = this.filtersSection.getByTestId(
+      'transactions-table-selects-budget-category-chip',
+    )
 
     // backward compat
     this.clearTimeframeButton = this.clearButton
@@ -119,5 +125,21 @@ export class TransactionsPage {
 
   categoryBadge(transactionId: number | string): Locator {
     return this.page.getByTestId(`category-badge-${transactionId}`)
+  }
+
+  transactionRow(transactionId: number | string): Locator {
+    return this.page.getByTestId(`transaction-row-${transactionId}`)
+  }
+
+  splitButton(transactionId: number | string): Locator {
+    return this.page.getByTestId(`split-button-${transactionId}`)
+  }
+
+  memoAmbiguityIndicator(transactionId: number | string): Locator {
+    return this.page.getByTestId(`memo-ambiguity-${transactionId}`)
+  }
+
+  async clickSplit(transactionId: number | string) {
+    await this.splitButton(transactionId).click()
   }
 }
