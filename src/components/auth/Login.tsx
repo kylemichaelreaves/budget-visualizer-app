@@ -1,5 +1,5 @@
-import { useNavigate, useSearchParams } from '@solidjs/router'
-import { createMemo, createSignal } from 'solid-js'
+import { A, useNavigate, useSearchParams } from '@solidjs/router'
+import { createMemo, createSignal, Show } from 'solid-js'
 import { useMutation } from '@tanstack/solid-query'
 import { mutationKeys } from '@api/queryKeys'
 import { extractApiErrorMessage } from '@api/extractApiErrorMessage'
@@ -25,6 +25,8 @@ export default function Login() {
     () => safeRedirectPath(searchParams.redirect) ?? DEFAULT_AUTHENTICATED_ROUTE,
   )
 
+  const resetSuccess = createMemo(() => searchParams.resetSuccess === '1')
+
   const loginMut = useMutation(() => ({
     mutationKey: mutationKeys.login,
     mutationFn: async () => loginRequest(username(), password()),
@@ -49,6 +51,12 @@ export default function Login() {
           <CardTitle class="text-xl">Sign in</CardTitle>
         </CardHeader>
         <CardContent>
+          <Show when={resetSuccess()}>
+            <Alert class="mb-4" data-testid="login-reset-success">
+              <AlertTitle>Password updated</AlertTitle>
+              <AlertDescription>Sign in with your new password.</AlertDescription>
+            </Alert>
+          </Show>
           {loginMut.isError ? (
             <Alert variant="destructive" class="mb-4">
               <AlertTitle>Login failed</AlertTitle>
@@ -90,6 +98,11 @@ export default function Login() {
             <Button type="submit" disabled={isDisabled()}>
               {loginMut.isPending ? 'Signing in…' : 'Login'}
             </Button>
+            <div class="text-center text-sm text-muted-foreground">
+              <A href="/forgot-password" class="hover:underline" data-testid="login-forgot-link">
+                Forgot password?
+              </A>
+            </div>
           </form>
         </CardContent>
       </Card>
