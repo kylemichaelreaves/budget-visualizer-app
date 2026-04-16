@@ -1,4 +1,4 @@
-import { A, useNavigate, useSearchParams } from '@solidjs/router'
+import { useNavigate, useSearchParams } from '@solidjs/router'
 import { createMemo, createSignal, Show } from 'solid-js'
 import { useMutation } from '@tanstack/solid-query'
 import { mutationKeys } from '@api/queryKeys'
@@ -6,6 +6,7 @@ import { extractApiErrorMessage } from '@api/extractApiErrorMessage'
 import { confirmPasswordReset } from '@api/auth/confirmPasswordReset'
 import { Button } from '@components/ui/button'
 import { Lock, AlertCircle, CheckCircle2, ShieldCheck, Loader2 } from 'lucide-solid'
+import { MissingToken } from './MissingToken'
 import { AuthPageLayout } from './AuthPageLayout'
 import { AuthIconHeading } from './AuthIconHeading'
 import { AuthDivider } from './AuthDivider'
@@ -202,26 +203,5 @@ export default function ResetPasswordPage() {
         </Show>
       </Show>
     </AuthPageLayout>
-  )
-}
-
-function MissingToken() {
-  return (
-    <div class="flex flex-col items-center text-center gap-5 px-1">
-      <AuthIconHeading
-        icon={AlertCircle}
-        title="Missing reset token"
-        hasError
-        description={
-          <>
-            This page needs a <code class="text-foreground">?token=</code> parameter. Request a new link from{' '}
-            <A href="/password/reset" class="text-primary underline underline-offset-2">
-              Forgot password
-            </A>
-            .
-          </>
-        }
-      />
-    </div>
   )
 }
