@@ -5,7 +5,7 @@ import { mutationKeys } from '@api/queryKeys'
 import { extractApiErrorMessage } from '@api/extractApiErrorMessage'
 import { confirmPasswordReset } from '@api/auth/confirmPasswordReset'
 import { Button } from '@components/ui/button'
-import { Lock, AlertCircle, CheckCircle2, ShieldCheck, Loader2 } from 'lucide-solid'
+import { Lock, CheckCircle2, ShieldCheck, Loader2 } from 'lucide-solid'
 import { MissingToken } from './MissingToken'
 import { AuthPageLayout } from './AuthPageLayout'
 import { AuthIconHeading } from './AuthIconHeading'
@@ -14,6 +14,7 @@ import { BackToLoginLink } from './BackToLoginLink'
 import { AuthSuccessScreen } from './AuthSuccessScreen'
 import { PasswordField } from './PasswordField'
 import { PasswordStrengthIndicator } from './PasswordStrengthIndicator'
+import { ErrorCallout } from './ErrorCallout'
 import { analyzePassword } from './passwordStrength'
 
 export default function ResetPasswordPage() {
@@ -84,18 +85,12 @@ export default function ResetPasswordPage() {
                 hasError={hasAnyError()}
               />
 
-              {/* API error */}
               <Show when={resetMut.isError}>
-                <div
-                  class="flex gap-3 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3"
+                <ErrorCallout
+                  title="Reset failed"
+                  description={apiError()}
                   data-testid="reset-password-error"
-                >
-                  <AlertCircle class="h-4 w-4 text-destructive mt-0.5 shrink-0" />
-                  <div class="flex flex-col gap-0.5">
-                    <p class="text-destructive text-[13px] font-medium">Reset failed</p>
-                    <p class="text-muted-foreground text-[13px]">{apiError()}</p>
-                  </div>
-                </div>
+                />
               </Show>
 
               {/* New password */}
@@ -154,17 +149,11 @@ export default function ResetPasswordPage() {
                 </Show>
               </div>
 
-              {/* Mismatch callout */}
               <Show when={cfError()}>
-                <div class="flex gap-3 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3">
-                  <AlertCircle class="h-4 w-4 text-destructive mt-0.5 shrink-0" />
-                  <div class="flex flex-col gap-0.5">
-                    <p class="text-destructive text-[13px] font-medium">Password mismatch</p>
-                    <p class="text-muted-foreground text-[13px]">
-                      Make sure both fields contain the exact same password.
-                    </p>
-                  </div>
-                </div>
+                <ErrorCallout
+                  title="Password mismatch"
+                  description="Make sure both fields contain the exact same password."
+                />
               </Show>
 
               <Button
