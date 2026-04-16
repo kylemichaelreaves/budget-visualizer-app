@@ -1,7 +1,7 @@
 import type { Component, JSX } from 'solid-js'
 import { Dynamic } from 'solid-js/web'
 
-interface AuthSuccessScreenProps {
+interface SuccessScreenProps {
   icon: Component<{ class?: string }>
   title: string
   description: string | JSX.Element
@@ -9,7 +9,7 @@ interface AuthSuccessScreenProps {
   children?: JSX.Element
 }
 
-export function AuthSuccessScreen(props: AuthSuccessScreenProps) {
+export function SuccessScreen(props: SuccessScreenProps) {
   return (
     <div class="flex flex-col items-center text-center gap-5 px-1">
       <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 dark:bg-emerald-950/40">

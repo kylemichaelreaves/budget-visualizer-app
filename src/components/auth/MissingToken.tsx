@@ -1,11 +1,11 @@
 import { A } from '@solidjs/router'
 import { AlertCircle } from 'lucide-solid'
-import { AuthIconHeading } from './AuthIconHeading'
+import { IconHeading } from '@components/shared/IconHeading'
 
 export function MissingToken() {
   return (
     <div class="flex flex-col items-center text-center gap-5 px-1">
-      <AuthIconHeading
+      <IconHeading
         icon={AlertCircle}
         title="Missing reset token"
         hasError

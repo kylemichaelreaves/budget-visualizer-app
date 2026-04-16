@@ -1,14 +1,14 @@
 import type { Component, JSX } from 'solid-js'
 import { Dynamic } from 'solid-js/web'
 
-interface AuthIconHeadingProps {
+interface IconHeadingProps {
   icon: Component<{ class?: string; classList?: Record<string, boolean> }>
   title: string
   description: string | JSX.Element
   hasError?: boolean
 }
 
-export function AuthIconHeading(props: AuthIconHeadingProps) {
+export function IconHeading(props: IconHeadingProps) {
   return (
     <div class="flex flex-col items-center text-center gap-4">
       <div
