@@ -1,15 +1,15 @@
 import type { Meta, StoryObj } from 'storybook-solidjs-vite'
-import { AuthDivider } from './AuthDivider'
+import { Divider } from './Divider'
 
 const meta = {
-  title: 'Auth/AuthDivider',
-  component: AuthDivider,
+  title: 'Shared/Divider',
+  component: Divider,
   tags: ['autodocs'],
   parameters: {
     layout: 'centered',
   },
   decorators: [(Story) => <div class="w-[380px]">{Story()}</div>],
-} satisfies Meta<typeof AuthDivider>
+} satisfies Meta<typeof Divider>
 
 export default meta
 type Story = StoryObj<typeof meta>

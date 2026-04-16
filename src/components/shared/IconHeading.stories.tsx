@@ -1,16 +1,16 @@
 import type { Meta, StoryObj } from 'storybook-solidjs-vite'
 import { Lock, AlertCircle, ShieldCheck } from 'lucide-solid'
-import { AuthIconHeading } from './AuthIconHeading'
+import { IconHeading } from './IconHeading'
 
 const meta = {
-  title: 'Auth/AuthIconHeading',
-  component: AuthIconHeading,
+  title: 'Shared/IconHeading',
+  component: IconHeading,
   tags: ['autodocs'],
   parameters: {
     layout: 'centered',
   },
   decorators: [(Story) => <div class="w-[380px]">{Story()}</div>],
-} satisfies Meta<typeof AuthIconHeading>
+} satisfies Meta<typeof IconHeading>
 
 export default meta
 type Story = StoryObj<typeof meta>

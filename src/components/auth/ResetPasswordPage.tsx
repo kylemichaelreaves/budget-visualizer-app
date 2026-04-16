@@ -7,14 +7,14 @@ import { confirmPasswordReset } from '@api/auth/confirmPasswordReset'
 import { Button } from '@components/ui/button'
 import { Lock, CheckCircle2, ShieldCheck, Loader2 } from 'lucide-solid'
 import { MissingToken } from './MissingToken'
-import { AuthPageLayout } from './AuthPageLayout'
-import { AuthIconHeading } from './AuthIconHeading'
-import { AuthDivider } from './AuthDivider'
+import { CenteredCardLayout } from '@components/shared/CenteredCardLayout'
+import { IconHeading } from '@components/shared/IconHeading'
+import { Divider } from '@components/shared/Divider'
 import { BackToLoginLink } from './BackToLoginLink'
-import { AuthSuccessScreen } from './AuthSuccessScreen'
+import { SuccessScreen } from '@components/shared/SuccessScreen'
 import { PasswordField } from './PasswordField'
 import { PasswordStrengthIndicator } from './PasswordStrengthIndicator'
-import { ErrorCallout } from './ErrorCallout'
+import { ErrorCallout } from '@components/shared/ErrorCallout'
 import { analyzePassword } from './passwordStrength'
 
 export default function ResetPasswordPage() {
@@ -72,13 +72,13 @@ export default function ResetPasswordPage() {
   }
 
   return (
-    <AuthPageLayout>
+    <CenteredCardLayout>
       <Show when={token()} fallback={<MissingToken />}>
         <Show
           when={resetMut.isSuccess}
           fallback={
             <form onSubmit={handleSubmit} novalidate class="flex flex-col gap-6">
-              <AuthIconHeading
+              <IconHeading
                 icon={Lock}
                 title="Reset your password"
                 description="Choose a strong new password for your account."
@@ -168,12 +168,12 @@ export default function ResetPasswordPage() {
                 </Show>
               </Button>
 
-              <AuthDivider />
+              <Divider />
               <BackToLoginLink />
             </form>
           }
         >
-          <AuthSuccessScreen
+          <SuccessScreen
             icon={ShieldCheck}
             title="Password updated!"
             description="Your password has been changed successfully. You can now sign in with your new credentials."
@@ -188,9 +188,9 @@ export default function ResetPasswordPage() {
             >
               Go to login
             </Button>
-          </AuthSuccessScreen>
+          </SuccessScreen>
         </Show>
       </Show>
-    </AuthPageLayout>
+    </CenteredCardLayout>
   )
 }

@@ -7,11 +7,11 @@ import { requestPasswordReset } from '@api/auth/requestPasswordReset'
 import { isValidEmail } from '@utils/validateEmail'
 import { Button } from '@components/ui/button'
 import { Lock, CheckCircle2, ArrowLeft, Loader2 } from 'lucide-solid'
-import { AuthPageLayout } from './AuthPageLayout'
-import { AuthIconHeading } from './AuthIconHeading'
-import { AuthDivider } from './AuthDivider'
+import { CenteredCardLayout } from '@components/shared/CenteredCardLayout'
+import { IconHeading } from '@components/shared/IconHeading'
+import { Divider } from '@components/shared/Divider'
 import { BackToLoginLink } from './BackToLoginLink'
-import { AuthSuccessScreen } from './AuthSuccessScreen'
+import { SuccessScreen } from '@components/shared/SuccessScreen'
 import { EmailField } from './EmailField'
 
 export default function ForgotPasswordPage() {
@@ -48,12 +48,12 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <AuthPageLayout>
+    <CenteredCardLayout>
       <Show
         when={resetMut.isSuccess}
         fallback={
           <form onSubmit={handleSubmit} novalidate class="flex flex-col gap-6">
-            <AuthIconHeading
+            <IconHeading
               icon={Lock}
               title="Forgot your password?"
               description={<>No&nbsp;worries — enter your email and we'll send you a&nbsp;reset&nbsp;link.</>}
@@ -91,12 +91,12 @@ export default function ForgotPasswordPage() {
               </Show>
             </Button>
 
-            <AuthDivider />
+            <Divider />
             <BackToLoginLink />
           </form>
         }
       >
-        <AuthSuccessScreen
+        <SuccessScreen
           icon={CheckCircle2}
           title="Check your inbox"
           description={
@@ -132,8 +132,8 @@ export default function ForgotPasswordPage() {
               Back to login
             </button>
           </div>
-        </AuthSuccessScreen>
+        </SuccessScreen>
       </Show>
-    </AuthPageLayout>
+    </CenteredCardLayout>
   )
 }
