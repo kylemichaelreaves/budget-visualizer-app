@@ -21,8 +21,8 @@ async function mockResetEndpoints(
     })
   }
 
-  await page.route(/\/api\/v1\/password-reset$/, opts.requestHandler ?? defaultOk)
-  await page.route(/\/api\/v1\/password-reset\/confirm$/, opts.confirmHandler ?? defaultOk)
+  await page.route(/\/api\/v1\/password\/reset$/, opts.requestHandler ?? defaultOk)
+  await page.route(/\/api\/v1\/password\/confirm$/, opts.confirmHandler ?? defaultOk)
 }
 
 test.describe('Password reset flow', () => {
