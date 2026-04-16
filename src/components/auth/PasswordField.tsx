@@ -71,7 +71,6 @@ export function PasswordField(props: PasswordFieldProps) {
         >
           <button
             type="button"
-            tabIndex={-1}
             onClick={() => props.onToggleShow()}
             disabled={props.disabled}
             class="absolute right-3.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors disabled:pointer-events-none"

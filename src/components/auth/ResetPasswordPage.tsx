@@ -100,7 +100,10 @@ export default function ResetPasswordPage() {
                   label="New password"
                   placeholder="Create a strong password"
                   value={password()}
-                  onInput={setPassword}
+                  onInput={(v) => {
+                    setPassword(v)
+                    if (resetMut.isError) resetMut.reset()
+                  }}
                   onFocus={() => setFocusedField('password')}
                   onBlur={() => setFocusedField(null)}
                   show={showPw()}

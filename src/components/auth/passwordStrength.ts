@@ -16,7 +16,6 @@ export function analyzePassword(pw: string): Strength {
   const checks = {
     length: pw.length >= 8,
     upper: /[A-Z]/.test(pw),
-    lower: /[a-z]/.test(pw),
     number: /[0-9]/.test(pw),
     symbol: /[^A-Za-z0-9]/.test(pw),
   }
