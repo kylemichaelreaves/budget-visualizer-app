@@ -16,11 +16,11 @@ export class ForgotPasswordPage {
     this.submitButton = page.getByTestId('forgot-password-submit')
     this.successAlert = page.getByTestId('forgot-password-success')
     this.errorAlert = page.getByTestId('forgot-password-error')
-    this.backToSignInLink = page.getByRole('link', { name: /back to sign in/i })
+    this.backToSignInLink = page.getByRole('link', { name: /back to login/i })
   }
 
   async goto() {
-    await this.page.goto('/forgot-password')
+    await this.page.goto('/password/reset')
   }
 
   async submit(email: string) {

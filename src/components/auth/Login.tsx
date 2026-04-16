@@ -99,7 +99,7 @@ export default function Login() {
               {loginMut.isPending ? 'Signing in…' : 'Login'}
             </Button>
             <div class="text-center text-sm text-muted-foreground">
-              <A href="/forgot-password" class="hover:underline" data-testid="login-forgot-link">
+              <A href="/password/reset" class="hover:underline" data-testid="login-forgot-link">
                 Forgot password?
               </A>
             </div>

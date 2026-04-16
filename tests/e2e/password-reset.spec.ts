@@ -103,29 +103,31 @@ test.describe('Password reset flow', () => {
 
   test.describe('Reset password page', () => {
     test('shows missing-token alert when ?token= is absent', async ({ page, resetPasswordPage }) => {
-      await page.goto('/reset-password')
-      await expect(resetPasswordPage.missingTokenAlert).toBeVisible({ timeout: 5_000 })
+      await page.goto('/password/confirm')
+      await expect(resetPasswordPage.missingTokenHeading).toBeVisible({ timeout: 5_000 })
     })
 
-    test('submit button disabled until both passwords match and meet minimum length', async ({
+    test('shows validation errors for weak or mismatched passwords on submit', async ({
+      page,
       resetPasswordPage,
     }) => {
       await resetPasswordPage.goto('opaque-token-123')
-      await expect(resetPasswordPage.submitButton).toBeDisabled()
+      await expect(resetPasswordPage.submitButton).toBeEnabled()
 
+      // Submit with weak password shows error
       await resetPasswordPage.newPasswordInput.fill('short')
       await resetPasswordPage.confirmPasswordInput.fill('short')
-      await expect(resetPasswordPage.submitButton).toBeDisabled()
+      await resetPasswordPage.submitButton.click()
+      await expect(page.getByText(/too weak/i)).toBeVisible({ timeout: 5_000 })
 
-      await resetPasswordPage.newPasswordInput.fill('longEnough1')
+      // Submit with mismatched passwords shows error
+      await resetPasswordPage.newPasswordInput.fill('Passw0rd1!')
       await resetPasswordPage.confirmPasswordInput.fill('mismatch1')
-      await expect(resetPasswordPage.submitButton).toBeDisabled()
-
-      await resetPasswordPage.confirmPasswordInput.fill('longEnough1')
-      await expect(resetPasswordPage.submitButton).toBeEnabled()
+      await resetPasswordPage.submitButton.click()
+      await expect(page.getByText(/don.t match/i)).toBeVisible({ timeout: 5_000 })
     })
 
-    test('successful reset POSTs {token, newPassword} and redirects to /login?resetSuccess=1', async ({
+    test('successful reset POSTs {token, newPassword} and shows success screen', async ({
       page,
       resetPasswordPage,
     }) => {
@@ -142,10 +144,14 @@ test.describe('Password reset flow', () => {
       })
 
       await resetPasswordPage.goto('opaque-token-abc')
-      await resetPasswordPage.submit('newStrongPass1')
+      await resetPasswordPage.submit('Passw0rd1!')
 
+      await expect(page.getByRole('heading', { name: /password updated/i })).toBeVisible({ timeout: 5_000 })
+      expect(body).toEqual({ token: 'opaque-token-abc', newPassword: 'Passw0rd1!' })
+
+      // Click "Go to login" navigates to /login?resetSuccess=1
+      await page.getByRole('button', { name: /go to login/i }).click()
       await expect(page).toHaveURL(/\/login\?resetSuccess=1/, { timeout: 5_000 })
-      expect(body).toEqual({ token: 'opaque-token-abc', newPassword: 'newStrongPass1' })
     })
 
     test('shows an error alert when the backend rejects the token', async ({ page, resetPasswordPage }) => {
@@ -181,23 +187,25 @@ test.describe('Password reset flow', () => {
 
       // 2) They (hypothetically) click the emailed link
       await resetPasswordPage.goto('opaque-reset-token')
-      await resetPasswordPage.submit('newStrongPass1')
-      await expect(page).toHaveURL(/\/login\?resetSuccess=1/, { timeout: 5_000 })
+      await resetPasswordPage.submit('Passw0rd1!')
+      await expect(page.getByRole('heading', { name: /password updated/i })).toBeVisible({ timeout: 5_000 })
 
-      // 3) Login page shows the success banner
+      // 3) Click "Go to login" → login page shows the success banner
+      await page.getByRole('button', { name: /go to login/i }).click()
+      await expect(page).toHaveURL(/\/login\?resetSuccess=1/, { timeout: 5_000 })
       await expect(page.getByTestId('login-reset-success')).toBeVisible()
       await expect(loginPage.heading).toBeVisible()
     })
   })
 
   test.describe('Login link to forgot password', () => {
-    test('login page exposes a forgot-password link that navigates to /forgot-password', async ({
+    test('login page exposes a forgot-password link that navigates to /password/reset', async ({
       page,
       loginPage,
     }) => {
       await loginPage.goto()
       await page.getByTestId('login-forgot-link').click()
-      await expect(page).toHaveURL(/\/forgot-password$/, { timeout: 5_000 })
+      await expect(page).toHaveURL(/\/password\/reset$/, { timeout: 5_000 })
     })
   })
 })

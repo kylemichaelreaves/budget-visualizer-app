@@ -29,8 +29,8 @@ export default function App() {
   return (
     <Router root={AppLayout}>
       <Route path="/login" component={Login} />
-      <Route path="/forgot-password" component={ForgotPasswordPage} />
-      <Route path="/reset-password" component={ResetPasswordPage} />
+      <Route path="/password/reset" component={ForgotPasswordPage} />
+      <Route path="/password/confirm" component={ResetPasswordPage} />
       <Route path="/" component={() => <Navigate href="/budget-visualizer/transactions" />} />
       <Route path="/budget-visualizer" component={BudgetVisualizer}>
         <Route path="/" component={() => <Navigate href="/budget-visualizer/transactions" />} />
