@@ -4,7 +4,7 @@ function isRecord(v: unknown): v is Record<string, unknown> {
   return v !== null && typeof v === 'object'
 }
 
-/** Normalize API user into our `User` shape (supports camelCase from JSON). */
+/** Normalize an API user object that uses camelCase field names into our `User` shape. */
 export function normalizeUserFromApi(raw: unknown): User | null {
   if (!isRecord(raw)) return null
   if (typeof raw.username !== 'string' || typeof raw.email !== 'string') return null
