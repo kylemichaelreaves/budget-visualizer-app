@@ -84,7 +84,10 @@ export default function CreateUserPage() {
         persistSession(session.user, session.token)
         navigate(redirectTarget(), { replace: true })
       } else {
-        navigate('/login?registered=1', { replace: true })
+        const qs = new URLSearchParams({ registered: '1' })
+        const safe = safeRedirectPath(searchParams.redirect)
+        if (safe) qs.set('redirect', safe)
+        navigate(`/login?${qs.toString()}`, { replace: true })
       }
     },
   }))
