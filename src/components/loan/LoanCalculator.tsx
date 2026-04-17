@@ -5,6 +5,7 @@ import { devConsole } from '@utils/devConsole'
 import LoanFormField, { type LoanFieldDef } from './LoanFormField'
 import { Button } from '@components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
+import { formatUsd } from '@utils/formatUsd'
 
 type LoanEstimate = {
   monthlyPayment: number
@@ -92,8 +93,8 @@ export default function LoanCalculator() {
       <CardHeader>
         <CardTitle>Loan Calculator</CardTitle>
         <p class="text-sm text-muted-foreground">
-          Monthly: {loanEstimate.monthlyPayment.toFixed(2)} · Interest:{' '}
-          {loanEstimate.totalInterest.toFixed(2)} · Total cost: {loanEstimate.totalCost.toFixed(2)} · Payoff:{' '}
+          Monthly: {formatUsd(loanEstimate.monthlyPayment)} · Interest:{' '}
+          {formatUsd(loanEstimate.totalInterest)} · Total cost: {formatUsd(loanEstimate.totalCost)} · Payoff:{' '}
           {payoffLabel()}
         </p>
       </CardHeader>

@@ -1,6 +1,7 @@
 import type { JSX } from 'solid-js'
 import { For, Show } from 'solid-js'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
+import { formatUsd } from '@utils/formatUsd'
 
 export default function SummaryCategoriesCard(props: { categories: [string, number][] }): JSX.Element {
   return (
@@ -35,7 +36,7 @@ export default function SummaryCategoriesCard(props: { categories: [string, numb
                     <span class="size-2 rounded-full shrink-0 bg-muted-foreground" />
                     <span class="truncate text-muted-foreground">{cat}</span>
                   </div>
-                  <span class="shrink-0 font-medium">${amt.toFixed(2)}</span>
+                  <span class="shrink-0 font-medium">{formatUsd(amt)}</span>
                 </div>
               )}
             </For>

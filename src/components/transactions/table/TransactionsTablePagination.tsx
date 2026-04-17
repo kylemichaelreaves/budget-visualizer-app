@@ -1,7 +1,6 @@
-import { onMount, Show } from 'solid-js'
+import { onMount } from 'solid-js'
 import useTransactionsCount from '@api/hooks/transactions/useTransactionsCount'
-import AlertComponent from '@components/shared/AlertComponent'
-import { Button } from '@components/ui/button'
+import TablePaginationBar from '@components/shared/TablePaginationBar'
 import {
   setTransactionsTableLimit,
   transactionsState,
@@ -36,50 +35,22 @@ export default function TransactionsTablePagination(props: { status?: PendingTra
   }
 
   return (
-    <div data-testid="transactions-table-pagination">
-      <Show when={countQuery.isError && countQuery.error}>
-        {(err) => (
-          <AlertComponent
-            type="error"
-            title={(err() as Error).name}
-            message={(err() as Error).message}
-            dataTestId="transactions-table-pagination-error"
-          />
-        )}
-      </Show>
-      <div class="flex items-center gap-3 flex-wrap my-3">
-        <label class="flex items-center gap-2">
-          <span class="text-muted-foreground text-sm">Rows</span>
-          <select
-            value={transactionsState.transactionsTableLimit}
-            onChange={(e) => {
-              const v = Number(e.currentTarget.value)
-              setTransactionsTableLimit(v)
-              updateTransactionsTableOffset(0)
-            }}
-            class="p-1.5 rounded"
-          >
-            <option value={25}>25</option>
-            <option value={50}>50</option>
-            <option value={100}>100</option>
-          </select>
-        </label>
-        <Button variant="outline" size="sm" type="button" onClick={goPrev} disabled={currentPage() <= 1}>
-          Previous
-        </Button>
-        <span class="text-foreground">
-          Page {currentPage()} / {totalPages()} ({countQuery.data ?? 0} total)
-        </span>
-        <Button
-          variant="outline"
-          size="sm"
-          type="button"
-          onClick={goNext}
-          disabled={currentPage() >= totalPages()}
-        >
-          Next
-        </Button>
-      </div>
-    </div>
+    <TablePaginationBar
+      dataTestId="transactions-table-pagination"
+      error={countQuery.isError && countQuery.error ? (countQuery.error as Error) : undefined}
+      errorTestId="transactions-table-pagination-error"
+      pageSize={transactionsState.transactionsTableLimit}
+      onPageSizeChange={(v) => {
+        setTransactionsTableLimit(v)
+        updateTransactionsTableOffset(0)
+      }}
+      currentPage={currentPage()}
+      totalPages={totalPages()}
+      totalCount={Number(countQuery.data ?? 0)}
+      onPrev={goPrev}
+      onNext={goNext}
+      prevDisabled={currentPage() <= 1}
+      nextDisabled={currentPage() >= totalPages()}
+    />
   )
 }

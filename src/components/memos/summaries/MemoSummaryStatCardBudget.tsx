@@ -1,9 +1,10 @@
 import type { Accessor } from 'solid-js'
 import { For, Show } from 'solid-js'
 import { AssignBudgetCategoryButton, BudgetCategoryPill } from '@components/shared/BudgetCategoryPill'
-import { Card, CardContent } from '@components/ui/card'
 import { LayoutGridIcon } from '@shared/icons'
 import { MEMO_SUMMARY_FREQUENCY_OPTIONS } from './memoSummaryConstants'
+import MemoSummaryCheckboxRow from './MemoSummaryCheckboxRow'
+import MemoSummaryStatCardShell from './MemoSummaryStatCardShell'
 
 export default function MemoSummaryStatCardBudget(props: {
   budgetCategory: Accessor<string | null>
@@ -20,15 +21,12 @@ export default function MemoSummaryStatCardBudget(props: {
   frequency: Accessor<string | undefined>
 }) {
   return (
-    <Card>
-      <CardContent class="pt-5 pb-4">
-        <div class="flex items-center gap-3 mb-3">
-          <div class="rounded-full bg-violet-100 dark:bg-violet-900/40 p-2">
-            <LayoutGridIcon class="size-5 text-violet-600 dark:text-violet-400" />
-          </div>
-          <span class="text-sm font-medium text-muted-foreground">Budget Category</span>
-        </div>
-
+    <MemoSummaryStatCardShell
+      tone="violet"
+      label={() => 'Budget Category'}
+      icon={<LayoutGridIcon class="size-5 text-violet-600 dark:text-violet-400" />}
+    >
+      <>
         <div class="mb-3">
           <Show
             when={props.budgetCategory()}
@@ -56,70 +54,48 @@ export default function MemoSummaryStatCardBudget(props: {
         </div>
 
         <div class="space-y-2">
-          <label
-            class="flex items-center gap-2 text-sm"
-            classList={{
-              'cursor-pointer': props.memoReady(),
-              'cursor-not-allowed opacity-60': !props.memoReady(),
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={props.isAmbiguous()}
-              disabled={!props.memoReady() || props.saving()}
-              onChange={(e) => props.onAmbiguousChange(e.currentTarget.checked)}
-              class="rounded border-border accent-amber-500"
-            />
-            <span>Ambiguous category</span>
-          </label>
+          <MemoSummaryCheckboxRow
+            label="Ambiguous category"
+            checked={props.isAmbiguous()}
+            disabled={!props.memoReady() || props.saving()}
+            onChange={props.onAmbiguousChange}
+            accentClass="accent-amber-500"
+            memoReady={props.memoReady}
+          />
 
-          <label
-            class="flex items-center gap-2 text-sm"
-            classList={{
-              'cursor-pointer': props.memoReady(),
-              'cursor-not-allowed opacity-60': !props.memoReady(),
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={props.isRecurring()}
-              disabled={!props.memoReady() || props.saving()}
-              onChange={(e) => props.onRecurringChange(e.currentTarget.checked)}
-              class="rounded border-border accent-blue-500"
-            />
-            <span>Recurring</span>
-            <Show when={props.isRecurring()}>
-              <select
-                value={props.frequency() ?? ''}
-                onChange={(e) => props.onFrequencyChange(e.currentTarget.value)}
-                disabled={!props.memoReady() || props.saving()}
-                class="ml-1 text-xs border border-input rounded px-1.5 py-0.5 bg-background"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <option value="">interval...</option>
-                <For each={MEMO_SUMMARY_FREQUENCY_OPTIONS}>{(f) => <option value={f}>{f}</option>}</For>
-              </select>
-            </Show>
-          </label>
+          <MemoSummaryCheckboxRow
+            label="Recurring"
+            checked={props.isRecurring()}
+            disabled={!props.memoReady() || props.saving()}
+            onChange={props.onRecurringChange}
+            accentClass="accent-blue-500"
+            memoReady={props.memoReady}
+            trailing={
+              <Show when={props.isRecurring()}>
+                <select
+                  value={props.frequency() ?? ''}
+                  onChange={(e) => props.onFrequencyChange(e.currentTarget.value)}
+                  disabled={!props.memoReady() || props.saving()}
+                  class="ml-1 text-xs border border-input rounded px-1.5 py-0.5 bg-background"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <option value="">interval...</option>
+                  <For each={MEMO_SUMMARY_FREQUENCY_OPTIONS}>{(f) => <option value={f}>{f}</option>}</For>
+                </select>
+              </Show>
+            }
+          />
 
-          <label
-            class="flex items-center gap-2 text-sm"
-            classList={{
-              'cursor-pointer': props.memoReady(),
-              'cursor-not-allowed opacity-60': !props.memoReady(),
-            }}
-          >
-            <input
-              type="checkbox"
-              checked={props.isNecessary()}
-              disabled={!props.memoReady() || props.saving()}
-              onChange={(e) => props.onNecessaryChange(e.currentTarget.checked)}
-              class="rounded border-border accent-green-500"
-            />
-            <span>Necessary purchase</span>
-          </label>
+          <MemoSummaryCheckboxRow
+            label="Necessary purchase"
+            checked={props.isNecessary()}
+            disabled={!props.memoReady() || props.saving()}
+            onChange={props.onNecessaryChange}
+            accentClass="accent-green-500"
+            memoReady={props.memoReady}
+          />
         </div>
-      </CardContent>
-    </Card>
+      </>
+    </MemoSummaryStatCardShell>
   )
 }

@@ -3,8 +3,8 @@ import { createMemo, Show } from 'solid-js'
 import { formatDate } from '@api/helpers/formatDate'
 import type { Transaction } from '@types'
 import { BudgetCategoryPill } from '@components/shared/BudgetCategoryPill'
+import SignedUsdAmount from '@components/shared/SignedUsdAmount'
 import { TrendingDownIcon, TrendingUpIcon } from '@shared/icons'
-import { formatUsdAbs } from '@utils/formatUsd'
 
 export default function MemoSummaryTransactionRow(props: { row: Transaction }) {
   const debit = createMemo(() => parseFloat(String(props.row.amount_debit ?? '0')))
@@ -44,12 +44,11 @@ export default function MemoSummaryTransactionRow(props: { row: Transaction }) {
         />
       </Show>
 
-      <span
-        class={`text-sm font-semibold tabular-nums whitespace-nowrap ${isCredit() ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}
-      >
-        {isCredit() ? '+' : '-'}
-        {formatUsdAbs(isCredit() ? credit() : debit())}
-      </span>
+      <SignedUsdAmount
+        class="text-sm whitespace-nowrap"
+        variant={isCredit() ? 'credit' : 'debit'}
+        value={isCredit() ? credit() : debit()}
+      />
     </div>
   )
 }

@@ -1,4 +1,8 @@
 import type { JSX } from 'solid-js'
+import { createMemo } from 'solid-js'
+import { useBudgetCategorySummary } from '@api/hooks/budgetCategories/useBudgetCategorySummary'
+import { budgetCategoryColorsFromData } from '@composables/budgetCategoryColors'
+import { createBudgetCategorySummaryTimeframeFromStore } from '@composables/budgetCategorySummaryTimeframeFromStore'
 import CategoryTreeSelectDialog from '@components/transactions/CategoryTreeSelectDialog'
 import { createMemosTableDerivedData } from '@components/memos/table/createMemosTableDerivedData'
 import { createMemosTableMutations } from '@components/memos/table/createMemosTableMutations'
@@ -6,10 +10,20 @@ import MemosTableAlerts from '@components/memos/table/MemosTableAlerts'
 import MemosTableListCard from '@components/memos/table/MemosTableListCard'
 import MemosTablePageIntro from '@components/memos/table/MemosTablePageIntro'
 import MemosTablePagination from '@components/memos/table/MemosTablePagination'
+import type { BudgetCategorySummary } from '@types'
 
 export default function MemosTable(): JSX.Element {
   const data = createMemosTableDerivedData()
   const mutations = createMemosTableMutations()
+
+  const { chartTimeFrame, chartDate } = createBudgetCategorySummaryTimeframeFromStore(() => undefined)
+  const categorySummaryQuery = useBudgetCategorySummary(
+    () => chartTimeFrame(),
+    () => chartDate(),
+  )
+  const categoryColors = createMemo(() =>
+    budgetCategoryColorsFromData(categorySummaryQuery.data as BudgetCategorySummary[] | undefined),
+  )
 
   return (
     <>
@@ -40,6 +54,7 @@ export default function MemosTable(): JSX.Element {
         mutatingCategoryId={mutations.mutatingCategoryId}
         onToggleAmbiguous={mutations.toggleAmbiguous}
         onAssignCategory={mutations.handleAssignCategory}
+        getColorByName={(name) => categoryColors().getColorByName(name)}
       />
 
       <MemosTablePagination

@@ -6,7 +6,9 @@ import { TrashIcon } from '@shared/icons'
 import { Button } from '@components/ui/button'
 import { Input } from '@components/ui/input'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@components/ui/dialog'
+import SignedUsdAmount from '@components/shared/SignedUsdAmount'
 import { useSplitBudgetCategoryDrawer } from './useSplitBudgetCategoryDrawer'
+import { formatUsd, formatUsdAbs } from '@utils/formatUsd'
 
 export default function SplitBudgetCategoryDrawer(props: {
   open: boolean
@@ -37,12 +39,10 @@ export default function SplitBudgetCategoryDrawer(props: {
         <div class="rounded-lg border bg-muted/40 p-4 space-y-1">
           <div class="flex items-center justify-between">
             <span class="font-medium">{props.transactionDescription ?? 'Transaction'}</span>
-            <span
-              class={`font-semibold ${props.transactionType === 'credit' ? 'text-green-500' : 'text-red-500'}`}
-            >
-              {props.transactionType === 'credit' ? '+' : '-'}
-              {`$${Math.abs(props.transactionAmount).toFixed(2)}`}
-            </span>
+            <SignedUsdAmount
+              variant={props.transactionType === 'credit' ? 'credit' : 'debit'}
+              value={Math.abs(props.transactionAmount)}
+            />
           </div>
           <Show when={props.transactionCategory || props.transactionDate}>
             <p class="text-sm text-muted-foreground">
@@ -111,11 +111,11 @@ export default function SplitBudgetCategoryDrawer(props: {
           <div class="rounded-lg border p-3 space-y-2 mt-2">
             <div class="flex items-center justify-between text-sm">
               <span class="text-muted-foreground">Transaction total</span>
-              <span>${props.transactionAmount.toFixed(2)}</span>
+              <span>{formatUsd(props.transactionAmount)}</span>
             </div>
             <div class="flex items-center justify-between text-sm">
               <span class="text-muted-foreground">Allocated</span>
-              <span>${state.totalAllocated().toFixed(2)}</span>
+              <span>{formatUsd(state.totalAllocated())}</span>
             </div>
             <div class="border-t pt-2 flex items-center justify-between text-sm font-medium">
               <span>Remaining</span>
@@ -128,7 +128,7 @@ export default function SplitBudgetCategoryDrawer(props: {
                       : 'text-yellow-500'
                 }
               >
-                ${state.remaining().toFixed(2)}
+                {formatUsd(state.remaining())}
               </span>
             </div>
           </div>
@@ -136,8 +136,8 @@ export default function SplitBudgetCategoryDrawer(props: {
           <Show when={!state.isBalanced()}>
             <p class="text-xs text-muted-foreground">
               {state.remaining() > 0
-                ? `$${state.remaining().toFixed(2)} still unallocated.`
-                : `Over-allocated by $${Math.abs(state.remaining()).toFixed(2)}.`}
+                ? `${formatUsd(state.remaining())} still unallocated.`
+                : `Over-allocated by ${formatUsdAbs(state.remaining())}.`}
             </p>
           </Show>
         </div>

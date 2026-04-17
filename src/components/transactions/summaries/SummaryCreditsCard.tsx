@@ -1,10 +1,6 @@
 import type { JSX } from 'solid-js'
 import SummaryStatCard from './SummaryStatCard'
-
-const currencyFormatter = new Intl.NumberFormat('en-US', {
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-})
+import { formatUsdAbs } from '@utils/formatUsd'
 
 export default function SummaryCreditsCard(props: { total: number; count: number }): JSX.Element {
   return (
@@ -26,7 +22,7 @@ export default function SummaryCreditsCard(props: { total: number; count: number
           <line x1="12" y1="16" x2="12" y2="8" />
         </svg>
       }
-      value={<div class="text-2xl font-bold text-green-500">+${currencyFormatter.format(props.total)}</div>}
+      value={<div class="text-2xl font-bold text-green-500">+{formatUsdAbs(props.total)}</div>}
       subtitle={`${props.count} income transaction${props.count !== 1 ? 's' : ''}`}
     />
   )

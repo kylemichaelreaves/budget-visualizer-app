@@ -7,6 +7,7 @@ import SplitBudgetCategoryDrawer from './SplitBudgetCategoryDrawer'
 import { Button } from '@components/ui/button'
 import { Label } from '@components/ui/label'
 import { generateId } from '@components/transactions/helpers/generateId'
+import { formatUsd } from '@utils/formatUsd'
 
 export default function BudgetCategoryFormField(props: {
   modelValue: BudgetCategoryState
@@ -27,7 +28,7 @@ export default function BudgetCategoryFormField(props: {
     const sum = props.modelValue.splits.reduce((a, s) => a + s.amount_debit, 0)
     const d = Math.abs(sum - props.transactionAmount)
     if (d > 0.01) {
-      return `Total $${sum.toFixed(2)} doesn't match transaction $${props.transactionAmount.toFixed(2)}`
+      return `Total ${formatUsd(sum)} doesn't match transaction ${formatUsd(props.transactionAmount)}`
     }
     return null
   })
