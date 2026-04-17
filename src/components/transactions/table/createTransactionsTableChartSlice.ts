@@ -14,7 +14,7 @@ export function createTransactionsTableChartSlice(flattenedData: Accessor<Transa
     return dates[0]
   })
 
-  const { chartTimeFrame, chartDate } = createBudgetCategorySummaryTimeframeFromStore(() => firstDay())
+  const { chartTimeFrame, chartDate } = createBudgetCategorySummaryTimeframeFromStore(firstDay)
 
   const categorySummaryQuery = useBudgetCategorySummary(
     () => chartTimeFrame(),

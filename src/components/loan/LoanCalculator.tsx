@@ -60,8 +60,12 @@ export default function LoanCalculator() {
   function calculateLoanEstimate() {
     const monthlyInterestRate = loanForm.interestRate / 100 / 12
     const numberOfPayments = loanForm.loanTerm
+    // 0% interest collapses the amortization formula's denominator to zero; split loanAmount evenly instead.
     const monthlyPayment =
-      (monthlyInterestRate * loanForm.loanAmount) / (1 - Math.pow(1 + monthlyInterestRate, -numberOfPayments))
+      monthlyInterestRate === 0
+        ? loanForm.loanAmount / numberOfPayments
+        : (monthlyInterestRate * loanForm.loanAmount) /
+          (1 - Math.pow(1 + monthlyInterestRate, -numberOfPayments))
 
     setLoanEstimate('monthlyPayment', monthlyPayment)
     setLoanEstimate('totalInterest', monthlyPayment * numberOfPayments - loanForm.loanAmount)

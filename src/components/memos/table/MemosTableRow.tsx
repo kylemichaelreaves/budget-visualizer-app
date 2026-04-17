@@ -78,8 +78,6 @@ export default function MemosTableRow(props: {
               label={row().budget_category!}
               dataTestId={`category-badge-${row().id}`}
               onClick={() => props.onAssignCategory(row())}
-              accentOn="button"
-              buttonClass="inline-flex cursor-pointer items-center rounded-full border bg-transparent px-2.5 py-0.5 text-xs font-medium focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 hover:bg-accent transition-colors rounded-full"
               style={(() => {
                 const c = props.getColorByName(row().budget_category!)
                 return { 'border-color': c, color: c }
