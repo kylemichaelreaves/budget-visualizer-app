@@ -41,6 +41,13 @@ export default function CreateUserPage() {
     () => safeRedirectPath(searchParams.redirect) ?? DEFAULT_AUTHENTICATED_ROUTE,
   )
 
+  const signInHref = createMemo(() => {
+    const safe = safeRedirectPath(searchParams.redirect)
+    if (!safe) return '/login'
+    const qs = new URLSearchParams({ redirect: safe })
+    return `/login?${qs.toString()}`
+  })
+
   const strength = createMemo(() => analyzePassword(password()))
 
   const usernameError = createMemo(() => (submitted() && !username().trim() ? 'Username is required.' : null))
@@ -242,7 +249,7 @@ export default function CreateUserPage() {
 
         <p class="text-center text-sm text-muted-foreground">
           Already have an account?{' '}
-          <A href="/login" class="text-primary hover:underline font-medium">
+          <A href={signInHref()} class="text-primary hover:underline font-medium">
             Sign in
           </A>
         </p>
