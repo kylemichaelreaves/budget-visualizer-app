@@ -152,7 +152,7 @@ export default function ResetPasswordPage() {
                 </Show>
               </div>
 
-              <Show when={cfError()}>
+              <Show when={confirm().length > 0 && password() !== confirm() && submitted()}>
                 <ErrorCallout
                   title="Password mismatch"
                   description="Make sure both fields contain the exact same password."
