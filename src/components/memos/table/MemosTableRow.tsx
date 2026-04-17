@@ -2,7 +2,7 @@ import { A } from '@solidjs/router'
 import type { Accessor } from 'solid-js'
 import { Show } from 'solid-js'
 import type { Memo } from '@types'
-import { AssignCategoryTrigger, BudgetCategoryPill } from '@components/shared/BudgetCategoryUi'
+import { AssignBudgetCategoryButton, BudgetCategoryPill } from '@components/shared/BudgetCategoryPill'
 import { Skeleton } from '@components/ui/skeleton'
 import { CheckIcon, WarningIcon } from '@shared/icons'
 import { getMemosTableCategoryColor } from '@components/memos/table/memosTableSort'
@@ -66,7 +66,7 @@ export default function MemosTableRow(props: {
           <Show
             when={row().budget_category}
             fallback={
-              <AssignCategoryTrigger
+              <AssignBudgetCategoryButton
                 onClick={() => props.onAssignCategory(row())}
                 dataTestId={`assign-category-${row().id}`}
                 class="h-7 py-0"

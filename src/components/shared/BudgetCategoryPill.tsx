@@ -6,7 +6,7 @@ import { cn } from '@utils/cn'
 
 const defaultPillBadgeClass = 'text-xs hover:bg-accent transition-colors'
 
-export function AssignCategoryTrigger(props: {
+export function AssignBudgetCategoryButton(props: {
   onClick: () => void
   dataTestId: string
   disabled?: boolean
@@ -113,6 +113,6 @@ export function BudgetCategoryPill(props: BudgetCategoryPillOwnProps): JSX.Eleme
 }
 
 /** Read-only empty state for category cells. */
-export function BudgetCategoryPillEmpty(props: { class?: string }): JSX.Element {
+export function BudgetCategoryPlaceholder(props: { class?: string }): JSX.Element {
   return <span class={cn('text-muted-foreground', props.class)}>—</span>
 }
