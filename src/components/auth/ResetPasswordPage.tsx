@@ -114,12 +114,10 @@ export default function ResetPasswordPage() {
                   testid="reset-password-new-input"
                 />
 
-                <Show when={!pwError()}>
-                  <PasswordStrengthIndicator
-                    strength={strength()}
-                    showRequirements={focusedField() === 'password' || password().length > 0}
-                  />
-                </Show>
+                <PasswordStrengthIndicator
+                  strength={strength()}
+                  showRequirements={focusedField() === 'password' || password().length > 0}
+                />
               </div>
 
               {/* Confirm password */}
