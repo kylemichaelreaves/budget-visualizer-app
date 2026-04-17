@@ -220,23 +220,6 @@ export type RouterQueryParams = {
   [key: string]: string | number | null | undefined
 }
 
-export type RegisterFormKeys =
-  | 'username'
-  | 'firstName'
-  | 'lastName'
-  | 'email'
-  | 'password'
-  | 'confirmPassword'
-
-export interface RegisterFormFields {
-  component: 'el-input'
-  label: string
-  placeholder: string
-  type: string
-  showPassword?: boolean
-  labelPosition?: string
-}
-
 export type SummaryTypeBase = {
   total_debit: number
   total_amount_debit?: number
@@ -356,6 +339,16 @@ export interface User {
 }
 
 export type UserRole = 'admin' | 'user' | 'guest'
+
+/** Body.user for `POST /api/v1/users` — fields persisted by resourceQuerier today; confirmPassword is client-only. */
+export type CreateUserInput = Pick<User, 'username' | 'email'> & {
+  password: string
+}
+
+export interface CreateUserSessionResponse {
+  user: User
+  token: string
+}
 
 export interface WeekSummary {
   memo: string

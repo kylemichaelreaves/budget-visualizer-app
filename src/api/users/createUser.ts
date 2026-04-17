@@ -1,12 +1,7 @@
-import type { User } from '@types'
+import type { CreateUserInput } from '@types'
 import { httpClient } from '@api/httpClient.ts'
 
-export async function createUser(user: User) {
-  const response = await httpClient.post(`/users`, { user })
-
-  if (!response) {
-    throw new Error('Failed to create user')
-  }
-
-  return await response.data
+export async function createUser(user: CreateUserInput): Promise<unknown> {
+  const { data } = await httpClient.post<unknown>(`/users`, { user })
+  return data
 }

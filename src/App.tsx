@@ -1,4 +1,5 @@
 import { Navigate, Route, Router } from '@solidjs/router'
+import CreateUserPage from '@components/auth/CreateUserPage'
 import ForgotPasswordPage from '@components/auth/ForgotPasswordPage'
 import Login from '@components/auth/Login'
 import ResetPasswordPage from '@components/auth/ResetPasswordPage'
@@ -29,6 +30,7 @@ export default function App() {
   return (
     <Router root={AppLayout}>
       <Route path="/login" component={Login} />
+      <Route path="/register" component={CreateUserPage} />
       <Route path="/password/reset" component={ForgotPasswordPage} />
       <Route path="/password/confirm" component={ResetPasswordPage} />
       <Route path="/" component={() => <Navigate href="/budget-visualizer/transactions" />} />
