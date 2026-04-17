@@ -5,6 +5,7 @@ import { devConsole } from '@utils/devConsole'
 import LoanFormField, { type LoanFieldDef } from './LoanFormField'
 import { Button } from '@components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
+import { formatUsd } from '@utils/formatUsd'
 
 type LoanEstimate = {
   monthlyPayment: number
@@ -59,8 +60,17 @@ export default function LoanCalculator() {
   function calculateLoanEstimate() {
     const monthlyInterestRate = loanForm.interestRate / 100 / 12
     const numberOfPayments = loanForm.loanTerm
+    // Zero or negative term is meaningless and would produce Infinity/NaN via either branch below.
+    if (numberOfPayments <= 0 || loanForm.loanAmount <= 0) {
+      setLoanEstimate({ monthlyPayment: 0, totalInterest: 0, totalCost: 0, payoffDate: Date.now() })
+      return
+    }
+    // 0% interest collapses the amortization formula's denominator to zero; split loanAmount evenly instead.
     const monthlyPayment =
-      (monthlyInterestRate * loanForm.loanAmount) / (1 - Math.pow(1 + monthlyInterestRate, -numberOfPayments))
+      monthlyInterestRate === 0
+        ? loanForm.loanAmount / numberOfPayments
+        : (monthlyInterestRate * loanForm.loanAmount) /
+          (1 - Math.pow(1 + monthlyInterestRate, -numberOfPayments))
 
     setLoanEstimate('monthlyPayment', monthlyPayment)
     setLoanEstimate('totalInterest', monthlyPayment * numberOfPayments - loanForm.loanAmount)
@@ -92,8 +102,8 @@ export default function LoanCalculator() {
       <CardHeader>
         <CardTitle>Loan Calculator</CardTitle>
         <p class="text-sm text-muted-foreground">
-          Monthly: {loanEstimate.monthlyPayment.toFixed(2)} · Interest:{' '}
-          {loanEstimate.totalInterest.toFixed(2)} · Total cost: {loanEstimate.totalCost.toFixed(2)} · Payoff:{' '}
+          Monthly: {formatUsd(loanEstimate.monthlyPayment)} · Interest:{' '}
+          {formatUsd(loanEstimate.totalInterest)} · Total cost: {formatUsd(loanEstimate.totalCost)} · Payoff:{' '}
           {payoffLabel()}
         </p>
       </CardHeader>

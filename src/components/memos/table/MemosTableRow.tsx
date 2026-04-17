@@ -5,7 +5,6 @@ import type { Memo } from '@types'
 import { AssignBudgetCategoryButton, BudgetCategoryPill } from '@components/shared/BudgetCategoryPill'
 import { Skeleton } from '@components/ui/skeleton'
 import { CheckIcon, WarningIcon } from '@shared/icons'
-import { getMemosTableCategoryColor } from '@components/memos/table/memosTableSort'
 import { formatUsdOrDash } from '@utils/formatUsd'
 
 export default function MemosTableRow(props: {
@@ -14,6 +13,7 @@ export default function MemosTableRow(props: {
   mutatingCategoryId: Accessor<number | null>
   onToggleAmbiguous: (memo: Memo) => void
   onAssignCategory: (memo: Memo) => void
+  getColorByName: (categoryName: string) => string
 }) {
   const row = () => props.row
 
@@ -76,10 +76,12 @@ export default function MemosTableRow(props: {
             <BudgetCategoryPill
               interactive
               label={row().budget_category!}
-              class={`rounded-full border-0 px-2.5 py-0.5 font-medium ${getMemosTableCategoryColor(row().budget_category!)}`}
-              onClick={() => props.onAssignCategory(row())}
               dataTestId={`category-badge-${row().id}`}
-              buttonClass="rounded-full"
+              onClick={() => props.onAssignCategory(row())}
+              style={(() => {
+                const c = props.getColorByName(row().budget_category!)
+                return { 'border-color': c, color: c }
+              })()}
             />
           </Show>
         </Show>

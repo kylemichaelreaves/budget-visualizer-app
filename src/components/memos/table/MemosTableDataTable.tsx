@@ -18,6 +18,7 @@ export default function MemosTableDataTable(props: {
   mutatingCategoryId: Accessor<number | null>
   onToggleAmbiguous: (memo: Memo) => void
   onAssignCategory: (memo: Memo) => void
+  getColorByName: (categoryName: string) => string
 }) {
   return (
     <div class="overflow-x-auto">
@@ -50,6 +51,7 @@ export default function MemosTableDataTable(props: {
                 mutatingCategoryId={props.mutatingCategoryId}
                 onToggleAmbiguous={props.onToggleAmbiguous}
                 onAssignCategory={props.onAssignCategory}
+                getColorByName={props.getColorByName}
               />
             )}
           </For>

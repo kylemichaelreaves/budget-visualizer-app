@@ -7,6 +7,7 @@ import SplitBudgetCategoryDrawer from './SplitBudgetCategoryDrawer'
 import { Button } from '@components/ui/button'
 import { Label } from '@components/ui/label'
 import { generateId } from '@components/transactions/helpers/generateId'
+import { formatUsd } from '@utils/formatUsd'
 
 export default function BudgetCategoryFormField(props: {
   modelValue: BudgetCategoryState
@@ -21,13 +22,15 @@ export default function BudgetCategoryFormField(props: {
   const isSplit = () => props.modelValue.mode === 'split'
   const splits = () => (props.modelValue.mode === 'split' ? props.modelValue.splits : [])
   const categoryId = () => (props.modelValue.mode === 'single' ? props.modelValue.categoryId : null)
+  /** API rows can carry negative `amount_debit` (e.g. "-37.31"); the split flow's inputs use min=0 and the drawer subtracts allocations from this total, so normalize here. */
+  const absAmount = () => Math.abs(props.transactionAmount)
 
   const validationError = createMemo(() => {
     if (props.modelValue.mode !== 'split') return null
     const sum = props.modelValue.splits.reduce((a, s) => a + s.amount_debit, 0)
-    const d = Math.abs(sum - props.transactionAmount)
+    const d = Math.abs(sum - absAmount())
     if (d > 0.01) {
-      return `Total $${sum.toFixed(2)} doesn't match transaction $${props.transactionAmount.toFixed(2)}`
+      return `Total ${formatUsd(sum)} doesn't match transaction ${formatUsd(absAmount())}`
     }
     return null
   })
@@ -40,7 +43,7 @@ export default function BudgetCategoryFormField(props: {
         initial.push({
           id: generateId(),
           budget_category_id: cid,
-          amount_debit: props.transactionAmount,
+          amount_debit: absAmount(),
         })
       }
       props.onChange({ mode: 'split', splits: initial })
@@ -89,7 +92,7 @@ export default function BudgetCategoryFormField(props: {
       <SplitBudgetCategoryDrawer
         open={drawerOpen()}
         splits={splits()}
-        transactionAmount={props.transactionAmount}
+        transactionAmount={absAmount()}
         timeframe={() => timeFrame()}
         date={() => selectedValue()}
         onSubmit={(next) => {

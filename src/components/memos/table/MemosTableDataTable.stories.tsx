@@ -1,8 +1,18 @@
+import { MemoryRouter, Route } from '@solidjs/router'
 import type { Meta, StoryObj } from 'storybook-solidjs-vite'
+import type { JSX } from 'solid-js'
 import { createSignal } from 'solid-js'
 import type { Memo } from '@types'
 import type { MemosTableSortDir, MemosTableSortKey } from './memosTableSort'
 import MemosTableDataTable from './MemosTableDataTable'
+
+function WithRouter(props: { children: JSX.Element }) {
+  return (
+    <MemoryRouter root={(r) => r.children}>
+      <Route path="/" component={() => props.children} />
+    </MemoryRouter>
+  )
+}
 
 const sampleMemos: Memo[] = [
   {
@@ -64,53 +74,62 @@ export const WithData: Story = {
     const [sortKey, setSortKey] = createSignal<MemosTableSortKey | null>(null)
     const [sortDir, setSortDir] = createSignal<MemosTableSortDir>('asc')
     return (
-      <MemosTableDataTable
-        paginatedData={() => sampleMemos}
-        sortKey={sortKey}
-        sortDir={sortDir}
-        onSort={(key) => {
-          if (sortKey() === key) {
-            setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
-          } else {
-            setSortKey(key)
-            setSortDir('asc')
-          }
-        }}
-        togglingAmbiguousId={() => null}
-        mutatingCategoryId={() => null}
-        onToggleAmbiguous={() => {}}
-        onAssignCategory={() => {}}
-      />
+      <WithRouter>
+        <MemosTableDataTable
+          paginatedData={() => sampleMemos}
+          sortKey={sortKey}
+          sortDir={sortDir}
+          onSort={(key) => {
+            if (sortKey() === key) {
+              setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'))
+            } else {
+              setSortKey(key)
+              setSortDir('asc')
+            }
+          }}
+          togglingAmbiguousId={() => null}
+          mutatingCategoryId={() => null}
+          onToggleAmbiguous={() => {}}
+          onAssignCategory={() => {}}
+          getColorByName={() => '#888888'}
+        />
+      </WithRouter>
     )
   },
 }
 
 export const Empty: Story = {
   render: () => (
-    <MemosTableDataTable
-      paginatedData={() => []}
-      sortKey={() => null}
-      sortDir={() => 'asc'}
-      onSort={() => {}}
-      togglingAmbiguousId={() => null}
-      mutatingCategoryId={() => null}
-      onToggleAmbiguous={() => {}}
-      onAssignCategory={() => {}}
-    />
+    <WithRouter>
+      <MemosTableDataTable
+        paginatedData={() => []}
+        sortKey={() => null}
+        sortDir={() => 'asc'}
+        onSort={() => {}}
+        togglingAmbiguousId={() => null}
+        mutatingCategoryId={() => null}
+        onToggleAmbiguous={() => {}}
+        onAssignCategory={() => {}}
+        getColorByName={() => '#888888'}
+      />
+    </WithRouter>
   ),
 }
 
 export const Sorting: Story = {
   render: () => (
-    <MemosTableDataTable
-      paginatedData={() => sampleMemos}
-      sortKey={() => 'total_amount_debit'}
-      sortDir={() => 'desc'}
-      onSort={() => {}}
-      togglingAmbiguousId={() => null}
-      mutatingCategoryId={() => null}
-      onToggleAmbiguous={() => {}}
-      onAssignCategory={() => {}}
-    />
+    <WithRouter>
+      <MemosTableDataTable
+        paginatedData={() => sampleMemos}
+        sortKey={() => 'total_amount_debit'}
+        sortDir={() => 'desc'}
+        onSort={() => {}}
+        togglingAmbiguousId={() => null}
+        mutatingCategoryId={() => null}
+        onToggleAmbiguous={() => {}}
+        onAssignCategory={() => {}}
+        getColorByName={() => '#888888'}
+      />
+    </WithRouter>
   ),
 }

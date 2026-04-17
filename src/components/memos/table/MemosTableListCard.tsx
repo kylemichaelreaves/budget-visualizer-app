@@ -25,6 +25,7 @@ export default function MemosTableListCard(props: {
   mutatingCategoryId: Accessor<number | null>
   onToggleAmbiguous: (memo: Memo) => void
   onAssignCategory: (memo: Memo) => void
+  getColorByName: (categoryName: string) => string
 }) {
   return (
     <Card>
@@ -66,6 +67,7 @@ export default function MemosTableListCard(props: {
             mutatingCategoryId={props.mutatingCategoryId}
             onToggleAmbiguous={props.onToggleAmbiguous}
             onAssignCategory={props.onAssignCategory}
+            getColorByName={props.getColorByName}
           />
         </Show>
 

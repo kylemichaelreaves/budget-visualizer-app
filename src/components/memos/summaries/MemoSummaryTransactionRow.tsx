@@ -3,13 +3,17 @@ import { createMemo, Show } from 'solid-js'
 import { formatDate } from '@api/helpers/formatDate'
 import type { Transaction } from '@types'
 import { BudgetCategoryPill } from '@components/shared/BudgetCategoryPill'
+import SignedUsdAmount from '@components/shared/SignedUsdAmount'
 import { TrendingDownIcon, TrendingUpIcon } from '@shared/icons'
-import { formatUsdAbs } from '@utils/formatUsd'
 
 export default function MemoSummaryTransactionRow(props: { row: Transaction }) {
   const debit = createMemo(() => parseFloat(String(props.row.amount_debit ?? '0')))
   const credit = createMemo(() => parseFloat(String(props.row.amount_credit ?? '0')))
   const isCredit = createMemo(() => credit() > 0 && debit() === 0)
+  const budgetCategory = (): string | null =>
+    typeof props.row.budget_category === 'string' && props.row.budget_category
+      ? props.row.budget_category
+      : null
 
   return (
     <div class="flex items-center gap-3 py-3 px-1">
@@ -37,19 +41,15 @@ export default function MemoSummaryTransactionRow(props: { row: Transaction }) {
         <p class="text-xs text-muted-foreground m-0">{formatDate(String(props.row.date ?? ''))}</p>
       </div>
 
-      <Show when={typeof props.row.budget_category === 'string' && props.row.budget_category}>
-        <BudgetCategoryPill
-          label={props.row.budget_category as string}
-          class="hidden sm:inline-flex text-xs"
-        />
+      <Show when={budgetCategory()}>
+        {(c) => <BudgetCategoryPill label={c()} class="hidden sm:inline-flex text-xs" />}
       </Show>
 
-      <span
-        class={`text-sm font-semibold tabular-nums whitespace-nowrap ${isCredit() ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}
-      >
-        {isCredit() ? '+' : '-'}
-        {formatUsdAbs(isCredit() ? credit() : debit())}
-      </span>
+      <SignedUsdAmount
+        class="text-sm whitespace-nowrap"
+        variant={isCredit() ? 'credit' : 'debit'}
+        value={isCredit() ? credit() : debit()}
+      />
     </div>
   )
 }

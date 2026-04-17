@@ -1,24 +1,20 @@
 import type { Accessor } from 'solid-js'
 import { Show } from 'solid-js'
-import { Card, CardContent } from '@components/ui/card'
 import { ArrowDownCircleIcon } from '@shared/icons'
 import { formatUsdAbs } from '@utils/formatUsd'
 import type { MemoSummaryDebitAggregate } from './memoSummaryStatCardTypes'
+import MemoSummaryStatCard from './MemoSummaryStatCard'
 
 export default function MemoSummaryStatCardDebit(props: {
   totalDebits: Accessor<MemoSummaryDebitAggregate>
 }) {
   return (
-    <Card>
-      <CardContent class="pt-5 pb-4">
-        <div class="flex items-center gap-3 mb-3">
-          <div class="rounded-full bg-red-100 dark:bg-red-900/40 p-2">
-            <ArrowDownCircleIcon class="size-5 text-red-600 dark:text-red-400" />
-          </div>
-          <span class="text-sm font-medium text-muted-foreground">
-            {props.totalDebits().aggregateScope === 'page' ? 'Debits (this page)' : 'Total Debits'}
-          </span>
-        </div>
+    <MemoSummaryStatCard
+      tone="red"
+      label={() => (props.totalDebits().aggregateScope === 'page' ? 'Debits (this page)' : 'Total Debits')}
+      icon={<ArrowDownCircleIcon class="size-5 text-red-600 dark:text-red-400" />}
+    >
+      <>
         <p
           class="text-2xl font-bold text-red-600 dark:text-red-400 m-0"
           data-testid="memo-summary-total-debit"
@@ -31,7 +27,7 @@ export default function MemoSummaryStatCardDebit(props: {
             {props.totalDebits().debitTxnCount !== 1 ? 's' : ''} on this page
           </p>
         </Show>
-      </CardContent>
-    </Card>
+      </>
+    </MemoSummaryStatCard>
   )
 }
