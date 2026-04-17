@@ -60,6 +60,11 @@ export default function LoanCalculator() {
   function calculateLoanEstimate() {
     const monthlyInterestRate = loanForm.interestRate / 100 / 12
     const numberOfPayments = loanForm.loanTerm
+    // Zero or negative term is meaningless and would produce Infinity/NaN via either branch below.
+    if (numberOfPayments <= 0 || loanForm.loanAmount <= 0) {
+      setLoanEstimate({ monthlyPayment: 0, totalInterest: 0, totalCost: 0, payoffDate: Date.now() })
+      return
+    }
     // 0% interest collapses the amortization formula's denominator to zero; split loanAmount evenly instead.
     const monthlyPayment =
       monthlyInterestRate === 0

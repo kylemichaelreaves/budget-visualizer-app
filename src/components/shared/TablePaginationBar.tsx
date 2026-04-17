@@ -21,7 +21,11 @@ export default function TablePaginationBar(props: {
   prevTestId?: string
   nextTestId?: string
 }): JSX.Element {
-  const sizes = () => props.pageSizeOptions ?? [25, 50, 100]
+  /** Always include the current `pageSize` so the controlled <select> has a matching <option>. */
+  const sizes = () => {
+    const opts = props.pageSizeOptions ?? [25, 50, 100]
+    return opts.includes(props.pageSize) ? opts : [...opts, props.pageSize].sort((a, b) => a - b)
+  }
 
   const errorAlert = () => {
     const err = props.error
@@ -32,7 +36,7 @@ export default function TablePaginationBar(props: {
         type="error"
         title={normalized.name}
         message={normalized.message}
-        dataTestId={props.errorTestId}
+        dataTestId={props.errorTestId ?? `${props.dataTestId}-error`}
       />
     )
   }

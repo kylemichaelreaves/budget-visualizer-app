@@ -48,10 +48,25 @@ describe('TablePaginationBar', () => {
   })
 
   it('renders custom pageSizeOptions when provided', () => {
-    render(() => <TablePaginationBar {...baseProps({ pageSizeOptions: [10, 20] })} />)
+    render(() => <TablePaginationBar {...baseProps({ pageSize: 10, pageSizeOptions: [10, 20] })} />)
     expect(screen.getByRole('option', { name: '10' })).toBeInTheDocument()
     expect(screen.getByRole('option', { name: '20' })).toBeInTheDocument()
     expect(screen.queryByRole('option', { name: '25' })).not.toBeInTheDocument()
+  })
+
+  it('injects current pageSize into options when it is not already listed', () => {
+    render(() => <TablePaginationBar {...baseProps({ pageSize: 75, pageSizeOptions: [10, 20] })} />)
+    // 75 should be added (sorted) so the controlled <select value={75}> matches an <option>.
+    expect(screen.getByRole('option', { name: '75' })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: '10' })).toBeInTheDocument()
+    expect(screen.getByRole('option', { name: '20' })).toBeInTheDocument()
+    const select = screen.getByRole('combobox') as HTMLSelectElement
+    expect(select.value).toBe('75')
+  })
+
+  it('defaults errorTestId to `${dataTestId}-error` when not provided', () => {
+    render(() => <TablePaginationBar {...baseProps({ error: new Error('x'), dataTestId: 'memos-pg' })} />)
+    expect(screen.getByTestId('memos-pg-error')).toBeInTheDocument()
   })
 
   it('renders nothing for error when not provided', () => {
