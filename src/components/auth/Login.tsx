@@ -26,6 +26,13 @@ export default function Login() {
     () => safeRedirectPath(searchParams.redirect) ?? DEFAULT_AUTHENTICATED_ROUTE,
   )
 
+  const registerHref = createMemo(() => {
+    const safe = safeRedirectPath(searchParams.redirect)
+    if (!safe) return '/register'
+    const qs = new URLSearchParams({ redirect: safe })
+    return `/register?${qs.toString()}`
+  })
+
   const resetSuccess = createMemo(() => searchParams.resetSuccess === '1')
   const registered = createMemo(() => searchParams.registered === '1')
 
@@ -94,7 +101,7 @@ export default function Login() {
               <Input
                 id="login-email"
                 type="email"
-                autocomplete="email"
+                autocomplete="username"
                 inputmode="email"
                 placeholder="name@example.com"
                 value={email()}
@@ -130,7 +137,7 @@ export default function Login() {
             </Button>
             <div class="flex flex-col gap-2 text-center text-sm text-muted-foreground">
               <A
-                href="/register"
+                href={registerHref()}
                 class="hover:underline font-medium text-foreground"
                 data-testid="login-register-link"
               >
