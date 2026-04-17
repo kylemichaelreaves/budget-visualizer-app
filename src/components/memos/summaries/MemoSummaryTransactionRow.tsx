@@ -2,7 +2,7 @@ import { A } from '@solidjs/router'
 import { createMemo, Show } from 'solid-js'
 import { formatDate } from '@api/helpers/formatDate'
 import type { Transaction } from '@types'
-import { BudgetCategoryPill } from '@components/shared/BudgetCategoryUi'
+import { BudgetCategoryPill } from '@components/shared/BudgetCategoryPill'
 import { TrendingDownIcon, TrendingUpIcon } from '@shared/icons'
 import { formatUsdAbs } from '@utils/formatUsd'
 

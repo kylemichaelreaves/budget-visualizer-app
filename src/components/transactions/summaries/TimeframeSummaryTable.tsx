@@ -3,7 +3,7 @@ import type { JSX } from 'solid-js'
 import { createMemo, createSignal, For, Show } from 'solid-js'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 import AlertComponent from '@components/shared/AlertComponent'
-import { BudgetCategoryPill, BudgetCategoryPillEmpty } from '@components/shared/BudgetCategoryUi'
+import { BudgetCategoryPill, BudgetCategoryPlaceholder } from '@components/shared/BudgetCategoryPill'
 import { formatUsd } from '@utils/formatUsd'
 
 export type TimeframeSummaryRow = {
@@ -176,7 +176,7 @@ export default function TimeframeSummaryTable(props: {
                             <MemoCell memo={row.memo} dataTestId={props.memoLinkTestId} />
                           </td>
                           <td class="px-3 py-1.5 max-w-[140px]">
-                            <Show when={row.budget_category} fallback={<BudgetCategoryPillEmpty />}>
+                            <Show when={row.budget_category} fallback={<BudgetCategoryPlaceholder />}>
                               {(c) => {
                                 const color = () => props.getCategoryColor?.(c())
                                 return (

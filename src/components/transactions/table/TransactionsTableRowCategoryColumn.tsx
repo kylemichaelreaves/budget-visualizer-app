@@ -3,7 +3,7 @@ import { For, Show, onCleanup } from 'solid-js'
 import type { Transaction } from '@types'
 import { useMemoById } from '@api/hooks/memos/useMemoById'
 import { budgetCategoryColorsFromData } from '@composables/budgetCategoryColors'
-import { AssignCategoryTrigger, BudgetCategoryPill } from '@components/shared/BudgetCategoryUi'
+import { AssignBudgetCategoryButton, BudgetCategoryPill } from '@components/shared/BudgetCategoryPill'
 import { Skeleton } from '@components/ui/skeleton'
 import { SplitIcon } from '@shared/icons'
 import {
@@ -109,7 +109,7 @@ export default function TransactionsTableRowCategoryColumn(props: {
               <Show
                 when={typeof row().budget_category === 'string' && row().budget_category}
                 fallback={
-                  <AssignCategoryTrigger
+                  <AssignBudgetCategoryButton
                     onClick={() => props.openCategoryDialog(row())}
                     dataTestId={`assign-category-${row().id}`}
                   />

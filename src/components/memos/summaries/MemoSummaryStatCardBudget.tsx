@@ -1,6 +1,6 @@
 import type { Accessor } from 'solid-js'
 import { For, Show } from 'solid-js'
-import { AssignCategoryTrigger, BudgetCategoryPill } from '@components/shared/BudgetCategoryUi'
+import { AssignBudgetCategoryButton, BudgetCategoryPill } from '@components/shared/BudgetCategoryPill'
 import { Card, CardContent } from '@components/ui/card'
 import { LayoutGridIcon } from '@shared/icons'
 import { MEMO_SUMMARY_FREQUENCY_OPTIONS } from './memoSummaryConstants'
@@ -33,7 +33,7 @@ export default function MemoSummaryStatCardBudget(props: {
           <Show
             when={props.budgetCategory()}
             fallback={
-              <AssignCategoryTrigger
+              <AssignBudgetCategoryButton
                 showIcon={false}
                 label="+ Assign category"
                 disabled={!props.memoReady() || props.saving()}
