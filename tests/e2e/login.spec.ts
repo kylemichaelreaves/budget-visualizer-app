@@ -1,4 +1,5 @@
 import { test, expect } from './fixtures/fixtures'
+import { E2E_LOGIN_EMAIL } from './fixtures/auth-storage'
 
 test.describe('Login', () => {
   test('shows login form with email, password, and submit button', async ({ loginPage }) => {
@@ -16,7 +17,7 @@ test.describe('Login', () => {
 
   test('submit button is enabled after filling both fields', async ({ loginPage }) => {
     await loginPage.goto()
-    await loginPage.emailInput.fill('testuser')
+    await loginPage.emailInput.fill(E2E_LOGIN_EMAIL)
     await loginPage.passwordInput.fill('testpass')
     await expect(loginPage.submitButton).toBeEnabled()
   })
