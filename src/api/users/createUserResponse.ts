@@ -11,7 +11,7 @@ export function normalizeUserFromApi(raw: unknown): User | null {
   const role = raw.role
   const userRole = role === 'admin' || role === 'user' || role === 'guest' ? role : ('user' as const)
   return {
-    id: typeof raw.id === 'number' ? raw.id : undefined,
+    ...(typeof raw.id === 'number' ? { id: raw.id } : {}),
     username: raw.username,
     firstName: typeof raw.firstName === 'string' ? raw.firstName : '',
     lastName: typeof raw.lastName === 'string' ? raw.lastName : '',
