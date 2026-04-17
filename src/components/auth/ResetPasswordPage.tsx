@@ -129,10 +129,7 @@ export default function ResetPasswordPage() {
                   label="Confirm password"
                   placeholder="Re-enter your password"
                   value={confirm()}
-                  onInput={(v) => {
-                    setConfirm(v)
-                    if (submitted() && v === password()) setSubmitted(false)
-                  }}
+                  onInput={setConfirm}
                   onFocus={() => setFocusedField('confirm')}
                   onBlur={() => setFocusedField(null)}
                   show={showCf()}
