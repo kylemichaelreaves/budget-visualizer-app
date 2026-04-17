@@ -1,7 +1,11 @@
-import { createEffect, createMemo, on } from 'solid-js'
+import { createEffect, createMemo, createRenderEffect, on } from 'solid-js'
 import { getPeriodLabel } from '@api/helpers/formatPeriodLabels'
 import useTransactions from '@api/hooks/transactions/useTransactions'
-import { transactionsState } from '@stores/transactionsStore'
+import {
+  takeAndApplyPendingTransactionsScrollRestore,
+  transactionsState,
+  updateTransactionsTableOffset,
+} from '@stores/transactionsStore'
 import { createTransactionsTableChartSlice } from '@components/transactions/table/createTransactionsTableChartSlice'
 import { getTransactionsTableSelectedValue } from '@components/transactions/table/transactionsTableSelectedValue'
 
@@ -50,6 +54,38 @@ export function createTransactionsTableDerivedData() {
       () => currentPage(),
       () => {
         void loadMorePagesIfNeeded()
+      },
+    ),
+  )
+
+  /**
+   * Clamp table pagination when the result set shrinks, and after a refetch restore pill scroll.
+   * Clamp runs in this render effect first; scroll restore is queued so it runs after any offset-driven
+   * DOM update (so the anchor row exists when we scrollIntoView).
+   */
+  createRenderEffect(
+    on(
+      () =>
+        [
+          query.isFetching,
+          flattenedData().length,
+          transactionsState.transactionsTableOffset,
+          LIMIT(),
+        ] as const,
+      ([isFetching, len, offset, limit], prev) => {
+        if (len > 0) {
+          const maxPageIndex = Math.max(0, Math.ceil(len / limit) - 1)
+          const maxOffset = maxPageIndex * limit
+          if (offset > maxOffset) {
+            updateTransactionsTableOffset(maxOffset)
+          }
+        }
+        const wasFetching = prev?.[0]
+        if (wasFetching === true && isFetching === false) {
+          queueMicrotask(() => {
+            takeAndApplyPendingTransactionsScrollRestore()
+          })
+        }
       },
     ),
   )
