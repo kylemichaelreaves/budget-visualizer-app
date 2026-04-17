@@ -3,9 +3,9 @@ import { For, Show, onCleanup } from 'solid-js'
 import type { Transaction } from '@types'
 import { useMemoById } from '@api/hooks/memos/useMemoById'
 import { budgetCategoryColorsFromData } from '@composables/budgetCategoryColors'
-import { Badge } from '@components/ui/badge'
+import { AssignCategoryTrigger, BudgetCategoryPill } from '@components/shared/BudgetCategoryUi'
 import { Skeleton } from '@components/ui/skeleton'
-import { SplitIcon, TransactionTagIcon } from '@shared/icons'
+import { SplitIcon } from '@shared/icons'
 import {
   prepareTransactionsScrollRestoreFromViewport,
   setSelectedBudgetCategory,
@@ -109,36 +109,24 @@ export default function TransactionsTableRowCategoryColumn(props: {
               <Show
                 when={typeof row().budget_category === 'string' && row().budget_category}
                 fallback={
-                  <button
-                    type="button"
+                  <AssignCategoryTrigger
                     onClick={() => props.openCategoryDialog(row())}
-                    class="flex items-center gap-1.5 text-xs text-muted-foreground border border-dashed rounded-full px-3 py-1 hover:border-brand hover:text-brand transition-colors cursor-pointer bg-transparent"
-                    data-testid={`assign-category-${row().id}`}
-                  >
-                    <TransactionTagIcon />
-                    Assign category
-                  </button>
+                    dataTestId={`assign-category-${row().id}`}
+                  />
                 }
               >
-                <button
-                  type="button"
+                <BudgetCategoryPill
+                  interactive
+                  label={String(row().budget_category)}
                   title={PILL_TITLE}
+                  dataTestId={`category-badge-${row().id}`}
                   onClick={(e) => onCategoryPillClick(String(row().budget_category), e)}
                   onDblClick={onCategoryPillDblClick}
-                  class="cursor-pointer bg-transparent border-none p-0"
-                  data-testid={`category-badge-${row().id}`}
-                >
-                  <Badge
-                    variant="outline"
-                    class="text-xs hover:bg-accent transition-colors"
-                    style={(() => {
-                      const c = props.categoryColors().getColorByName(String(row().budget_category))
-                      return { 'border-color': c, color: c }
-                    })()}
-                  >
-                    {String(row().budget_category)}
-                  </Badge>
-                </button>
+                  style={(() => {
+                    const c = props.categoryColors().getColorByName(String(row().budget_category))
+                    return { 'border-color': c, color: c }
+                  })()}
+                />
               </Show>
             }
           >
@@ -152,20 +140,20 @@ export default function TransactionsTableRowCategoryColumn(props: {
                 }
               >
                 {(split) => (
-                  <button
-                    type="button"
+                  <BudgetCategoryPill
+                    interactive
+                    label={split.budget_category_id}
                     title={PILL_TITLE}
+                    accentOn="button"
                     onClick={(e) => onCategoryPillClick(split.budget_category_id, e)}
                     onDblClick={onCategoryPillDblClick}
-                    class="flex cursor-pointer items-center gap-1 rounded-full border bg-transparent px-2 py-0.5 text-xs hover:bg-accent transition-colors"
+                    buttonClass="flex items-center gap-1 rounded-full border px-2 py-0.5 hover:bg-accent transition-colors"
                     style={(() => {
                       const c = props.categoryColors().getColorByName(split.budget_category_id)
                       return { 'border-color': c, color: c }
                     })()}
-                  >
-                    <span>{split.budget_category_id}</span>
-                    <span class="text-muted-foreground">{formatUsd(split.amount_debit)}</span>
-                  </button>
+                    trailing={<span class="text-muted-foreground">{formatUsd(split.amount_debit)}</span>}
+                  />
                 )}
               </For>
             </div>

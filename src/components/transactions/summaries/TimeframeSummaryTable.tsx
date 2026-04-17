@@ -2,8 +2,8 @@ import { A } from '@solidjs/router'
 import type { JSX } from 'solid-js'
 import { createMemo, createSignal, For, Show } from 'solid-js'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
-import { Badge } from '@components/ui/badge'
 import AlertComponent from '@components/shared/AlertComponent'
+import { BudgetCategoryPill, BudgetCategoryPillEmpty } from '@components/shared/BudgetCategoryUi'
 import { formatUsd } from '@utils/formatUsd'
 
 export type TimeframeSummaryRow = {
@@ -176,7 +176,18 @@ export default function TimeframeSummaryTable(props: {
                             <MemoCell memo={row.memo} dataTestId={props.memoLinkTestId} />
                           </td>
                           <td class="px-3 py-1.5 max-w-[140px]">
-                            <CategoryPill category={row.budget_category} getColor={props.getCategoryColor} />
+                            <Show when={row.budget_category} fallback={<BudgetCategoryPillEmpty />}>
+                              {(c) => {
+                                const color = () => props.getCategoryColor?.(c())
+                                return (
+                                  <BudgetCategoryPill
+                                    label={c()}
+                                    truncate
+                                    style={color() ? { 'border-color': color(), color: color() } : undefined}
+                                  />
+                                )
+                              }}
+                            </Show>
                           </td>
                           <td class="px-3 py-1.5 text-right text-muted-foreground tabular-nums">
                             {row.count ?? 1}
@@ -206,29 +217,6 @@ export default function TimeframeSummaryTable(props: {
           </Show>
         </CardContent>
       </Card>
-    </Show>
-  )
-}
-
-function CategoryPill(props: {
-  category: string | null | undefined
-  getColor?: (name: string) => string | undefined
-}): JSX.Element {
-  const cat = () => props.category
-  return (
-    <Show when={cat()} fallback={<span class="text-muted-foreground">—</span>}>
-      {(c) => {
-        const color = () => props.getColor?.(c())
-        return (
-          <Badge
-            variant="outline"
-            class="text-xs truncate max-w-full"
-            style={color() ? { 'border-color': color(), color: color() } : undefined}
-          >
-            {c()}
-          </Badge>
-        )
-      }}
     </Show>
   )
 }
