@@ -3,13 +3,13 @@ import { Show } from 'solid-js'
 import { ArrowDownCircleIcon } from '@shared/icons'
 import { formatUsdAbs } from '@utils/formatUsd'
 import type { MemoSummaryDebitAggregate } from './memoSummaryStatCardTypes'
-import MemoSummaryStatCardShell from './MemoSummaryStatCardShell'
+import MemoSummaryStatCard from './MemoSummaryStatCard'
 
 export default function MemoSummaryStatCardDebit(props: {
   totalDebits: Accessor<MemoSummaryDebitAggregate>
 }) {
   return (
-    <MemoSummaryStatCardShell
+    <MemoSummaryStatCard
       tone="red"
       label={() => (props.totalDebits().aggregateScope === 'page' ? 'Debits (this page)' : 'Total Debits')}
       icon={<ArrowDownCircleIcon class="size-5 text-red-600 dark:text-red-400" />}
@@ -28,6 +28,6 @@ export default function MemoSummaryStatCardDebit(props: {
           </p>
         </Show>
       </>
-    </MemoSummaryStatCardShell>
+    </MemoSummaryStatCard>
   )
 }

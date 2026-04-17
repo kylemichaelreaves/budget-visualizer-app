@@ -7,7 +7,7 @@ const toneIconWrap: Record<'red' | 'green' | 'violet', string> = {
   violet: 'rounded-full bg-violet-100 dark:bg-violet-900/40 p-2',
 }
 
-export default function MemoSummaryStatCardShell(props: {
+export default function MemoSummaryStatCard(props: {
   tone: 'red' | 'green' | 'violet'
   label: Accessor<string>
   icon: JSX.Element

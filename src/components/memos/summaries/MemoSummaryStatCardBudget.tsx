@@ -4,7 +4,7 @@ import { AssignBudgetCategoryButton, BudgetCategoryPill } from '@components/shar
 import { LayoutGridIcon } from '@shared/icons'
 import { MEMO_SUMMARY_FREQUENCY_OPTIONS } from './memoSummaryConstants'
 import MemoSummaryCheckboxRow from './MemoSummaryCheckboxRow'
-import MemoSummaryStatCardShell from './MemoSummaryStatCardShell'
+import MemoSummaryStatCard from './MemoSummaryStatCard'
 
 export default function MemoSummaryStatCardBudget(props: {
   budgetCategory: Accessor<string | null>
@@ -21,7 +21,7 @@ export default function MemoSummaryStatCardBudget(props: {
   frequency: Accessor<string | undefined>
 }) {
   return (
-    <MemoSummaryStatCardShell
+    <MemoSummaryStatCard
       tone="violet"
       label={() => 'Budget Category'}
       icon={<LayoutGridIcon class="size-5 text-violet-600 dark:text-violet-400" />}
@@ -96,6 +96,6 @@ export default function MemoSummaryStatCardBudget(props: {
           />
         </div>
       </>
-    </MemoSummaryStatCardShell>
+    </MemoSummaryStatCard>
   )
 }

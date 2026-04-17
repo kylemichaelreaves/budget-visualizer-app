@@ -3,13 +3,13 @@ import { Show } from 'solid-js'
 import { ArrowUpCircleIcon } from '@shared/icons'
 import { formatUsdAbs } from '@utils/formatUsd'
 import type { MemoSummaryCreditAggregate } from './memoSummaryStatCardTypes'
-import MemoSummaryStatCardShell from './MemoSummaryStatCardShell'
+import MemoSummaryStatCard from './MemoSummaryStatCard'
 
 export default function MemoSummaryStatCardCredit(props: {
   totalCredits: Accessor<MemoSummaryCreditAggregate>
 }) {
   return (
-    <MemoSummaryStatCardShell
+    <MemoSummaryStatCard
       tone="green"
       label={() => (props.totalCredits().aggregateScope === 'page' ? 'Credits (this page)' : 'Total Credits')}
       icon={<ArrowUpCircleIcon class="size-5 text-green-600 dark:text-green-400" />}
@@ -28,6 +28,6 @@ export default function MemoSummaryStatCardCredit(props: {
           </p>
         </Show>
       </>
-    </MemoSummaryStatCardShell>
+    </MemoSummaryStatCard>
   )
 }
