@@ -120,4 +120,35 @@ describe('BudgetCategoryFormField', () => {
     expect(call.splits[0]!.budget_category_id).toBe('Food - Groceries')
     expect(call.splits[0]!.amount_debit).toBe(100)
   })
+
+  it('normalizes a negative transactionAmount to its absolute value', () => {
+    const onChange = vi.fn()
+    render(() => (
+      <BudgetCategoryFormField
+        modelValue={{ mode: 'single', categoryId: 'Food' }}
+        transactionAmount={-37.31}
+        onChange={onChange}
+      />
+    ))
+    fireEvent.click(screen.getByLabelText(/split into multiple categories/i))
+    const call = onChange.mock.calls[0]![0] as {
+      splits: { amount_debit: number }[]
+    }
+    expect(call.splits[0]!.amount_debit).toBe(37.31)
+  })
+
+  it('validates against the absolute transaction amount when input is negative', () => {
+    // splits sum to 37.31; transactionAmount = -37.31; should be treated as balanced (no error).
+    render(() => (
+      <BudgetCategoryFormField
+        modelValue={{
+          mode: 'split',
+          splits: [{ id: '1', budget_category_id: 'Food', amount_debit: 37.31 }],
+        }}
+        transactionAmount={-37.31}
+        onChange={vi.fn()}
+      />
+    ))
+    expect(screen.queryByText(/doesn't match/)).not.toBeInTheDocument()
+  })
 })
