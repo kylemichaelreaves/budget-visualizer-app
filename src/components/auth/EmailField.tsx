@@ -2,6 +2,7 @@ import { Show } from 'solid-js'
 import { Mail, AlertCircle } from 'lucide-solid'
 
 interface EmailFieldProps {
+  id?: string
   value: string
   onInput: (value: string) => void
   onFocus: () => void
@@ -14,10 +15,14 @@ interface EmailFieldProps {
 }
 
 export function EmailField(props: EmailFieldProps) {
+  const inputId = () => props.id ?? 'email-field'
+  const errorId = () => `${inputId()}-error`
+  const helperId = () => `${inputId()}-helper`
+
   return (
     <div class="flex flex-col gap-1.5">
       <div class="flex items-center justify-between">
-        <label for="fp-email" class="text-foreground text-sm font-medium">
+        <label for={inputId()} class="text-foreground text-sm font-medium">
           Email address
           <span class="ml-1 text-destructive" aria-hidden="true">
             *
@@ -38,7 +43,7 @@ export function EmailField(props: EmailFieldProps) {
           }}
         />
         <input
-          id="fp-email"
+          id={inputId()}
           type="email"
           autocomplete="email"
           placeholder="name@example.com"
@@ -48,7 +53,7 @@ export function EmailField(props: EmailFieldProps) {
           onBlur={() => props.onBlur()}
           disabled={props.disabled}
           aria-invalid={props.hasError}
-          aria-describedby={props.hasError ? 'fp-error' : 'fp-helper'}
+          aria-describedby={props.hasError ? errorId() : helperId()}
           data-testid={props.testid}
           class="w-full rounded-xl border bg-input-background px-4 py-3 pl-11 text-foreground placeholder:text-muted-foreground/60 transition-all duration-200 outline-none disabled:cursor-not-allowed disabled:opacity-50"
           classList={{
@@ -66,13 +71,13 @@ export function EmailField(props: EmailFieldProps) {
         <Show
           when={props.hasError}
           fallback={
-            <p id="fp-helper" class="text-muted-foreground text-[13px]">
+            <p id={helperId()} class="text-muted-foreground text-[13px]">
               We'll send a secure reset link to this address.
             </p>
           }
         >
           <p
-            id="fp-error"
+            id={errorId()}
             role="alert"
             class="flex items-start gap-1.5 text-destructive text-[13px]"
             data-testid="forgot-password-error"

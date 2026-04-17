@@ -61,6 +61,7 @@ export default function ForgotPasswordPage() {
             />
 
             <EmailField
+              id="fp-email"
               value={email()}
               onInput={(v) => {
                 setEmail(v)
