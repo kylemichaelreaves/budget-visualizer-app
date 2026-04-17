@@ -5,6 +5,7 @@ import useDays from '@api/hooks/timeUnits/days/useDays'
 import useMonths from '@api/hooks/timeUnits/months/useMonths'
 import useWeeks from '@api/hooks/timeUnits/weeks/useWeeks'
 import useYears from '@api/hooks/timeUnits/years/useYears'
+import { Badge } from '@components/ui/badge'
 import ClearFilterButton from '@components/shared/ClearFilterButton'
 import TransactionMemoFilterField from '@components/transactions/selects/TransactionMemoFilterField'
 import TransactionTimeframeSelect from '@components/transactions/selects/TransactionTimeframeSelect'
@@ -16,6 +17,7 @@ import {
   selectMonthView,
   selectWeekView,
   selectYearView,
+  setSelectedBudgetCategory,
   transactionsState,
 } from '@stores/transactionsStore'
 import type { DayYear, MonthYear, WeekYear, Year } from '@types'
@@ -99,6 +101,36 @@ export default function TransactionsTableSelects(props: Readonly<{ dataTestId?: 
         />
 
         <TransactionMemoFilterField dataTestId={`${tid()}-memo-input`} />
+
+        <Show when={transactionsState.selectedBudgetCategory}>
+          <Badge
+            variant="secondary"
+            class="self-end h-[38px] gap-1.5 px-3 text-sm"
+            data-testid={`${tid()}-budget-category-chip`}
+          >
+            {transactionsState.selectedBudgetCategory}
+            <button
+              type="button"
+              class="ml-0.5 rounded-full p-0.5 hover:bg-muted-foreground/20"
+              onClick={() => setSelectedBudgetCategory(null)}
+              aria-label="Clear budget category filter"
+              data-testid={`${tid()}-budget-category-clear`}
+            >
+              <svg
+                class="size-3"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M18 6 6 18" />
+                <path d="m6 6 12 12" />
+              </svg>
+            </button>
+          </Badge>
+        </Show>
 
         <Show when={transactionsState.viewMode !== null}>
           <ClearFilterButton

@@ -54,7 +54,7 @@ const initial: TransactionsState = {
   selectedMemoId: null,
   selectedWeek: '',
   selectedType: 'Amount Debit',
-  selectedBudgetCategory: '',
+  selectedBudgetCategory: null,
   selectedDescription: '',
   selectedStatus: 'pending',
   viewMode: null,
@@ -145,6 +145,7 @@ function clearAllSelections(): void {
     selectedYear: '',
     selectedMemo: '',
     selectedMemoId: null,
+    selectedBudgetCategory: null,
     transactionsTableOffset: 0,
   })
 }
@@ -275,6 +276,13 @@ export function updateTransactionsTableOffset(offset: number): void {
 }
 export function updateTransactionsPageSize(pageSize: number): void {
   setTransactionsState('transactionsPageSize', pageSize)
+}
+
+export function setSelectedBudgetCategory(category: string | null): void {
+  batch(() => {
+    setTransactionsState('selectedBudgetCategory', category)
+    setTransactionsState('transactionsTableOffset', 0)
+  })
 }
 
 export function setSelectedStatus(status: 'pending' | 'reviewed'): void {

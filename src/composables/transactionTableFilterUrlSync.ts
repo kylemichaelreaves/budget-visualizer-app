@@ -15,6 +15,7 @@ import {
   selectYearView,
   selectMemoView,
   selectMemoFilterByIdOnly,
+  setSelectedBudgetCategory,
   clearAllFilters,
   transactionsState,
 } from '@stores/transactionsStore'
@@ -92,33 +93,28 @@ export function useTransactionTableFilterUrlSync(): void {
     const year = sp.get('year')
     const memoIdParam = sp.get('memoId')
     const memoNameParam = (sp.get('memoName') ?? '').trim()
+    const budgetCategoryParam = (sp.get('budgetCategory') ?? '').trim() || null
 
     hydratingFromUrl = true
     try {
       if (day) {
         selectDayView(day)
-        return
-      }
-      if (week) {
+      } else if (week) {
         selectWeekView(week)
-        return
-      }
-      if (month) {
+      } else if (month) {
         selectMonthView(month)
-        return
-      }
-      if (year) {
+      } else if (year) {
         selectYearView(year)
-        return
+      } else {
+        const hasMemoId = memoIdParam != null && memoIdParam !== ''
+        if (memoNameParam && !hasMemoId) {
+          selectMemoView(memoNameParam, null)
+        } else if (!hasMemoId && !memoNameParam && isBareTransactionsRoute(loc.pathname)) {
+          clearAllFilters()
+        }
       }
-      const hasMemoId = memoIdParam != null && memoIdParam !== ''
-      if (memoNameParam && !hasMemoId) {
-        selectMemoView(memoNameParam, null)
-        return
-      }
-      if (!hasMemoId && !memoNameParam && isBareTransactionsRoute(loc.pathname)) {
-        clearAllFilters()
-      }
+
+      setSelectedBudgetCategory(budgetCategoryParam)
     } finally {
       hydratingFromUrl = false
     }
@@ -200,6 +196,9 @@ export function useTransactionTableFilterUrlSync(): void {
       if (name) sp.set('memoName', name)
     }
 
+    if (transactionsState.selectedBudgetCategory)
+      sp.set('budgetCategory', transactionsState.selectedBudgetCategory)
+
     const qs = sp.toString()
     const nextSearch = qs ? `?${qs}` : ''
     const currentSearch = loc.search ?? ''
@@ -225,6 +224,7 @@ export function useTransactionTableFilterUrlSync(): void {
         transactionsState.selectedMemoId,
         transactionsState.selectedMemo,
         transactionsState.viewMode,
+        transactionsState.selectedBudgetCategory,
       ],
       () => syncUrlFromStore(),
       { defer: true },

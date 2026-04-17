@@ -6,7 +6,8 @@ import LineChart from '@charts/LineChart'
 import type { BudgetCategorySummary, Timeframe } from '@types'
 import AlertComponent from '@components/shared/AlertComponent'
 import { Skeleton } from '@components/ui/skeleton'
-import BudgetCategoryPieChart from './BudgetCategoryPieChart'
+import { setSelectedBudgetCategory } from '@stores/transactionsStore'
+import BudgetCategorySunburst from './BudgetCategorySunburst'
 
 export default function BudgetCategorySummaries(props: {
   timeFrame: Timeframe
@@ -57,14 +58,19 @@ export default function BudgetCategorySummaries(props: {
             />
           )}
         </Show>
-        <BudgetCategoryPieChart
+        <BudgetCategorySunburst
           data={rows()}
           isLoading={summaryQuery.isLoading || summaryQuery.isFetching}
           showLegend={false}
-          dataTestId={`${id()}-pie`}
+          timeFrame={props.timeFrame}
+          date={props.date()}
+          dataTestId={`${id()}-sunburst`}
           onSliceClick={(cat) => {
             const n = cat.full_path || cat.budget_category || cat.category_name
-            if (n) setSelectedCategory(n)
+            if (n) {
+              setSelectedCategory(n)
+              setSelectedBudgetCategory(n)
+            }
           }}
         />
         <div class="min-w-0">
@@ -80,17 +86,23 @@ export default function BudgetCategorySummaries(props: {
             )}
           </Show>
           <Show
-            when={!historicalQuery.isLoading && !historicalQuery.isFetching}
+            when={historicalQuery.data && historicalQuery.data.length > 0}
             fallback={
-              <div class="flex flex-col gap-2 pt-2" data-testid={`${id()}-historical-skeleton`}>
-                <Skeleton class="h-[240px] w-full rounded-lg" />
-                <div class="flex justify-between px-2">
-                  <Skeleton class="h-3 w-12" />
-                  <Skeleton class="h-3 w-12" />
-                  <Skeleton class="h-3 w-12" />
-                  <Skeleton class="h-3 w-12" />
+              <Show
+                when={
+                  historicalQuery.isLoading || (historicalQuery.isFetching && !historicalQuery.data?.length)
+                }
+              >
+                <div class="flex flex-col gap-2 pt-2" data-testid={`${id()}-historical-skeleton`}>
+                  <Skeleton class="h-[240px] w-full rounded-lg" />
+                  <div class="flex justify-between px-2">
+                    <Skeleton class="h-3 w-12" />
+                    <Skeleton class="h-3 w-12" />
+                    <Skeleton class="h-3 w-12" />
+                    <Skeleton class="h-3 w-12" />
+                  </div>
                 </div>
-              </div>
+              </Show>
             }
           >
             <div>

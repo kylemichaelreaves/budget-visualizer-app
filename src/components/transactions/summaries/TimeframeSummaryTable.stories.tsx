@@ -13,9 +13,16 @@ function WithRouter(props: { children: JSX.Element }) {
 }
 
 const sampleRows: TimeframeSummaryRow[] = [
-  { memo: '42', budget_category: 'Food - Groceries', amount: 12.5 },
-  { memo: 'Plain text memo', budget_category: null, amount: 3 },
-  { memo: '7', budget_category: 'Transport', amount: 99 },
+  { memo: '42', budget_category: 'Food - Groceries', amount: 12.5, count: 3 },
+  { memo: 'Plain text memo', budget_category: null, amount: 3, count: 1 },
+  { memo: '7', budget_category: 'Transport', amount: 99, count: 5 },
+  { memo: 'Amazon', budget_category: 'Shopping', amount: 245.99, count: 8 },
+  { memo: 'Spotify', budget_category: 'Entertainment - Subscriptions', amount: 14.99, count: 1 },
+  { memo: 'Rent', budget_category: 'Housing', amount: 1800, count: 1 },
+  { memo: 'Electric', budget_category: 'Utilities', amount: 89.5, count: 1 },
+  { memo: 'Gas Station', budget_category: 'Transport - Fuel', amount: 55.0, count: 2 },
+  { memo: 'Costco', budget_category: 'Food - Groceries', amount: 312.47, count: 4 },
+  { memo: 'Netflix', budget_category: 'Entertainment - Subscriptions', amount: 22.99, count: 1 },
 ]
 
 const meta = {

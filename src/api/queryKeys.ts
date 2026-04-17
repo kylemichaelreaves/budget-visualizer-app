@@ -5,15 +5,20 @@
 export const queryKeys = {
   transactions: {
     all: ['transactions'] as const,
-    infinite: (limit: number, memoKey: string, tf: string | undefined, date: string | undefined) =>
-      ['transactions', limit, memoKey, tf, date] as const,
+    infinite: (
+      limit: number,
+      memoKey: string,
+      tf: string | undefined,
+      date: string | undefined,
+      budgetCategory?: string | null,
+    ) => ['transactions', limit, memoKey, tf, date, budgetCategory] as const,
     summaries: (tf: string, summary: boolean, summaryType: string) =>
       ['transactions', 'summaries', tf, summary, summaryType] as const,
   },
   transactionsCount: {
     all: ['transactions-count'] as const,
-    detail: (st: string, tf: unknown, date: unknown, memoKey: string) =>
-      ['transactions-count', st, tf, date, memoKey] as const,
+    detail: (st: string, tf: unknown, date: unknown, memoKey: string, budgetCategory?: string | null) =>
+      ['transactions-count', st, tf, date, memoKey, budgetCategory] as const,
   },
   transaction: {
     detail: (id: number | undefined) => ['transaction', id] as const,

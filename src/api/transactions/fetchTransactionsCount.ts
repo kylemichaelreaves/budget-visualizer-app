@@ -14,6 +14,7 @@ export async function fetchTransactionsCount(
     timeFrame?: Timeframe
     oldestDate?: boolean
     status?: PendingTransactionStatus
+    budgetCategory?: string
   } = {},
 ): Promise<{ count: number }[]> {
   return fetchTransactions({
