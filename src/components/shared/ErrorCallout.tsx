@@ -9,6 +9,7 @@ interface ErrorCalloutProps {
 export function ErrorCallout(props: ErrorCalloutProps) {
   return (
     <div
+      role="alert"
       class="flex gap-3 rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3"
       data-testid={props['data-testid']}
     >
