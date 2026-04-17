@@ -11,7 +11,7 @@ export class ForgotPasswordPage {
 
   constructor(page: Page) {
     this.page = page
-    this.heading = page.getByRole('heading', { name: /forgot password/i })
+    this.heading = page.getByRole('heading', { name: /forgot.*password/i })
     this.emailInput = page.getByTestId('forgot-password-email-input')
     this.submitButton = page.getByTestId('forgot-password-submit')
     this.successAlert = page.getByTestId('forgot-password-success')
