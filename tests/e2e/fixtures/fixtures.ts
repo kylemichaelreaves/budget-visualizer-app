@@ -1,7 +1,9 @@
 import { test as base } from '@playwright/test'
 import { E2E_AUTH_TOKEN, E2E_AUTH_USER } from './auth-storage'
 import { installApiMocks } from './install-api-mocks'
+import { ForgotPasswordPage } from '../pages/ForgotPasswordPage'
 import { LoginPage } from '../pages/LoginPage'
+import { ResetPasswordPage } from '../pages/ResetPasswordPage'
 import { SidebarNav } from '../pages/SidebarNav'
 import { TransactionsPage } from '../pages/TransactionsPage'
 import { TransactionCreateDialog } from '../pages/TransactionCreateDialog'
@@ -20,6 +22,8 @@ import { WeekSummaryTablePage } from '../pages/WeekSummaryTablePage'
 
 type Fixtures = {
   loginPage: LoginPage
+  forgotPasswordPage: ForgotPasswordPage
+  resetPasswordPage: ResetPasswordPage
   navbar: NavBar
   sidebar: SidebarNav
   transactionsPage: TransactionsPage
@@ -44,6 +48,12 @@ type Fixtures = {
 export const test = base.extend<Fixtures>({
   loginPage: async ({ page }, use) => {
     await use(new LoginPage(page))
+  },
+  forgotPasswordPage: async ({ page }, use) => {
+    await use(new ForgotPasswordPage(page))
+  },
+  resetPasswordPage: async ({ page }, use) => {
+    await use(new ResetPasswordPage(page))
   },
   navbar: async ({ page }, use) => {
     await use(new NavBar(page))
@@ -110,6 +120,12 @@ export const authenticatedTest = base.extend<Fixtures>({
   },
   loginPage: async ({ page }, use) => {
     await use(new LoginPage(page))
+  },
+  forgotPasswordPage: async ({ page }, use) => {
+    await use(new ForgotPasswordPage(page))
+  },
+  resetPasswordPage: async ({ page }, use) => {
+    await use(new ResetPasswordPage(page))
   },
   navbar: async ({ page }, use) => {
     await use(new NavBar(page))

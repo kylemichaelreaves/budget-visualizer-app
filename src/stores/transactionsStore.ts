@@ -278,10 +278,51 @@ export function updateTransactionsPageSize(pageSize: number): void {
   setTransactionsState('transactionsPageSize', pageSize)
 }
 
-export function setSelectedBudgetCategory(category: string | null): void {
+type PendingTransactionsScrollRestore = {
+  scrollY: number
+  anchorTransactionId?: number
+}
+
+let pendingTransactionsScrollRestore: PendingTransactionsScrollRestore | null = null
+
+/**
+ * Call immediately before changing the budget category filter from a row pill.
+ * After the query refetch, `takeAndApplyPendingTransactionsScrollRestore` runs in a render effect (before paint).
+ */
+export function prepareTransactionsScrollRestoreFromViewport(anchorTransactionId?: number): void {
+  pendingTransactionsScrollRestore = {
+    scrollY: window.scrollY,
+    ...(anchorTransactionId != null ? { anchorTransactionId } : {}),
+  }
+}
+
+/** Applies saved scroll / row anchor once, then clears. Prefer anchoring to the row when it is still in the DOM. */
+export function takeAndApplyPendingTransactionsScrollRestore(): void {
+  const p = pendingTransactionsScrollRestore
+  pendingTransactionsScrollRestore = null
+  if (!p) return
+
+  const id = p.anchorTransactionId
+  if (id != null) {
+    const el = document.querySelector<HTMLElement>(`[data-testid="transaction-row-${id}"]`)
+    if (el) {
+      el.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+      return
+    }
+  }
+  window.scrollTo({ top: p.scrollY, left: 0, behavior: 'auto' })
+}
+
+export function setSelectedBudgetCategory(
+  category: string | null,
+  options?: { resetTablePagination?: boolean },
+): void {
+  const resetTablePagination = options?.resetTablePagination !== false
   batch(() => {
     setTransactionsState('selectedBudgetCategory', category)
-    setTransactionsState('transactionsTableOffset', 0)
+    if (resetTablePagination) {
+      setTransactionsState('transactionsTableOffset', 0)
+    }
   })
 }
 

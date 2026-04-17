@@ -2,14 +2,18 @@ import { A } from '@solidjs/router'
 import type { Accessor } from 'solid-js'
 import { Show } from 'solid-js'
 import { formatDate } from '@api/helpers/formatDate'
+import { useMemoById } from '@api/hooks/memos/useMemoById'
 import type { Transaction } from '@types'
-import { TrendingDownIcon, TrendingUpIcon } from '@shared/icons'
+import { TrendingDownIcon, TrendingUpIcon, WarningTriangleIcon } from '@shared/icons'
 
 export default function TransactionsTableRowPrimaryColumn(props: {
   row: Transaction
   isCredit: Accessor<boolean>
 }) {
   const row = () => props.row
+
+  const memoQuery = useMemoById({ memoId: () => row().memo_id ?? null })
+  const isAmbiguous = () => !!memoQuery.data?.ambiguous
 
   return (
     <div class="flex items-center gap-4 min-w-0">
@@ -52,6 +56,15 @@ export default function TransactionsTableRowPrimaryColumn(props: {
             >
               {String(row().memo)}
             </A>
+            <Show when={isAmbiguous()}>
+              <span
+                class="inline-block ml-1 text-amber-500 align-[-2px]"
+                title="Ambiguous memo — maps to multiple budget categories"
+                data-testid={`memo-ambiguity-${row().id}`}
+              >
+                <WarningTriangleIcon class="size-3" />
+              </span>
+            </Show>
             {' · '}
           </Show>
           {formatDate(String(row().date))}

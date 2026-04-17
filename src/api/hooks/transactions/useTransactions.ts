@@ -40,6 +40,8 @@ export default function useTransactions() {
         }
         return allPages.length * limit
       },
+      /** Keeps prior pages visible while the key changes (e.g. budget category pill) so the list does not collapse to skeleton and reset scroll. */
+      placeholderData: (previousData) => previousData,
       refetchOnWindowFocus: false,
     }
   })

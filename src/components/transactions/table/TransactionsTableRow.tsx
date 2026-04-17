@@ -13,12 +13,16 @@ export default function TransactionsTableRow(props: {
   categoryColors: Accessor<CategoryColorHelpers>
   mutatingTransactionId: Accessor<number | null>
   openCategoryDialog: (row: Transaction) => void
+  openSplitDrawer?: (row: Transaction) => void
 }) {
   const row = () => props.row
   const money = createTransactionsTableRowMoney(row)
 
   return (
-    <li class="grid grid-cols-[2fr_1fr_150px] items-center gap-4 rounded-lg border border-border p-4 transition-colors hover:bg-accent/50">
+    <li
+      class="grid grid-cols-[2fr_1fr_150px] items-center gap-4 rounded-lg border border-border p-4 transition-colors hover:bg-accent/50"
+      data-testid={row().id != null ? `transaction-row-${row().id}` : undefined}
+    >
       <TransactionsTableRowPrimaryColumn row={props.row} isCredit={money.isCredit} />
 
       <TransactionsTableRowCategoryColumn
@@ -27,6 +31,7 @@ export default function TransactionsTableRow(props: {
         categoryColors={props.categoryColors}
         mutatingTransactionId={props.mutatingTransactionId}
         openCategoryDialog={props.openCategoryDialog}
+        openSplitDrawer={props.openSplitDrawer}
       />
 
       <TransactionsTableRowAmounts row={props.row} hasDebit={money.hasDebit} hasCredit={money.hasCredit} />
