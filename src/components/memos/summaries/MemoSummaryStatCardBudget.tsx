@@ -20,6 +20,8 @@ export default function MemoSummaryStatCardBudget(props: {
   isNecessary: Accessor<boolean>
   frequency: Accessor<string | undefined>
 }) {
+  const isDisabled = () => !props.memoReady() || props.saving()
+
   return (
     <MemoSummaryStatCard
       tone="violet"
@@ -34,7 +36,7 @@ export default function MemoSummaryStatCardBudget(props: {
               <AssignBudgetCategoryButton
                 showIcon={false}
                 label="+ Assign category"
-                disabled={!props.memoReady() || props.saving()}
+                disabled={isDisabled()}
                 onClick={() => props.onOpenCategoryDialog()}
                 dataTestId="memo-summary-assign-category"
                 class="text-sm text-muted-foreground hover:text-foreground border-border"
@@ -43,7 +45,7 @@ export default function MemoSummaryStatCardBudget(props: {
           >
             <BudgetCategoryPill
               interactive
-              disabled={!props.memoReady() || props.saving()}
+              disabled={isDisabled()}
               label={props.budgetCategory()!}
               dataTestId="memo-summary-budget-category-badge"
               onClick={() => props.onOpenCategoryDialog()}
@@ -57,25 +59,23 @@ export default function MemoSummaryStatCardBudget(props: {
           <MemoSummaryCheckboxRow
             label="Ambiguous category"
             checked={props.isAmbiguous()}
-            disabled={!props.memoReady() || props.saving()}
+            disabled={isDisabled()}
             onChange={props.onAmbiguousChange}
             accentClass="accent-amber-500"
-            memoReady={props.memoReady}
           />
 
           <MemoSummaryCheckboxRow
             label="Recurring"
             checked={props.isRecurring()}
-            disabled={!props.memoReady() || props.saving()}
+            disabled={isDisabled()}
             onChange={props.onRecurringChange}
             accentClass="accent-blue-500"
-            memoReady={props.memoReady}
             trailing={
               <Show when={props.isRecurring()}>
                 <select
                   value={props.frequency() ?? ''}
                   onChange={(e) => props.onFrequencyChange(e.currentTarget.value)}
-                  disabled={!props.memoReady() || props.saving()}
+                  disabled={isDisabled()}
                   class="ml-1 text-xs border border-input rounded px-1.5 py-0.5 bg-background"
                   onClick={(e) => e.stopPropagation()}
                 >
@@ -89,10 +89,9 @@ export default function MemoSummaryStatCardBudget(props: {
           <MemoSummaryCheckboxRow
             label="Necessary purchase"
             checked={props.isNecessary()}
-            disabled={!props.memoReady() || props.saving()}
+            disabled={isDisabled()}
             onChange={props.onNecessaryChange}
             accentClass="accent-green-500"
-            memoReady={props.memoReady}
           />
         </div>
       </>
