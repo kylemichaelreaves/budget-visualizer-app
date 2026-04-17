@@ -38,7 +38,7 @@ export default function ResetPasswordPage() {
   const pwError = createMemo(() => {
     if (!submitted()) return null
     if (strength().score < 2)
-      return 'Password is too weak \u2014 use 8+ characters with uppercase and a number.'
+      return 'Password is too weak \u2014 meet at least 3 of the 4 requirements below.'
     return null
   })
 

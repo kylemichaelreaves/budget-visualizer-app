@@ -100,19 +100,17 @@ export default function ForgotPasswordPage() {
           icon={CheckCircle2}
           title="Check your inbox"
           description={
-            <>
+            <span data-testid="forgot-password-success">
               We sent a password reset link to{' '}
               <span class="font-medium text-foreground break-all">{email()}</span>. It expires
               in&nbsp;15&nbsp;minutes.
-            </>
+            </span>
           }
           tip={{
             label: "Didn't receive it?",
             text: 'Check your spam folder or wait a moment before requesting another link.',
           }}
         >
-          <span data-testid="forgot-password-success" />
-
           <button
             type="button"
             onClick={handleTryAgain}

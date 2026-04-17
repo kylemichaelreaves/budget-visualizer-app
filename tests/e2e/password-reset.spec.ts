@@ -1,4 +1,4 @@
-import type { Route } from '@playwright/test'
+import type { Page, Route } from '@playwright/test'
 import { test, expect } from './fixtures/fixtures'
 
 /**
@@ -7,7 +7,7 @@ import { test, expect } from './fixtures/fixtures'
  * self-contained.
  */
 async function mockResetEndpoints(
-  page: Parameters<Parameters<typeof test>[1]>[0]['page'],
+  page: Page,
   opts: {
     requestHandler?: (route: Route) => Promise<void>
     confirmHandler?: (route: Route) => Promise<void>
