@@ -29,9 +29,18 @@ export default function Login() {
   const resetSuccess = createMemo(() => searchParams.resetSuccess === '1')
   const registered = createMemo(() => searchParams.registered === '1')
 
+  const emailTrimmed = () => email().trim()
+
+  const emailFormatError = createMemo(() => {
+    const e = emailTrimmed()
+    if (!e) return null
+    if (!isValidEmail(e)) return 'Please enter a valid email address (e.g. name@example.com).'
+    return null
+  })
+
   const loginMut = useMutation(() => ({
     mutationKey: mutationKeys.login,
-    mutationFn: async () => loginRequest(email(), password()),
+    mutationFn: async () => loginRequest(emailTrimmed(), password()),
     onSuccess: (data) => {
       devConsole('log', 'Login successful', data)
       persistSession(data.user, data.token)
@@ -40,7 +49,7 @@ export default function Login() {
   }))
 
   const isDisabled = () =>
-    loginMut.isPending || !email().trim() || !password().trim() || !isValidEmail(email().trim())
+    loginMut.isPending || !emailTrimmed() || !password().trim() || !isValidEmail(emailTrimmed())
 
   const errorDescription = createMemo(() => {
     if (!loginMut.isError || !loginMut.error) return ''
@@ -90,7 +99,14 @@ export default function Login() {
                 placeholder="name@example.com"
                 value={email()}
                 onInput={(e) => setEmail(e.currentTarget.value)}
+                aria-invalid={emailFormatError() ? 'true' : undefined}
+                aria-describedby={emailFormatError() ? 'login-email-error' : undefined}
               />
+              <Show when={emailFormatError()}>
+                <p id="login-email-error" class="text-sm text-destructive" role="alert">
+                  {emailFormatError()}
+                </p>
+              </Show>
             </div>
             <div class="flex flex-col gap-2">
               <Label for="login-password">Password</Label>
