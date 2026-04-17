@@ -10,6 +10,10 @@ export default function MemoSummaryTransactionRow(props: { row: Transaction }) {
   const debit = createMemo(() => parseFloat(String(props.row.amount_debit ?? '0')))
   const credit = createMemo(() => parseFloat(String(props.row.amount_credit ?? '0')))
   const isCredit = createMemo(() => credit() > 0 && debit() === 0)
+  const budgetCategory = (): string | null =>
+    typeof props.row.budget_category === 'string' && props.row.budget_category
+      ? props.row.budget_category
+      : null
 
   return (
     <div class="flex items-center gap-3 py-3 px-1">
@@ -37,11 +41,8 @@ export default function MemoSummaryTransactionRow(props: { row: Transaction }) {
         <p class="text-xs text-muted-foreground m-0">{formatDate(String(props.row.date ?? ''))}</p>
       </div>
 
-      <Show when={typeof props.row.budget_category === 'string' && props.row.budget_category}>
-        <BudgetCategoryPill
-          label={props.row.budget_category as string}
-          class="hidden sm:inline-flex text-xs"
-        />
+      <Show when={budgetCategory()}>
+        {(c) => <BudgetCategoryPill label={c()} class="hidden sm:inline-flex text-xs" />}
       </Show>
 
       <SignedUsdAmount

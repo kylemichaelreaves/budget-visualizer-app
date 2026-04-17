@@ -25,6 +25,8 @@ export default function MemosTable(): JSX.Element {
     budgetCategoryColorsFromData(categorySummaryQuery.data as BudgetCategorySummary[] | undefined),
   )
 
+  const searchIsActive = () => !!data.searchQuery().trim()
+
   return (
     <>
       <MemosTableAlerts
@@ -38,7 +40,7 @@ export default function MemosTable(): JSX.Element {
         headerUniqueTotal={data.headerUniqueTotal}
         headerAmbiguousCount={data.headerAmbiguousCount}
         headerAmbiguousPartial={data.headerAmbiguousPartial}
-        searchIsActive={() => !!data.searchQuery().trim()}
+        searchIsActive={searchIsActive}
       />
 
       <MemosTableListCard
@@ -57,9 +59,7 @@ export default function MemosTable(): JSX.Element {
         getColorByName={(name) => categoryColors().getColorByName(name)}
       />
 
-      <MemosTablePagination
-        clientFilteredTotal={() => (data.searchQuery().trim() ? data.totalMemos() : undefined)}
-      />
+      <MemosTablePagination clientFilteredTotal={() => (searchIsActive() ? data.totalMemos() : undefined)} />
 
       <CategoryTreeSelectDialog
         open={mutations.categoryDialogOpen()}

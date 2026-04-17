@@ -53,7 +53,7 @@ export default function MemosTablePagination(
   return (
     <TablePaginationBar
       dataTestId="memos-table-pagination"
-      error={countQuery.isError && countQuery.error ? (countQuery.error as Error) : undefined}
+      error={countQuery.error}
       errorTestId="memos-table-pagination-error"
       pageSize={transactionsState.memosTableLimit}
       onPageSizeChange={(v) => {

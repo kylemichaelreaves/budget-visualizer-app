@@ -5,7 +5,8 @@ import { Button } from '@components/ui/button'
 
 export default function TablePaginationBar(props: {
   dataTestId: string
-  error?: Error | null
+  /** Accepts any thrown value; non-Error values are wrapped so `.name`/`.message` always render. */
+  error?: unknown
   errorTestId?: string
   pageSize: number
   pageSizeOptions?: number[]
@@ -24,9 +25,15 @@ export default function TablePaginationBar(props: {
 
   const errorAlert = () => {
     const err = props.error
-    if (!err) return null
+    if (err == null) return null
+    const normalized = err instanceof Error ? err : new Error(String(err))
     return (
-      <AlertComponent type="error" title={err.name} message={err.message} dataTestId={props.errorTestId} />
+      <AlertComponent
+        type="error"
+        title={normalized.name}
+        message={normalized.message}
+        dataTestId={props.errorTestId}
+      />
     )
   }
 
