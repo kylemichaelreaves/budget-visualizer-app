@@ -5,6 +5,7 @@ import { mutationKeys } from '@api/queryKeys'
 import { extractApiErrorMessage } from '@api/extractApiErrorMessage'
 import { loginRequest, persistSession } from '@stores/authStore'
 import { safeRedirectPath } from '@utils/safeRedirectPath'
+import { isValidEmail } from '@utils/validateEmail'
 import { devConsole } from '@utils/devConsole'
 import { Alert, AlertDescription, AlertTitle } from '@components/ui/alert'
 import { Button } from '@components/ui/button'
@@ -38,7 +39,8 @@ export default function Login() {
     },
   }))
 
-  const isDisabled = () => loginMut.isPending || !email().trim() || !password().trim()
+  const isDisabled = () =>
+    loginMut.isPending || !email().trim() || !password().trim() || !isValidEmail(email().trim())
 
   const errorDescription = createMemo(() => {
     if (!loginMut.isError || !loginMut.error) return ''
@@ -74,6 +76,7 @@ export default function Login() {
             class="flex flex-col gap-4"
             onSubmit={(e) => {
               e.preventDefault()
+              if (isDisabled()) return
               loginMut.mutate()
             }}
           >
@@ -97,12 +100,6 @@ export default function Login() {
                 autocomplete="current-password"
                 value={password()}
                 onInput={(e) => setPassword(e.currentTarget.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    if (!isDisabled()) loginMut.mutate()
-                  }
-                }}
               />
             </div>
             <Button type="submit" disabled={isDisabled()}>

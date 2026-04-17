@@ -114,7 +114,8 @@ export default function CreateUserPage() {
     strength().score >= 2 &&
     password() === confirm()
 
-  const isDisabled = () => createMut.isPending || !formBasicsOk()
+  /** Only gate on pending so users can submit an incomplete form and see validation (submitted + errors). */
+  const isDisabled = () => createMut.isPending
 
   function handleSubmit(e: SubmitEvent) {
     e.preventDefault()
