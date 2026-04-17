@@ -100,6 +100,13 @@ export default function Login() {
                 autocomplete="current-password"
                 value={password()}
                 onInput={(e) => setPassword(e.currentTarget.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault()
+                    if (isDisabled()) return
+                    loginMut.mutate()
+                  }
+                }}
               />
             </div>
             <Button type="submit" disabled={isDisabled()}>
