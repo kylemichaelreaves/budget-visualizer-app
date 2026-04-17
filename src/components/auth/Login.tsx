@@ -18,7 +18,7 @@ export default function Login() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
-  const [username, setUsername] = createSignal('')
+  const [email, setEmail] = createSignal('')
   const [password, setPassword] = createSignal('')
 
   const redirectTarget = createMemo(
@@ -26,10 +26,11 @@ export default function Login() {
   )
 
   const resetSuccess = createMemo(() => searchParams.resetSuccess === '1')
+  const registered = createMemo(() => searchParams.registered === '1')
 
   const loginMut = useMutation(() => ({
     mutationKey: mutationKeys.login,
-    mutationFn: async () => loginRequest(username(), password()),
+    mutationFn: async () => loginRequest(email(), password()),
     onSuccess: (data) => {
       devConsole('log', 'Login successful', data)
       persistSession(data.user, data.token)
@@ -37,7 +38,7 @@ export default function Login() {
     },
   }))
 
-  const isDisabled = () => loginMut.isPending || !username().trim() || !password().trim()
+  const isDisabled = () => loginMut.isPending || !email().trim() || !password().trim()
 
   const errorDescription = createMemo(() => {
     if (!loginMut.isError || !loginMut.error) return ''
@@ -57,6 +58,12 @@ export default function Login() {
               <AlertDescription>Sign in with your new password.</AlertDescription>
             </Alert>
           </Show>
+          <Show when={registered()}>
+            <Alert class="mb-4" data-testid="login-registered-success">
+              <AlertTitle>Account created</AlertTitle>
+              <AlertDescription>Sign in with the email and password you just set up.</AlertDescription>
+            </Alert>
+          </Show>
           {loginMut.isError ? (
             <Alert variant="destructive" class="mb-4">
               <AlertTitle>Login failed</AlertTitle>
@@ -71,12 +78,15 @@ export default function Login() {
             }}
           >
             <div class="flex flex-col gap-2">
-              <Label for="login-username">Username</Label>
+              <Label for="login-email">Email</Label>
               <Input
-                id="login-username"
-                autocomplete="username"
-                value={username()}
-                onInput={(e) => setUsername(e.currentTarget.value)}
+                id="login-email"
+                type="email"
+                autocomplete="email"
+                inputmode="email"
+                placeholder="name@example.com"
+                value={email()}
+                onInput={(e) => setEmail(e.currentTarget.value)}
               />
             </div>
             <div class="flex flex-col gap-2">
@@ -98,7 +108,14 @@ export default function Login() {
             <Button type="submit" disabled={isDisabled()}>
               {loginMut.isPending ? 'Signing in…' : 'Login'}
             </Button>
-            <div class="text-center text-sm text-muted-foreground">
+            <div class="flex flex-col gap-2 text-center text-sm text-muted-foreground">
+              <A
+                href="/register"
+                class="hover:underline font-medium text-foreground"
+                data-testid="login-register-link"
+              >
+                Create an account
+              </A>
               <A href="/password/reset" class="hover:underline" data-testid="login-forgot-link">
                 Forgot password?
               </A>

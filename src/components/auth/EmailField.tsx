@@ -3,6 +3,12 @@ import { Mail, AlertCircle } from 'lucide-solid'
 
 interface EmailFieldProps {
   id?: string
+  /** Defaults to "Email address". */
+  label?: string
+  /** Helper shown when there is no error. Defaults to forgot-password copy. */
+  helperText?: string
+  /** `data-testid` on the error alert paragraph. Defaults to `forgot-password-error`. */
+  errorTestId?: string
   value: string
   onInput: (value: string) => void
   onFocus: () => void
@@ -18,12 +24,15 @@ export function EmailField(props: EmailFieldProps) {
   const inputId = () => props.id ?? 'email-field'
   const errorId = () => `${inputId()}-error`
   const helperId = () => `${inputId()}-helper`
+  const labelText = () => props.label ?? 'Email address'
+  const helperText = () => props.helperText ?? "We'll send a secure reset link to this address."
+  const errorTestId = () => props.errorTestId ?? 'forgot-password-error'
 
   return (
     <div class="flex flex-col gap-1.5">
       <div class="flex items-center justify-between">
         <label for={inputId()} class="text-foreground text-sm font-medium">
-          Email address
+          {labelText()}
           <span class="ml-1 text-destructive" aria-hidden="true">
             *
           </span>
@@ -72,7 +81,7 @@ export function EmailField(props: EmailFieldProps) {
           when={props.hasError}
           fallback={
             <p id={helperId()} class="text-muted-foreground text-[13px]">
-              We'll send a secure reset link to this address.
+              {helperText()}
             </p>
           }
         >
@@ -80,7 +89,7 @@ export function EmailField(props: EmailFieldProps) {
             id={errorId()}
             role="alert"
             class="flex items-start gap-1.5 text-destructive text-[13px]"
-            data-testid="forgot-password-error"
+            data-testid={errorTestId()}
           >
             <AlertCircle class="h-3.5 w-3.5 mt-px shrink-0" />
             {props.errorMessage}

@@ -130,6 +130,23 @@ export async function installApiMocks(page: Page): Promise<void> {
       return
     }
 
+    if (path.endsWith('/users') && method === 'POST') {
+      const body = (await req.postDataJSON()) as { user?: Record<string, unknown> }
+      const u = body.user ?? {}
+      await json(route, {
+        user: {
+          id: 999,
+          username: String(u.username ?? ''),
+          firstName: String(u.firstName ?? ''),
+          lastName: String(u.lastName ?? ''),
+          email: String(u.email ?? ''),
+          role: 'user',
+        },
+        token: E2E_AUTH_TOKEN,
+      })
+      return
+    }
+
     if (path.includes('/budget-categories')) {
       await json(route, [
         {
