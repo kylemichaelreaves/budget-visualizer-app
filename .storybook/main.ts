@@ -9,10 +9,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const config: StorybookConfig = {
   /**
-   * Story index (sidebar, `storybook dev`, preview URL) is built with a JS-only parser
-   * (Acorn). If `*.stories.*` use TS-only surface syntax, the dev server logs
+   * Story index generation (sidebar, `storybook dev`, preview URL) can fail when a
+   * `*.stories.*` file exposes syntax the indexer cannot parse, logging
    * “Unable to index files … Could not parse import/exports with acorn”.
-   * Avoid top-level `import type`, `satisfies`, and `export const Name: StoryObj =` in CSF files.
+   * Keep CSF files compatible with Storybook’s indexer; if indexing breaks, simplify
+   * the affected story’s top-level syntax rather than assuming one pattern fits all files.
    */
   stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
   addons: ['@storybook/addon-docs', '@storybook/addon-themes', 'msw-storybook-addon', '@storybook/addon-mcp'],

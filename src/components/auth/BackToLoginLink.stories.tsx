@@ -1,14 +1,6 @@
 import { MemoryRouter, Route } from '@solidjs/router'
 import { BackToLoginLink } from './BackToLoginLink'
 
-function WithRouter(props: { children: unknown }) {
-  return (
-    <MemoryRouter root={(r) => r.children}>
-      <Route path="/" component={() => props.children as never} />
-    </MemoryRouter>
-  )
-}
-
 const meta = {
   title: 'Auth/BackToLoginLink',
   component: BackToLoginLink,
@@ -20,12 +12,18 @@ const meta = {
 
 export default meta
 
+/** `<A>` needs router context; use MemoryRouter like other auth stories. */
 export const Default = {
   render: () => (
-    <WithRouter>
-      <div class="w-[380px]">
-        <BackToLoginLink />
-      </div>
-    </WithRouter>
+    <MemoryRouter root={(r) => r.children}>
+      <Route
+        path="/"
+        component={() => (
+          <div class="w-[380px]">
+            <BackToLoginLink />
+          </div>
+        )}
+      />
+    </MemoryRouter>
   ),
 }
