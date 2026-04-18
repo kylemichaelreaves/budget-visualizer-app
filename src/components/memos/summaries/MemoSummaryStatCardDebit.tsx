@@ -12,13 +12,10 @@ export default function MemoSummaryStatCardDebit(props: {
     <MemoSummaryStatCard
       tone="red"
       label={() => (props.totalDebits().aggregateScope === 'page' ? 'Debits (this page)' : 'Total Debits')}
-      icon={<ArrowDownCircleIcon class="size-5 text-red-600 dark:text-red-400" />}
+      icon={<ArrowDownCircleIcon class="size-5 text-negative" />}
     >
       <>
-        <p
-          class="text-2xl font-bold text-red-600 dark:text-red-400 m-0"
-          data-testid="memo-summary-total-debit"
-        >
+        <p class="text-2xl font-bold text-negative m-0" data-testid="memo-summary-total-debit">
           {formatUsdAbs(props.totalDebits().sum)}
         </p>
         <Show when={props.totalDebits().debitTxnCount != null}>

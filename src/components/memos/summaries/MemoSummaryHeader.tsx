@@ -38,19 +38,19 @@ export default function MemoSummaryHeader(props: {
 
         <div class="flex items-center gap-2 flex-wrap">
           <Show when={props.isAmbiguous()}>
-            <Badge variant="outline" class="border-amber-500/50 text-amber-600 dark:text-amber-400">
+            <Badge variant="outline" class="border-caution/50 text-caution-foreground">
               <WarningTriangleIcon class="size-3.5" />
               Ambiguous
             </Badge>
           </Show>
           <Show when={props.isResolved()}>
-            <Badge variant="outline" class="border-green-500/50 text-green-600 dark:text-green-400">
+            <Badge variant="outline" class="border-positive/50 text-positive">
               <CheckCircleIcon class="size-3.5" />
               Resolved
             </Badge>
           </Show>
           <Show when={props.isRecurring()}>
-            <Badge variant="outline" class="border-blue-500/50 text-blue-600 dark:text-blue-400">
+            <Badge variant="outline" class="border-info/50 text-info">
               <RefreshIcon class="size-3.5" />
               {props.frequency() ?? 'Recurring'}
             </Badge>

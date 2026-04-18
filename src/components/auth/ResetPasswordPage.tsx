@@ -140,7 +140,7 @@ export default function ResetPasswordPage() {
                 />
 
                 <Show when={cfSuccess() && !cfError()}>
-                  <p class="flex items-center gap-1.5 text-emerald-600 dark:text-emerald-400 text-[13px]">
+                  <p class="flex items-center gap-1.5 text-success text-[13px]">
                     <CheckCircle2 class="h-3.5 w-3.5 shrink-0" />
                     Passwords match
                   </p>

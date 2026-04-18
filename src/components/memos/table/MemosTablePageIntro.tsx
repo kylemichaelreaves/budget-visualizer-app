@@ -21,7 +21,7 @@ export default function MemosTablePageIntro(props: {
         </Show>
         <Show when={props.headerAmbiguousCount() > 0}>
           {' '}
-          <span class="text-amber-600 dark:text-amber-400 font-medium">
+          <span class="text-caution-foreground font-medium">
             ({props.headerAmbiguousCount()} ambiguous
             <Show when={props.headerAmbiguousPartial()}>
               <span class="font-normal text-muted-foreground"> — loaded pages only</span>

@@ -9,7 +9,7 @@ export default function SummaryCreditsCard(props: { total: number; count: number
       dataTestId="summary-credits-card"
       icon={
         <svg
-          class="size-4 text-green-500"
+          class="size-4 text-positive"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -22,7 +22,7 @@ export default function SummaryCreditsCard(props: { total: number; count: number
           <line x1="12" y1="16" x2="12" y2="8" />
         </svg>
       }
-      value={<div class="text-2xl font-bold text-green-500">+{formatUsdAbs(props.total)}</div>}
+      value={<div class="text-2xl font-bold text-positive">+{formatUsdAbs(props.total)}</div>}
       subtitle={`${props.count} income transaction${props.count !== 1 ? 's' : ''}`}
     />
   )

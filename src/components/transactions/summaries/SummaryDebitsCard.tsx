@@ -9,7 +9,7 @@ export default function SummaryDebitsCard(props: { total: number; count: number 
       dataTestId="summary-debits-card"
       icon={
         <svg
-          class="size-4 text-red-500"
+          class="size-4 text-negative"
           viewBox="0 0 24 24"
           fill="none"
           stroke="currentColor"
@@ -22,7 +22,7 @@ export default function SummaryDebitsCard(props: { total: number; count: number 
           <line x1="12" y1="8" x2="12" y2="16" />
         </svg>
       }
-      value={<div class="text-2xl font-bold text-red-500">-{formatUsdAbs(props.total)}</div>}
+      value={<div class="text-2xl font-bold text-negative">-{formatUsdAbs(props.total)}</div>}
       subtitle={`${props.count} expense transaction${props.count !== 1 ? 's' : ''}`}
     />
   )

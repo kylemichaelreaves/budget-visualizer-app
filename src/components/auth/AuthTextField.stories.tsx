@@ -1,7 +1,8 @@
 import type { Meta, StoryObj } from 'storybook-solidjs-vite'
 import { createSignal } from 'solid-js'
 import { User } from 'lucide-solid'
-import { AuthTextField } from './AuthTextField'
+import { createJSXDecorator } from 'storybook-solidjs-vite'
+import { AuthTextField, type AuthTextFieldProps } from './AuthTextField'
 
 const meta = {
   title: 'Auth/AuthTextField',
@@ -10,14 +11,21 @@ const meta = {
   parameters: {
     layout: 'centered',
   },
-  decorators: [(Story) => <div class="w-[380px]">{Story()}</div>],
+  decorators: [
+    createJSXDecorator((Story) => (
+      <div class="w-[380px]">
+        <Story />
+      </div>
+    )),
+  ],
 } satisfies Meta<typeof AuthTextField>
 
 export default meta
 type Story = StoryObj<typeof meta>
 
-export const Default: Story = {
-  args: {
+/** Lucide components cannot live in `args` (non-serializable); pass `icon` from `render` only. */
+function fieldProps(partial: Partial<AuthTextFieldProps>): AuthTextFieldProps {
+  return {
     id: 'at-default',
     label: 'Username',
     placeholder: 'Choose a username',
@@ -30,17 +38,24 @@ export const Default: Story = {
     errorMessage: null,
     icon: User,
     testid: 'story-at',
-  },
+    ...partial,
+  }
+}
+
+export const Default: Story = {
+  render: () => <AuthTextField {...fieldProps({})} />,
 }
 
 export const WithError: Story = {
-  args: {
-    ...Default.args,
-    id: 'at-err',
-    value: '',
-    hasError: true,
-    errorMessage: 'Username is required.',
-  },
+  render: () => (
+    <AuthTextField
+      {...fieldProps({
+        id: 'at-err',
+        hasError: true,
+        errorMessage: 'Username is required.',
+      })}
+    />
+  ),
 }
 
 export const Interactive: Story = {

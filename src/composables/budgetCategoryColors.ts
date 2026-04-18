@@ -1,5 +1,6 @@
 import * as d3 from 'd3'
 import type { BudgetCategorySummary } from '@types'
+import { getCssChartFallbackColor, getCssChartPalette } from '@utils/chartPalette'
 
 /** Same color assignment logic as the Vue `useBudgetCategoryColors` composable. */
 export function buildBudgetCategoryColorMap(data: BudgetCategorySummary[] | undefined): Map<string, string> {
@@ -9,7 +10,8 @@ export function buildBudgetCategoryColorMap(data: BudgetCategorySummary[] | unde
   const categoriesWithData = data.filter((cat) => Math.abs(cat.total_amount_debit) > 0)
   const parentCategories = categoriesWithData.filter((cat) => cat.parent_id === null)
 
-  const baseColors = d3.schemeCategory10.concat(d3.schemeSet2)
+  const cssPalette = getCssChartPalette()
+  const baseColors = cssPalette.length >= 5 ? cssPalette : d3.schemeCategory10.concat(d3.schemeSet2)
 
   function setColor(cat: BudgetCategorySummary, color: string) {
     if (cat.category_id != null) colorMap.set(String(cat.category_id), color)
@@ -46,14 +48,16 @@ export function budgetCategoryColorsFromData(data: BudgetCategorySummary[] | und
   /** One map per summary snapshot — do not rebuild inside getColorByName (hot path for many rows). */
   const map = buildBudgetCategoryColorMap(data)
 
+  const fallback = getCssChartFallbackColor()
+
   const getColorByName = (categoryName?: string): string => {
     if (!categoryName) return 'transparent'
-    return map.get(categoryName) || '#999999'
+    return map.get(categoryName) || fallback
   }
 
   const getColorById = (categoryId?: number): string => {
     if (!categoryId) return 'transparent'
-    return map.get(String(categoryId)) || '#999999'
+    return map.get(String(categoryId)) || fallback
   }
 
   return { getColorByName, getColorById, colorScheme: () => map }

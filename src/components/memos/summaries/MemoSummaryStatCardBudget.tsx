@@ -26,7 +26,7 @@ export default function MemoSummaryStatCardBudget(props: {
     <MemoSummaryStatCard
       tone="violet"
       label={() => 'Budget Category'}
-      icon={<LayoutGridIcon class="size-5 text-violet-600 dark:text-violet-400" />}
+      icon={<LayoutGridIcon class="size-5 text-accent-purple" />}
     >
       <>
         <div class="mb-3">
@@ -49,19 +49,19 @@ export default function MemoSummaryStatCardBudget(props: {
               label={props.budgetCategory()!}
               dataTestId="memo-summary-budget-category-badge"
               onClick={() => props.onOpenCategoryDialog()}
-              class="text-sm font-medium border-0 bg-violet-100 dark:bg-violet-900/40 text-violet-700 dark:text-violet-300 px-3 py-1"
-              buttonClass="rounded-full hover:bg-violet-200 dark:hover:bg-violet-900/60 transition-colors"
+              class="text-sm font-medium border-0 bg-accent-purple-muted text-accent-purple-foreground px-3 py-1"
+              buttonClass="rounded-full hover:brightness-110 dark:hover:brightness-125 transition-colors"
             />
           </Show>
         </div>
 
         <div class="space-y-2">
           <MemoSummaryCheckboxRow
-            label="Ambiguous category"
+            label="Ambiguous"
             checked={props.isAmbiguous()}
             disabled={isDisabled()}
             onChange={props.onAmbiguousChange}
-            accentClass="accent-amber-500"
+            accentClass="accent-caution"
           />
 
           <MemoSummaryCheckboxRow
@@ -69,7 +69,7 @@ export default function MemoSummaryStatCardBudget(props: {
             checked={props.isRecurring()}
             disabled={isDisabled()}
             onChange={props.onRecurringChange}
-            accentClass="accent-blue-500"
+            accentClass="accent-info"
             trailing={
               <Show when={props.isRecurring()}>
                 <select
@@ -91,7 +91,7 @@ export default function MemoSummaryStatCardBudget(props: {
             checked={props.isNecessary()}
             disabled={isDisabled()}
             onChange={props.onNecessaryChange}
-            accentClass="accent-green-500"
+            accentClass="accent-positive"
           />
         </div>
       </>

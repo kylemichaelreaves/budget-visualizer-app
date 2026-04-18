@@ -3,8 +3,8 @@ import { formatUsdAbs } from '@utils/formatUsd'
 
 export function signedUsdToneClass(variant: 'debit' | 'credit'): string {
   return variant === 'credit'
-    ? 'font-semibold tabular-nums text-green-600 dark:text-green-400'
-    : 'font-semibold tabular-nums text-red-600 dark:text-red-400'
+    ? 'font-semibold tabular-nums text-positive'
+    : 'font-semibold tabular-nums text-negative'
 }
 
 /** Absolute amount with explicit +/- and shared debit/credit tone classes. */

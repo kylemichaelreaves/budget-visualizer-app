@@ -17,13 +17,19 @@ export const Default: Story = {
   args: {
     title: 'Total Debits',
     icon: (
-      <svg class="size-4 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+      <svg
+        class="size-4 text-negative"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+      >
         <circle cx="12" cy="12" r="10" />
         <polyline points="8 12 12 16 16 12" />
         <line x1="12" y1="8" x2="12" y2="16" />
       </svg>
     ),
-    value: <div class="text-2xl font-bold text-red-500">-$1,234.56</div>,
+    value: <div class="text-2xl font-bold text-negative">-$1,234.56</div>,
     subtitle: '15 expense transactions',
     dataTestId: 'story-summary-stat-card',
   },
@@ -34,7 +40,7 @@ export const WithSubtitle: Story = {
     title: 'Total Credits',
     icon: (
       <svg
-        class="size-4 text-green-500"
+        class="size-4 text-positive"
         viewBox="0 0 24 24"
         fill="none"
         stroke="currentColor"
@@ -45,7 +51,7 @@ export const WithSubtitle: Story = {
         <line x1="12" y1="16" x2="12" y2="8" />
       </svg>
     ),
-    value: <div class="text-2xl font-bold text-green-500">+$2,500.00</div>,
+    value: <div class="text-2xl font-bold text-positive">+$2,500.00</div>,
     subtitle: '3 income transactions',
     dataTestId: 'story-summary-stat-subtitle',
   },

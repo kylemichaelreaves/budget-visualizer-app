@@ -65,7 +65,7 @@ export default function BudgetCategoryInlineAddForm(props: {
         <Button
           variant="ghost"
           size="icon"
-          class="size-7 text-green-600 hover:text-green-700"
+          class="size-7 text-positive hover:text-positive-emphasis"
           disabled={!name().trim() || submitting()}
           onClick={() => void handleSubmit()}
           aria-label="Confirm add"

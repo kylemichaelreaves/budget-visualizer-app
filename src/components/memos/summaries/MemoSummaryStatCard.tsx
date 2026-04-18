@@ -2,9 +2,9 @@ import type { Accessor, JSX } from 'solid-js'
 import { Card, CardContent } from '@components/ui/card'
 
 const toneIconWrap: Record<'red' | 'green' | 'violet', string> = {
-  red: 'rounded-full bg-red-100 dark:bg-red-900/40 p-2',
-  green: 'rounded-full bg-green-100 dark:bg-green-900/40 p-2',
-  violet: 'rounded-full bg-violet-100 dark:bg-violet-900/40 p-2',
+  red: 'rounded-full bg-negative-muted p-2',
+  green: 'rounded-full bg-positive-muted p-2',
+  violet: 'rounded-full bg-accent-purple-muted p-2',
 }
 
 export default function MemoSummaryStatCard(props: {
