@@ -3,6 +3,7 @@ import { E2E_AUTH_TOKEN, E2E_AUTH_USER } from './auth-storage'
 import { installApiMocks } from './install-api-mocks'
 import { ForgotPasswordPage } from '../pages/ForgotPasswordPage'
 import { LoginPage } from '../pages/LoginPage'
+import { RegisterPage } from '../pages/RegisterPage'
 import { ResetPasswordPage } from '../pages/ResetPasswordPage'
 import { SidebarNav } from '../pages/SidebarNav'
 import { TransactionsPage } from '../pages/TransactionsPage'
@@ -22,6 +23,7 @@ import { WeekSummaryTablePage } from '../pages/WeekSummaryTablePage'
 
 type Fixtures = {
   loginPage: LoginPage
+  registerPage: RegisterPage
   forgotPasswordPage: ForgotPasswordPage
   resetPasswordPage: ResetPasswordPage
   navbar: NavBar
@@ -48,6 +50,9 @@ type Fixtures = {
 export const test = base.extend<Fixtures>({
   loginPage: async ({ page }, use) => {
     await use(new LoginPage(page))
+  },
+  registerPage: async ({ page }, use) => {
+    await use(new RegisterPage(page))
   },
   forgotPasswordPage: async ({ page }, use) => {
     await use(new ForgotPasswordPage(page))
@@ -120,6 +125,9 @@ export const authenticatedTest = base.extend<Fixtures>({
   },
   loginPage: async ({ page }, use) => {
     await use(new LoginPage(page))
+  },
+  registerPage: async ({ page }, use) => {
+    await use(new RegisterPage(page))
   },
   forgotPasswordPage: async ({ page }, use) => {
     await use(new ForgotPasswordPage(page))

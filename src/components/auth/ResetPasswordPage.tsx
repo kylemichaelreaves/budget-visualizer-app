@@ -5,15 +5,15 @@ import { mutationKeys } from '@api/queryKeys'
 import { extractApiErrorMessage } from '@api/extractApiErrorMessage'
 import { confirmPasswordReset } from '@api/auth/confirmPasswordReset'
 import { Button } from '@components/ui/button'
-import { Lock, CheckCircle2, ShieldCheck, Loader2 } from 'lucide-solid'
+import { Lock, ShieldCheck, Loader2 } from 'lucide-solid'
 import { MissingToken } from './MissingToken'
 import { CenteredCardLayout } from '@components/shared/CenteredCardLayout'
 import { IconHeading } from '@components/shared/IconHeading'
 import { Divider } from '@components/shared/Divider'
 import { BackToLoginLink } from './BackToLoginLink'
 import { SuccessScreen } from '@components/shared/SuccessScreen'
-import { PasswordField } from './PasswordField'
-import { PasswordStrengthIndicator } from './PasswordStrengthIndicator'
+import { NewPasswordWithStrength } from './NewPasswordWithStrength'
+import { ConfirmPasswordWithMatch } from './ConfirmPasswordWithMatch'
 import { ErrorCallout } from '@components/shared/ErrorCallout'
 import { analyzePassword } from './passwordStrength'
 
@@ -93,59 +93,44 @@ export default function ResetPasswordPage() {
                 />
               </Show>
 
-              {/* New password */}
-              <div class="flex flex-col gap-2">
-                <PasswordField
-                  id="rp-new"
-                  label="New password"
-                  placeholder="Create a strong password"
-                  value={password()}
-                  onInput={(v) => {
-                    setPassword(v)
-                    if (resetMut.isError) resetMut.reset()
-                  }}
-                  onFocus={() => setFocusedField('password')}
-                  onBlur={() => setFocusedField(null)}
-                  show={showPw()}
-                  onToggleShow={() => setShowPw((p) => !p)}
-                  error={pwError()}
-                  focused={focusedField() === 'password'}
-                  disabled={resetMut.isPending}
-                  testid="reset-password-new-input"
-                />
+              <NewPasswordWithStrength
+                id="rp-new"
+                label="New password"
+                placeholder="Create a strong password"
+                value={password()}
+                onInput={(v) => {
+                  setPassword(v)
+                  if (resetMut.isError) resetMut.reset()
+                }}
+                onFocus={() => setFocusedField('password')}
+                onBlur={() => setFocusedField(null)}
+                show={showPw()}
+                onToggleShow={() => setShowPw((p) => !p)}
+                error={pwError()}
+                focused={focusedField() === 'password'}
+                disabled={resetMut.isPending}
+                testid="reset-password-new-input"
+                strength={strength()}
+                showRequirements={focusedField() === 'password' || password().length > 0}
+              />
 
-                <PasswordStrengthIndicator
-                  strength={strength()}
-                  showRequirements={focusedField() === 'password' || password().length > 0}
-                />
-              </div>
-
-              {/* Confirm password */}
-              <div class="flex flex-col gap-1.5">
-                <PasswordField
-                  id="rp-confirm"
-                  label="Confirm password"
-                  placeholder="Re-enter your password"
-                  value={confirm()}
-                  onInput={setConfirm}
-                  onFocus={() => setFocusedField('confirm')}
-                  onBlur={() => setFocusedField(null)}
-                  show={showCf()}
-                  onToggleShow={() => setShowCf((p) => !p)}
-                  error={cfError()}
-                  success={cfSuccess()}
-                  focused={focusedField() === 'confirm'}
-                  disabled={resetMut.isPending}
-                  testid="reset-password-confirm-input"
-                />
-
-                <Show when={cfSuccess() && !cfError()}>
-                  <p class="flex items-center gap-1.5 text-success text-[13px]">
-                    <CheckCircle2 class="h-3.5 w-3.5 shrink-0" />
-                    Passwords match
-                  </p>
-                </Show>
-              </div>
+              <ConfirmPasswordWithMatch
+                id="rp-confirm"
+                label="Confirm password"
+                placeholder="Re-enter your password"
+                value={confirm()}
+                onInput={setConfirm}
+                onFocus={() => setFocusedField('confirm')}
+                onBlur={() => setFocusedField(null)}
+                show={showCf()}
+                onToggleShow={() => setShowCf((p) => !p)}
+                error={cfError()}
+                success={cfSuccess()}
+                focused={focusedField() === 'confirm'}
+                disabled={resetMut.isPending}
+                testid="reset-password-confirm-input"
+                showMatchSuccess={cfSuccess() && !cfError()}
+              />
 
               <Show when={confirm().length > 0 && password() !== confirm() && submitted()}>
                 <ErrorCallout
