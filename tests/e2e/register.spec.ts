@@ -2,23 +2,23 @@ import { expect, test } from './fixtures/fixtures'
 import { installApiMocks } from './fixtures/install-api-mocks'
 
 test.describe('Register', () => {
-  test('create account from register page redirects when API returns session', async ({ page }) => {
+  test('create account from register page redirects when API returns session', async ({
+    page,
+    registerPage,
+  }) => {
     await installApiMocks(page)
-    await page.goto('/register')
-
-    await page.getByTestId('register-username-input').fill('newuser')
-    await page.getByTestId('register-email-input').fill('newuser@example.test')
-    await page.getByTestId('register-password-input').fill('Passw0rd1!')
-    await page.getByTestId('register-confirm-input').fill('Passw0rd1!')
-
-    await page.getByTestId('register-submit').click()
-
+    await registerPage.goto()
+    await registerPage.submitRegistration({
+      username: 'newuser',
+      email: 'newuser@example.test',
+      password: 'Passw0rd1!',
+    })
     await expect(page).toHaveURL(/\/budget-visualizer\/transactions/, { timeout: 10_000 })
   })
 
-  test('login page links to register', async ({ page }) => {
-    await page.goto('/login')
-    await page.getByTestId('login-register-link').click()
+  test('login page links to register', async ({ page, loginPage }) => {
+    await loginPage.goto()
+    await loginPage.registerLink.click()
     await expect(page).toHaveURL(/\/register/)
   })
 })

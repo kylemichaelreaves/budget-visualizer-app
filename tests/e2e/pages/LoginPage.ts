@@ -7,6 +7,7 @@ export class LoginPage {
   readonly passwordInput: Locator
   readonly submitButton: Locator
   readonly errorAlert: Locator
+  readonly registerLink: Locator
 
   constructor(page: Page) {
     this.page = page
@@ -15,6 +16,7 @@ export class LoginPage {
     this.passwordInput = page.getByLabel('Password')
     this.submitButton = page.getByRole('button', { name: /login|signing in/i })
     this.errorAlert = page.getByRole('alert')
+    this.registerLink = page.getByTestId('login-register-link')
   }
 
   async goto() {

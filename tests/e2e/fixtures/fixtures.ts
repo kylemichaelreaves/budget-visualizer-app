@@ -3,6 +3,7 @@ import { E2E_AUTH_TOKEN, E2E_AUTH_USER } from './auth-storage'
 import { installApiMocks } from './install-api-mocks'
 import { ForgotPasswordPage } from '../pages/ForgotPasswordPage'
 import { LoginPage } from '../pages/LoginPage'
+import { RegisterPage } from '../pages/RegisterPage'
 import { ResetPasswordPage } from '../pages/ResetPasswordPage'
 import { SidebarNav } from '../pages/SidebarNav'
 import { TransactionsPage } from '../pages/TransactionsPage'
@@ -22,6 +23,7 @@ import { WeekSummaryTablePage } from '../pages/WeekSummaryTablePage'
 
 type Fixtures = {
   loginPage: LoginPage
+  registerPage: RegisterPage
   forgotPasswordPage: ForgotPasswordPage
   resetPasswordPage: ResetPasswordPage
   navbar: NavBar
@@ -42,12 +44,14 @@ type Fixtures = {
 }
 
 /**
- * Unauthenticated fixture — no token injected, no API mocks.
- * Use for login-flow tests.
+ * Page Object Model instances shared by unauthenticated `test` and `authenticatedTest`.
  */
-export const test = base.extend<Fixtures>({
+const pageObjectFixtures = {
   loginPage: async ({ page }, use) => {
     await use(new LoginPage(page))
+  },
+  registerPage: async ({ page }, use) => {
+    await use(new RegisterPage(page))
   },
   forgotPasswordPage: async ({ page }, use) => {
     await use(new ForgotPasswordPage(page))
@@ -100,6 +104,14 @@ export const test = base.extend<Fixtures>({
   weekSummaryTablePage: async ({ page }, use) => {
     await use(new WeekSummaryTablePage(page))
   },
+}
+
+/**
+ * Unauthenticated fixture — no token injected, no API mocks.
+ * Use for login-flow tests.
+ */
+export const test = base.extend<Fixtures>({
+  ...pageObjectFixtures,
 })
 
 /**
@@ -118,60 +130,7 @@ export const authenticatedTest = base.extend<Fixtures>({
     await installApiMocks(page)
     await use(page)
   },
-  loginPage: async ({ page }, use) => {
-    await use(new LoginPage(page))
-  },
-  forgotPasswordPage: async ({ page }, use) => {
-    await use(new ForgotPasswordPage(page))
-  },
-  resetPasswordPage: async ({ page }, use) => {
-    await use(new ResetPasswordPage(page))
-  },
-  navbar: async ({ page }, use) => {
-    await use(new NavBar(page))
-  },
-  sidebar: async ({ page }, use) => {
-    await use(new SidebarNav(page))
-  },
-  transactionsPage: async ({ page }, use) => {
-    await use(new TransactionsPage(page))
-  },
-  transactionCreateDialog: async ({ page }, use) => {
-    await use(new TransactionCreateDialog(page))
-  },
-  transactionEditPage: async ({ page }, use) => {
-    await use(new TransactionEditPage(page))
-  },
-  pendingTransactionsPage: async ({ page }, use) => {
-    await use(new PendingTransactionsPage(page))
-  },
-  memosPage: async ({ page }, use) => {
-    await use(new MemosPage(page))
-  },
-  memoEditPage: async ({ page }, use) => {
-    await use(new MemoEditPage(page))
-  },
-  memoSummaryPage: async ({ page }, use) => {
-    await use(new MemoSummaryPage(page))
-  },
-  budgetCategoriesPage: async ({ page }, use) => {
-    await use(new BudgetCategoriesPage(page))
-  },
-  loanCalculatorPage: async ({ page }, use) => {
-    await use(new LoanCalculatorPage(page))
-  },
-  splitBudgetCategoryDrawer: async ({ page }, use) => {
-    await use(new SplitBudgetCategoryDrawer(page))
-  },
-  categoryTreeSelectDialog: async ({ page }, use) => {
-    await use(new CategoryTreeSelectDialog(page))
-  },
-  monthSummaryTablePage: async ({ page }, use) => {
-    await use(new MonthSummaryTablePage(page))
-  },
-  weekSummaryTablePage: async ({ page }, use) => {
-    await use(new WeekSummaryTablePage(page))
-  },
+  ...pageObjectFixtures,
 })
 
 export { expect } from '@playwright/test'
