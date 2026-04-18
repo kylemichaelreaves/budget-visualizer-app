@@ -5,9 +5,9 @@ import { Alert, AlertTitle, AlertDescription } from '@components/ui/alert'
 export type AlertType = 'success' | 'warning' | 'info' | 'error'
 
 const borderColorMap: Record<AlertType, string> = {
-  success: 'border-l-4 border-l-green-500',
-  warning: 'border-l-4 border-l-yellow-500',
-  info: 'border-l-4 border-l-blue-500',
+  success: 'border-l-4 border-l-success',
+  warning: 'border-l-4 border-l-warning',
+  info: 'border-l-4 border-l-info',
   error: 'border-l-4 border-l-destructive',
 }
 

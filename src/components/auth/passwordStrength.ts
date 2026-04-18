@@ -35,14 +35,14 @@ export const REQUIREMENTS: { key: keyof Strength['checks']; label: string }[] = 
 
 export const SEG_COLORS: Record<StrengthLevel, string> = {
   weak: 'bg-destructive',
-  fair: 'bg-amber-500',
-  strong: 'bg-emerald-500',
+  fair: 'bg-caution',
+  strong: 'bg-success',
   none: '',
 }
 
 export const LABEL_COLORS: Record<StrengthLevel, string> = {
   weak: 'text-destructive',
-  fair: 'text-amber-600 dark:text-amber-400',
-  strong: 'text-emerald-600 dark:text-emerald-400',
+  fair: 'text-caution-foreground',
+  strong: 'text-success',
   none: '',
 }

@@ -31,7 +31,7 @@ export default function BudgetCategoryTreeRenameEditor(props: {
         <Button
           variant="ghost"
           size="icon"
-          class="size-7 text-green-600 hover:text-green-700"
+          class="size-7 text-positive hover:text-positive-emphasis"
           disabled={!props.renameValue().trim()}
           onClick={() => void props.onConfirm()}
           aria-label="Confirm rename"

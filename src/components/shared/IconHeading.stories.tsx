@@ -1,5 +1,6 @@
 import type { Meta, StoryObj } from 'storybook-solidjs-vite'
 import { Lock, AlertCircle, ShieldCheck } from 'lucide-solid'
+import { createJSXDecorator } from 'storybook-solidjs-vite'
 import { IconHeading } from './IconHeading'
 
 const meta = {
@@ -9,7 +10,13 @@ const meta = {
   parameters: {
     layout: 'centered',
   },
-  decorators: [(Story) => <div class="w-[380px]">{Story()}</div>],
+  decorators: [
+    createJSXDecorator((Story) => (
+      <div class="w-[380px]">
+        <Story />
+      </div>
+    )),
+  ],
 } satisfies Meta<typeof IconHeading>
 
 export default meta

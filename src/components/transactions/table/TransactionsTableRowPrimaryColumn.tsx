@@ -19,11 +19,11 @@ export default function TransactionsTableRowPrimaryColumn(props: {
     <div class="flex items-center gap-4 min-w-0">
       <div
         class={`flex size-10 shrink-0 items-center justify-center rounded-full ${
-          props.isCredit() ? 'bg-green-950' : 'bg-red-950'
+          props.isCredit() ? 'bg-positive-icon-wrap' : 'bg-negative-icon-wrap'
         }`}
       >
-        <Show when={props.isCredit()} fallback={<TrendingDownIcon class="size-4 text-red-500" />}>
-          <TrendingUpIcon class="size-4 text-green-500" />
+        <Show when={props.isCredit()} fallback={<TrendingDownIcon class="size-4 text-negative" />}>
+          <TrendingUpIcon class="size-4 text-positive" />
         </Show>
       </div>
 
@@ -58,7 +58,7 @@ export default function TransactionsTableRowPrimaryColumn(props: {
             </A>
             <Show when={isAmbiguous()}>
               <span
-                class="inline-block ml-1 text-amber-500 align-[-2px]"
+                class="inline-block ml-1 text-caution align-[-2px]"
                 title="Ambiguous memo — maps to multiple budget categories"
                 data-testid={`memo-ambiguity-${row().id}`}
               >

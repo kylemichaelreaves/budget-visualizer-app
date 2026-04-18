@@ -50,15 +50,14 @@ export function PasswordStrengthIndicator(props: PasswordStrengthIndicatorProps)
               <span
                 class="flex items-center gap-1.5 transition-colors duration-200 text-xs"
                 classList={{
-                  'text-emerald-600 dark:text-emerald-400': props.strength.checks[req.key],
+                  'text-success': props.strength.checks[req.key],
                   'text-muted-foreground/70': !props.strength.checks[req.key],
                 }}
               >
                 <span
                   class="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border transition-all duration-200"
                   classList={{
-                    'border-emerald-500 bg-emerald-500 dark:border-emerald-400 dark:bg-emerald-400':
-                      props.strength.checks[req.key],
+                    'border-success bg-success': props.strength.checks[req.key],
                     'border-muted-foreground/30': !props.strength.checks[req.key],
                   }}
                 >

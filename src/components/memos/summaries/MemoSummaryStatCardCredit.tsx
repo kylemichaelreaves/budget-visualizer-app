@@ -12,13 +12,10 @@ export default function MemoSummaryStatCardCredit(props: {
     <MemoSummaryStatCard
       tone="green"
       label={() => (props.totalCredits().aggregateScope === 'page' ? 'Credits (this page)' : 'Total Credits')}
-      icon={<ArrowUpCircleIcon class="size-5 text-green-600 dark:text-green-400" />}
+      icon={<ArrowUpCircleIcon class="size-5 text-positive" />}
     >
       <>
-        <p
-          class="text-2xl font-bold text-green-600 dark:text-green-400 m-0"
-          data-testid="memo-summary-total-credit"
-        >
+        <p class="text-2xl font-bold text-positive m-0" data-testid="memo-summary-total-credit">
           {formatUsdAbs(props.totalCredits().sum)}
         </p>
         <Show when={props.totalCredits().creditTxnCount != null}>

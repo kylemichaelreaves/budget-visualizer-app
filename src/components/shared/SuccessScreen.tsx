@@ -12,8 +12,8 @@ interface SuccessScreenProps {
 export function SuccessScreen(props: SuccessScreenProps) {
   return (
     <div class="flex flex-col items-center text-center gap-5 px-1">
-      <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50 dark:bg-emerald-950/40">
-        <Dynamic component={props.icon} class="h-8 w-8 text-emerald-500" />
+      <div class="flex h-16 w-16 items-center justify-center rounded-2xl bg-success-muted">
+        <Dynamic component={props.icon} class="h-8 w-8 text-success" />
       </div>
 
       <div class="flex flex-col gap-2">

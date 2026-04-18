@@ -37,9 +37,9 @@ export default function StatisticComponent(props: {
       {props.previousValue !== undefined && difference() !== null ? (
         <div class="mt-2 text-xs text-muted-foreground">
           {difference()! > 0 ? (
-            <span class="text-green-500">Increase</span>
+            <span class="text-positive">Increase</span>
           ) : difference()! < 0 ? (
-            <span class="text-red-500">Decrease</span>
+            <span class="text-negative">Decrease</span>
           ) : (
             <span>No Change</span>
           )}

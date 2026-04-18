@@ -102,7 +102,7 @@ export default function SplitBudgetCategoryDrawer(props: {
                   disabled={state.local().length === 1}
                   data-testid={`split-remove-${index()}`}
                 >
-                  <TrashIcon class="size-4 text-red-500" />
+                  <TrashIcon class="size-4 text-negative" />
                 </Button>
               </div>
             )}
@@ -122,10 +122,10 @@ export default function SplitBudgetCategoryDrawer(props: {
               <span
                 class={
                   state.isBalanced()
-                    ? 'text-green-500'
+                    ? 'text-positive'
                     : state.remaining() < 0
-                      ? 'text-red-500'
-                      : 'text-yellow-500'
+                      ? 'text-negative'
+                      : 'text-warning'
                 }
               >
                 {formatUsd(state.remaining())}

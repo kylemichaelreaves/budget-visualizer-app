@@ -3,12 +3,12 @@ import { describe, expect, it } from 'vitest'
 import SignedUsdAmount, { signedUsdToneClass } from '@components/shared/SignedUsdAmount'
 
 describe('signedUsdToneClass', () => {
-  it('returns red tone for debit', () => {
-    expect(signedUsdToneClass('debit')).toContain('text-red-600')
+  it('returns negative tone for debit', () => {
+    expect(signedUsdToneClass('debit')).toContain('text-negative')
   })
 
-  it('returns green tone for credit', () => {
-    expect(signedUsdToneClass('credit')).toContain('text-green-600')
+  it('returns positive tone for credit', () => {
+    expect(signedUsdToneClass('credit')).toContain('text-positive')
   })
 
   it('includes tabular-nums and font-semibold for both variants', () => {
@@ -41,7 +41,7 @@ describe('SignedUsdAmount', () => {
       <SignedUsdAmount variant="credit" value={10} class="ml-2 whitespace-nowrap" />
     ))
     const span = container.querySelector('span')!
-    expect(span.className).toContain('text-green-600')
+    expect(span.className).toContain('text-positive')
     expect(span.className).toContain('ml-2')
     expect(span.className).toContain('whitespace-nowrap')
   })

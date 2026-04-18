@@ -17,11 +17,9 @@ export default function MemoSummaryTransactionRow(props: { row: Transaction }) {
 
   return (
     <div class="flex items-center gap-3 py-3 px-1">
-      <div
-        class={`rounded-full p-1.5 ${isCredit() ? 'bg-green-100 dark:bg-green-900/40' : 'bg-red-100 dark:bg-red-900/40'}`}
-      >
-        <Show when={isCredit()} fallback={<TrendingDownIcon class="size-4 text-red-600 dark:text-red-400" />}>
-          <TrendingUpIcon class="size-4 text-green-600 dark:text-green-400" />
+      <div class={`rounded-full p-1.5 ${isCredit() ? 'bg-positive-muted' : 'bg-negative-muted'}`}>
+        <Show when={isCredit()} fallback={<TrendingDownIcon class="size-4 text-negative" />}>
+          <TrendingUpIcon class="size-4 text-positive" />
         </Show>
       </div>
 

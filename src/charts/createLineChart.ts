@@ -72,8 +72,11 @@ export function createLineChart(
   const styles = getComputedStyle(svgElement)
   const textColor = styles.getPropertyValue('color').trim() || '#a1a1aa'
   const gridColor = styles.getPropertyValue('--border').trim() || 'rgba(255,255,255,0.1)'
-  const lineColor = '#ef4444' // red-500
-  const dotColor = '#ef4444'
+  const lineColor =
+    styles.getPropertyValue('--line-chart').trim() ||
+    styles.getPropertyValue('--destructive').trim() ||
+    '#ef4444'
+  const dotColor = lineColor
   const tooltipBg = styles.getPropertyValue('--popover').trim() || '#1c1c1c'
   const tooltipFg = styles.getPropertyValue('--popover-foreground').trim() || '#fafafa'
 

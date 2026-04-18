@@ -39,8 +39,8 @@ export default function MemosTableRow(props: {
           disabled={props.togglingAmbiguousId() === row().id}
           class={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
             row().ambiguous
-              ? 'bg-amber-100 text-amber-800 hover:bg-amber-200 dark:bg-amber-900/50 dark:text-amber-300 dark:hover:bg-amber-900/70'
-              : 'bg-green-100 text-green-800 hover:bg-green-200 dark:bg-green-900/50 dark:text-green-300 dark:hover:bg-green-900/70'
+              ? 'bg-caution-muted text-caution-on-muted hover:brightness-95 dark:hover:brightness-110'
+              : 'bg-positive-muted text-positive-emphasis hover:brightness-95 dark:hover:brightness-110'
           }`}
           onClick={() => void props.onToggleAmbiguous(row())}
           data-testid={`ambiguous-toggle-${row().id}`}
@@ -88,7 +88,7 @@ export default function MemosTableRow(props: {
       </td>
 
       <td
-        class="px-3 py-2.5 text-red-600 dark:text-red-400 font-medium tabular-nums"
+        class="px-3 py-2.5 text-negative font-medium tabular-nums"
         data-testid={`cell-${row().id}-total_amount_debit`}
       >
         {formatUsdOrDash(row().total_amount_debit)}

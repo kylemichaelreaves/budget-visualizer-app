@@ -41,6 +41,21 @@ export default tseslint.config(
       '@typescript-eslint/no-non-null-assertion': 'off',
     },
   },
+  {
+    files: ['src/components/**/*.{ts,tsx}'],
+    ignores: ['**/*.stories.*'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector:
+            'Literal[value=/\\b(text|bg|border|ring|accent)-(green|red|emerald|blue|amber|yellow|violet)-(50|100|200|300|400|500|600|700|800|900|950)\\b/]',
+          message:
+            'Use semantic theme tokens from src/styles/theme.css (e.g. text-positive, bg-success-muted) instead of raw Tailwind palette steps.',
+        },
+      ],
+    },
+  },
   storybook.configs['flat/recommended'],
   prettier,
 )
