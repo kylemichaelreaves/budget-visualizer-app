@@ -167,13 +167,12 @@ describe('httpClient', () => {
       const originalAdapter = httpClient.defaults.adapter
 
       httpClient.defaults.adapter = async (config) => {
-        const error = Object.assign(new Error('Unauthorized'), {
+        throw Object.assign(new Error('Unauthorized'), {
           config,
           response: { status: 401, data: {}, headers: {}, statusText: 'Unauthorized', config },
           isAxiosError: true,
           toJSON: () => ({}),
         })
-        throw error
       }
 
       try {
@@ -182,7 +181,7 @@ describe('httpClient', () => {
         expect(handler).toHaveBeenCalledOnce()
 
         // Flush microtask queue so handlingUnauthorized resets
-        await new Promise((r) => queueMicrotask(r))
+        await new Promise((r) => queueMicrotask(<VoidFunction>r))
 
         // Second 401 should trigger again
         await httpClient.get('/second').catch(() => {})
