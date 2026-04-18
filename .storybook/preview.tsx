@@ -20,6 +20,7 @@ const preview: Preview = {
     withThemeByClassName({
       themes: { light: '', dark: 'dark' },
       defaultTheme: 'dark',
+      parentSelector: 'html',
     }),
     createJSXDecorator((Story) => {
       const queryClient = new QueryClient({
