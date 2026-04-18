@@ -1,4 +1,3 @@
-import type { Meta, StoryObj } from 'storybook-solidjs-vite'
 import { createSignal } from 'solid-js'
 import { createJSXDecorator } from 'storybook-solidjs-vite'
 import { PasswordField } from './PasswordField'
@@ -17,49 +16,50 @@ const meta = {
       </div>
     )),
   ],
-} satisfies Meta<typeof PasswordField>
-
-export default meta
-type Story = StoryObj<typeof meta>
-
-export const Default: Story = {
-  args: {
-    id: 'pw-default',
-    label: 'New password',
-    placeholder: 'Create a strong password',
-    value: '',
-    onInput: () => {},
-    onFocus: () => {},
-    onBlur: () => {},
-    show: false,
-    onToggleShow: () => {},
-    error: null,
-    focused: false,
-    disabled: false,
-    testid: 'story-pw',
-  },
 }
 
-export const Focused: Story = {
+export default meta
+
+const defaultArgs = {
+  id: 'pw-default',
+  label: 'New password',
+  placeholder: 'Create a strong password',
+  value: '',
+  onInput: () => {},
+  onFocus: () => {},
+  onBlur: () => {},
+  show: false,
+  onToggleShow: () => {},
+  error: null,
+  focused: false,
+  disabled: false,
+  testid: 'story-pw',
+}
+
+export const Default = {
+  args: defaultArgs,
+}
+
+export const Focused = {
   args: {
-    ...Default.args,
+    ...defaultArgs,
     id: 'pw-focused',
     focused: true,
   },
 }
 
-export const WithError: Story = {
+export const WithError = {
   args: {
-    ...Default.args,
+    ...defaultArgs,
     id: 'pw-error',
     value: 'short',
     error: 'Password is too weak \u2014 use 8+ characters with uppercase and a number.',
   },
 }
 
-export const WithSuccess: Story = {
+export const WithSuccess = {
   args: {
-    ...Default.args,
+    ...defaultArgs,
     id: 'pw-success',
     label: 'Confirm password',
     value: 'Passw0rd1!',
@@ -67,25 +67,25 @@ export const WithSuccess: Story = {
   },
 }
 
-export const PasswordVisible: Story = {
+export const PasswordVisible = {
   args: {
-    ...Default.args,
+    ...defaultArgs,
     id: 'pw-visible',
     value: 'Passw0rd1!',
     show: true,
   },
 }
 
-export const Disabled: Story = {
+export const Disabled = {
   args: {
-    ...Default.args,
+    ...defaultArgs,
     id: 'pw-disabled',
     value: 'Passw0rd1!',
     disabled: true,
   },
 }
 
-export const Interactive: Story = {
+export const Interactive = {
   render: () => {
     const [value, setValue] = createSignal('')
     const [show, setShow] = createSignal(false)
