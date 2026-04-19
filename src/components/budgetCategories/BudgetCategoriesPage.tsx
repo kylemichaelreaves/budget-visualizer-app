@@ -1,10 +1,14 @@
 import type { JSX } from 'solid-js'
 import { For, Show } from 'solid-js'
+import { useBudgetCategorySummary } from '@api/hooks/budgetCategories/useBudgetCategorySummary'
 import AlertComponent from '@components/shared/AlertComponent'
+import BudgetCategorySunburst from '@components/transactions/charts/BudgetCategorySunburst'
 import { Button } from '@components/ui/button'
 import { Input } from '@components/ui/input'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@components/ui/card'
-import type { CategoryNode } from '@types'
+import { createBudgetCategorySummaryTimeframeFromStore } from '@composables/budgetCategorySummaryTimeframeFromStore'
+import { setSelectedBudgetCategory } from '@stores/transactionsStore'
+import type { BudgetCategorySummary, CategoryNode } from '@types'
 import BudgetCategoryInlineAddForm from './BudgetCategoryInlineAddForm'
 import BudgetCategoryTreeNode from './BudgetCategoryTreeNode'
 import { FolderTreeIcon, PlusIcon, RefreshCwIcon } from '@shared/icons'
@@ -12,6 +16,14 @@ import { useBudgetCategoriesPage } from './useBudgetCategoriesPage'
 
 export default function BudgetCategoriesPage(): JSX.Element {
   const state = useBudgetCategoriesPage()
+  const { chartTimeFrame, chartDate } = createBudgetCategorySummaryTimeframeFromStore(() => undefined)
+  const categorySpendQuery = useBudgetCategorySummary(
+    () => chartTimeFrame(),
+    () => chartDate(),
+  )
+  const spendRows = () => (categorySpendQuery.data ?? []) as BudgetCategorySummary[]
+  const hasSpendForSunburst = () =>
+    spendRows().some((r) => r.parent_id === null && Math.abs(r.total_amount_debit) > 0)
 
   return (
     <div class="text-foreground max-w-[960px]" data-testid="budget-categories-page">
@@ -45,6 +57,58 @@ export default function BudgetCategoriesPage(): JSX.Element {
           />
         )}
       </Show>
+
+      <Card class="mb-6" data-testid="budget-categories-sunburst-card">
+        <CardHeader>
+          <CardTitle>Spending by category</CardTitle>
+          <CardDescription>
+            Same period and memo filters as the transactions view. Click a slice to set the category filter.
+          </CardDescription>
+        </CardHeader>
+        <CardContent class="pb-4">
+          <Show when={categorySpendQuery.isError && categorySpendQuery.error}>
+            {(err) => (
+              <AlertComponent
+                type="error"
+                title={(err() as Error).name}
+                message={(err() as Error).message}
+                dataTestId="budget-categories-spend-chart-error"
+              />
+            )}
+          </Show>
+          <Show
+            when={
+              !categorySpendQuery.isError &&
+              !categorySpendQuery.isLoading &&
+              !categorySpendQuery.isFetching &&
+              !hasSpendForSunburst()
+            }
+          >
+            <p
+              class="text-muted-foreground py-6 text-center text-sm"
+              data-testid="budget-categories-spend-chart-empty"
+            >
+              No categorised expenses for this period.
+            </p>
+          </Show>
+          <Show when={categorySpendQuery.isLoading || categorySpendQuery.isFetching || hasSpendForSunburst()}>
+            <div class="mx-auto w-full max-w-[300px]">
+              <BudgetCategorySunburst
+                data={spendRows()}
+                isLoading={categorySpendQuery.isLoading || categorySpendQuery.isFetching}
+                timeFrame={chartTimeFrame()}
+                date={chartDate()}
+                dataTestId="budget-categories-sunburst"
+                showLegend={false}
+                onSliceClick={(cat) => {
+                  const n = cat.full_path || cat.budget_category || cat.category_name
+                  if (n) setSelectedBudgetCategory(n)
+                }}
+              />
+            </div>
+          </Show>
+        </CardContent>
+      </Card>
 
       <Card data-testid="budget-categories-tree">
         <CardHeader>

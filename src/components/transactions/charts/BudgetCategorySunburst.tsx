@@ -2,7 +2,14 @@ import type { JSX } from 'solid-js'
 import { createEffect, createMemo, createSignal, For, Show } from 'solid-js'
 import * as d3 from 'd3'
 import type { BudgetCategorySummary } from '@types'
-import { buildBudgetCategoryColorMap } from '@composables/budgetCategoryColors'
+import {
+  budgetCategoryColorsFromData,
+  getBudgetCategoryColorForChartCell,
+} from '@composables/budgetCategoryColors'
+import {
+  buildBudgetCategoryChartHierarchy,
+  type BudgetCategoryChartHierarchyNode,
+} from './budgetCategoryChartHierarchy'
 import { Skeleton } from '@components/ui/skeleton'
 import { formatUsd } from '@utils/formatUsd'
 import { ChevronRightIcon } from '@shared/icons/ChevronRightIcon'
@@ -11,18 +18,7 @@ import type { Timeframe } from '@types'
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
-interface HierarchyNode {
-  name: string
-  category_id: number
-  full_path: string
-  budget_category: string
-  total_amount_debit: number
-  parent_id: number | null
-  level: number
-  source_id: number
-  category_name: string
-  children?: HierarchyNode[]
-}
+type HierarchyNode = BudgetCategoryChartHierarchyNode
 
 interface ArcCoords {
   x0: number
@@ -43,90 +39,6 @@ const radius = SIZE / 6
 const CX = SIZE / 2
 const CY = SIZE / 2
 const DURATION = 750
-
-// ── Hierarchy builder ─────────────────────────────────────────────────────────
-
-function buildSunburstHierarchy(data: BudgetCategorySummary[]): HierarchyNode {
-  const filtered = data.filter((d) => Math.abs(d.total_amount_debit) > 0)
-
-  const nodeMap = new Map<number, HierarchyNode>()
-  for (const item of filtered) {
-    nodeMap.set(item.category_id, {
-      ...item,
-      name: item.category_name,
-      children: [],
-    })
-  }
-
-  const topLevel: HierarchyNode[] = []
-
-  for (const item of filtered) {
-    if (item.parent_id === null) {
-      topLevel.push(nodeMap.get(item.category_id)!)
-    } else {
-      const parent = nodeMap.get(item.parent_id)
-      if (parent) {
-        parent.children!.push(nodeMap.get(item.category_id)!)
-      } else {
-        topLevel.push(nodeMap.get(item.category_id)!)
-      }
-    }
-  }
-
-  // Prevent double-counting: parents already include child totals.
-  // Move the "remainder" into a synthetic "Other" leaf so d3.hierarchy().sum()
-  // only counts leaf nodes.
-  function processNode(node: HierarchyNode): void {
-    if (!node.children?.length) return
-
-    for (const child of node.children) processNode(child)
-
-    const childSum = node.children.reduce((sum, c) => sum + Math.abs(c.total_amount_debit), 0)
-    const parentAbs = Math.abs(node.total_amount_debit)
-    const remainder = parentAbs - childSum
-
-    if (remainder > 0.01) {
-      node.children.push({
-        name: 'Other',
-        category_name: `Other ${node.category_name}`,
-        category_id: -(node.category_id * 1000),
-        full_path: node.full_path,
-        budget_category: node.budget_category,
-        total_amount_debit: -remainder,
-        parent_id: node.category_id,
-        level: node.level + 1,
-        source_id: node.source_id,
-      })
-    }
-
-    // Zero out so sum() only counts leaves
-    node.total_amount_debit = 0
-  }
-
-  for (const node of topLevel) processNode(node)
-
-  function cleanEmpty(node: HierarchyNode): void {
-    if (node.children?.length === 0) {
-      delete node.children
-    } else if (node.children) {
-      for (const child of node.children) cleanEmpty(child)
-    }
-  }
-  for (const node of topLevel) cleanEmpty(node)
-
-  return {
-    name: 'Total',
-    category_name: 'Total',
-    category_id: 0,
-    full_path: '',
-    budget_category: '',
-    total_amount_debit: 0,
-    parent_id: null,
-    level: -1,
-    source_id: 0,
-    children: topLevel,
-  }
-}
 
 // ── Visibility helpers (Observable pattern) ───────────────────────────────────
 
@@ -162,7 +74,7 @@ export default function BudgetCategorySunburst(props: {
   let zoomTo: ((node: unknown) => void) | undefined
   let rootNode: AugmentedNode | undefined
 
-  const colorMap = createMemo(() => buildBudgetCategoryColorMap(props.data))
+  const colorHelpers = createMemo(() => budgetCategoryColorsFromData(props.data))
 
   createEffect(() => {
     const data = props.data
@@ -178,10 +90,10 @@ export default function BudgetCategorySunburst(props: {
       return
     }
 
-    const colors = colorMap()
+    const helpers = colorHelpers()
 
     // Build hierarchy
-    const hierarchyData = buildSunburstHierarchy(data)
+    const hierarchyData = buildBudgetCategoryChartHierarchy(data)
     const root = d3
       .hierarchy(hierarchyData)
       .sum((d) => (d.children ? 0 : Math.abs(d.total_amount_debit)))
@@ -227,21 +139,9 @@ export default function BudgetCategorySunburst(props: {
       .selectAll<SVGPathElement, AugmentedNode>('path')
       .data(descendants)
       .join('path')
-      .attr('fill', (d) => {
-        const id = String(d.data.category_id)
-        if (colors.has(id)) return colors.get(id)!
-        // For synthetic "Other" nodes, use a muted version of parent color
-        let anc = d.parent as AugmentedNode | null
-        while (anc && anc.depth > 0) {
-          const ancColor = colors.get(String(anc.data.category_id))
-          if (ancColor) {
-            const shade = d3.color(ancColor)?.darker(0.5 + (d.depth - anc.depth) * 0.2)
-            return shade ? shade.toString() : '#6b7280'
-          }
-          anc = anc.parent as AugmentedNode | null
-        }
-        return '#6b7280'
-      })
+      .attr('fill', (d) =>
+        getBudgetCategoryColorForChartCell(helpers, d.data as unknown as BudgetCategorySummary),
+      )
       .attr('fill-opacity', (d) => (arcVisible(d.current) ? (d.children ? 0.6 : 0.4) : 0))
       .attr('pointer-events', (d) => (arcVisible(d.current) ? 'auto' : 'none'))
       .attr('d', (d) => arc(d.current))
