@@ -64,7 +64,7 @@ export default function BudgetCategorySummaries(props: {
             />
           )}
         </Show>
-        <div class="min-h-0 min-w-0">
+        <div class="flex h-full min-h-0 min-w-0 flex-col">
           <BudgetCategoryTreemap
             data={rows()}
             categoryColors={props.categoryColors}
