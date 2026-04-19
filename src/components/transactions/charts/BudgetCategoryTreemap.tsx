@@ -72,15 +72,25 @@ export default function BudgetCategoryTreemap(props: {
       .sum((d) => (d.children ? 0 : Math.abs((d as HierarchyNode).total_amount_debit)))
       .sort((a, b) => (b.value ?? 0) - (a.value ?? 0)) as d3.HierarchyNode<HierarchyNode>
 
+    /**
+     * `paddingTop` reserves a header strip inside every non-leaf node so we can render a label
+     * and keep the parent rect click-targetable (the Observable zoomable-treemap pattern). The
+     * value is tuned to match the 11px leaf label — 18px gives the text room without hiding
+     * thin leaves.
+     */
     d3
       .treemap<HierarchyNode>()
       .size([w, h])
       .paddingOuter(2)
       .paddingInner(2)
+      .paddingTop(18)
       .round(true)
       .tile(d3.treemapSquarify)(root as d3.HierarchyRectangularNode<HierarchyNode>)
 
-    const leaves = root.leaves() as d3.HierarchyRectangularNode<HierarchyNode>[]
+    /** All real nodes (skip the synthetic root at depth 0); parents paint first so leaves layer on top. */
+    const nodes = (root.descendants() as d3.HierarchyRectangularNode<HierarchyNode>[]).filter(
+      (n) => n.depth > 0,
+    )
 
     d3.select(svg).selectAll('*').remove()
     d3.select(svg).attr('viewBox', `0 0 ${w} ${h}`).style('width', '100%').style('height', '100%')
@@ -89,12 +99,15 @@ export default function BudgetCategoryTreemap(props: {
 
     const cell = g
       .selectAll('g')
-      .data(leaves)
+      .data(nodes)
       .join('g')
       .attr('transform', (d) => `translate(${d.x0},${d.y0})`)
 
     const container = wrapRef
     const tooltip = tooltipRef
+
+    const isClickable = (d: d3.HierarchyRectangularNode<HierarchyNode>) => d.data.category_id > 0
+    const isGroup = (d: d3.HierarchyRectangularNode<HierarchyNode>) => !!d.children?.length
 
     cell
       .append('rect')
@@ -105,14 +118,20 @@ export default function BudgetCategoryTreemap(props: {
       .attr('fill', (d) =>
         getBudgetCategoryColorForChartCell(colorHelpers, d.data as unknown as BudgetCategorySummary),
       )
-      .attr('fill-opacity', 0.85)
-      .attr('stroke', 'currentColor')
-      .attr('stroke-opacity', 0.12)
-      .attr('stroke-width', 1)
-      .style('cursor', (d) => (d.data.category_id > 0 ? 'pointer' : 'default'))
+      // Groups are visible only as a colored header strip + outline so child leaves layered on
+      // top read clearly; leaves stay opaque.
+      .attr('fill-opacity', (d) => (isGroup(d) ? 0.25 : 0.85))
+      .attr('stroke', (d) =>
+        isGroup(d)
+          ? getBudgetCategoryColorForChartCell(colorHelpers, d.data as unknown as BudgetCategorySummary)
+          : 'currentColor',
+      )
+      .attr('stroke-opacity', (d) => (isGroup(d) ? 0.9 : 0.12))
+      .attr('stroke-width', (d) => (isGroup(d) ? 1.5 : 1))
+      .style('cursor', (d) => (isClickable(d) ? 'pointer' : 'default'))
       // eslint-disable-next-line solid/reactivity
       .on('click', (_event, d) => {
-        if (d.data.category_id > 0) {
+        if (isClickable(d)) {
           props.onCellClick?.(d.data as unknown as BudgetCategorySummary)
         }
       })
@@ -120,11 +139,14 @@ export default function BudgetCategoryTreemap(props: {
     cell
       .append('text')
       .attr('x', 4)
-      .attr('y', 14)
+      .attr('y', (d) => (isGroup(d) ? 12 : 14))
       .attr('fill', 'currentColor')
-      .style('font-size', '11px')
+      .style('font-size', (d) => (isGroup(d) ? '10px' : '11px'))
+      .style('font-weight', (d) => (isGroup(d) ? '600' : '400'))
       .style('pointer-events', 'none')
-      .style('opacity', (d) => (d.x1 - d.x0 > 56 && d.y1 - d.y0 > 28 ? 1 : 0))
+      .style('opacity', (d) =>
+        isGroup(d) ? (d.x1 - d.x0 > 44 ? 1 : 0) : d.x1 - d.x0 > 56 && d.y1 - d.y0 > 28 ? 1 : 0,
+      )
       .each(function (d) {
         const text = d3.select(this)
         const name = d.data.name
@@ -135,6 +157,7 @@ export default function BudgetCategoryTreemap(props: {
       })
 
     cell
+      .filter((d) => !isGroup(d))
       .append('text')
       .attr('x', 4)
       .attr('y', 28)
@@ -147,16 +170,16 @@ export default function BudgetCategoryTreemap(props: {
     cell
       .selectAll('rect')
       .on('mouseenter', function (event: MouseEvent, d: unknown) {
-        const leaf = d as d3.HierarchyRectangularNode<HierarchyNode>
-        d3.select(this).attr('fill-opacity', 1)
+        const node = d as d3.HierarchyRectangularNode<HierarchyNode>
+        d3.select(this).attr('fill-opacity', isGroup(node) ? 0.4 : 1)
         if (tooltip && container) {
           tooltip.textContent = ''
           const strong = document.createElement('strong')
-          strong.textContent = leaf.data.category_name
+          strong.textContent = node.data.category_name
           tooltip.appendChild(strong)
           tooltip.appendChild(document.createElement('br'))
           tooltip.appendChild(
-            document.createTextNode(formatUsd(Math.abs(leaf.value ?? leaf.data.total_amount_debit))),
+            document.createTextNode(formatUsd(Math.abs(node.value ?? node.data.total_amount_debit))),
           )
           const parentRect = container.getBoundingClientRect()
           tooltip.style.left = `${event.clientX - parentRect.left + 12}px`
@@ -171,8 +194,9 @@ export default function BudgetCategoryTreemap(props: {
           tooltip.style.top = `${event.clientY - parentRect.top - 12}px`
         }
       })
-      .on('mouseleave', function () {
-        d3.select(this).attr('fill-opacity', 0.85)
+      .on('mouseleave', function (_event: MouseEvent, d: unknown) {
+        const node = d as d3.HierarchyRectangularNode<HierarchyNode>
+        d3.select(this).attr('fill-opacity', isGroup(node) ? 0.25 : 0.85)
         if (tooltip) tooltip.style.opacity = '0'
       })
   })
