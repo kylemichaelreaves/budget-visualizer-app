@@ -2,6 +2,7 @@ import { Lock, AlertCircle, ShieldCheck } from 'lucide-solid'
 import { createJSXDecorator } from 'storybook-solidjs-vite'
 import { IconHeading } from './IconHeading'
 
+/** @type {import('storybook-solidjs-vite').Meta<typeof IconHeading>} */
 const meta = {
   title: 'Shared/IconHeading',
   component: IconHeading,
@@ -20,6 +21,7 @@ const meta = {
 
 export default meta
 
+/** @type {import('storybook-solidjs-vite').StoryObj<typeof meta>} */
 export const Default = {
   args: {
     icon: Lock,
@@ -28,6 +30,7 @@ export const Default = {
   },
 }
 
+/** @type {import('storybook-solidjs-vite').StoryObj<typeof meta>} */
 export const WithError = {
   args: {
     icon: Lock,
@@ -37,6 +40,7 @@ export const WithError = {
   },
 }
 
+/** @type {import('storybook-solidjs-vite').StoryObj<typeof meta>} */
 export const ErrorIcon = {
   args: {
     icon: AlertCircle,
@@ -46,6 +50,7 @@ export const ErrorIcon = {
   },
 }
 
+/** @type {import('storybook-solidjs-vite').StoryObj<typeof meta>} */
 export const CustomIcon = {
   args: {
     icon: ShieldCheck,

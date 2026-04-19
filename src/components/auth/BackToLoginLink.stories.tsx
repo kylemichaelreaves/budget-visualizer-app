@@ -1,6 +1,7 @@
 import { MemoryRouter, Route } from '@solidjs/router'
 import { BackToLoginLink } from './BackToLoginLink'
 
+/** @type {import('storybook-solidjs-vite').Meta<typeof BackToLoginLink>} */
 const meta = {
   title: 'Auth/BackToLoginLink',
   component: BackToLoginLink,
@@ -12,7 +13,10 @@ const meta = {
 
 export default meta
 
-/** `<A>` needs router context; use MemoryRouter like other auth stories. */
+/**
+ * `<A>` needs router context; use MemoryRouter like other auth stories.
+ * @type {import('storybook-solidjs-vite').StoryObj<typeof meta>}
+ */
 export const Default = {
   render: () => (
     <MemoryRouter root={(r) => r.children}>

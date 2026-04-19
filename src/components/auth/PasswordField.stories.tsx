@@ -2,6 +2,7 @@ import { createSignal } from 'solid-js'
 import { createJSXDecorator } from 'storybook-solidjs-vite'
 import { PasswordField } from './PasswordField'
 
+/** @type {import('storybook-solidjs-vite').Meta<typeof PasswordField>} */
 const meta = {
   title: 'Auth/PasswordField',
   component: PasswordField,
@@ -36,10 +37,12 @@ const defaultArgs = {
   testid: 'story-pw',
 }
 
+/** @type {import('storybook-solidjs-vite').StoryObj<typeof meta>} */
 export const Default = {
   args: defaultArgs,
 }
 
+/** @type {import('storybook-solidjs-vite').StoryObj<typeof meta>} */
 export const Focused = {
   args: {
     ...defaultArgs,
@@ -48,6 +51,7 @@ export const Focused = {
   },
 }
 
+/** @type {import('storybook-solidjs-vite').StoryObj<typeof meta>} */
 export const WithError = {
   args: {
     ...defaultArgs,
@@ -57,6 +61,7 @@ export const WithError = {
   },
 }
 
+/** @type {import('storybook-solidjs-vite').StoryObj<typeof meta>} */
 export const WithSuccess = {
   args: {
     ...defaultArgs,
@@ -67,6 +72,7 @@ export const WithSuccess = {
   },
 }
 
+/** @type {import('storybook-solidjs-vite').StoryObj<typeof meta>} */
 export const PasswordVisible = {
   args: {
     ...defaultArgs,
@@ -76,6 +82,7 @@ export const PasswordVisible = {
   },
 }
 
+/** @type {import('storybook-solidjs-vite').StoryObj<typeof meta>} */
 export const Disabled = {
   args: {
     ...defaultArgs,
@@ -85,6 +92,7 @@ export const Disabled = {
   },
 }
 
+/** @type {import('storybook-solidjs-vite').StoryObj<typeof meta>} */
 export const Interactive = {
   render: () => {
     const [value, setValue] = createSignal('')
