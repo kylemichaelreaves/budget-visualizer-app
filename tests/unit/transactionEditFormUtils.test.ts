@@ -17,8 +17,8 @@ const baseTxn: Transaction = {
   memo_id: null,
   budget_category: 'Food',
   balance: '1000.00',
-  check_number: null,
-  fees: null,
+  check_number: undefined,
+  fees: undefined,
   is_split: false,
 }
 
