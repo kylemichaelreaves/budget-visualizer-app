@@ -40,5 +40,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["src", "tests/unit", "tests/setup", "vitest.shims.d.ts"]
+  "include": ["tests/unit", "tests/setup", "vitest.shims.d.ts"]
 }
