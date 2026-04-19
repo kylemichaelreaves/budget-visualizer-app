@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import * as d3 from 'd3'
 import {
   budgetCategoryColorsFromData,
   chartCategoryColorsWithSummaryFallback,
@@ -156,6 +157,26 @@ describe('budgetCategoryColorsFromData (pill / chart parity)', () => {
     expect(helpers.getColorByName(String(childGroceries.budget_category))).toBe(
       getBudgetCategoryColorForChartCell(helpers, childGroceries),
     )
+  })
+
+  it('paints grandchildren as a darker shade of their root, not a fresh palette color', () => {
+    const grandchildStreaming: BudgetCategorySummary = {
+      category_id: 77,
+      category_name: 'Streaming',
+      full_path: 'Food - Groceries - Streaming',
+      level: 2,
+      parent_id: childGroceries.category_id,
+      source_id: 1,
+      budget_category: 'Food - Groceries - Streaming',
+      total_amount_debit: -3,
+    }
+    const helpers = budgetCategoryColorsFromData([parentFood, childGroceries, grandchildStreaming])
+    const rootHex = d3.color(helpers.getColorByName('Food'))?.formatHex()
+    const grandchildHex = d3.color(helpers.getColorByName('Food - Groceries - Streaming'))?.formatHex()
+    const grandchildL = d3.hsl(grandchildHex as string).l
+    const rootL = d3.hsl(rootHex as string).l
+    expect(grandchildL).toBeLessThan(rootL)
+    expect(d3.hsl(grandchildHex as string).h).toBeCloseTo(d3.hsl(rootHex as string).h, 0)
   })
 
   it('assigns a unique base color to every top-level parent even when there are more parents than theme palette slots', () => {

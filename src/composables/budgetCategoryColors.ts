@@ -13,24 +13,35 @@ function buildDistinctBasePalette(count: number, seed: string[]): string[] {
   return d3.quantize((t) => d3.interpolateRainbow((t + 0.05) % 1), count)
 }
 
-/** Same color assignment logic as the Vue `useBudgetCategoryColors` composable. */
+/**
+ * Build a color map for budget categories.
+ *
+ * Each coloring root (top-level categories, plus any category whose `parent_id` isn't present in
+ * this dataset) gets a distinct base hue. Every descendant inherits a shade of its root's hue —
+ * darker with depth, offset by sibling index so siblings differ. This keeps the tree visually
+ * grouped (all Food subcategories read as Food) while avoiding two unrelated parents sharing
+ * the same color.
+ */
 export function buildBudgetCategoryColorMap(data: BudgetCategorySummary[] | undefined): Map<string, string> {
   const colorMap = new Map<string, string>()
   if (!data?.length) return colorMap
 
   const categoriesWithData = data.filter((cat) => Math.abs(cat.total_amount_debit) > 0)
-  const parentCategories = categoriesWithData.filter((cat) => cat.parent_id === null)
-  const parentIds = new Set(parentCategories.map((p) => p.category_id))
-  const orphanedCategories = categoriesWithData.filter(
-    (cat) => cat.parent_id !== null && !parentIds.has(cat.parent_id as number),
-  )
+  const byId = new Map<number, BudgetCategorySummary>(categoriesWithData.map((cat) => [cat.category_id, cat]))
+  const childrenByParent = new Map<number, BudgetCategorySummary[]>()
+  for (const cat of categoriesWithData) {
+    if (cat.parent_id == null) continue
+    const arr = childrenByParent.get(cat.parent_id) ?? []
+    arr.push(cat)
+    childrenByParent.set(cat.parent_id, arr)
+  }
+
+  /** True roots for coloring: top-level, or whose parent isn't visible in this slice. */
+  const roots = categoriesWithData.filter((cat) => cat.parent_id == null || !byId.has(cat.parent_id))
 
   const cssPalette = getCssChartPalette()
   const seedPalette = cssPalette.length >= 5 ? cssPalette : d3.schemeCategory10.concat(d3.schemeSet2)
-  const baseColors = buildDistinctBasePalette(
-    parentCategories.length + orphanedCategories.length,
-    seedPalette,
-  )
+  const baseColors = buildDistinctBasePalette(roots.length, seedPalette)
 
   function setColor(cat: BudgetCategorySummary, color: string) {
     if (cat.category_id != null) colorMap.set(String(cat.category_id), color)
@@ -39,21 +50,20 @@ export function buildBudgetCategoryColorMap(data: BudgetCategorySummary[] | unde
     if (cat.full_path) colorMap.set(cat.full_path, color)
   }
 
-  parentCategories.forEach((parent, index) => {
-    const baseColor = baseColors[index]
-    if (!baseColor) return
-    setColor(parent, baseColor)
-    const children = categoriesWithData.filter((cat) => cat.parent_id === parent.category_id)
-    children.forEach((child, childIndex) => {
-      const shade = d3.color(baseColor)?.darker(0.3 + childIndex * 0.2)
-      const childColor = shade ? shade.toString() : baseColor
-      if (childColor) setColor(child, childColor)
-    })
-  })
+  function paintSubtree(node: BudgetCategorySummary, baseColor: string, depth: number, siblingIndex: number) {
+    let color = baseColor
+    if (depth > 0) {
+      const shade = d3.color(baseColor)?.darker(0.3 * depth + 0.15 * siblingIndex)
+      if (shade) color = shade.toString()
+    }
+    setColor(node, color)
+    const children = childrenByParent.get(node.category_id) ?? []
+    children.forEach((child, i) => paintSubtree(child, baseColor, depth + 1, i))
+  }
 
-  orphanedCategories.forEach((orphan, index) => {
-    const orphanColor = baseColors[parentCategories.length + index]
-    if (orphanColor) setColor(orphan, orphanColor)
+  roots.forEach((root, rootIndex) => {
+    const baseColor = baseColors[rootIndex]
+    if (baseColor) paintSubtree(root, baseColor, 0, 0)
   })
 
   return colorMap
