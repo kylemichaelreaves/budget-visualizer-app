@@ -1,10 +1,10 @@
-import type { Meta, StoryObj } from 'storybook-solidjs-vite'
-import { createMemo, createSignal } from 'solid-js'
-import type { BudgetCategorySummary } from '@types'
+import { createSignal } from 'solid-js'
+import { createJSXDecorator } from 'storybook-solidjs-vite'
 import { budgetCategoryColorsFromData } from '@composables/budgetCategoryColors'
 import BudgetCategoryTreemap from './BudgetCategoryTreemap'
 
-const sampleData: BudgetCategorySummary[] = [
+/** @type {import('@types').BudgetCategorySummary[]} */
+const sampleData = [
   {
     category_id: 1,
     category_name: 'Food',
@@ -107,6 +107,7 @@ const sampleData: BudgetCategorySummary[] = [
   },
 ]
 
+/** @type {import('storybook-solidjs-vite').Meta<typeof BudgetCategoryTreemap>} */
 const meta = {
   title: 'Transactions/BudgetCategoryTreemap',
   component: BudgetCategoryTreemap,
@@ -115,58 +116,60 @@ const meta = {
     layout: 'padded',
   },
   decorators: [
-    (Story) => (
+    createJSXDecorator((Story) => (
       <div style={{ width: '560px', height: '360px' }}>
         <Story />
       </div>
-    ),
+    )),
   ],
-} satisfies Meta<typeof BudgetCategoryTreemap>
+}
 
 export default meta
-type Story = StoryObj<typeof meta>
 
-const colorsFor = (rows: BudgetCategorySummary[]) => createMemo(() => budgetCategoryColorsFromData(rows))
-
-export const WithData: Story = {
+/** @type {import('storybook-solidjs-vite').StoryObj<typeof meta>} */
+export const WithData = {
   args: {
     data: sampleData,
-    categoryColors: colorsFor(sampleData),
+    categoryColors: () => budgetCategoryColorsFromData(sampleData),
     dataTestId: 'story-treemap',
   },
 }
 
-export const Loading: Story = {
+/** @type {import('storybook-solidjs-vite').StoryObj<typeof meta>} */
+export const Loading = {
   args: {
     data: [],
-    categoryColors: colorsFor([]),
+    categoryColors: () => budgetCategoryColorsFromData([]),
     isLoading: true,
     dataTestId: 'story-treemap-loading',
   },
 }
 
-export const Empty: Story = {
+/** @type {import('storybook-solidjs-vite').StoryObj<typeof meta>} */
+export const Empty = {
   args: {
     data: [],
-    categoryColors: colorsFor([]),
+    categoryColors: () => budgetCategoryColorsFromData([]),
     dataTestId: 'story-treemap-empty',
   },
 }
 
-export const WithPeriodLabel: Story = {
+/** @type {import('storybook-solidjs-vite').StoryObj<typeof meta>} */
+export const WithPeriodLabel = {
   args: {
     data: sampleData,
-    categoryColors: colorsFor(sampleData),
+    categoryColors: () => budgetCategoryColorsFromData(sampleData),
     timeFrame: 'month',
     date: '2026-03',
     dataTestId: 'story-treemap-period',
   },
 }
 
-export const WithCellClick: Story = {
+/** @type {import('storybook-solidjs-vite').StoryObj<typeof meta>} */
+export const WithCellClick = {
   render: () => {
-    const [clicked, setClicked] = createSignal<string | null>(null)
-    const colors = colorsFor(sampleData)
+    const [clicked, setClicked] = createSignal('—')
+    const colors = () => budgetCategoryColorsFromData(sampleData)
     return (
       <div class="space-y-2 text-sm">
         <div style={{ width: '560px', height: '360px' }}>
@@ -177,7 +180,7 @@ export const WithCellClick: Story = {
             dataTestId="story-treemap-click"
           />
         </div>
-        <p class="text-muted-foreground">Last clicked: {clicked() ?? '—'}</p>
+        <p class="text-muted-foreground">Last clicked: {clicked()}</p>
       </div>
     )
   },
