@@ -1,8 +1,8 @@
-import type { Meta, StoryObj } from 'storybook-solidjs-vite'
 import { Lock, AlertCircle, ShieldCheck } from 'lucide-solid'
 import { createJSXDecorator } from 'storybook-solidjs-vite'
 import { IconHeading } from './IconHeading'
 
+/** @type {import('storybook-solidjs-vite').Meta<typeof IconHeading>} */
 const meta = {
   title: 'Shared/IconHeading',
   component: IconHeading,
@@ -17,12 +17,12 @@ const meta = {
       </div>
     )),
   ],
-} satisfies Meta<typeof IconHeading>
+}
 
 export default meta
-type Story = StoryObj<typeof meta>
 
-export const Default: Story = {
+/** @type {import('storybook-solidjs-vite').StoryObj<typeof meta>} */
+export const Default = {
   args: {
     icon: Lock,
     title: 'Forgot your password?',
@@ -30,7 +30,8 @@ export const Default: Story = {
   },
 }
 
-export const WithError: Story = {
+/** @type {import('storybook-solidjs-vite').StoryObj<typeof meta>} */
+export const WithError = {
   args: {
     icon: Lock,
     title: 'Reset your password',
@@ -39,7 +40,8 @@ export const WithError: Story = {
   },
 }
 
-export const ErrorIcon: Story = {
+/** @type {import('storybook-solidjs-vite').StoryObj<typeof meta>} */
+export const ErrorIcon = {
   args: {
     icon: AlertCircle,
     title: 'Missing reset token',
@@ -48,7 +50,8 @@ export const ErrorIcon: Story = {
   },
 }
 
-export const CustomIcon: Story = {
+/** @type {import('storybook-solidjs-vite').StoryObj<typeof meta>} */
+export const CustomIcon = {
   args: {
     icon: ShieldCheck,
     title: 'Account secured',

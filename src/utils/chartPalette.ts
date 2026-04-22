@@ -5,8 +5,30 @@ const FALLBACK_PALETTE = [...d3.schemeCategory10, ...(d3.schemeSet2 ?? [])].filt
 const D3_SAFE_FALLBACK = '#737373'
 
 /**
- * Returns a hex color string that D3 can parse (D3 v7 does not parse `oklch(...)` from CSS variables).
- * In a real browser, `oklch` / `lab` values are resolved via computed style on a probe element.
+ * Paint the color onto a 1×1 canvas and read the sRGB pixel back. Modern Chromium leaves
+ * `oklch(...)` / `lab(...)` uncomputed in both `getComputedStyle` and `ctx.fillStyle`, so the only
+ * reliable way to force a conversion to a d3-parsable hex is to rasterize.
+ */
+function hexFromCanvas(cssColor: string): string | null {
+  if (typeof document === 'undefined') return null
+  const canvas = document.createElement('canvas')
+  canvas.width = 1
+  canvas.height = 1
+  const ctx = canvas.getContext('2d')
+  if (!ctx) return null
+  ctx.clearRect(0, 0, 1, 1)
+  ctx.fillStyle = 'transparent'
+  ctx.fillStyle = cssColor
+  ctx.fillRect(0, 0, 1, 1)
+  const [r, g, b, a] = ctx.getImageData(0, 0, 1, 1).data
+  if (a === 0) return null
+  const toHex = (n: number) => n.toString(16).padStart(2, '0')
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`
+}
+
+/**
+ * Returns a hex color string that D3 can parse (d3-color v3 does not parse `oklch(...)` /
+ * `lab(...)` from CSS variables).
  */
 export function resolveCssColorForD3(cssColor: string, lastResort: string = D3_SAFE_FALLBACK): string {
   const trimmed = cssColor.trim()
@@ -15,27 +37,8 @@ export function resolveCssColorForD3(cssColor: string, lastResort: string = D3_S
   const direct = d3.color(trimmed)
   if (direct) return direct.formatHex()
 
-  if (typeof document === 'undefined') return lastResort
-
-  const probe = document.createElement('span')
-  probe.setAttribute('data-d3-color-probe', 'true')
-  probe.style.color = ''
-  probe.style.position = 'absolute'
-  probe.style.visibility = 'hidden'
-  probe.style.pointerEvents = 'none'
-  probe.style.left = '-9999px'
-  probe.style.top = '0'
-  probe.style.color = trimmed
-
-  const host = document.body ?? document.documentElement
-  host.appendChild(probe)
-  const resolved = getComputedStyle(probe).color.trim()
-  host.removeChild(probe)
-
-  if (resolved && resolved !== 'rgba(0, 0, 0, 0)' && resolved !== 'transparent') {
-    const parsed = d3.color(resolved)
-    if (parsed) return parsed.formatHex()
-  }
+  const rasterized = hexFromCanvas(trimmed)
+  if (rasterized) return rasterized
 
   return lastResort
 }

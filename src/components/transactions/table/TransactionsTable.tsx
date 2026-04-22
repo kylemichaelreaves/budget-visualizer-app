@@ -62,6 +62,7 @@ export default function TransactionsTable() {
         firstDay={data.firstDay()}
         chartTimeFrame={data.chartTimeFrame()}
         chartDate={data.chartDate}
+        categoryColors={data.categoryColors}
       />
 
       <TransactionsTableSelects dataTestId="transactions-table-selects" />

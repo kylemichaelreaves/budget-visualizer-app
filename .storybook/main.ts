@@ -8,6 +8,13 @@ import { ROUTE_ALIASES } from '../constants.node.ts'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 const config: StorybookConfig = {
+  /**
+   * Story index generation (sidebar, `storybook dev`, preview URL) can fail when a
+   * `*.stories.*` file exposes syntax the indexer cannot parse, logging
+   * “Unable to index files … Could not parse import/exports with acorn”.
+   * Keep CSF files compatible with Storybook’s indexer; if indexing breaks, simplify
+   * the affected story’s top-level syntax rather than assuming one pattern fits all files.
+   */
   stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
   addons: ['@storybook/addon-docs', '@storybook/addon-themes', 'msw-storybook-addon', '@storybook/addon-mcp'],
   framework: 'storybook-solidjs-vite',
