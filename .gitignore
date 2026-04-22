@@ -33,6 +33,7 @@ coverage
 playwright-report
 test-results
 playwright/.cache
+.playwright-mcp
 
 *storybook.log
 storybook-static
