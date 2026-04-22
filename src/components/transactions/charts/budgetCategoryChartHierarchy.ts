@@ -51,9 +51,13 @@ export function buildBudgetCategoryChartHierarchy(
   function processNode(node: BudgetCategoryChartHierarchyNode): void {
     if (!node.children?.length) return
 
+    // Capture child totals before recursion — processNode zeroes
+    // total_amount_debit on any child that itself has children, so deferring
+    // this sum until after recursing would undercount multi-level subtrees.
+    const childSum = node.children.reduce((sum, c) => sum + Math.abs(c.total_amount_debit), 0)
+
     for (const child of node.children) processNode(child)
 
-    const childSum = node.children.reduce((sum, c) => sum + Math.abs(c.total_amount_debit), 0)
     const parentAbs = Math.abs(node.total_amount_debit)
     const remainder = parentAbs - childSum
 

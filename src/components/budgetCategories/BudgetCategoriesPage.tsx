@@ -24,6 +24,11 @@ export default function BudgetCategoriesPage(): JSX.Element {
   const spendRows = () => (categorySpendQuery.data ?? []) as BudgetCategorySummary[]
   const hasSpendForSunburst = () =>
     spendRows().some((r) => r.parent_id === null && Math.abs(r.total_amount_debit) > 0)
+  const isChartPending = () => categorySpendQuery.isLoading || categorySpendQuery.isFetching
+  // TanStack keeps stale data on error — gate on !isError so the error banner
+  // doesn't render alongside a chart built from the previous successful fetch.
+  const showChart = () => !categorySpendQuery.isError && (isChartPending() || hasSpendForSunburst())
+  const showChartEmpty = () => !categorySpendQuery.isError && !isChartPending() && !hasSpendForSunburst()
 
   return (
     <div class="text-foreground max-w-[960px]" data-testid="budget-categories-page">
@@ -76,14 +81,7 @@ export default function BudgetCategoriesPage(): JSX.Element {
               />
             )}
           </Show>
-          <Show
-            when={
-              !categorySpendQuery.isError &&
-              !categorySpendQuery.isLoading &&
-              !categorySpendQuery.isFetching &&
-              !hasSpendForSunburst()
-            }
-          >
+          <Show when={showChartEmpty()}>
             <p
               class="text-muted-foreground py-6 text-center text-sm"
               data-testid="budget-categories-spend-chart-empty"
@@ -91,11 +89,11 @@ export default function BudgetCategoriesPage(): JSX.Element {
               No categorised expenses for this period.
             </p>
           </Show>
-          <Show when={categorySpendQuery.isLoading || categorySpendQuery.isFetching || hasSpendForSunburst()}>
+          <Show when={showChart()}>
             <div class="mx-auto w-full max-w-[300px]">
               <BudgetCategorySunburst
                 data={spendRows()}
-                isLoading={categorySpendQuery.isLoading || categorySpendQuery.isFetching}
+                isLoading={isChartPending()}
                 timeFrame={chartTimeFrame()}
                 date={chartDate()}
                 dataTestId="budget-categories-sunburst"
