@@ -35,9 +35,17 @@ export default function BudgetCategorySunburst(props: {
   createEffect(() => {
     const data = props.data
     const svg = svgRef
+
+    const resetOverlayState = () => {
+      setBreadcrumb([])
+      setCenterName('Total')
+      setCenterValue(0)
+    }
+
     if (!svg || props.isLoading || !data?.length) {
       if (svg) svg.innerHTML = ''
       navigation = undefined
+      resetOverlayState()
       return
     }
 
@@ -45,6 +53,7 @@ export default function BudgetCategorySunburst(props: {
     if (!parents.length) {
       svg.innerHTML = ''
       navigation = undefined
+      resetOverlayState()
       return
     }
 
