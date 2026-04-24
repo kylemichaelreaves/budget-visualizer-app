@@ -25,24 +25,3 @@ export default function QueryErrorAlert(props: {
     </Show>
   )
 }
-
-export function DismissibleErrorAlert(props: {
-  message: Accessor<string | null>
-  title: string
-  dataTestId: string
-  onDismiss: () => void
-}) {
-  return (
-    <Show when={props.message()}>
-      {(msg) => (
-        <AlertComponent
-          type="error"
-          title={props.title}
-          message={msg()}
-          dataTestId={props.dataTestId}
-          close={props.onDismiss}
-        />
-      )}
-    </Show>
-  )
-}

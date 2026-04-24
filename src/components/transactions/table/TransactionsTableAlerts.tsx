@@ -1,5 +1,6 @@
 import type { Accessor } from 'solid-js'
-import QueryErrorAlert, { DismissibleErrorAlert } from '@components/shared/QueryErrorAlert'
+import DismissibleErrorAlert from '@components/shared/DismissibleErrorAlert'
+import QueryErrorAlert from '@components/shared/QueryErrorAlert'
 
 export default function TransactionsTableAlerts(props: {
   queryError: Accessor<unknown>
