@@ -24,16 +24,50 @@ import {
 } from '@stores/transactionsStore'
 import type { DayYear, MonthYear, WeekYear, Year } from '@types'
 
-type TimeframeSelectDescriptor = {
+type TimeframeSelectDescriptor<T, V extends TimeframeViewMode = TimeframeViewMode> = {
   suffix: string
   label: string
-  viewMode: TimeframeViewMode
-  options: Accessor<unknown[]>
-  optionValue: (item: unknown) => string
-  optionLabel: (item: unknown) => string
+  viewMode: V
+  options: Accessor<T[]>
+  optionValue: (item: T) => string
+  optionLabel: (item: T) => string
   selectedValue: Accessor<string>
   onPick: (value: string) => void
   selectValue?: Accessor<string>
+}
+
+type SupportedTimeframeSelectDescriptor =
+  | TimeframeSelectDescriptor<Year, 'year'>
+  | TimeframeSelectDescriptor<MonthYear, 'month'>
+  | TimeframeSelectDescriptor<WeekYear, 'week'>
+  | TimeframeSelectDescriptor<DayYear, 'day'>
+
+function createTimeframeSelectDescriptor<T, V extends TimeframeViewMode>(
+  descriptor: TimeframeSelectDescriptor<T, V>,
+): TimeframeSelectDescriptor<T, V> {
+  return descriptor
+}
+
+function renderTimeframeSelect<T>(
+  cfg: TimeframeSelectDescriptor<T, TimeframeViewMode>,
+  dataTestId: string,
+  clearButtonTestId: string,
+): JSX.Element {
+  return (
+    <TransactionTimeframeSelect<T>
+      label={cfg.label}
+      viewMode={cfg.viewMode}
+      options={cfg.options}
+      optionValue={cfg.optionValue}
+      optionLabel={cfg.optionLabel}
+      selectedValue={cfg.selectedValue}
+      selectValue={cfg.selectValue}
+      onPick={cfg.onPick}
+      onClearFilters={clearAllFilters}
+      dataTestId={dataTestId}
+      clearButtonTestId={clearButtonTestId}
+    />
+  )
 }
 
 export default function TransactionsTableSelects(props: Readonly<{ dataTestId?: string }>): JSX.Element {
@@ -59,69 +93,68 @@ export default function TransactionsTableSelects(props: Readonly<{ dataTestId?: 
   const dayOptions = createMemo(() => daysQ.data ?? [])
 
   /** Stable per instance; option lists flow through accessors so children track query updates. */
-  const timeframeSelectDescriptors: TimeframeSelectDescriptor[] = [
-    {
+  const timeframeSelectDescriptors: SupportedTimeframeSelectDescriptor[] = [
+    createTimeframeSelectDescriptor({
       suffix: 'year',
       label: 'Year',
       viewMode: 'year',
-      options: yearOptions as Accessor<unknown[]>,
-      optionValue: (item) => (item as Year).year,
-      optionLabel: (item) => (item as Year).year,
+      options: yearOptions,
+      optionValue: (item) => item.year,
+      optionLabel: (item) => item.year,
       selectedValue: () => transactionsState.selectedYear,
       onPick: selectYearView,
-    },
-    {
+    }),
+    createTimeframeSelectDescriptor({
       suffix: 'month',
       label: 'Month',
       viewMode: 'month',
-      options: monthOptions as Accessor<unknown[]>,
-      optionValue: (item) => (item as MonthYear).month_year,
-      optionLabel: (item) => formatMonthLabel((item as MonthYear).month_year),
+      options: monthOptions,
+      optionValue: (item) => item.month_year,
+      optionLabel: (item) => formatMonthLabel(item.month_year),
       selectedValue: () => transactionsState.selectedMonth,
       onPick: selectMonthView,
-    },
-    {
+    }),
+    createTimeframeSelectDescriptor({
       suffix: 'week',
       label: 'Week',
       viewMode: 'week',
-      options: weekOptions as Accessor<unknown[]>,
-      optionValue: (item) => (item as WeekYear).week_year,
-      optionLabel: (item) => formatWeekLabel((item as WeekYear).week_year),
+      options: weekOptions,
+      optionValue: (item) => item.week_year,
+      optionLabel: (item) => formatWeekLabel(item.week_year),
       selectedValue: () => transactionsState.selectedWeek,
       onPick: selectWeekView,
-    },
-    {
+    }),
+    createTimeframeSelectDescriptor({
       suffix: 'day',
       label: 'Day',
       viewMode: 'day',
-      options: dayOptions as Accessor<unknown[]>,
-      optionValue: (item) => String((item as DayYear).day).split('T')[0],
-      optionLabel: (item) => formatDayLabel(String((item as DayYear).day).split('T')[0]),
+      options: dayOptions,
+      optionValue: (item) => String(item.day).split('T')[0],
+      optionLabel: (item) => formatDayLabel(String(item.day).split('T')[0]),
       selectedValue: () => transactionsState.selectedDay,
       selectValue: () => transactionsState.selectedDay.split('T')[0],
       onPick: selectDayView,
-    },
+    }),
   ]
 
   return (
     <section data-testid={tid()} class="p-3 mb-3 bg-card rounded-lg text-foreground">
       <div class="flex flex-wrap gap-3 items-end">
         <For each={timeframeSelectDescriptors}>
-          {(cfg) => (
-            <TransactionTimeframeSelect<unknown>
-              label={cfg.label}
-              viewMode={cfg.viewMode}
-              options={cfg.options}
-              optionValue={cfg.optionValue}
-              optionLabel={cfg.optionLabel}
-              selectedValue={cfg.selectedValue}
-              selectValue={cfg.selectValue}
-              onPick={cfg.onPick}
-              onClearFilters={clearAllFilters}
-              dataTestId={`${tid()}-${cfg.suffix}`}
-              clearButtonTestId={`${tid()}-${cfg.suffix}-clear`}
-            />
-          )}
+          {(cfg) => {
+            const dataTestId = `${tid()}-${cfg.suffix}`
+            const clearButtonTestId = `${tid()}-${cfg.suffix}-clear`
+            switch (cfg.viewMode) {
+              case 'year':
+                return renderTimeframeSelect(cfg, dataTestId, clearButtonTestId)
+              case 'month':
+                return renderTimeframeSelect(cfg, dataTestId, clearButtonTestId)
+              case 'week':
+                return renderTimeframeSelect(cfg, dataTestId, clearButtonTestId)
+              case 'day':
+                return renderTimeframeSelect(cfg, dataTestId, clearButtonTestId)
+            }
+          }}
         </For>
 
         <TransactionMemoFilterField dataTestId={`${tid()}-memo-input`} />
