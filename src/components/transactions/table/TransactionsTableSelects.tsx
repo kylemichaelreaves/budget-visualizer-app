@@ -1,5 +1,5 @@
-import type { JSX } from 'solid-js'
-import { Show, createMemo } from 'solid-js'
+import type { Accessor, JSX } from 'solid-js'
+import { For, Show, createMemo } from 'solid-js'
 import { formatDayLabel, formatWeekLabel, formatMonthLabel } from '@api/helpers/formatPeriodLabels'
 import useDays from '@api/hooks/timeUnits/days/useDays'
 import useMonths from '@api/hooks/timeUnits/months/useMonths'
@@ -8,7 +8,9 @@ import useYears from '@api/hooks/timeUnits/years/useYears'
 import { Badge } from '@components/ui/badge'
 import ClearFilterButton from '@components/shared/ClearFilterButton'
 import TransactionMemoFilterField from '@components/transactions/selects/TransactionMemoFilterField'
-import TransactionTimeframeSelect from '@components/transactions/selects/TransactionTimeframeSelect'
+import TransactionTimeframeSelect, {
+  type TimeframeViewMode,
+} from '@components/transactions/selects/TransactionTimeframeSelect'
 import { useHydrateTransactionsTimeframeStoreFromQueries } from '@composables/hydrateTransactionsTimeframeStore'
 import { useTransactionTableFilterUrlSync } from '@composables/transactionTableFilterUrlSync'
 import {
@@ -21,6 +23,18 @@ import {
   transactionsState,
 } from '@stores/transactionsStore'
 import type { DayYear, MonthYear, WeekYear, Year } from '@types'
+
+type TimeframeSelectDescriptor = {
+  suffix: string
+  label: string
+  viewMode: TimeframeViewMode
+  options: Accessor<unknown[]>
+  optionValue: (item: unknown) => string
+  optionLabel: (item: unknown) => string
+  selectedValue: Accessor<string>
+  onPick: (value: string) => void
+  selectValue?: Accessor<string>
+}
 
 export default function TransactionsTableSelects(props: Readonly<{ dataTestId?: string }>): JSX.Element {
   const tid = () => props.dataTestId ?? 'transactions-table-selects'
@@ -44,61 +58,77 @@ export default function TransactionsTableSelects(props: Readonly<{ dataTestId?: 
   const weekOptions = createMemo(() => weeksQ.data ?? [])
   const dayOptions = createMemo(() => daysQ.data ?? [])
 
+  const timeframeSelectDescriptors = createMemo((): TimeframeSelectDescriptor[] => {
+    void yearOptions()
+    void monthOptions()
+    void weekOptions()
+    void dayOptions()
+    return [
+      {
+        suffix: 'year',
+        label: 'Year',
+        viewMode: 'year',
+        options: yearOptions as Accessor<unknown[]>,
+        optionValue: (item) => (item as Year).year,
+        optionLabel: (item) => (item as Year).year,
+        selectedValue: () => transactionsState.selectedYear,
+        onPick: selectYearView,
+      },
+      {
+        suffix: 'month',
+        label: 'Month',
+        viewMode: 'month',
+        options: monthOptions as Accessor<unknown[]>,
+        optionValue: (item) => (item as MonthYear).month_year,
+        optionLabel: (item) => formatMonthLabel((item as MonthYear).month_year),
+        selectedValue: () => transactionsState.selectedMonth,
+        onPick: selectMonthView,
+      },
+      {
+        suffix: 'week',
+        label: 'Week',
+        viewMode: 'week',
+        options: weekOptions as Accessor<unknown[]>,
+        optionValue: (item) => (item as WeekYear).week_year,
+        optionLabel: (item) => formatWeekLabel((item as WeekYear).week_year),
+        selectedValue: () => transactionsState.selectedWeek,
+        onPick: selectWeekView,
+      },
+      {
+        suffix: 'day',
+        label: 'Day',
+        viewMode: 'day',
+        options: dayOptions as Accessor<unknown[]>,
+        optionValue: (item) => String((item as DayYear).day).split('T')[0] ?? (item as DayYear).day,
+        optionLabel: (item) =>
+          formatDayLabel(String((item as DayYear).day).split('T')[0] ?? (item as DayYear).day),
+        selectedValue: () => transactionsState.selectedDay,
+        selectValue: () => transactionsState.selectedDay.split('T')[0] ?? transactionsState.selectedDay,
+        onPick: selectDayView,
+      },
+    ]
+  })
+
   return (
     <section data-testid={tid()} class="p-3 mb-3 bg-card rounded-lg text-foreground">
       <div class="flex flex-wrap gap-3 items-end">
-        <TransactionTimeframeSelect<Year>
-          label="Year"
-          viewMode="year"
-          options={yearOptions}
-          optionValue={(y) => y.year}
-          optionLabel={(y) => y.year}
-          selectedValue={() => transactionsState.selectedYear}
-          onPick={selectYearView}
-          onClearFilters={clearAllFilters}
-          dataTestId={`${tid()}-year`}
-          clearButtonTestId={`${tid()}-year-clear`}
-        />
-
-        <TransactionTimeframeSelect<MonthYear>
-          label="Month"
-          viewMode="month"
-          options={monthOptions}
-          optionValue={(m) => m.month_year}
-          optionLabel={(m) => formatMonthLabel(m.month_year)}
-          selectedValue={() => transactionsState.selectedMonth}
-          onPick={selectMonthView}
-          onClearFilters={clearAllFilters}
-          dataTestId={`${tid()}-month`}
-          clearButtonTestId={`${tid()}-month-clear`}
-        />
-
-        <TransactionTimeframeSelect<WeekYear>
-          label="Week"
-          viewMode="week"
-          options={weekOptions}
-          optionValue={(w) => w.week_year}
-          optionLabel={(w) => formatWeekLabel(w.week_year)}
-          selectedValue={() => transactionsState.selectedWeek}
-          onPick={selectWeekView}
-          onClearFilters={clearAllFilters}
-          dataTestId={`${tid()}-week`}
-          clearButtonTestId={`${tid()}-week-clear`}
-        />
-
-        <TransactionTimeframeSelect<DayYear>
-          label="Day"
-          viewMode="day"
-          options={dayOptions}
-          optionValue={(d) => String(d.day).split('T')[0] ?? d.day}
-          optionLabel={(d) => formatDayLabel(String(d.day).split('T')[0] ?? d.day)}
-          selectedValue={() => transactionsState.selectedDay}
-          selectValue={() => transactionsState.selectedDay.split('T')[0] ?? transactionsState.selectedDay}
-          onPick={selectDayView}
-          onClearFilters={clearAllFilters}
-          dataTestId={`${tid()}-day`}
-          clearButtonTestId={`${tid()}-day-clear`}
-        />
+        <For each={timeframeSelectDescriptors()}>
+          {(cfg) => (
+            <TransactionTimeframeSelect<unknown>
+              label={cfg.label}
+              viewMode={cfg.viewMode}
+              options={cfg.options}
+              optionValue={cfg.optionValue}
+              optionLabel={cfg.optionLabel}
+              selectedValue={cfg.selectedValue}
+              selectValue={cfg.selectValue}
+              onPick={cfg.onPick}
+              onClearFilters={clearAllFilters}
+              dataTestId={`${tid()}-${cfg.suffix}`}
+              clearButtonTestId={`${tid()}-${cfg.suffix}-clear`}
+            />
+          )}
+        </For>
 
         <TransactionMemoFilterField dataTestId={`${tid()}-memo-input`} />
 

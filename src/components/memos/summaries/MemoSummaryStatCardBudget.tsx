@@ -24,6 +24,7 @@ export default function MemoSummaryStatCardBudget(props: {
 
   return (
     <MemoSummaryStatCard
+      mode="custom"
       tone="violet"
       label={() => 'Budget Category'}
       icon={<LayoutGridIcon class="size-5 text-accent-purple" />}

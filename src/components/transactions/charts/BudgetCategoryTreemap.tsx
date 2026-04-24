@@ -1,5 +1,6 @@
 import type { Accessor, JSX } from 'solid-js'
-import { createEffect, createSignal, onCleanup, Show } from 'solid-js'
+import { createEffect, Show } from 'solid-js'
+import { useElementSize } from '@composables/useElementSize'
 import * as d3 from 'd3'
 import type { BudgetCategorySummary } from '@types'
 import {
@@ -32,23 +33,7 @@ export default function BudgetCategoryTreemap(props: {
   let tooltipRef: HTMLDivElement | undefined
   let svgRef: SVGSVGElement | undefined
 
-  const [dims, setDims] = createSignal({ w: 0, h: 0 })
-
-  createEffect(() => {
-    const el = wrapRef
-    if (!el) return
-
-    const ro = new ResizeObserver((entries) => {
-      const cr = entries[0]?.contentRect
-      if (!cr) return
-      setDims({ w: Math.floor(cr.width), h: Math.floor(cr.height) })
-    })
-    ro.observe(el)
-    queueMicrotask(() => {
-      setDims({ w: Math.floor(el.clientWidth), h: Math.floor(el.clientHeight) })
-    })
-    onCleanup(() => ro.disconnect())
-  })
+  const [dims, attachSizeRef] = useElementSize()
 
   createEffect(() => {
     const data = props.data
@@ -211,7 +196,13 @@ export default function BudgetCategoryTreemap(props: {
         </div>
       </Show>
 
-      <div ref={(el) => (wrapRef = el)} class="relative min-h-0 flex-1 overflow-hidden rounded-lg">
+      <div
+        ref={(el) => {
+          wrapRef = el
+          attachSizeRef(el)
+        }}
+        class="relative min-h-0 flex-1 overflow-hidden rounded-lg"
+      >
         <svg ref={(el) => (svgRef = el)} class="text-foreground block" data-testid={`${id()}-chart`} />
       </div>
       <Show when={props.timeFrame && props.date}>

@@ -1,32 +1,18 @@
 import type { JSX } from 'solid-js'
 import { createMemo } from 'solid-js'
 import useMonthSummary from '@api/hooks/timeUnits/months/useMonthSummary'
-import { useBudgetCategorySummary } from '@api/hooks/budgetCategories/useBudgetCategorySummary'
-import { budgetCategoryColorsFromData } from '@composables/budgetCategoryColors'
-import type { BudgetCategorySummary } from '@types'
 import TimeframeSummaryTable from './TimeframeSummaryTable'
 import { transactionsState } from '@stores/transactionsStore'
+import {
+  mapMonthSummaryQueryRows,
+  useSummaryCategoryColorsForTransactionsTable,
+} from './timeframeSummaryTableBridge'
 
 export default function MonthSummaryTable(props: { dataTestId?: string }): JSX.Element | null {
   const q = useMonthSummary()
   const id = () => props.dataTestId ?? 'month-summary-table'
-
-  const catQ = useBudgetCategorySummary(
-    () => 'month',
-    () => transactionsState.selectedMonth,
-  )
-  const categoryColors = createMemo(() =>
-    budgetCategoryColorsFromData((catQ.data ?? []) as BudgetCategorySummary[]),
-  )
-
-  const rows = createMemo(() =>
-    (q.data ?? []).map((row) => ({
-      memo: row.memo,
-      budget_category: row.budget_category,
-      amount: row.total_amount_debit,
-      count: row.transaction_count ?? 1,
-    })),
-  )
+  const categoryColors = useSummaryCategoryColorsForTransactionsTable('month')
+  const rows = createMemo(() => mapMonthSummaryQueryRows(q.data))
 
   return (
     <TimeframeSummaryTable

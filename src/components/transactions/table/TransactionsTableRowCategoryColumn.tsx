@@ -1,15 +1,12 @@
 import type { Accessor } from 'solid-js'
-import { For, Show, onCleanup } from 'solid-js'
+import { For, Show } from 'solid-js'
 import type { Transaction } from '@types'
 import { useMemoById } from '@api/hooks/memos/useMemoById'
 import { budgetCategoryColorsFromData } from '@composables/budgetCategoryColors'
 import { AssignBudgetCategoryButton, BudgetCategoryPill } from '@components/shared/BudgetCategoryPill'
 import { Skeleton } from '@components/ui/skeleton'
 import { SplitIcon } from '@shared/icons'
-import {
-  prepareTransactionsScrollRestoreFromViewport,
-  setSelectedBudgetCategory,
-} from '@stores/transactionsStore'
+import { useCategoryPillFilterClick } from '@components/transactions/table/useCategoryPillFilterClick'
 import { formatUsd } from '@utils/formatUsd'
 
 type CategoryColorHelpers = ReturnType<typeof budgetCategoryColorsFromData>
@@ -43,39 +40,10 @@ export default function TransactionsTableRowCategoryColumn(props: {
    *  (or the transaction is already split, to allow editing). */
   const shouldShowSplitButton = () => hasAssignedCategory() && (isAmbiguous() || hasSplits())
 
-  let filterClickTimer: ReturnType<typeof setTimeout> | undefined
-
-  function cancelPendingCategoryFilter() {
-    if (filterClickTimer != null) {
-      clearTimeout(filterClickTimer)
-      filterClickTimer = undefined
-    }
-  }
-
-  onCleanup(() => {
-    cancelPendingCategoryFilter()
+  const { onCategoryPillClick, onCategoryPillDblClick } = useCategoryPillFilterClick({
+    row,
+    openCategoryDialog: (r) => props.openCategoryDialog(r),
   })
-
-  function onCategoryPillClick(category: string, e: MouseEvent) {
-    if (e.detail >= 2) {
-      cancelPendingCategoryFilter()
-      return
-    }
-    if (e.detail === 1) {
-      cancelPendingCategoryFilter()
-      filterClickTimer = setTimeout(() => {
-        filterClickTimer = undefined
-        prepareTransactionsScrollRestoreFromViewport(row().id)
-        setSelectedBudgetCategory(category, { resetTablePagination: false })
-      }, 280)
-    }
-  }
-
-  function onCategoryPillDblClick(e: MouseEvent) {
-    e.preventDefault()
-    cancelPendingCategoryFilter()
-    props.openCategoryDialog(row())
-  }
 
   return (
     <div class="flex items-center justify-center flex-wrap gap-1.5 min-w-0">
