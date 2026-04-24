@@ -1,6 +1,6 @@
 import type { Accessor } from 'solid-js'
-import { Show } from 'solid-js'
-import AlertComponent from '@components/shared/AlertComponent'
+import DismissibleErrorAlert from '@components/shared/DismissibleErrorAlert'
+import QueryErrorAlert from '@components/shared/QueryErrorAlert'
 
 export default function TransactionsTableAlerts(props: {
   queryError: Accessor<unknown>
@@ -10,32 +10,18 @@ export default function TransactionsTableAlerts(props: {
 }) {
   return (
     <>
-      <Show when={props.queryIsError() && props.queryError()}>
-        {(err) => {
-          const e = err() as unknown
-          const error = e instanceof Error ? e : new Error(String(e))
-          return (
-            <AlertComponent
-              type="error"
-              title={error.name}
-              message={error.message}
-              dataTestId="transactions-table-error-alert"
-            />
-          )
-        }}
-      </Show>
+      <QueryErrorAlert
+        isError={props.queryIsError}
+        error={props.queryError}
+        dataTestId="transactions-table-error-alert"
+      />
 
-      <Show when={props.categoryAssignError()}>
-        {(msg) => (
-          <AlertComponent
-            type="error"
-            title="Could not assign category"
-            message={msg()}
-            dataTestId="transactions-table-category-assign-error"
-            close={props.onDismissCategoryError}
-          />
-        )}
-      </Show>
+      <DismissibleErrorAlert
+        message={props.categoryAssignError}
+        title="Could not assign category"
+        dataTestId="transactions-table-category-assign-error"
+        onDismiss={props.onDismissCategoryError}
+      />
     </>
   )
 }

@@ -1,7 +1,6 @@
 import type { Accessor } from 'solid-js'
+import MemoSummaryStatCard from './MemoSummaryStatCard'
 import MemoSummaryStatCardBudget from './MemoSummaryStatCardBudget'
-import MemoSummaryStatCardCredit from './MemoSummaryStatCardCredit'
-import MemoSummaryStatCardDebit from './MemoSummaryStatCardDebit'
 import type { MemoSummaryCreditAggregate, MemoSummaryDebitAggregate } from './memoSummaryStatCardTypes'
 
 export default function MemoSummaryStatCards(props: {
@@ -22,8 +21,8 @@ export default function MemoSummaryStatCards(props: {
 }) {
   return (
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      <MemoSummaryStatCardCredit totalCredits={props.totalCredits} />
-      <MemoSummaryStatCardDebit totalDebits={props.totalDebits} />
+      <MemoSummaryStatCard mode="credit" totalCredits={props.totalCredits} />
+      <MemoSummaryStatCard mode="debit" totalDebits={props.totalDebits} />
       <MemoSummaryStatCardBudget
         budgetCategory={props.budgetCategory}
         memoReady={props.memoReady}

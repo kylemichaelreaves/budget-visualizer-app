@@ -13,8 +13,7 @@ import BudgetCategoriesPage from '@components/budgetCategories/BudgetCategoriesP
 import PendingTransactionsTable from '@components/transactions/pending/PendingTransactionsTable'
 import TransactionEditPage from '@components/transactions/forms/TransactionEditPage'
 import TransactionsTable from '@components/transactions/table/TransactionsTable'
-import TransactionsWithMonthSummary from '@components/transactions/summaries/TransactionsWithMonthSummary'
-import TransactionsWithWeekSummary from '@components/transactions/summaries/TransactionsWithWeekSummary'
+import TransactionsWithTimeframeSummaryRoute from '@components/transactions/summaries/TransactionsWithTimeframeSummaryRoute'
 import type { JSX } from 'solid-js'
 
 function AppLayout(props: { children?: JSX.Element }) {
@@ -37,8 +36,8 @@ export default function App() {
       <Route path="/budget-visualizer" component={BudgetVisualizer}>
         <Route path="/" component={() => <Navigate href="/budget-visualizer/transactions" />} />
         <Route path="/transactions" component={TransactionsTable} />
-        <Route path="/transactions/months/:month/summary" component={TransactionsWithMonthSummary} />
-        <Route path="/transactions/weeks/:week/summary" component={TransactionsWithWeekSummary} />
+        <Route path="/transactions/months/:month/summary" component={TransactionsWithTimeframeSummaryRoute} />
+        <Route path="/transactions/weeks/:week/summary" component={TransactionsWithTimeframeSummaryRoute} />
         <Route path="/transactions/pending" component={PendingTransactionsTable} />
         <Route path="/transactions/pending/:pendingTransactionId/edit" component={TransactionEditPage} />
         <Route path="/transactions/:transactionId/edit" component={TransactionEditPage} />
