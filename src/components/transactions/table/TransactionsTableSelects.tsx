@@ -95,11 +95,10 @@ export default function TransactionsTableSelects(props: Readonly<{ dataTestId?: 
       label: 'Day',
       viewMode: 'day',
       options: dayOptions as Accessor<unknown[]>,
-      optionValue: (item) => String((item as DayYear).day).split('T')[0] ?? (item as DayYear).day,
-      optionLabel: (item) =>
-        formatDayLabel(String((item as DayYear).day).split('T')[0] ?? (item as DayYear).day),
+      optionValue: (item) => String((item as DayYear).day).split('T')[0],
+      optionLabel: (item) => formatDayLabel(String((item as DayYear).day).split('T')[0]),
       selectedValue: () => transactionsState.selectedDay,
-      selectValue: () => transactionsState.selectedDay.split('T')[0] ?? transactionsState.selectedDay,
+      selectValue: () => transactionsState.selectedDay.split('T')[0],
       onPick: selectDayView,
     },
   ]
