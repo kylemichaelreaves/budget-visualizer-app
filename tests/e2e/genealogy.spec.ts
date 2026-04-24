@@ -40,36 +40,41 @@ test.describe('Genealogy page', () => {
     await expect(genealogyPage.connectorPaths).toHaveCount(connectorCount)
     await expect(genealogyPage.mapCircles).toHaveCount(GENEALOGY_NODE_IDS.length)
     // At least the 14 southern-state FIPS filter should yield a meaningful count;
-    // topojson sometimes splits disjoint islands so allow >= 14.
+    // topojson sometimes splits disjoint geometries so allow >= 14.
     await expect.poll(async () => await genealogyPage.stateShapes.count()).toBeGreaterThanOrEqual(14)
   })
 
-  test('hovering a person card highlights the matching map node', async ({ genealogyPage }) => {
+  test('hovering a person card selects the matching map node and shows the tree tooltip', async ({
+    genealogyPage,
+  }) => {
     await genealogyPage.goto()
     const targetId = 'john-sr'
-    const card = genealogyPage.personCard(targetId)
-    const circle = genealogyPage.mapNode(targetId)
 
-    await expect(circle).toHaveAttribute('r', '6')
-    await card.hover()
-    // Cross-panel sync: the map circle enlarges via the setSelected() handle.
-    await expect(circle).toHaveAttribute('r', '9')
-    await expect(genealogyPage.tooltip).toBeVisible()
-    await expect(genealogyPage.tooltip).toContainText('John Anderson Reaves Sr.')
+    // Nothing selected initially — every circle reports data-selected=false.
+    await expect(genealogyPage.selectedMapNode).toHaveCount(0)
+
+    await genealogyPage.personCard(targetId).hover()
+    // Cross-panel sync: the map node for the hovered card becomes the selected one.
+    await expect(genealogyPage.selectedMapNode).toHaveCount(1)
+    await expect(genealogyPage.mapNode(targetId)).toHaveAttribute('data-selected', 'true')
+
+    // The tooltip that appears belongs to the tree panel, not the map panel.
+    await expect(genealogyPage.treeTooltip).toBeVisible()
+    await expect(genealogyPage.treeTooltip).toContainText('John Anderson Reaves Sr.')
+    await expect(genealogyPage.mapTooltip).toBeHidden()
   })
 
   test('moving off the card clears selection and hides the tooltip', async ({ genealogyPage }) => {
     await genealogyPage.goto()
     const card = genealogyPage.personCard('lee-reaves')
-    const circle = genealogyPage.mapNode('lee-reaves')
 
     await card.hover()
-    await expect(circle).toHaveAttribute('r', '9')
-    await expect(genealogyPage.tooltip).toBeVisible()
+    await expect(genealogyPage.selectedMapNode).toHaveCount(1)
+    await expect(genealogyPage.treeTooltip).toBeVisible()
 
     await genealogyPage.heading.hover()
-    await expect(genealogyPage.tooltip).toBeHidden()
-    await expect(circle).toHaveAttribute('r', '6')
+    await expect(genealogyPage.treeTooltip).toBeHidden()
+    await expect(genealogyPage.selectedMapNode).toHaveCount(0)
   })
 
   test('timeline toggle is present but disabled (Phase 2)', async ({ genealogyPage }) => {

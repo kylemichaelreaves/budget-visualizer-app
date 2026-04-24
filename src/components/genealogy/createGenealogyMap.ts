@@ -151,6 +151,7 @@ export function createGenealogyMap(
     .attr('stroke-width', 1.5)
     .attr('cursor', 'pointer')
     .attr('data-node-id', (n) => n.id)
+    .attr('data-selected', 'false')
 
   circles
     .on('pointerenter', (event: PointerEvent, n) => callbacks.onNodeEnter(n, event))
@@ -173,6 +174,7 @@ export function createGenealogyMap(
     circles
       .attr('r', (n) => (n.id === id ? SELECTED_RADIUS : DEFAULT_RADIUS))
       .attr('opacity', (n) => (id === null || n.id === id ? 1 : 0.3))
+      .attr('data-selected', (n) => String(n.id === id))
   }
 
   function destroy(): void {

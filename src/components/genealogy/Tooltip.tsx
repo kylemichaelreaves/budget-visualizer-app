@@ -9,12 +9,12 @@ export type TooltipState = {
   y: number
 } | null
 
-export default function Tooltip(props: { state: TooltipState }): JSX.Element {
+export default function Tooltip(props: { state: TooltipState; testid?: string }): JSX.Element {
   const position = () => (props.state ? { x: props.state.x, y: props.state.y } : null)
   const node = () => props.state?.node
 
   return (
-    <CursorTooltip position={position()} dataTestId="genealogy-tooltip">
+    <CursorTooltip position={position()} dataTestId={props.testid ?? 'genealogy-tooltip'}>
       <Show when={node()}>
         {(n) => (
           <>

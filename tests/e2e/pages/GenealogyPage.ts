@@ -13,6 +13,13 @@ export const GENEALOGY_NODE_IDS = [
 
 export type GenealogyNodeId = (typeof GENEALOGY_NODE_IDS)[number]
 
+/**
+ * POM for the genealogy two-panel view. Locators prefer `data-testid` for
+ * component identity and `data-*` attributes for state assertions — this keeps
+ * tests decoupled from visual details (radius, color, CSS class names) so the
+ * Phase 2 timeline / pulse-animation work can refactor styling without breaking
+ * tests.
+ */
 export class GenealogyPage {
   readonly page: Page
   readonly root: Locator
@@ -24,20 +31,22 @@ export class GenealogyPage {
   readonly mapConnectorsGroup: Locator
   readonly familyTree: Locator
   readonly timelineToggle: Locator
-  readonly tooltip: Locator
+  readonly mapTooltip: Locator
+  readonly treeTooltip: Locator
 
   constructor(page: Page) {
     this.page = page
     this.root = page.getByTestId('genealogy-page')
     this.heading = this.root.getByRole('heading', { name: /^genealogy$/i, level: 1 })
     this.mapPanel = page.getByTestId('genealogy-map-panel')
-    this.mapSvg = page.getByTestId('genealogy-map').locator('svg')
+    this.mapSvg = page.getByTestId('genealogy-map-svg')
     this.mapStatesGroup = this.mapSvg.locator('g[data-role="states"]')
     this.mapNodesGroup = this.mapSvg.locator('g[data-role="nodes"]')
     this.mapConnectorsGroup = this.mapSvg.locator('g[data-role="connectors"]')
     this.familyTree = page.getByTestId('genealogy-family-tree')
     this.timelineToggle = page.getByTestId('genealogy-timeline-toggle')
-    this.tooltip = page.getByTestId('genealogy-tooltip')
+    this.mapTooltip = page.getByTestId('genealogy-map-tooltip')
+    this.treeTooltip = page.getByTestId('genealogy-tree-tooltip')
   }
 
   async goto() {
@@ -50,6 +59,11 @@ export class GenealogyPage {
 
   mapNode(id: GenealogyNodeId): Locator {
     return this.mapNodesGroup.locator(`circle[data-node-id="${id}"]`)
+  }
+
+  /** Matches only the currently-selected map node (driven by data-selected). */
+  get selectedMapNode(): Locator {
+    return this.mapNodesGroup.locator('circle[data-selected="true"]')
   }
 
   get personCards(): Locator {

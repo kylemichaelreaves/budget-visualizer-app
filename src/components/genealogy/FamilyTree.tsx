@@ -60,7 +60,7 @@ export default function FamilyTree(props: { nodes: GenealogyNode[] }): JSX.Eleme
           registerCardRef={registerCardRef}
         />
       </div>
-      <Tooltip state={hover.tooltip()} />
+      <Tooltip state={hover.tooltip()} testid="genealogy-tree-tooltip" />
     </div>
   )
 }

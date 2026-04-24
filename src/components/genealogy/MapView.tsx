@@ -49,8 +49,9 @@ export default function MapView(props: { nodes: GenealogyNode[] }): JSX.Element 
           svgEl = el
         }}
         class="block w-full bg-card rounded-md border border-border"
+        data-testid="genealogy-map-svg"
       />
-      <Tooltip state={hover.tooltip()} />
+      <Tooltip state={hover.tooltip()} testid="genealogy-map-tooltip" />
     </div>
   )
 }
