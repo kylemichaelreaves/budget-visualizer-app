@@ -1,6 +1,7 @@
 import type { Accessor, JSX } from 'solid-js'
 import { Match, Switch } from 'solid-js'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
+import { SummaryCreditStatIcon, SummaryDebitStatIcon } from '@shared/icons'
 import { formatUsdAbs } from '@utils/formatUsd'
 
 type SummaryStatCardGenericProps = {
@@ -23,42 +24,6 @@ function isDebitCredit(props: SummaryStatCardProps): props is SummaryStatCardDeb
   return 'variant' in props
 }
 
-function DebitIcon(): JSX.Element {
-  return (
-    <svg
-      class="size-4 text-negative"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="8 12 12 16 16 12" />
-      <line x1="12" y1="8" x2="12" y2="16" />
-    </svg>
-  )
-}
-
-function CreditIcon(): JSX.Element {
-  return (
-    <svg
-      class="size-4 text-positive"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <circle cx="12" cy="12" r="10" />
-      <polyline points="16 12 12 8 8 12" />
-      <line x1="12" y1="16" x2="12" y2="8" />
-    </svg>
-  )
-}
-
 export default function SummaryStatCard(props: SummaryStatCardProps): JSX.Element {
   return (
     <Switch>
@@ -73,7 +38,7 @@ export default function SummaryStatCard(props: SummaryStatCardProps): JSX.Elemen
                 <CardTitle class="text-sm font-medium">
                   {isDebit ? 'Total Debits' : 'Total Credits'}
                 </CardTitle>
-                {isDebit ? <DebitIcon /> : <CreditIcon />}
+                {isDebit ? <SummaryDebitStatIcon /> : <SummaryCreditStatIcon />}
               </CardHeader>
               <CardContent>
                 {isDebit ? (

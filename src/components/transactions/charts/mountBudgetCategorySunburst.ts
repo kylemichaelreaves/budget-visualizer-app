@@ -130,7 +130,14 @@ export function mountBudgetCategorySunburstChart(opts: {
     .attr('pointer-events', 'all')
     .style('cursor', 'default')
 
-  const container = svg.parentElement
+  /** Tooltip uses `position: absolute` relative to `offsetParent`, not necessarily the SVG wrapper. */
+  function tooltipAnchorRect(): DOMRect | null {
+    if (!tooltip) return null
+    const anchor =
+      (tooltip.offsetParent instanceof HTMLElement ? tooltip.offsetParent : null) ?? svg.parentElement
+    if (!anchor) return null
+    return anchor.getBoundingClientRect()
+  }
 
   path
     .on('mouseenter', function (event: MouseEvent, d: AugmentedNode) {
@@ -142,26 +149,30 @@ export function mountBudgetCategorySunburstChart(opts: {
         return 0.15
       })
 
-      if (tooltip && container) {
-        tooltip.textContent = ''
-        const strong = document.createElement('strong')
-        strong.textContent = d.data.category_name
-        tooltip.appendChild(strong)
-        tooltip.appendChild(document.createElement('br'))
-        tooltip.appendChild(
-          document.createTextNode(formatUsd(Math.abs(d.value ?? d.data.total_amount_debit))),
-        )
-        const parentRect = container.getBoundingClientRect()
-        tooltip.style.left = `${event.clientX - parentRect.left + 12}px`
-        tooltip.style.top = `${event.clientY - parentRect.top - 12}px`
-        tooltip.style.opacity = '1'
+      if (tooltip) {
+        const anchorRect = tooltipAnchorRect()
+        if (anchorRect) {
+          tooltip.textContent = ''
+          const strong = document.createElement('strong')
+          strong.textContent = d.data.category_name
+          tooltip.appendChild(strong)
+          tooltip.appendChild(document.createElement('br'))
+          tooltip.appendChild(
+            document.createTextNode(formatUsd(Math.abs(d.value ?? d.data.total_amount_debit))),
+          )
+          tooltip.style.left = `${event.clientX - anchorRect.left + 12}px`
+          tooltip.style.top = `${event.clientY - anchorRect.top - 12}px`
+          tooltip.style.opacity = '1'
+        }
       }
     })
     .on('mousemove', function (event: MouseEvent) {
-      if (tooltip && container) {
-        const parentRect = container.getBoundingClientRect()
-        tooltip.style.left = `${event.clientX - parentRect.left + 12}px`
-        tooltip.style.top = `${event.clientY - parentRect.top - 12}px`
+      if (tooltip) {
+        const anchorRect = tooltipAnchorRect()
+        if (anchorRect) {
+          tooltip.style.left = `${event.clientX - anchorRect.left + 12}px`
+          tooltip.style.top = `${event.clientY - anchorRect.top - 12}px`
+        }
       }
     })
     .on('mouseleave', function () {
