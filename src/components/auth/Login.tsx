@@ -1,4 +1,4 @@
-import { A, useNavigate, useSearchParams } from '@solidjs/router'
+import { A, useSearchParams } from '@solidjs/router'
 import { createMemo, createSignal, Show } from 'solid-js'
 import { useMutation } from '@tanstack/solid-query'
 import { mutationKeys } from '@api/queryKeys'
@@ -16,7 +16,6 @@ import { Label } from '@components/ui/label'
 const DEFAULT_AUTHENTICATED_ROUTE = '/budget-visualizer/transactions'
 
 export default function Login() {
-  const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
   const [email, setEmail] = createSignal('')
@@ -51,7 +50,8 @@ export default function Login() {
     onSuccess: (data) => {
       devConsole('log', 'Login successful', data)
       persistSession(data.user, data.token)
-      navigate(redirectTarget(), { replace: true })
+      const path = redirectTarget()
+      window.location.replace(`${window.location.origin}${path}`)
     },
   }))
 
@@ -123,13 +123,6 @@ export default function Login() {
                 autocomplete="current-password"
                 value={password()}
                 onInput={(e) => setPassword(e.currentTarget.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    if (isDisabled()) return
-                    loginMut.mutate()
-                  }
-                }}
               />
             </div>
             <Button type="submit" disabled={isDisabled()}>

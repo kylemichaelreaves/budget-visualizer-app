@@ -6,12 +6,24 @@ import { Button } from '@components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@components/ui/dialog'
 import { authState } from '@stores/authStore'
 
-const menuItems = [
-  { path: '/budget-visualizer/transactions', title: 'Transactions' },
-  { path: '/budget-visualizer/transactions/pending', title: 'Pending' },
-  { path: '/budget-visualizer/memos', title: 'Memos' },
-  { path: '/budget-visualizer/budget-categories', title: 'Budget Categories' },
-  { path: '/budget-visualizer/loan-calculator', title: 'Loan Calculator' },
+type MenuItem = { path: string; title: string }
+type MenuSection = { label: string; items: MenuItem[] }
+
+const menuSections: MenuSection[] = [
+  {
+    label: 'Budget',
+    items: [
+      { path: '/budget-visualizer/transactions', title: 'Transactions' },
+      { path: '/budget-visualizer/transactions/pending', title: 'Pending' },
+      { path: '/budget-visualizer/memos', title: 'Memos' },
+      { path: '/budget-visualizer/budget-categories', title: 'Budget Categories' },
+      { path: '/budget-visualizer/loan-calculator', title: 'Loan Calculator' },
+    ],
+  },
+  {
+    label: 'Genealogy',
+    items: [{ path: '/budget-visualizer/genealogy', title: 'Family Tree' }],
+  },
 ]
 
 export default function BudgetVisualizer(props: { children?: JSX.Element }) {
@@ -26,7 +38,7 @@ export default function BudgetVisualizer(props: { children?: JSX.Element }) {
   })
 
   return (
-    <section class="bg-background text-foreground min-h-screen">
+    <section class="bg-background text-foreground flex min-h-screen flex-col">
       <Dialog open={showCreate()} onOpenChange={setShowCreate}>
         <DialogContent>
           <DialogHeader>
@@ -38,7 +50,11 @@ export default function BudgetVisualizer(props: { children?: JSX.Element }) {
 
       <div class="px-4 py-6">
         <Show
-          when={!loc.pathname.includes('/budget-categories') && !loc.pathname.includes('/loan-calculator')}
+          when={
+            !loc.pathname.includes('/budget-categories') &&
+            !loc.pathname.includes('/loan-calculator') &&
+            !loc.pathname.includes('/genealogy')
+          }
         >
           <header class="flex justify-end mb-6">
             <Button type="button" onClick={() => setShowCreate(true)}>
@@ -49,18 +65,30 @@ export default function BudgetVisualizer(props: { children?: JSX.Element }) {
 
         <div class="flex gap-6 items-start">
           <nav class="flex flex-col gap-1 w-48 shrink-0" aria-label="Budget visualizer sections">
-            <For each={menuItems}>
-              {(item) => (
-                <A
-                  href={item.path}
-                  class={
-                    loc.pathname === item.path
-                      ? 'px-3 py-2.5 rounded-md no-underline bg-brand text-brand-foreground'
-                      : 'px-3 py-2.5 rounded-md no-underline text-foreground hover:bg-accent'
-                  }
-                >
-                  {item.title}
-                </A>
+            <For each={menuSections}>
+              {(section, sectionIdx) => (
+                <>
+                  <h3
+                    class="text-xs font-semibold tracking-wider text-muted-foreground uppercase px-3 pb-1"
+                    classList={{ 'pt-3': sectionIdx() > 0 }}
+                  >
+                    {section.label}
+                  </h3>
+                  <For each={section.items}>
+                    {(item) => (
+                      <A
+                        href={item.path}
+                        class={
+                          loc.pathname === item.path
+                            ? 'px-3 py-2.5 rounded-md no-underline bg-brand text-brand-foreground'
+                            : 'px-3 py-2.5 rounded-md no-underline text-foreground hover:bg-accent'
+                        }
+                      >
+                        {item.title}
+                      </A>
+                    )}
+                  </For>
+                </>
               )}
             </For>
           </nav>

@@ -11,7 +11,7 @@ export default function NavBar() {
       logout()
       navigate('/')
     } else {
-      navigate('/login')
+      window.location.assign('/login')
     }
   }
 

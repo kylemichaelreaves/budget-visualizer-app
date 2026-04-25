@@ -63,9 +63,15 @@ httpClient.interceptors.response.use(
       )
     }
 
+    const reqUrl = error.config?.url ?? ''
+    const isLoginAttempt =
+      String(error.config?.method ?? '').toLowerCase() === 'post' &&
+      (reqUrl === '/login' || reqUrl.endsWith('/login'))
+
     if (
       axios.isAxiosError(error) &&
       error.response?.status === 401 &&
+      !isLoginAttempt &&
       onUnauthorized &&
       !handlingUnauthorized
     ) {

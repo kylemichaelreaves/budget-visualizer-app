@@ -14,6 +14,7 @@ import { MemosPage } from '../pages/MemosPage'
 import { MemoEditPage } from '../pages/MemoEditPage'
 import { MemoSummaryPage } from '../pages/MemoSummaryPage'
 import { BudgetCategoriesPage } from '../pages/BudgetCategoriesPage'
+import { GenealogyPage } from '../pages/GenealogyPage'
 import { LoanCalculatorPage } from '../pages/LoanCalculatorPage'
 import { NavBar } from '../pages/NavBar'
 import { SplitBudgetCategoryDrawer } from '../pages/SplitBudgetCategoryDrawer'
@@ -36,6 +37,7 @@ type Fixtures = {
   memoEditPage: MemoEditPage
   memoSummaryPage: MemoSummaryPage
   budgetCategoriesPage: BudgetCategoriesPage
+  genealogyPage: GenealogyPage
   loanCalculatorPage: LoanCalculatorPage
   splitBudgetCategoryDrawer: SplitBudgetCategoryDrawer
   categoryTreeSelectDialog: CategoryTreeSelectDialog
@@ -88,6 +90,9 @@ const pageObjectFixtures = {
   },
   budgetCategoriesPage: async ({ page }, use) => {
     await use(new BudgetCategoriesPage(page))
+  },
+  genealogyPage: async ({ page }, use) => {
+    await use(new GenealogyPage(page))
   },
   loanCalculatorPage: async ({ page }, use) => {
     await use(new LoanCalculatorPage(page))

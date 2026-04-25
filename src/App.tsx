@@ -10,6 +10,7 @@ import MemoEditPage from '@components/memos/forms/MemoEditPage'
 import MemoSummaryPage from '@components/memos/summaries/MemoSummaryPage'
 import MemosTable from '@components/memos/table/MemosTable'
 import BudgetCategoriesPage from '@components/budgetCategories/BudgetCategoriesPage'
+import GenealogyPage from '@components/genealogy/GenealogyPage'
 import PendingTransactionsTable from '@components/transactions/pending/PendingTransactionsTable'
 import TransactionEditPage from '@components/transactions/forms/TransactionEditPage'
 import TransactionsTable from '@components/transactions/table/TransactionsTable'
@@ -46,6 +47,7 @@ export default function App() {
         <Route path="/memos/:memoId/edit" component={MemoEditPage} />
         <Route path="/budget-categories" component={BudgetCategoriesPage} />
         <Route path="/loan-calculator" component={LoanCalculator} />
+        <Route path="/genealogy" component={GenealogyPage} />
       </Route>
     </Router>
   )
