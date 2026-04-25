@@ -109,6 +109,31 @@ describe('httpClient', () => {
       }
     })
 
+    it('does not call onUnauthorized for POST /login 401 (handled by login mutation)', async () => {
+      const handler = vi.fn()
+      setUnauthorizedHandler(handler)
+
+      const originalAdapter = httpClient.defaults.adapter
+
+      httpClient.defaults.adapter = async (config) => {
+        const error = Object.assign(new Error('Unauthorized'), {
+          config: { ...config, method: 'post', url: '/login' },
+          response: { status: 401, data: {}, headers: {}, statusText: 'Unauthorized', config },
+          isAxiosError: true,
+          toJSON: () => ({}),
+        })
+        throw error
+      }
+
+      try {
+        await httpClient.post('/login', { email: 'a@b.co', password: 'x' }).catch(() => {})
+        expect(handler).not.toHaveBeenCalled()
+      } finally {
+        httpClient.defaults.adapter = originalAdapter
+        setUnauthorizedHandler(() => {})
+      }
+    })
+
     it('does not call handler for non-401 errors', async () => {
       const handler = vi.fn()
       setUnauthorizedHandler(handler)

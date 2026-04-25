@@ -5,17 +5,50 @@ import { render } from 'solid-js/web'
 import { queryClient } from '@api/queryClient'
 import { setUnauthorizedHandler } from '@api/httpClient'
 import { hydrateAuthFromStorage, logout } from '@stores/authStore'
+import { safeRedirectPath } from '@utils/safeRedirectPath'
 import QueryDevtools from './QueryDevtools'
 import App from './App'
 import './index.css'
 
 hydrateAuthFromStorage()
 
+function assignLocationToLoginAfterUnauthorized(): void {
+  const path = window.location.pathname
+  const search = window.location.search
+
+  if (path !== '/login') {
+    window.location.assign(`/login?redirect=${encodeURIComponent(`${path}${search}`)}`)
+    return
+  }
+
+  const params = new URLSearchParams(search.slice(1))
+  const raw = params.get('redirect')
+  if (!raw) {
+    window.location.assign('/login')
+    return
+  }
+
+  let decoded: string
+  try {
+    decoded = decodeURIComponent(raw)
+  } catch {
+    window.location.assign('/login')
+    return
+  }
+
+  if (decoded.startsWith('/login')) {
+    window.location.assign('/login')
+    return
+  }
+
+  const safe = safeRedirectPath(decoded)
+  window.location.assign(safe ? `/login?redirect=${encodeURIComponent(safe)}` : '/login')
+}
+
 setUnauthorizedHandler(() => {
   logout()
   queryClient.clear()
-  const redirect = `${window.location.pathname}${window.location.search}`
-  window.location.assign(`/login?redirect=${encodeURIComponent(redirect)}`)
+  assignLocationToLoginAfterUnauthorized()
 })
 
 const root = document.getElementById('root')

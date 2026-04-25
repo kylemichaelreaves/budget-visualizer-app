@@ -38,7 +38,7 @@ export default function BudgetVisualizer(props: { children?: JSX.Element }) {
   })
 
   return (
-    <section class="bg-background text-foreground min-h-screen">
+    <section class="bg-background text-foreground flex min-h-screen flex-col">
       <Dialog open={showCreate()} onOpenChange={setShowCreate}>
         <DialogContent>
           <DialogHeader>
