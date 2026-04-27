@@ -1,5 +1,5 @@
 import type { JSX } from 'solid-js'
-import { createEffect, onCleanup } from 'solid-js'
+import { createEffect, onCleanup, untrack } from 'solid-js'
 import { useElementSize } from '@composables/useElementSize'
 import type { GenealogyNode } from '../../types/genealogy'
 import { createGenealogyMap, type GenealogyMapHandle } from './createGenealogyMap'
@@ -29,7 +29,13 @@ export default function MapView(props: { nodes: GenealogyNode[] }): JSX.Element 
       onNodeMove: hover.onMove,
       onNodeLeave: hover.onLeave,
     })
-    handle.setSelected(selectedId())
+
+    // Initial sync without subscribing the build effect to selection — the
+    // dedicated effect below handles updates. Without untrack, every hover
+    // would tear down and rebuild the entire D3 chart.
+    untrack(() => {
+      handle?.setSelected(selectedId())
+    })
   })
 
   // Sync external selection changes (from the tree panel) to the map without re-rendering.
