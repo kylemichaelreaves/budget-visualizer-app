@@ -22,26 +22,19 @@ function assignLocationToLoginAfterUnauthorized(): void {
   }
 
   const params = new URLSearchParams(search.slice(1))
+  // URLSearchParams.get already returns a decoded string — do not decode again.
   const raw = params.get('redirect')
   if (!raw) {
     window.location.assign('/login')
     return
   }
 
-  let decoded: string
-  try {
-    decoded = decodeURIComponent(raw)
-  } catch {
+  if (raw.startsWith('/login')) {
     window.location.assign('/login')
     return
   }
 
-  if (decoded.startsWith('/login')) {
-    window.location.assign('/login')
-    return
-  }
-
-  const safe = safeRedirectPath(decoded)
+  const safe = safeRedirectPath(raw)
   window.location.assign(safe ? `/login?redirect=${encodeURIComponent(safe)}` : '/login')
 }
 

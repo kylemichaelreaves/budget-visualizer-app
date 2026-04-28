@@ -41,6 +41,10 @@ export type MapViewProps = {
 export default function MapView(props: MapViewProps): JSX.Element {
   let svgEl: SVGSVGElement | undefined
   const [dims, attachWrapper] = useElementSize()
+  // `useElementSize` fires on every ResizeObserver tick, including height-only
+  // changes. The map only depends on width (height is derived via ASPECT), so
+  // memoize width to avoid rebuilding the entire D3 chart on height jitter.
+  const width = createMemo(() => dims().w)
   const { selectedId, pinnedId, playheadYear } = useSelection()
   const hover = useGenealogyHover()
 
@@ -67,7 +71,7 @@ export default function MapView(props: MapViewProps): JSX.Element {
 
   createEffect(() => {
     const el = svgEl
-    const w = dims().w
+    const w = width()
     if (!el || w <= 0) return
     const h = Math.max(240, Math.round(w * ASPECT))
 

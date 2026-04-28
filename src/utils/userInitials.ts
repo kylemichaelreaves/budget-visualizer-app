@@ -1,6 +1,10 @@
 import type { User } from '@types'
 
-/** Two-letter initials for avatar chips (first + last name, else start of username). */
+/**
+ * Two-letter initials for avatar chips. Falls back through:
+ * first+last initials → first two of `firstName` → first two of `username` →
+ * first char of `username` → `?`.
+ */
 export function userDisplayInitials(user: Pick<User, 'firstName' | 'lastName' | 'username'>): string {
   const first = user.firstName?.trim()
   const last = user.lastName?.trim()
