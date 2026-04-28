@@ -13,7 +13,8 @@
       "@utils/*": ["src/utils/*"],
       "@router": ["src/router/index.tsx"],
       "@shared/*": ["src/shared/*"],
-      "@mocks/*": ["src/mocks/*"]
+      "@mocks/*": ["src/mocks/*"],
+      "@genealogy/*": ["src/components/genealogy/*"]
     }
   },
   "references": [

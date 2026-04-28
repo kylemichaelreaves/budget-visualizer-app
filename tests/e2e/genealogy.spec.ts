@@ -44,6 +44,13 @@ test.describe('Genealogy page', () => {
     await expect.poll(async () => await genealogyPage.stateShapes.count()).toBeGreaterThanOrEqual(14)
   })
 
+  test('historical county TopoJSON loads from S3 for states used in the tree', async ({ genealogyPage }) => {
+    await genealogyPage.goto()
+    await expect
+      .poll(async () => await genealogyPage.historicalCountyPaths.count(), { timeout: 15_000 })
+      .toBeGreaterThan(0)
+  })
+
   test('hovering a person card selects the matching map node and shows the tree tooltip', async ({
     genealogyPage,
   }) => {
@@ -77,10 +84,19 @@ test.describe('Genealogy page', () => {
     await expect(genealogyPage.selectedMapNode).toHaveCount(0)
   })
 
-  test('timeline toggle is present but disabled (Phase 2)', async ({ genealogyPage }) => {
+  test('timeline axis and rail are visible by default', async ({ genealogyPage }) => {
     await genealogyPage.goto()
-    await expect(genealogyPage.timelineToggle).toBeVisible()
-    await expect(genealogyPage.timelineToggle).toBeDisabled()
-    await expect(genealogyPage.timelineToggle).toContainText(/coming soon/i)
+    await expect(genealogyPage.timelineAxis).toBeVisible()
+    await expect(genealogyPage.timelineOverlay).toBeVisible()
+  })
+
+  test('timeline next control advances the displayed year', async ({ genealogyPage }) => {
+    await genealogyPage.goto()
+    await expect(genealogyPage.timelineOverlay).toBeVisible()
+    const y0 = await genealogyPage.timelineYear.textContent()
+    await genealogyPage.timelineNext.click()
+    const y1 = await genealogyPage.timelineYear.textContent()
+    expect(y0).toBeTruthy()
+    expect(y1).not.toBe(y0)
   })
 })

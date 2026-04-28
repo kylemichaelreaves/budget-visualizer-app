@@ -5,6 +5,7 @@ import TransactionCreateForm from '@components/transactions/forms/TransactionCre
 import { Button } from '@components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@components/ui/dialog'
 import { authState } from '@stores/authStore'
+import { NAVBAR_APP_HEIGHT_PX } from '@components/layout/NavBar'
 
 type MenuItem = { path: string; title: string }
 type MenuSection = { label: string; items: MenuItem[] }
@@ -37,8 +38,13 @@ export default function BudgetVisualizer(props: { children?: JSX.Element }) {
     }
   })
 
+  /* AppLayout stacks NavBar above this section; avoid min-h-screen (100vh) or min document height
+     becomes navbar + 100vh and the page scrolls even when main content is short. */
   return (
-    <section class="bg-background text-foreground flex min-h-screen flex-col">
+    <section
+      class="bg-background text-foreground flex flex-col"
+      style={{ 'min-height': `calc(100dvh - ${NAVBAR_APP_HEIGHT_PX}px)` }}
+    >
       <Dialog open={showCreate()} onOpenChange={setShowCreate}>
         <DialogContent>
           <DialogHeader>
@@ -53,7 +59,8 @@ export default function BudgetVisualizer(props: { children?: JSX.Element }) {
           when={
             !loc.pathname.includes('/budget-categories') &&
             !loc.pathname.includes('/loan-calculator') &&
-            !loc.pathname.includes('/genealogy')
+            !loc.pathname.includes('/genealogy') &&
+            !loc.pathname.includes('/account')
           }
         >
           <header class="flex justify-end mb-6">

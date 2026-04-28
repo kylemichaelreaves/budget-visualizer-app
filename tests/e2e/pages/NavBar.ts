@@ -21,7 +21,13 @@ export class NavBar {
     return this.nav.getByTestId('navbar-login-label')
   }
 
+  /** Log In when unauthenticated; opens user menu and chooses Log out when authenticated. */
   async clickLoginLogout() {
-    await this.nav.getByRole('button').click()
+    if (await this.loginButton.isVisible()) {
+      await this.loginButton.click()
+      return
+    }
+    await this.userMenuButton.click()
+    await this.page.getByTestId('navbar-menu-logout').click()
   }
 }

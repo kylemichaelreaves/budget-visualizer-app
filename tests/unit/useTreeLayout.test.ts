@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { useTreeLayout } from '@components/genealogy/useTreeLayout'
+import { useTreeLayout } from '@genealogy/tree/useTreeLayout'
 import type { GenealogyNode } from '../../src/types/genealogy'
 
 function makeNode(id: string, parentId: string | null): GenealogyNode {

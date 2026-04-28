@@ -15,13 +15,18 @@ export type GenealogyNode = {
   spouseId: string | null
 }
 
-export type GenealogyPanel = 'map' | 'timeline'
-
 export type SelectionState = {
   selectedId: Accessor<string | null>
   setSelectedId: (id: string | null) => void
+  /** Click-pinned person — persists past mouse-leave, drives map zoom + county highlight. */
+  pinnedId: Accessor<string | null>
+  setPinnedId: (id: string | null) => void
   playheadYear: Accessor<number>
   setPlayheadYear: (year: number) => void
-  activePanel: Accessor<GenealogyPanel>
-  setActivePanel: (panel: GenealogyPanel) => void
+  /**
+   * GenealogyMapPanel registers this so map/tree pin clicks can move the timeline
+   * playhead to the matching dated event for that person.
+   */
+  registerTimelinePinSync: (handler: ((node: GenealogyNode) => void) | null) => void
+  runTimelinePinSync: (node: GenealogyNode) => void
 }

@@ -1,21 +1,22 @@
 import type { JSX } from 'solid-js'
 import { createEffect, createMemo } from 'solid-js'
 import { useElementSize } from '@composables/useElementSize'
-import type { GenealogyNode } from '../../types/genealogy'
+import type { GenealogyNode } from '../../../types/genealogy'
+import GenealogyNodeCursorTooltip from '@genealogy/GenealogyNodeCursorTooltip'
+import { isGenealogyTreeCardInteractive } from '@genealogy/lib/genealogyTimelinePresence'
+import { useSelection } from '@genealogy/SelectionContext'
+import { useGenealogyHover } from '@genealogy/hooks/useGenealogyHover'
 import { PERSON_CARD_HEIGHT } from './PersonCard'
-import { useTreeLayout } from './useTreeLayout'
-import Tooltip from './Tooltip'
 import TreeCardLayer from './TreeCardLayer'
 import TreeConnectorOverlay from './TreeConnectorOverlay'
-import { useSelection } from './SelectionContext'
-import { useGenealogyHover } from './useGenealogyHover'
+import { useTreeLayout } from './useTreeLayout'
 
 const BOTTOM_PADDING = 16
 const MIN_HEIGHT = 320
 
 export default function FamilyTree(props: { nodes: GenealogyNode[] }): JSX.Element {
   const [dims, attachWrapper] = useElementSize()
-  const { selectedId } = useSelection()
+  const { selectedId, pinnedId, playheadYear } = useSelection()
   const hover = useGenealogyHover()
 
   const layout = createMemo(() => {
@@ -49,18 +50,21 @@ export default function FamilyTree(props: { nodes: GenealogyNode[] }): JSX.Eleme
       class="relative w-full h-full overflow-auto bg-card rounded-md border border-border"
       data-testid="genealogy-family-tree"
     >
-      <div class="relative w-full" style={{ height: `${totalHeight()}px`, 'min-height': `${MIN_HEIGHT}px` }}>
+      <div class="relative w-full" style={{ height: `${Math.max(totalHeight(), MIN_HEIGHT)}px` }}>
         <TreeConnectorOverlay nodes={props.nodes} layout={layout()} width={dims().w} height={totalHeight()} />
         <TreeCardLayer
           layout={layout()}
           selectedId={selectedId()}
+          pinnedId={pinnedId()}
+          isNodeInteractive={(n) => isGenealogyTreeCardInteractive(playheadYear(), n)}
           onEnter={hover.onEnter}
           onMove={hover.onMove}
           onLeave={hover.onLeave}
+          onClick={hover.onClick}
           registerCardRef={registerCardRef}
         />
       </div>
-      <Tooltip state={hover.tooltip()} testid="genealogy-tree-tooltip" />
+      <GenealogyNodeCursorTooltip state={hover.tooltip()} testid="genealogy-tree-tooltip" />
     </div>
   )
 }

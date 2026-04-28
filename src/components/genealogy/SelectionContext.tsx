@@ -1,21 +1,29 @@
 import type { JSX } from 'solid-js'
 import { createContext, createSignal, useContext } from 'solid-js'
-import type { GenealogyPanel, SelectionState } from '../../types/genealogy'
+import type { GenealogyNode, SelectionState } from '../../types/genealogy'
 
 const SelectionContext = createContext<SelectionState>()
 
 export function SelectionProvider(props: { children: JSX.Element }) {
   const [selectedId, setSelectedId] = createSignal<string | null>(null)
+  const [pinnedId, setPinnedId] = createSignal<string | null>(null)
   const [playheadYear, setPlayheadYear] = createSignal(1748)
-  const [activePanel, setActivePanel] = createSignal<GenealogyPanel>('map')
+
+  const timelinePinSyncRef: { current: ((node: GenealogyNode) => void) | null } = { current: null }
 
   const value: SelectionState = {
     selectedId,
     setSelectedId,
+    pinnedId,
+    setPinnedId,
     playheadYear,
     setPlayheadYear,
-    activePanel,
-    setActivePanel,
+    registerTimelinePinSync(handler) {
+      timelinePinSyncRef.current = handler
+    },
+    runTimelinePinSync(node) {
+      timelinePinSyncRef.current?.(node)
+    },
   }
 
   return <SelectionContext.Provider value={value}>{props.children}</SelectionContext.Provider>

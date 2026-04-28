@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@solidjs/testing-library'
+import { render, screen } from '@solidjs/testing-library'
 import { MemoryRouter, Route } from '@solidjs/router'
 import { describe, expect, it, beforeEach } from 'vitest'
 import { setAuthState } from '@stores/authStore'
@@ -36,12 +36,13 @@ describe('NavBar', () => {
     expect(screen.getByRole('button', { name: /log in/i })).toBeInTheDocument()
   })
 
-  it('shows "User menu" button with username when authenticated', () => {
+  it('shows account menu trigger when authenticated', () => {
     setAuthState('isUserAuthenticated', true)
     setAuthState('user', 'username', 'testuser')
     renderNavBar()
-    expect(screen.getByRole('button', { name: /user menu/i })).toBeInTheDocument()
-    expect(screen.getByText('testuser')).toBeInTheDocument()
+    const trigger = screen.getByTestId('navbar-user-menu-trigger')
+    expect(trigger).toBeInTheDocument()
+    expect(trigger).toHaveAccessibleName(/account menu for testuser/i)
   })
 
   it('shows admin badge for admin users', () => {
@@ -60,14 +61,6 @@ describe('NavBar', () => {
     expect(screen.queryByText('admin', { exact: true })).not.toBeInTheDocument()
   })
 
-  it('clicking login button clears auth state when authenticated', () => {
-    setAuthState('isUserAuthenticated', true)
-    setAuthState('user', 'username', 'testuser')
-    localStorage.setItem('token', 'fake-token')
-    localStorage.setItem('user', '{}')
-    renderNavBar()
-    fireEvent.click(screen.getByRole('button', { name: /user menu/i }))
-    expect(localStorage.getItem('token')).toBeNull()
-    expect(localStorage.getItem('user')).toBeNull()
-  })
+  // Full open-menu + item click is better covered in Playwright; Kobalte + JSDOM often
+  // do not mount the portaled menu on `fireEvent.click` the way a real browser does.
 })

@@ -1,10 +1,21 @@
 import type { JSX } from 'solid-js'
+import { useElementSize } from '@composables/useElementSize'
 import { genealogyData } from '../../data/genealogy'
-import FamilyTree from './FamilyTree'
-import GenealogyMapPanel from './GenealogyMapPanel'
+import FamilyTree from '@genealogy/tree/FamilyTree'
+import GenealogyMapPanel from '@genealogy/map/GenealogyMapPanel'
 import { SelectionProvider } from './SelectionContext'
 
+const FALLBACK_TREE_HEIGHT_PX = 400
+const MIN_TREE_HEIGHT_PX = 320
+
 export default function GenealogyPage(): JSX.Element {
+  const [mapDims, attachMapPanel] = useElementSize()
+  const treeHeight = () => {
+    const h = mapDims().h
+    if (h <= 0) return FALLBACK_TREE_HEIGHT_PX
+    return Math.max(MIN_TREE_HEIGHT_PX, h)
+  }
+
   return (
     <SelectionProvider>
       <section class="w-full" data-testid="genealogy-page">
@@ -16,9 +27,11 @@ export default function GenealogyPage(): JSX.Element {
           </p>
         </header>
 
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 items-start">
-          <GenealogyMapPanel nodes={genealogyData} />
-          <div class="h-[560px]">
+        <div class="grid w-full grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(240px,280px)]">
+          <div ref={(el) => attachMapPanel(el)} class="min-w-0 w-full">
+            <GenealogyMapPanel nodes={genealogyData} />
+          </div>
+          <div class="min-w-0 w-full" style={{ height: `${treeHeight()}px` }}>
             <FamilyTree nodes={genealogyData} />
           </div>
         </div>

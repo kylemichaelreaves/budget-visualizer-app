@@ -29,8 +29,13 @@ export class GenealogyPage {
   readonly mapStatesGroup: Locator
   readonly mapNodesGroup: Locator
   readonly mapConnectorsGroup: Locator
+  readonly mapHistoricalCountiesGroup: Locator
   readonly familyTree: Locator
-  readonly timelineToggle: Locator
+  readonly timelineAxis: Locator
+  readonly timelineOverlay: Locator
+  readonly timelineYear: Locator
+  readonly timelinePrev: Locator
+  readonly timelineNext: Locator
   readonly mapTooltip: Locator
   readonly treeTooltip: Locator
 
@@ -43,8 +48,13 @@ export class GenealogyPage {
     this.mapStatesGroup = this.mapSvg.locator('g[data-role="states"]')
     this.mapNodesGroup = this.mapSvg.locator('g[data-role="nodes"]')
     this.mapConnectorsGroup = this.mapSvg.locator('g[data-role="connectors"]')
+    this.mapHistoricalCountiesGroup = this.mapSvg.locator('g[data-role="historical-counties"]')
     this.familyTree = page.getByTestId('genealogy-family-tree')
-    this.timelineToggle = page.getByTestId('genealogy-timeline-toggle')
+    this.timelineAxis = page.getByTestId('genealogy-timeline-axis')
+    this.timelineOverlay = page.getByTestId('genealogy-timeline-overlay')
+    this.timelineYear = page.getByTestId('genealogy-timeline-year')
+    this.timelinePrev = page.getByTestId('genealogy-timeline-prev')
+    this.timelineNext = page.getByTestId('genealogy-timeline-next')
     this.mapTooltip = page.getByTestId('genealogy-map-tooltip')
     this.treeTooltip = page.getByTestId('genealogy-tree-tooltip')
   }
@@ -80,5 +90,9 @@ export class GenealogyPage {
 
   get connectorPaths(): Locator {
     return this.mapConnectorsGroup.locator('path')
+  }
+
+  get historicalCountyPaths(): Locator {
+    return this.mapHistoricalCountiesGroup.locator('path')
   }
 }

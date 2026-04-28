@@ -28,10 +28,10 @@ test.describe('NavBar (unauthenticated)', () => {
 })
 
 authenticatedTest.describe('NavBar (authenticated)', () => {
-  authenticatedTest('shows user menu button with username', async ({ page, navbar }) => {
+  authenticatedTest('shows user menu button with account actions', async ({ page, navbar }) => {
     await page.goto('/budget-visualizer/transactions')
     await expect(navbar.userMenuButton).toBeVisible()
-    await expect(navbar.loginLabel()).toHaveText('e2e')
+    await expect(navbar.userMenuButton).toHaveAccessibleName(/account menu for e2e/i)
   })
 
   authenticatedTest('brand link navigates to transactions', async ({ page, navbar }) => {

@@ -1,4 +1,4 @@
-import type { GenealogyNode } from '../../types/genealogy'
+import type { GenealogyNode } from '../../../types/genealogy'
 
 export type LayoutNode = {
   node: GenealogyNode
