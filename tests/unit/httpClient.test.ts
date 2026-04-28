@@ -56,6 +56,34 @@ describe('httpClient', () => {
       }
     })
 
+    it('does not attach Authorization header for cross-origin (absolute) URLs', async () => {
+      localStorage.setItem('token', 'test-jwt-token')
+
+      let capturedConfig: InternalAxiosRequestConfig | null = null
+      const originalAdapter = httpClient.defaults.adapter
+
+      httpClient.defaults.adapter = async (config) => {
+        capturedConfig = config
+        return {
+          data: {},
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config,
+          request: { responseURL: config.url ?? '' },
+        }
+      }
+
+      try {
+        await httpClient.get('https://historical-counties.example.com/index.json')
+        expect(capturedConfig).not.toBeNull()
+        const headers = capturedConfig!.headers
+        expect(headers.get('Authorization')).toBeUndefined()
+      } finally {
+        httpClient.defaults.adapter = originalAdapter
+      }
+    })
+
     it('does not attach Authorization header when no token', async () => {
       let capturedConfig: InternalAxiosRequestConfig | null = null
       const originalAdapter = httpClient.defaults.adapter
@@ -127,6 +155,31 @@ describe('httpClient', () => {
 
       try {
         await httpClient.post('/login', { email: 'a@b.co', password: 'x' }).catch(() => {})
+        expect(handler).not.toHaveBeenCalled()
+      } finally {
+        httpClient.defaults.adapter = originalAdapter
+        setUnauthorizedHandler(() => {})
+      }
+    })
+
+    it('does not call onUnauthorized for cross-origin 401 (e.g. S3)', async () => {
+      const handler = vi.fn()
+      setUnauthorizedHandler(handler)
+
+      const originalAdapter = httpClient.defaults.adapter
+
+      httpClient.defaults.adapter = async (config) => {
+        const error = Object.assign(new Error('Unauthorized'), {
+          config,
+          response: { status: 401, data: {}, headers: {}, statusText: 'Unauthorized', config },
+          isAxiosError: true,
+          toJSON: () => ({}),
+        })
+        throw error
+      }
+
+      try {
+        await httpClient.get('https://historical-counties.example.com/index.json').catch(() => {})
         expect(handler).not.toHaveBeenCalled()
       } finally {
         httpClient.defaults.adapter = originalAdapter

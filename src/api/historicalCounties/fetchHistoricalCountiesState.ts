@@ -1,5 +1,6 @@
 import { feature } from 'topojson-client'
 import type { Topology } from 'topojson-specification'
+import { httpClient } from '@api/httpClient'
 import type {
   HistoricalCountyFeatureCollection,
   HistoricalCountyProperties,
@@ -20,14 +21,14 @@ export async function fetchHistoricalCountiesState(abbr: string): Promise<Histor
   if (!STATE_ABBR_PATTERN.test(key)) {
     throw new Error(`Invalid state abbreviation: ${abbr}`)
   }
+  // Absolute URL — axios bypasses `baseURL` when the request URL is absolute,
+  // and the cross-origin guard in httpClient skips our Bearer token + 401 handler.
   const url = `${getHistoricalCountiesBaseUrl()}/states/${key}.topojson`
 
   try {
-    const res = await fetch(url, { headers: { Accept: 'application/json' } })
-    if (!res.ok) {
-      throw new Error(`Failed to fetch historical counties for ${key} (${res.status} ${res.statusText})`)
-    }
-    const topo = (await res.json()) as Topology
+    const { data: topo } = await httpClient.get<Topology>(url, {
+      headers: { Accept: 'application/json' },
+    })
     const obj = topo.objects[key]
     if (!obj) {
       throw new Error(`TopoJSON for ${key} is missing object "${key}"`)

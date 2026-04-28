@@ -11,6 +11,15 @@ export function setUnauthorizedHandler(handler: () => void) {
   onUnauthorized = handler
 }
 
+/**
+ * `true` when the URL points at a different origin (e.g. an S3 bucket). Used to
+ * skip behaviors that only make sense for our own API: attaching the session
+ * Bearer token, and routing 401s through the global unauthorized handler.
+ */
+function isCrossOriginUrl(url: string | undefined): boolean {
+  return !!url && /^https?:\/\//i.test(url)
+}
+
 export const httpClient = axios.create({
   baseURL: getBaseApiUrl(),
   headers: {
@@ -28,9 +37,13 @@ httpClient.interceptors.request.use(async (config) => {
   // Ensure the base URL has been resolved before any request fires
   await baseUrlReady
 
-  const token = localStorage.getItem('token')
-  if (token) {
-    config.headers['Authorization'] = `Bearer ${token}`
+  // Only attach our session token to same-origin API calls. Absolute URLs go
+  // somewhere else (e.g. an S3 bucket) and shouldn't receive the Bearer token.
+  if (!isCrossOriginUrl(config.url)) {
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`
+    }
   }
 
   devConsole('log', '[httpClient] Request URL:', config.url)
@@ -72,6 +85,7 @@ httpClient.interceptors.response.use(
       axios.isAxiosError(error) &&
       error.response?.status === 401 &&
       !isLoginAttempt &&
+      !isCrossOriginUrl(reqUrl) &&
       onUnauthorized &&
       !handlingUnauthorized
     ) {
