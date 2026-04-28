@@ -13,7 +13,7 @@ export class NavBar {
     this.nav = page.getByRole('navigation', { name: /main navigation/i })
     this.brandLink = this.nav.getByRole('link', { name: 'Budget Visualizer' })
     this.loginButton = this.nav.getByRole('button', { name: /log in/i })
-    this.userMenuButton = this.nav.getByRole('button', { name: /user menu/i })
+    this.userMenuButton = this.nav.getByRole('button', { name: /account menu/i })
     this.adminBadge = this.nav.getByText('admin', { exact: true })
   }
 

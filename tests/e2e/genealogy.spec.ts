@@ -55,7 +55,10 @@ test.describe('Genealogy page', () => {
     genealogyPage,
   }) => {
     await genealogyPage.goto()
-    const targetId = 'john-sr'
+    // Use the depth-0 ancestor so the tree's selection-driven scrollIntoView
+    // does not move cards under the stationary cursor mid-hover. william-rives
+    // is also interactive at the default playhead year (1748).
+    const targetId = 'william-rives'
 
     // Nothing selected initially — every circle reports data-selected=false.
     await expect(genealogyPage.selectedMapNode).toHaveCount(0)
@@ -67,13 +70,13 @@ test.describe('Genealogy page', () => {
 
     // The tooltip that appears belongs to the tree panel, not the map panel.
     await expect(genealogyPage.treeTooltip).toBeVisible()
-    await expect(genealogyPage.treeTooltip).toContainText('John Anderson Reaves Sr.')
+    await expect(genealogyPage.treeTooltip).toContainText('William Rives')
     await expect(genealogyPage.mapTooltip).toBeHidden()
   })
 
   test('moving off the card clears selection and hides the tooltip', async ({ genealogyPage }) => {
     await genealogyPage.goto()
-    const card = genealogyPage.personCard('lee-reaves')
+    const card = genealogyPage.personCard('william-rives')
 
     await card.hover()
     await expect(genealogyPage.selectedMapNode).toHaveCount(1)

@@ -95,16 +95,21 @@ export default function MapView(props: MapViewProps): JSX.Element {
   })
 
   // Sync external selection changes (from the tree panel) to the map without re-rendering.
+  // Read the signal into a local before the optional chain so the effect tracks
+  // it even on the first run when `handle` is still null.
   createEffect(() => {
-    handle?.setSelected(selectedId())
+    const id = selectedId()
+    handle?.setSelected(id)
   })
 
   createEffect(() => {
-    handle?.setPlayheadYear(playheadYear())
+    const year = playheadYear()
+    handle?.setPlayheadYear(year)
   })
 
   createEffect(() => {
-    handle?.setTimelineInteractionContext(playheadYear())
+    const year = playheadYear()
+    handle?.setTimelineInteractionContext(year)
   })
 
   createEffect(() => {
@@ -125,7 +130,8 @@ export default function MapView(props: MapViewProps): JSX.Element {
   })
 
   createEffect(() => {
-    handle?.setHighlightedCounties(highlightedCountyKeys())
+    const keys = highlightedCountyKeys()
+    handle?.setHighlightedCounties(keys)
   })
 
   // Zoom to the active timeline event's county (or fall back to the node).
