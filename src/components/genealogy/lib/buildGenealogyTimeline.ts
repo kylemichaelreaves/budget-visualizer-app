@@ -58,7 +58,9 @@ export function buildGenealogyTimelineSteps(
 
 export function formatTimelineStepSummary(step: GenealogyTimelineStep): string {
   const evt = step.kind === 'birth' ? 'Born' : 'Died'
-  return `${step.fullName} — ${evt} (${step.locationLabel})`
+  // Omit the parens when the location is unknown so we don't render "Died ()".
+  const loc = step.locationLabel ? ` (${step.locationLabel})` : ''
+  return `${step.fullName} — ${evt}${loc}`
 }
 
 /**

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import {
   buildGenealogyTimelineSteps,
   formatTimelineStepAriaLabel,
+  formatTimelineStepSummary,
   layoutGenealogyTimelineAxis,
   timelineStepIndexForNodeId,
 } from '@genealogy/lib/buildGenealogyTimeline'
@@ -106,5 +107,24 @@ describe('buildGenealogyTimelineSteps', () => {
     const nodes = [node({ id: 'a', fullName: 'A', birthYear: 1900, birthLocation: '' })]
     const steps = buildGenealogyTimelineSteps(nodes, null)
     expect(formatTimelineStepAriaLabel(steps[0]!)).toBe('A, Born 1900')
+  })
+
+  it('formatTimelineStepSummary omits empty parens when location is unknown', () => {
+    const nodes = [
+      node({
+        id: 'a',
+        fullName: 'A',
+        birthYear: 1820,
+        birthLocation: 'Walton County, GA',
+        // Death year known but location unknown — must not render "Died ()".
+        deathYear: 1899,
+        deathLocation: null,
+      }),
+    ]
+    const steps = buildGenealogyTimelineSteps(nodes, null)
+    const birth = steps.find((s) => s.kind === 'birth')!
+    const death = steps.find((s) => s.kind === 'death')!
+    expect(formatTimelineStepSummary(birth)).toBe('A — Born (Walton County, GA)')
+    expect(formatTimelineStepSummary(death)).toBe('A — Died')
   })
 })

@@ -31,9 +31,9 @@ export default function FamilyTree(props: { nodes: GenealogyNode[] }): JSX.Eleme
     return Math.max(...items.map((l) => l.y + PERSON_CARD_HEIGHT)) + BOTTOM_PADDING
   })
 
-  const cardRefs = new Map<string, HTMLDivElement>()
+  const cardRefs = new Map<string, HTMLButtonElement>()
 
-  function registerCardRef(id: string, el: HTMLDivElement | undefined) {
+  function registerCardRef(id: string, el: HTMLButtonElement | undefined) {
     if (el) cardRefs.set(id, el)
     else cardRefs.delete(id)
   }

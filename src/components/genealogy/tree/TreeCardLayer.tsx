@@ -18,7 +18,7 @@ export default function TreeCardLayer(props: {
   onMove: (node: GenealogyNode, event: MouseEvent) => void
   onLeave: () => void
   onClick: (node: GenealogyNode) => void
-  registerCardRef: (id: string, el: HTMLDivElement | undefined) => void
+  registerCardRef: (id: string, el: HTMLButtonElement | undefined) => void
 }): JSX.Element {
   return (
     <For each={props.layout}>

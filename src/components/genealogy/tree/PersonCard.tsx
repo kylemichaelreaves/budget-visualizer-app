@@ -14,7 +14,7 @@ export default function PersonCard(props: {
   onMove: (node: GenealogyNode, event: MouseEvent) => void
   onLeave: () => void
   onClick: (node: GenealogyNode) => void
-  ref?: (el: HTMLDivElement | undefined) => void
+  ref?: (el: HTMLButtonElement | undefined) => void
 }): JSX.Element {
   const canInteract = () => {
     const i = props.interactive
@@ -29,11 +29,14 @@ export default function PersonCard(props: {
   }
 
   return (
-    <div
+    <button
+      type="button"
       ref={(el) => props.ref?.(el)}
-      class="rounded-md border px-2 py-1.5 transition-colors overflow-hidden"
+      // Reset native button defaults so the card visuals come entirely from the
+      // utility classes below (text-align, font, background, border).
+      class="block appearance-none bg-transparent text-left font-[inherit] rounded-md border px-2 py-1.5 transition-colors overflow-hidden focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--chart-1)] focus-visible:ring-offset-2 focus-visible:ring-offset-card"
       classList={{
-        'pointer-events-none cursor-default opacity-55 grayscale': !canInteract(),
+        'cursor-default opacity-55 grayscale': !canInteract(),
         'cursor-pointer text-foreground': canInteract() && !props.isSelected && !props.isPinned,
         'bg-card border-border hover:bg-popover hover:border-[var(--chart-1)]':
           canInteract() && !props.isSelected && !props.isPinned,
@@ -43,21 +46,17 @@ export default function PersonCard(props: {
         'bg-muted/50 border-border text-muted-foreground': !canInteract(),
       }}
       style={{ width: `${PERSON_CARD_WIDTH}px`, height: `${PERSON_CARD_HEIGHT}px` }}
+      // `disabled` covers keyboard (Tab skips, Enter/Space ignored) and pointer
+      // events; aria-disabled is mirrored for screen readers that need it.
+      disabled={!canInteract()}
       aria-disabled={!canInteract()}
       data-timeline-inactive={canInteract() ? 'false' : 'true'}
-      onMouseEnter={(e) => {
-        if (!canInteract()) return
-        props.onEnter(props.node, e)
-      }}
-      onMouseMove={(e) => {
-        if (!canInteract()) return
-        props.onMove(props.node, e)
-      }}
+      onMouseEnter={(e) => props.onEnter(props.node, e)}
+      onMouseMove={(e) => props.onMove(props.node, e)}
       onMouseLeave={() => props.onLeave()}
-      onClick={() => {
-        if (!canInteract()) return
-        props.onClick(props.node)
-      }}
+      onFocus={(e) => props.onEnter(props.node, e as unknown as MouseEvent)}
+      onBlur={() => props.onLeave()}
+      onClick={() => props.onClick(props.node)}
       data-testid={`genealogy-person-${props.node.id}`}
       data-pinned={props.isPinned ? 'true' : 'false'}
     >
@@ -66,6 +65,6 @@ export default function PersonCard(props: {
       <div class="text-[12px] italic text-muted-foreground leading-tight truncate">
         {props.node.birthLocation}
       </div>
-    </div>
+    </button>
   )
 }
