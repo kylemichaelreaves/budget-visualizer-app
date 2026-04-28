@@ -35,6 +35,9 @@ test-results
 playwright/.cache
 .playwright-mcp
 
+# Ad-hoc screenshots dropped at the repo root during manual debugging
+/*.png
+
 *storybook.log
 storybook-static
 storybook-static-preview

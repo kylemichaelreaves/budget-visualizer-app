@@ -5,6 +5,7 @@ import { ForgotPasswordPage } from '../pages/ForgotPasswordPage'
 import { LoginPage } from '../pages/LoginPage'
 import { RegisterPage } from '../pages/RegisterPage'
 import { ResetPasswordPage } from '../pages/ResetPasswordPage'
+import { AccountSettingsPage } from '../pages/AccountSettingsPage'
 import { SidebarNav } from '../pages/SidebarNav'
 import { TransactionsPage } from '../pages/TransactionsPage'
 import { TransactionCreateDialog } from '../pages/TransactionCreateDialog'
@@ -27,6 +28,7 @@ type Fixtures = {
   registerPage: RegisterPage
   forgotPasswordPage: ForgotPasswordPage
   resetPasswordPage: ResetPasswordPage
+  accountSettingsPage: AccountSettingsPage
   navbar: NavBar
   sidebar: SidebarNav
   transactionsPage: TransactionsPage
@@ -60,6 +62,9 @@ const pageObjectFixtures = {
   },
   resetPasswordPage: async ({ page }, use) => {
     await use(new ResetPasswordPage(page))
+  },
+  accountSettingsPage: async ({ page }, use) => {
+    await use(new AccountSettingsPage(page))
   },
   navbar: async ({ page }, use) => {
     await use(new NavBar(page))
