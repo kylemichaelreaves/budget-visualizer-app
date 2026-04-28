@@ -62,6 +62,17 @@ export function formatTimelineStepSummary(step: GenealogyTimelineStep): string {
 }
 
 /**
+ * Screen-reader-friendly label for a timeline mark. Includes the person, the
+ * kind of event (birth/death), the year, and (when available) the location, so
+ * each mark is uniquely and meaningfully described to assistive tech.
+ */
+export function formatTimelineStepAriaLabel(step: GenealogyTimelineStep): string {
+  const evt = step.kind === 'birth' ? 'Born' : 'Died'
+  const loc = step.locationLabel ? `, ${step.locationLabel}` : ''
+  return `${step.fullName}, ${evt} ${step.year}${loc}`
+}
+
+/**
  * Index of the timeline step to associate with a map node (drawn at birth coords).
  * Prefers birth, then death, then any step for that person.
  */

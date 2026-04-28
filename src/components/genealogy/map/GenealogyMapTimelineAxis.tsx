@@ -2,6 +2,7 @@ import type { JSX } from 'solid-js'
 import { createMemo, For, Show } from 'solid-js'
 import type { GenealogyNode } from '../../../types/genealogy'
 import {
+  formatTimelineStepAriaLabel,
   layoutGenealogyTimelineAxis,
   type GenealogyTimelineStep,
 } from '@genealogy/lib/buildGenealogyTimeline'
@@ -54,7 +55,7 @@ export default function GenealogyMapTimelineAxis(props: Props): JSX.Element {
                   type="button"
                   class="absolute top-1/2 z-[1] h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-background focus:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                   style={{ left: `${mark.leftPct}%` }}
-                  aria-label={mark.step.fullName}
+                  aria-label={formatTimelineStepAriaLabel(mark.step)}
                   aria-current={active() ? 'true' : 'false'}
                   data-testid="genealogy-timeline-axis-mark"
                   data-step-index={String(mark.index)}

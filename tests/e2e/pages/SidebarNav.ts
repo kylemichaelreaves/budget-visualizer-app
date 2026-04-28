@@ -15,7 +15,7 @@ export class SidebarNav {
 
   constructor(page: Page) {
     this.page = page
-    this.nav = page.getByRole('navigation', { name: /budget visualizer sections/i })
+    this.nav = page.getByRole('navigation', { name: /sidebar navigation/i })
     this.transactionsLink = this.nav.getByRole('link', { name: 'Transactions' })
     this.pendingLink = this.nav.getByRole('link', { name: 'Pending' })
     this.memosLink = this.nav.getByRole('link', { name: 'Memos' })

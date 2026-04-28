@@ -71,7 +71,7 @@ export default function BudgetVisualizer(props: { children?: JSX.Element }) {
         </Show>
 
         <div class="flex gap-6 items-start">
-          <nav class="flex flex-col gap-1 w-48 shrink-0" aria-label="Budget visualizer sections">
+          <nav class="flex flex-col gap-1 w-48 shrink-0" aria-label="Sidebar navigation">
             <For each={menuSections}>
               {(section, sectionIdx) => (
                 <>

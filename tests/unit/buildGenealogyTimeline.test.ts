@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   buildGenealogyTimelineSteps,
+  formatTimelineStepAriaLabel,
   layoutGenealogyTimelineAxis,
   timelineStepIndexForNodeId,
 } from '@genealogy/lib/buildGenealogyTimeline'
@@ -81,5 +82,29 @@ describe('buildGenealogyTimelineSteps', () => {
     const nodes = [node({ id: 'a', fullName: 'A', birthYear: 1800, birthLocation: 'Here' })]
     const steps = buildGenealogyTimelineSteps(nodes, null)
     expect(steps.filter((s) => s.nodeId === 'a' && s.kind === 'birth')).toHaveLength(1)
+  })
+
+  it('formatTimelineStepAriaLabel includes name, kind, year, and location', () => {
+    const nodes = [
+      node({
+        id: 'a',
+        fullName: 'Alice Example',
+        birthYear: 1820,
+        birthLocation: 'Walton County, GA',
+        deathYear: 1916,
+        deathLocation: 'Tippah County, MS',
+      }),
+    ]
+    const steps = buildGenealogyTimelineSteps(nodes, null)
+    const birth = steps.find((s) => s.kind === 'birth')!
+    const death = steps.find((s) => s.kind === 'death')!
+    expect(formatTimelineStepAriaLabel(birth)).toBe('Alice Example, Born 1820, Walton County, GA')
+    expect(formatTimelineStepAriaLabel(death)).toBe('Alice Example, Died 1916, Tippah County, MS')
+  })
+
+  it('formatTimelineStepAriaLabel omits the location segment when absent', () => {
+    const nodes = [node({ id: 'a', fullName: 'A', birthYear: 1900, birthLocation: '' })]
+    const steps = buildGenealogyTimelineSteps(nodes, null)
+    expect(formatTimelineStepAriaLabel(steps[0]!)).toBe('A, Born 1900')
   })
 })
