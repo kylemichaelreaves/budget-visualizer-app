@@ -1,4 +1,5 @@
 import type { GenealogyNode } from '../../../types/genealogy'
+import { PERSON_CARD_HEIGHT, PERSON_CARD_WIDTH } from './PersonCard'
 
 export type LayoutNode = {
   node: GenealogyNode
@@ -17,9 +18,9 @@ export type TreeLayoutOptions = {
 
 const DEFAULT_ROW_GAP = 32
 const DEFAULT_SIBLING_GAP = 16
-const DEFAULT_CARD_WIDTH = 120
 const DEFAULT_TOP_PADDING = 16
-const DEFAULT_CARD_HEIGHT = 64
+// Card dimensions live with `PersonCard` (single source of truth) so the
+// layout, the connector overlay, and the rendered card can never drift.
 
 /**
  * Compute one-row-per-generation layout for a flat list of genealogy nodes.
@@ -30,7 +31,7 @@ const DEFAULT_CARD_HEIGHT = 64
 export function useTreeLayout(nodes: GenealogyNode[], options: TreeLayoutOptions): LayoutNode[] {
   const rowGap = options.rowGap ?? DEFAULT_ROW_GAP
   const siblingGap = options.siblingGap ?? DEFAULT_SIBLING_GAP
-  const cardWidth = options.cardWidth ?? DEFAULT_CARD_WIDTH
+  const cardWidth = options.cardWidth ?? PERSON_CARD_WIDTH
   const topPadding = options.topPadding ?? DEFAULT_TOP_PADDING
 
   const byId = new Map(nodes.map((n) => [n.id, n]))
@@ -61,7 +62,7 @@ export function useTreeLayout(nodes: GenealogyNode[], options: TreeLayoutOptions
     byDepth.set(item.depth, arr)
   }
 
-  const rowHeight = DEFAULT_CARD_HEIGHT + rowGap
+  const rowHeight = PERSON_CARD_HEIGHT + rowGap
 
   const layout: LayoutNode[] = []
   for (const [depth, items] of byDepth.entries()) {
