@@ -1,5 +1,6 @@
 import { useNavigate } from '@solidjs/router'
 import { Show } from 'solid-js'
+import { queryClient } from '@api/queryClient'
 import { authState, logout } from '@stores/authStore'
 import { userDisplayInitials } from '@utils/userInitials'
 import { Badge } from '@components/ui/badge'
@@ -17,7 +18,11 @@ export function UserNavDropdown() {
 
   function handleLogout() {
     logout()
-    navigate('/')
+    queryClient.clear()
+    // Full page navigation (matches NavBar/Login + the unauthorized handler in
+    // index.tsx) so any in-memory state outside the auth store is reset too.
+    // `replace` so the back button doesn't return to the now-unauthenticated app.
+    window.location.replace('/login')
   }
 
   function goAccountSettings() {

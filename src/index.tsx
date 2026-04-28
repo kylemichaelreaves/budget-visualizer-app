@@ -29,13 +29,15 @@ function assignLocationToLoginAfterUnauthorized(): void {
     return
   }
 
-  if (raw.startsWith('/login')) {
+  // Sanitize first so the self-loop guard catches values that only resolve to
+  // `/login` after `safeRedirectPath` trims whitespace (e.g. `%20/login`).
+  const safe = safeRedirectPath(raw)
+  if (!safe || safe.startsWith('/login')) {
     window.location.assign('/login')
     return
   }
 
-  const safe = safeRedirectPath(raw)
-  window.location.assign(safe ? `/login?redirect=${encodeURIComponent(safe)}` : '/login')
+  window.location.assign(`/login?redirect=${encodeURIComponent(safe)}`)
 }
 
 setUnauthorizedHandler(() => {
