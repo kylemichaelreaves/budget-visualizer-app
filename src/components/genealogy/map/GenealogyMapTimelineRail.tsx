@@ -1,5 +1,6 @@
 import type { JSX } from 'solid-js'
 import { Show } from 'solid-js'
+import NavigationButtonGroup from '@components/shared/NavigationButtonGroup'
 import type { GenealogyNode } from '../../../types/genealogy'
 import { formatTimelineStepSummary, type GenealogyTimelineStep } from '@genealogy/lib/buildGenealogyTimeline'
 import type { GenealogyNodeCursorPointer } from '@genealogy/hooks/useGenealogyNodeCursorTooltip'
@@ -60,25 +61,24 @@ export default function GenealogyMapTimelineRail(props: Props): JSX.Element {
               Step {props.stepIndex() + 1} of {props.steps().length}
             </p>
           </div>
-          <div class="flex shrink-0 gap-2">
-            <button
-              type="button"
-              class="rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
-              data-testid="genealogy-timeline-prev"
-              disabled={props.stepIndex() <= 0}
-              onClick={() => props.onPrev()}
-            >
-              Previous
-            </button>
-            <button
-              type="button"
-              class="rounded-md border border-border bg-background px-3 py-1.5 text-xs font-medium hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40"
-              data-testid="genealogy-timeline-next"
-              disabled={props.stepIndex() >= props.steps().length - 1}
-              onClick={() => props.onNext()}
-            >
-              Next
-            </button>
+          <div class="flex shrink-0">
+            {/*
+              NavigationButtonGroup's `isFirst`/`isLast` are named for descending
+              data ordering. Our timeline is sorted ascending (step 0 = earliest
+              year), so map "at first step" → `isLast` (Previous disabled) and
+              "at last step" → `isFirst` (Next disabled).
+            */}
+            <NavigationButtonGroup
+              label="Year"
+              isLast={props.stepIndex() <= 0}
+              isFirst={props.stepIndex() >= props.steps().length - 1}
+              goToPrevious={() => props.onPrev()}
+              goToNext={() => props.onNext()}
+              prevTestId="genealogy-timeline-prev"
+              nextTestId="genealogy-timeline-next"
+              dataTestId="genealogy-timeline-nav"
+              aria-label="Genealogy timeline navigation"
+            />
           </div>
         </div>
       </Show>

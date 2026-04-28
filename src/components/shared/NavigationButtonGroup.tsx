@@ -11,6 +11,9 @@ export default function NavigationButtonGroup(props: {
   goToNext: () => void
   reset?: () => void
   dataTestId?: string
+  prevTestId?: string
+  nextTestId?: string
+  resetTestId?: string
   'aria-label'?: string
 }): JSX.Element {
   return (
@@ -25,6 +28,7 @@ export default function NavigationButtonGroup(props: {
         class="rounded-none border-0 border-r border-r-border/20"
         onClick={() => props.goToPrevious()}
         disabled={props.isLast}
+        data-testid={props.prevTestId}
       >
         ← Previous {props.label}
       </Button>
@@ -33,12 +37,18 @@ export default function NavigationButtonGroup(props: {
         class={`rounded-none border-0 ${props.reset ? 'border-r border-r-border/20' : ''}`}
         onClick={() => props.goToNext()}
         disabled={props.isFirst}
+        data-testid={props.nextTestId}
       >
         Next {props.label} →
       </Button>
       <Show when={props.reset}>
         {(fn) => (
-          <Button variant="outline" class="rounded-none border-0 bg-muted" onClick={() => fn()()}>
+          <Button
+            variant="outline"
+            class="rounded-none border-0 bg-muted"
+            onClick={() => fn()()}
+            data-testid={props.resetTestId}
+          >
             ✕ Reset {props.label}
           </Button>
         )}
