@@ -16,6 +16,8 @@ export interface PasswordFieldProps {
   focused: boolean
   disabled: boolean
   testid: string
+  /** Defaults to `new-password` (account change + registration). Use `current-password` for the existing password. */
+  autocomplete?: string
 }
 
 export function PasswordField(props: PasswordFieldProps) {
@@ -45,7 +47,7 @@ export function PasswordField(props: PasswordFieldProps) {
         <input
           id={props.id}
           type={props.show ? 'text' : 'password'}
-          autocomplete="new-password"
+          autocomplete={props.autocomplete ?? 'new-password'}
           placeholder={props.placeholder}
           value={props.value}
           onInput={(e) => props.onInput(e.currentTarget.value)}

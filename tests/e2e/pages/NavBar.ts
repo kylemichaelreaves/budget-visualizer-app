@@ -13,7 +13,7 @@ export class NavBar {
     this.nav = page.getByRole('navigation', { name: /main navigation/i })
     this.brandLink = this.nav.getByRole('link', { name: 'Budget Visualizer' })
     this.loginButton = this.nav.getByRole('button', { name: /log in/i })
-    this.userMenuButton = this.nav.getByRole('button', { name: /user menu/i })
+    this.userMenuButton = this.nav.getByRole('button', { name: /account menu/i })
     this.adminBadge = this.nav.getByText('admin', { exact: true })
   }
 
@@ -21,7 +21,13 @@ export class NavBar {
     return this.nav.getByTestId('navbar-login-label')
   }
 
+  /** Log In when unauthenticated; opens user menu and chooses Log out when authenticated. */
   async clickLoginLogout() {
-    await this.nav.getByRole('button').click()
+    if (await this.loginButton.isVisible()) {
+      await this.loginButton.click()
+      return
+    }
+    await this.userMenuButton.click()
+    await this.page.getByTestId('navbar-menu-logout').click()
   }
 }

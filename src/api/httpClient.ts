@@ -11,6 +11,17 @@ export function setUnauthorizedHandler(handler: () => void) {
   onUnauthorized = handler
 }
 
+/**
+ * `true` when the URL is absolute (starts with `http://` or `https://`). Same-
+ * origin API calls go through `httpClient` as relative paths, so an absolute
+ * URL effectively means a foreign origin (e.g. an S3 bucket). Used to skip
+ * behaviors that only make sense for our own API: attaching the session Bearer
+ * token, and routing 401s through the global unauthorized handler.
+ */
+function isAbsoluteUrl(url: string | undefined): boolean {
+  return !!url && /^https?:\/\//i.test(url)
+}
+
 export const httpClient = axios.create({
   baseURL: getBaseApiUrl(),
   headers: {
@@ -28,9 +39,13 @@ httpClient.interceptors.request.use(async (config) => {
   // Ensure the base URL has been resolved before any request fires
   await baseUrlReady
 
-  const token = localStorage.getItem('token')
-  if (token) {
-    config.headers['Authorization'] = `Bearer ${token}`
+  // Only attach our session token to same-origin API calls. Absolute URLs go
+  // somewhere else (e.g. an S3 bucket) and shouldn't receive the Bearer token.
+  if (!isAbsoluteUrl(config.url)) {
+    const token = localStorage.getItem('token')
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`
+    }
   }
 
   devConsole('log', '[httpClient] Request URL:', config.url)
@@ -63,9 +78,16 @@ httpClient.interceptors.response.use(
       )
     }
 
+    const reqUrl = error.config?.url ?? ''
+    const isLoginAttempt =
+      String(error.config?.method ?? '').toLowerCase() === 'post' &&
+      (reqUrl === '/login' || reqUrl.endsWith('/login'))
+
     if (
       axios.isAxiosError(error) &&
       error.response?.status === 401 &&
+      !isLoginAttempt &&
+      !isAbsoluteUrl(reqUrl) &&
       onUnauthorized &&
       !handlingUnauthorized
     ) {

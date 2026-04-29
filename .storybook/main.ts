@@ -23,10 +23,16 @@ const config: StorybookConfig = {
     mergeConfig(c, {
       plugins: [tailwindcss()],
       resolve: {
-        alias: ROUTE_ALIASES.map((alias) => ({
-          find: `@${alias}`,
-          replacement: path.resolve(__dirname, '../src', alias),
-        })),
+        alias: [
+          ...ROUTE_ALIASES.map((alias) => ({
+            find: `@${alias}`,
+            replacement: path.resolve(__dirname, '../src', alias),
+          })),
+          {
+            find: '@genealogy',
+            replacement: path.resolve(__dirname, '../src/components/genealogy'),
+          },
+        ],
       },
     }),
 }

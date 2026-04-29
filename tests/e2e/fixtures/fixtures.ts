@@ -5,6 +5,7 @@ import { ForgotPasswordPage } from '../pages/ForgotPasswordPage'
 import { LoginPage } from '../pages/LoginPage'
 import { RegisterPage } from '../pages/RegisterPage'
 import { ResetPasswordPage } from '../pages/ResetPasswordPage'
+import { AccountSettingsPage } from '../pages/AccountSettingsPage'
 import { SidebarNav } from '../pages/SidebarNav'
 import { TransactionsPage } from '../pages/TransactionsPage'
 import { TransactionCreateDialog } from '../pages/TransactionCreateDialog'
@@ -14,6 +15,7 @@ import { MemosPage } from '../pages/MemosPage'
 import { MemoEditPage } from '../pages/MemoEditPage'
 import { MemoSummaryPage } from '../pages/MemoSummaryPage'
 import { BudgetCategoriesPage } from '../pages/BudgetCategoriesPage'
+import { GenealogyPage } from '../pages/GenealogyPage'
 import { LoanCalculatorPage } from '../pages/LoanCalculatorPage'
 import { NavBar } from '../pages/NavBar'
 import { SplitBudgetCategoryDrawer } from '../pages/SplitBudgetCategoryDrawer'
@@ -26,6 +28,7 @@ type Fixtures = {
   registerPage: RegisterPage
   forgotPasswordPage: ForgotPasswordPage
   resetPasswordPage: ResetPasswordPage
+  accountSettingsPage: AccountSettingsPage
   navbar: NavBar
   sidebar: SidebarNav
   transactionsPage: TransactionsPage
@@ -36,6 +39,7 @@ type Fixtures = {
   memoEditPage: MemoEditPage
   memoSummaryPage: MemoSummaryPage
   budgetCategoriesPage: BudgetCategoriesPage
+  genealogyPage: GenealogyPage
   loanCalculatorPage: LoanCalculatorPage
   splitBudgetCategoryDrawer: SplitBudgetCategoryDrawer
   categoryTreeSelectDialog: CategoryTreeSelectDialog
@@ -58,6 +62,9 @@ const pageObjectFixtures = {
   },
   resetPasswordPage: async ({ page }, use) => {
     await use(new ResetPasswordPage(page))
+  },
+  accountSettingsPage: async ({ page }, use) => {
+    await use(new AccountSettingsPage(page))
   },
   navbar: async ({ page }, use) => {
     await use(new NavBar(page))
@@ -88,6 +95,9 @@ const pageObjectFixtures = {
   },
   budgetCategoriesPage: async ({ page }, use) => {
     await use(new BudgetCategoriesPage(page))
+  },
+  genealogyPage: async ({ page }, use) => {
+    await use(new GenealogyPage(page))
   },
   loanCalculatorPage: async ({ page }, use) => {
     await use(new LoanCalculatorPage(page))
