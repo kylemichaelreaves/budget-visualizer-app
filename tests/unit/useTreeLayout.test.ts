@@ -62,4 +62,46 @@ describe('useTreeLayout', () => {
     expect(layout[0]?.depth).toBe(0)
     expect(layout[0]?.y).toBe(16)
   })
+
+  it('returns layout in depth-ascending order regardless of input node order', () => {
+    const child = makeNode('child', 'parent')
+    const parent = makeNode('parent', null)
+    const grandchild = makeNode('grandchild', 'child')
+    // Input is intentionally not in parent-before-child order so insertion
+    // order in the byDepth map differs from numeric depth order.
+    const layout = useTreeLayout([grandchild, child, parent], { width: 400 })
+    expect(layout.map((l) => l.node.id)).toEqual(['parent', 'child', 'grandchild'])
+    expect(layout.map((l) => l.depth)).toEqual([0, 1, 2])
+  })
+
+  it('orders siblings by birth year (unknown last), then by id', () => {
+    function bornIn(id: string, year: number | null): GenealogyNode {
+      return {
+        id,
+        fullName: id,
+        birthYear: year,
+        birthLocation: '',
+        birthCoords: { lat: 0, lng: 0 },
+        deathYear: null,
+        deathLocation: null,
+        deathCoords: null,
+        parentId: 'parent',
+        spouseId: null,
+      }
+    }
+    const layout = useTreeLayout(
+      [
+        makeNode('parent', null),
+        // Inserted out of order: youngest, oldest, undated, then a tied year.
+        bornIn('young', 1900),
+        bornIn('old', 1850),
+        bornIn('unknown', null),
+        bornIn('tied-b', 1900),
+      ],
+      { width: 800 },
+    )
+    const siblings = layout.filter((l) => l.depth === 1).map((l) => l.node.id)
+    // Year ascending: 1850 (old), 1900 (young/tied-b — id-tiebreak puts 'tied-b' first), then null.
+    expect(siblings).toEqual(['old', 'tied-b', 'young', 'unknown'])
+  })
 })

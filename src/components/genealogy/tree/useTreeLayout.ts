@@ -62,10 +62,28 @@ export function useTreeLayout(nodes: GenealogyNode[], options: TreeLayoutOptions
     byDepth.set(item.depth, arr)
   }
 
+  // Stable sibling order within each depth: birth year ascending (unknown last),
+  // then by id. Matches the connector ordering in `createGenealogyMap` and gives
+  // a deterministic DOM / Tab order regardless of how `nodes` was sorted.
+  for (const items of byDepth.values()) {
+    items.sort((a, b) => {
+      const ay = a.node.birthYear ?? Number.POSITIVE_INFINITY
+      const by = b.node.birthYear ?? Number.POSITIVE_INFINITY
+      if (ay !== by) return ay - by
+      return a.node.id.localeCompare(b.node.id)
+    })
+  }
+
   const rowHeight = PERSON_CARD_HEIGHT + rowGap
 
+  // Iterate depths in numeric ascending order so the resulting `layout`
+  // (and thus DOM / tab order in `TreeCardLayer`) is top-to-bottom by
+  // generation regardless of input `nodes` ordering.
+  const sortedDepths = [...byDepth.keys()].sort((a, b) => a - b)
+
   const layout: LayoutNode[] = []
-  for (const [depth, items] of byDepth.entries()) {
+  for (const depth of sortedDepths) {
+    const items = byDepth.get(depth)!
     const totalWidth = items.length * cardWidth + Math.max(0, items.length - 1) * siblingGap
     const startX = Math.max(0, (options.width - totalWidth) / 2)
     items.forEach((item, idx) => {
