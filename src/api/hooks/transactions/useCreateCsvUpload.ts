@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/solid-query'
 import axios from 'axios'
-import { type Accessor, createSignal } from 'solid-js'
+import { type Accessor, createSignal, onCleanup } from 'solid-js'
 import { createCsvUploadUrl } from '@api/transactions/createCsvUploadUrl'
 import { invalidateAfterTransactionCreate } from '@api/queryInvalidation'
 import { mutationKeys, queryKeys } from '@api/queryKeys'
@@ -28,6 +28,14 @@ export function useCreateCsvUpload(): {
   const queryClient = useQueryClient()
   const [progress, setProgress] = createSignal(0)
   let controller: AbortController | null = null
+  let delayedInvalidation: ReturnType<typeof setTimeout> | null = null
+
+  const clearDelayedInvalidation = () => {
+    if (delayedInvalidation != null) {
+      clearTimeout(delayedInvalidation)
+      delayedInvalidation = null
+    }
+  }
 
   const mutation = useMutation<unknown, Error, UploadCsvVariables>(() => ({
     mutationKey: mutationKeys.uploadCsv,
@@ -54,7 +62,9 @@ export function useCreateCsvUpload(): {
       void queryClient.invalidateQueries({ queryKey: queryKeys.transactions.csvRecent })
       // Lambda processing is async — re-invalidate after a delay so the table
       // picks up the new rows once the bucket-to-db lambda finishes.
-      setTimeout(() => {
+      clearDelayedInvalidation()
+      delayedInvalidation = setTimeout(() => {
+        delayedInvalidation = null
         void invalidateAfterTransactionCreate(queryClient)
       }, 30_000)
     },
@@ -64,6 +74,7 @@ export function useCreateCsvUpload(): {
   }))
 
   const cancel = () => {
+    clearDelayedInvalidation()
     controller?.abort()
     controller = null
     setProgress(0)
@@ -71,9 +82,16 @@ export function useCreateCsvUpload(): {
   }
 
   const reset = () => {
+    clearDelayedInvalidation()
     setProgress(0)
     mutation.reset()
   }
+
+  onCleanup(() => {
+    clearDelayedInvalidation()
+    controller?.abort()
+    controller = null
+  })
 
   return { mutation, progress, reset, cancel }
 }

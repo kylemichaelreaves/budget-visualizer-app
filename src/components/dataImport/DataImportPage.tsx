@@ -7,7 +7,6 @@ import UploadingState from '@components/dataImport/UploadingState'
 
 const FILENAME_PATTERN = /^\d{4}_\d{2}\.csv$/i
 const MAX_FILE_BYTES = 10 * 1024 * 1024
-const ACCEPTED_TYPES = new Set(['text/csv', 'application/vnd.ms-excel', ''])
 
 type ViewState =
   | { kind: 'empty' }
@@ -21,10 +20,14 @@ type ViewState =
 export default function DataImportPage(): JSX.Element {
   const [view, setView] = createSignal<ViewState>({ kind: 'empty' })
   const { mutation, progress, reset, cancel } = useCreateCsvUpload()
-  let cancelled = false
+  // Bump on each new upload (or cancel) so a stale promise can't update the view.
+  let activeUploadId = 0
 
   const startUpload = async (file: File) => {
-    if (!file.name.toLowerCase().endsWith('.csv') || !ACCEPTED_TYPES.has(file.type)) {
+    // Validate on filename only — browsers report inconsistent MIME types for CSVs
+    // (text/csv, application/vnd.ms-excel, application/octet-stream, text/plain, ''),
+    // so requiring a specific type rejects valid files.
+    if (!file.name.toLowerCase().endsWith('.csv')) {
       setView({ kind: 'error-wrong-type', file })
       return
     }
@@ -37,13 +40,14 @@ export default function DataImportPage(): JSX.Element {
       return
     }
 
-    cancelled = false
+    const uploadId = ++activeUploadId
     setView({ kind: 'uploading', file })
     try {
       await mutation.mutateAsync({ file, contentType: file.type || 'text/csv' })
+      if (uploadId !== activeUploadId) return
       setView({ kind: 'success', filename: file.name })
     } catch (err) {
-      if (cancelled) return
+      if (uploadId !== activeUploadId) return
       const message = err instanceof Error ? err.message : 'Upload failed'
       setView({ kind: 'error-upload-failed', file, message })
     }
@@ -79,7 +83,8 @@ export default function DataImportPage(): JSX.Element {
                 file={v.file}
                 progress={progress}
                 onCancel={() => {
-                  cancelled = true
+                  // Invalidate the in-flight upload's token so its late rejection is ignored.
+                  activeUploadId++
                   cancel()
                   setView({ kind: 'empty' })
                 }}

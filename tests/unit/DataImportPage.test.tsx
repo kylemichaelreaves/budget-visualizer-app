@@ -93,6 +93,17 @@ describe('DataImportPage', () => {
       })
       expect(mutateAsyncMock).toHaveBeenCalledOnce()
     })
+
+    it('accepts a valid .csv even when the browser reports an unexpected MIME type', async () => {
+      // Browsers/OSes sometimes report application/octet-stream or text/plain for CSVs.
+      mutateAsyncMock.mockImplementation(() => new Promise(() => {}))
+      render(() => <DataImportPage />)
+      dropFile(makeFile('2026_05.csv', 1024, 'application/octet-stream'))
+      await waitFor(() => {
+        expect(screen.getByTestId('data-import-uploading-card')).toBeInTheDocument()
+      })
+      expect(mutateAsyncMock).toHaveBeenCalledOnce()
+    })
   })
 
   describe('state transitions', () => {
@@ -144,6 +155,51 @@ describe('DataImportPage', () => {
         expect(screen.getByTestId('data-import-drop-zone')).toBeInTheDocument()
       })
       expect(screen.queryByTestId('data-import-error-card')).not.toBeInTheDocument()
+    })
+
+    it("a stale upload's late rejection cannot clobber a newer upload's UI", async () => {
+      // Set up two queued resolvers — first call gets reject1, second gets resolve2.
+      const rejectFns: ((err: unknown) => void)[] = []
+      const resolveFns: ((v: unknown) => void)[] = []
+      mutateAsyncMock.mockImplementation(
+        () =>
+          new Promise((resolve, reject) => {
+            rejectFns.push(reject)
+            resolveFns.push(resolve)
+          }),
+      )
+      render(() => <DataImportPage />)
+
+      // Upload A (will be cancelled, then rejected late).
+      dropFile(makeFile('2026_05.csv', 2048))
+      await waitFor(() => {
+        expect(screen.getByTestId('data-import-uploading-card')).toBeInTheDocument()
+      })
+      fireEvent.click(screen.getByTestId('data-import-cancel-button'))
+      await waitFor(() => {
+        expect(screen.getByTestId('data-import-drop-zone')).toBeInTheDocument()
+      })
+
+      // Upload B (in-flight).
+      dropFile(makeFile('2026_06.csv', 2048))
+      await waitFor(() => {
+        expect(screen.getByTestId('data-import-uploading-card')).toBeInTheDocument()
+      })
+
+      // A rejects late — must NOT flip B's UI to error.
+      rejectFns[0](Object.assign(new Error('A canceled late'), { name: 'CanceledError' }))
+      // Give microtasks a chance to flush.
+      await Promise.resolve()
+      await Promise.resolve()
+      expect(screen.queryByTestId('data-import-error-card')).not.toBeInTheDocument()
+      expect(screen.getByTestId('data-import-uploading-card')).toBeInTheDocument()
+
+      // B still resolves successfully.
+      resolveFns[1](null)
+      await waitFor(() => {
+        expect(screen.getByTestId('data-import-success-card')).toBeInTheDocument()
+      })
+      expect(screen.getByTestId('success-filename')).toHaveTextContent('2026_06.csv')
     })
 
     it('Import another from success returns to the empty state', async () => {

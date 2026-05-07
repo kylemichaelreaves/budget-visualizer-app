@@ -1,12 +1,7 @@
 import { Show, type JSX } from 'solid-js'
 import BankGlyph from '@components/dataImport/BankGlyph'
 import { Button } from '@components/ui/button'
-
-function formatBytes(bytes: number): string {
-  if (bytes < 1024) return `${bytes} B`
-  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
-  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
-}
+import { formatBytes } from '@utils/formatBytes'
 
 export default function ErrorState(props: {
   title: string
