@@ -33,35 +33,45 @@ export default function RecentImportsList(): JSX.Element {
           fallback={<div class="px-6 py-4 text-sm text-muted-foreground">Loading…</div>}
         >
           <Show
-            when={(query.data ?? []).length > 0}
+            when={!query.isError}
             fallback={
-              <div class="px-6 py-4 text-sm text-muted-foreground">
-                No imports yet — your first CSV will appear here.
+              <div class="px-6 py-4 text-sm text-destructive" data-testid="data-import-recent-error">
+                Couldn't load recent imports
+                {query.error instanceof Error ? `: ${query.error.message}` : '.'}
               </div>
             }
           >
-            <For each={query.data ?? []}>
-              {(item, idx) => (
-                <div
-                  class="grid items-center gap-6 px-6 py-3.5 text-sm"
-                  classList={{
-                    'border-b border-border': idx() < (query.data?.length ?? 0) - 1,
-                  }}
-                  style={{ 'grid-template-columns': '120px 1fr 140px' }}
-                >
-                  <div class="font-mono text-xs text-muted-foreground">{formatDate(item.lastModified)}</div>
-                  <div class="flex items-center gap-2.5 min-w-0">
-                    <BankGlyph id={inferBankId(item.key)} size={24} />
-                    <div class="font-medium truncate" title={item.key}>
-                      {item.key}
+            <Show
+              when={(query.data ?? []).length > 0}
+              fallback={
+                <div class="px-6 py-4 text-sm text-muted-foreground">
+                  No imports yet — your first CSV will appear here.
+                </div>
+              }
+            >
+              <For each={query.data ?? []}>
+                {(item, idx) => (
+                  <div
+                    class="grid items-center gap-6 px-6 py-3.5 text-sm"
+                    classList={{
+                      'border-b border-border': idx() < (query.data?.length ?? 0) - 1,
+                    }}
+                    style={{ 'grid-template-columns': '120px 1fr 140px' }}
+                  >
+                    <div class="font-mono text-xs text-muted-foreground">{formatDate(item.lastModified)}</div>
+                    <div class="flex items-center gap-2.5 min-w-0">
+                      <BankGlyph id={inferBankId(item.key)} size={24} />
+                      <div class="font-medium truncate" title={item.key}>
+                        {item.key}
+                      </div>
+                    </div>
+                    <div class="font-mono text-xs text-muted-foreground text-right">
+                      {formatBytes(item.size)}
                     </div>
                   </div>
-                  <div class="font-mono text-xs text-muted-foreground text-right">
-                    {formatBytes(item.size)}
-                  </div>
-                </div>
-              )}
-            </For>
+                )}
+              </For>
+            </Show>
           </Show>
         </Show>
       </div>

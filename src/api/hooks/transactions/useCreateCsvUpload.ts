@@ -23,17 +23,22 @@ export function useCreateCsvUpload(): {
   mutation: ReturnType<typeof useMutation<unknown, Error, UploadCsvVariables>>
   progress: Accessor<number>
   reset: () => void
+  cancel: () => void
 } {
   const queryClient = useQueryClient()
   const [progress, setProgress] = createSignal(0)
+  let controller: AbortController | null = null
 
   const mutation = useMutation<unknown, Error, UploadCsvVariables>(() => ({
     mutationKey: mutationKeys.uploadCsv,
     mutationFn: async ({ file, contentType }) => {
       setProgress(0)
-      const { uploadUrl } = await createCsvUploadUrl({ filename: file.name, contentType })
+      controller = new AbortController()
+      const { signal } = controller
+      const { uploadUrl } = await createCsvUploadUrl({ filename: file.name, contentType }, { signal })
       await axios.put(uploadUrl, file, {
         headers: { 'Content-Type': contentType },
+        signal,
         onUploadProgress: (event) => {
           if (event.total && event.total > 0) {
             setProgress(Math.min(1, event.loaded / event.total))
@@ -53,12 +58,22 @@ export function useCreateCsvUpload(): {
         void invalidateAfterTransactionCreate(queryClient)
       }, 30_000)
     },
+    onSettled: () => {
+      controller = null
+    },
   }))
+
+  const cancel = () => {
+    controller?.abort()
+    controller = null
+    setProgress(0)
+    mutation.reset()
+  }
 
   const reset = () => {
     setProgress(0)
     mutation.reset()
   }
 
-  return { mutation, progress, reset }
+  return { mutation, progress, reset, cancel }
 }

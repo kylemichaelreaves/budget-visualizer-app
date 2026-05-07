@@ -21,7 +21,7 @@ export default function ErrorState(props: {
         class="bg-card border border-border rounded-2xl px-9 pt-9 pb-8 max-w-2xl w-full mx-auto text-center"
         data-testid="data-import-error-card"
       >
-        <div class="w-13 h-13 rounded-full bg-caution-muted text-caution-on-muted inline-flex items-center justify-center mb-4 p-3.5">
+        <div class="w-[3.25rem] h-[3.25rem] rounded-full bg-caution-muted text-caution-on-muted inline-flex items-center justify-center mb-4 p-3.5">
           <svg
             width="26"
             height="26"

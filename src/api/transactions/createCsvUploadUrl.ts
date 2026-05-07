@@ -6,10 +6,15 @@ export type CsvUploadUrlResponse = {
   expiresIn: number
 }
 
-export async function createCsvUploadUrl(input: {
-  filename: string
-  contentType: string
-}): Promise<CsvUploadUrlResponse> {
-  const { data } = await httpClient.post<CsvUploadUrlResponse>('/transactions/csv/upload', input)
+export async function createCsvUploadUrl(
+  input: {
+    filename: string
+    contentType: string
+  },
+  options?: { signal?: AbortSignal },
+): Promise<CsvUploadUrlResponse> {
+  const { data } = await httpClient.post<CsvUploadUrlResponse>('/transactions/csv/upload', input, {
+    signal: options?.signal,
+  })
   return data
 }

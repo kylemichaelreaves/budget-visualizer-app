@@ -5,7 +5,7 @@ import ErrorState from '@components/dataImport/ErrorState'
 import SuccessState from '@components/dataImport/SuccessState'
 import UploadingState from '@components/dataImport/UploadingState'
 
-const FILENAME_PATTERN = /^\d{4}_\d{2}\.csv$/
+const FILENAME_PATTERN = /^\d{4}_\d{2}\.csv$/i
 const MAX_FILE_BYTES = 10 * 1024 * 1024
 const ACCEPTED_TYPES = new Set(['text/csv', 'application/vnd.ms-excel', ''])
 
@@ -20,7 +20,8 @@ type ViewState =
 
 export default function DataImportPage(): JSX.Element {
   const [view, setView] = createSignal<ViewState>({ kind: 'empty' })
-  const { mutation, progress, reset } = useCreateCsvUpload()
+  const { mutation, progress, reset, cancel } = useCreateCsvUpload()
+  let cancelled = false
 
   const startUpload = async (file: File) => {
     if (!file.name.toLowerCase().endsWith('.csv') || !ACCEPTED_TYPES.has(file.type)) {
@@ -36,11 +37,13 @@ export default function DataImportPage(): JSX.Element {
       return
     }
 
+    cancelled = false
     setView({ kind: 'uploading', file })
     try {
       await mutation.mutateAsync({ file, contentType: file.type || 'text/csv' })
       setView({ kind: 'success', filename: file.name })
     } catch (err) {
+      if (cancelled) return
       const message = err instanceof Error ? err.message : 'Upload failed'
       setView({ kind: 'error-upload-failed', file, message })
     }
@@ -76,7 +79,8 @@ export default function DataImportPage(): JSX.Element {
                 file={v.file}
                 progress={progress}
                 onCancel={() => {
-                  reset()
+                  cancelled = true
+                  cancel()
                   setView({ kind: 'empty' })
                 }}
               />

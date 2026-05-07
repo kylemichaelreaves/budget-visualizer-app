@@ -56,7 +56,11 @@ export default function EmptyState(props: { onFileChosen: (file: File) => void }
           accept=".csv,text/csv,application/vnd.ms-excel"
           class="hidden"
           data-testid="data-import-file-input"
-          onChange={(e) => handleFiles(e.currentTarget.files)}
+          onChange={(e) => {
+            handleFiles(e.currentTarget.files)
+            // Clear the input so picking the same file again still fires onChange.
+            e.currentTarget.value = ''
+          }}
         />
         <Button
           type="button"
