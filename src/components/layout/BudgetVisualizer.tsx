@@ -18,6 +18,7 @@ const menuSections: MenuSection[] = [
       { path: '/budget-visualizer/transactions/pending', title: 'Pending' },
       { path: '/budget-visualizer/memos', title: 'Memos' },
       { path: '/budget-visualizer/budget-categories', title: 'Budget Categories' },
+      { path: '/budget-visualizer/data-import', title: 'Import' },
       { path: '/budget-visualizer/loan-calculator', title: 'Loan Calculator' },
     ],
   },
@@ -60,7 +61,8 @@ export default function BudgetVisualizer(props: { children?: JSX.Element }) {
             !loc.pathname.includes('/budget-categories') &&
             !loc.pathname.includes('/loan-calculator') &&
             !loc.pathname.includes('/genealogy') &&
-            !loc.pathname.includes('/account')
+            !loc.pathname.includes('/account') &&
+            !loc.pathname.includes('/data-import')
           }
         >
           <header class="flex justify-end mb-6">

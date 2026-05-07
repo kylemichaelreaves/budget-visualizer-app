@@ -10,6 +10,7 @@ import MemoEditPage from '@components/memos/forms/MemoEditPage'
 import MemoSummaryPage from '@components/memos/summaries/MemoSummaryPage'
 import MemosTable from '@components/memos/table/MemosTable'
 import BudgetCategoriesPage from '@components/budgetCategories/BudgetCategoriesPage'
+import DataImportPage from '@components/dataImport/DataImportPage'
 import GenealogyPage from '@genealogy/GenealogyPage'
 import AccountSettingsPage from '@components/settings/AccountSettingsPage'
 import PendingTransactionsTable from '@components/transactions/pending/PendingTransactionsTable'
@@ -47,6 +48,7 @@ export default function App() {
         <Route path="/memos/:memoId/summary" component={MemoSummaryPage} />
         <Route path="/memos/:memoId/edit" component={MemoEditPage} />
         <Route path="/budget-categories" component={BudgetCategoriesPage} />
+        <Route path="/data-import" component={DataImportPage} />
         <Route path="/loan-calculator" component={LoanCalculator} />
         <Route path="/genealogy" component={GenealogyPage} />
         <Route path="/account" component={AccountSettingsPage} />
