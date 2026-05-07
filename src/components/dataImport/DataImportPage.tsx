@@ -6,7 +6,7 @@ import SuccessState from '@components/dataImport/SuccessState'
 import UploadingState from '@components/dataImport/UploadingState'
 
 const FILENAME_PATTERN = /^\d{4}_\d{2}\.csv$/i
-const MAX_FILE_BYTES = 10 * 1024 * 1024
+const MAX_FILE_BYTES = 10 * 1_000 * 1_000
 
 type ViewState =
   | { kind: 'empty' }

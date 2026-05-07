@@ -72,7 +72,7 @@ describe('DataImportPage', () => {
 
     it('shows too-large error for files over 10 MB', () => {
       render(() => <DataImportPage />)
-      dropFile(makeFile('2026_05.csv', 10 * 1024 * 1024 + 1))
+      dropFile(makeFile('2026_05.csv', 10 * 1_000 * 1_000 + 1))
       expect(screen.getByText(/too large/i)).toBeInTheDocument()
       expect(mutateAsyncMock).not.toHaveBeenCalled()
     })

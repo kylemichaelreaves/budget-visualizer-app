@@ -8,8 +8,10 @@ export default function UploadingState(props: {
   progress: Accessor<number>
   onCancel: () => void
 }): JSX.Element {
-  const pct = () => Math.round(props.progress() * 100)
-  const loadedBytes = () => Math.round(props.progress() * props.file.size)
+  // Floor so a progress of 0.995 doesn't render as 100% before the PUT resolves
+  // and the page transitions to the success state.
+  const pct = () => Math.floor(props.progress() * 100)
+  const loadedBytes = () => Math.floor(props.progress() * props.file.size)
 
   return (
     <div class="flex-1 px-9 py-16 flex flex-col">
