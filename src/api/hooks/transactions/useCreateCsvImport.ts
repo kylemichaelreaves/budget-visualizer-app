@@ -1,17 +1,17 @@
 import { useMutation, useQueryClient } from '@tanstack/solid-query'
 import axios from 'axios'
 import { type Accessor, createSignal, onCleanup } from 'solid-js'
-import { createCsvUploadUrl } from '@api/transactions/createCsvUploadUrl'
+import { createCsvImport } from '@api/transactions/createCsvImport'
 import { invalidateAfterTransactionCreate } from '@api/queryInvalidation'
 import { mutationKeys, queryKeys } from '@api/queryKeys'
 
-export type UploadCsvVariables = {
+export type CreateCsvImportVariables = {
   file: File
   contentType: string
 }
 
 /**
- * Two-step upload: request a presigned PUT URL, then PUT the file directly to S3.
+ * Two-step CSV import: POST collection resource for a presigned PUT URL, then PUT to S3.
  *
  * The S3 ObjectCreated notification on transactions-bucket auto-fires the
  * transactions-bucket-to-db lambda, which parses, dedupes, and upserts. We
@@ -19,8 +19,8 @@ export type UploadCsvVariables = {
  * lands within a few seconds, so a delayed invalidation also fires at 30s
  * to catch the eventual rows without forcing the user to refresh.
  */
-export function useCreateCsvUpload(): {
-  mutation: ReturnType<typeof useMutation<unknown, Error, UploadCsvVariables>>
+export function useCreateCsvImport(): {
+  mutation: ReturnType<typeof useMutation<unknown, Error, CreateCsvImportVariables>>
   progress: Accessor<number>
   reset: () => void
   cancel: () => void
@@ -37,13 +37,13 @@ export function useCreateCsvUpload(): {
     }
   }
 
-  const mutation = useMutation<unknown, Error, UploadCsvVariables>(() => ({
-    mutationKey: mutationKeys.uploadCsv,
+  const mutation = useMutation<unknown, Error, CreateCsvImportVariables>(() => ({
+    mutationKey: mutationKeys.createCsvImport,
     mutationFn: async ({ file, contentType }) => {
       setProgress(0)
       controller = new AbortController()
       const { signal } = controller
-      const { uploadUrl } = await createCsvUploadUrl({ filename: file.name, contentType }, { signal })
+      const { uploadUrl } = await createCsvImport({ filename: file.name, contentType }, { signal })
       await axios.put(uploadUrl, file, {
         headers: { 'Content-Type': contentType },
         signal,
@@ -59,9 +59,7 @@ export function useCreateCsvUpload(): {
     },
     onSuccess: () => {
       void invalidateAfterTransactionCreate(queryClient)
-      void queryClient.invalidateQueries({ queryKey: queryKeys.transactions.csvRecent })
-      // Lambda processing is async — re-invalidate after a delay so the table
-      // picks up the new rows once the bucket-to-db lambda finishes.
+      void queryClient.invalidateQueries({ queryKey: queryKeys.transactions.csv })
       clearDelayedInvalidation()
       delayedInvalidation = setTimeout(() => {
         delayedInvalidation = null

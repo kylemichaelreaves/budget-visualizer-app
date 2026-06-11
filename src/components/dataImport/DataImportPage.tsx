@@ -1,5 +1,5 @@
 import { createSignal, Match, Switch, type JSX } from 'solid-js'
-import { useCreateCsvUpload } from '@api/hooks/transactions/useCreateCsvUpload'
+import { useCreateCsvImport } from '@api/hooks/transactions/useCreateCsvImport'
 import EmptyState from '@components/dataImport/EmptyState'
 import ErrorState from '@components/dataImport/ErrorState'
 import SuccessState from '@components/dataImport/SuccessState'
@@ -19,7 +19,7 @@ type ViewState =
 
 export default function DataImportPage(): JSX.Element {
   const [view, setView] = createSignal<ViewState>({ kind: 'empty' })
-  const { mutation, progress, reset, cancel } = useCreateCsvUpload()
+  const { mutation, progress, reset, cancel } = useCreateCsvImport()
   // Bump on each new upload (or cancel) so a stale promise can't update the view.
   let activeUploadId = 0
 

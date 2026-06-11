@@ -9,8 +9,8 @@ const cancelMock = vi.fn()
 const resetMock = vi.fn()
 const [progress, setProgress] = createSignal(0)
 
-vi.mock('@api/hooks/transactions/useCreateCsvUpload', () => ({
-  useCreateCsvUpload: () => ({
+vi.mock('@api/hooks/transactions/useCreateCsvImport', () => ({
+  useCreateCsvImport: () => ({
     mutation: { mutateAsync: mutateAsyncMock, reset: resetMock },
     progress,
     reset: resetMock,

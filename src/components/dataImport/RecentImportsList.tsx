@@ -1,17 +1,9 @@
-import { DateTime } from 'luxon'
 import { For, Show, type JSX } from 'solid-js'
 import BankGlyph, { inferBankId } from '@components/dataImport/BankGlyph'
-import { useRecentCsvImports } from '@api/hooks/transactions/useRecentCsvImports'
-import { formatBytes } from '@utils/formatBytes'
-
-function formatDate(iso: string | null): string {
-  if (!iso) return ''
-  const dt = DateTime.fromISO(iso)
-  return dt.isValid ? dt.toFormat('LLL dd, yyyy') : ''
-}
+import { useCsvImports } from '@api/hooks/transactions/useCsvImports'
 
 export default function RecentImportsList(): JSX.Element {
-  const query = useRecentCsvImports()
+  const query = useCsvImports()
 
   return (
     <section class="mt-9">
@@ -45,23 +37,16 @@ export default function RecentImportsList(): JSX.Element {
               }
             >
               <For each={query.data ?? []}>
-                {(item, idx) => (
+                {(filename, idx) => (
                   <div
-                    class="grid items-center gap-6 px-6 py-3.5 text-sm"
+                    class="flex items-center gap-2.5 px-6 py-3.5 text-sm min-w-0"
                     classList={{
                       'border-b border-border': idx() < (query.data?.length ?? 0) - 1,
                     }}
-                    style={{ 'grid-template-columns': '120px 1fr 140px' }}
                   >
-                    <div class="font-mono text-xs text-muted-foreground">{formatDate(item.lastModified)}</div>
-                    <div class="flex items-center gap-2.5 min-w-0">
-                      <BankGlyph id={inferBankId(item.key)} size={24} />
-                      <div class="font-medium truncate" title={item.key}>
-                        {item.key}
-                      </div>
-                    </div>
-                    <div class="font-mono text-xs text-muted-foreground text-right">
-                      {formatBytes(item.size)}
+                    <BankGlyph id={inferBankId(filename)} size={24} />
+                    <div class="font-medium truncate font-mono text-xs" title={filename}>
+                      {filename}
                     </div>
                   </div>
                 )}

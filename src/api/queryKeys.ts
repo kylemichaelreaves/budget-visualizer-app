@@ -14,7 +14,7 @@ export const queryKeys = {
     ) => ['transactions', limit, memoKey, tf, date, budgetCategory] as const,
     summaries: (tf: string, summary: boolean, summaryType: string) =>
       ['transactions', 'summaries', tf, summary, summaryType] as const,
-    csvRecent: ['transactions', 'csv', 'recent'] as const,
+    csv: ['transactions', 'csv'] as const,
   },
   transactionsCount: {
     all: ['transactions-count'] as const,
@@ -115,7 +115,7 @@ export const mutationKeys = {
   passwordChange: ['password-change'] as const,
   geocodeAddress: ['geocode-address'] as const,
   createTransaction: ['create-transaction'] as const,
-  uploadCsv: ['upload-csv'] as const,
+  createCsvImport: ['create-csv-import'] as const,
   mutateTransaction: ['mutate-transaction'] as const,
   mutatePendingTransaction: ['mutate-pending-transaction'] as const,
   mutateMemo: ['mutate-memo'] as const,
