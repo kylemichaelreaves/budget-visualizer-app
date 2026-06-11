@@ -4,6 +4,7 @@ import { createMemo, createSignal, For, Show } from 'solid-js'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 import AlertComponent from '@components/shared/AlertComponent'
 import { BudgetCategoryPill, BudgetCategoryPlaceholder } from '@components/shared/BudgetCategoryPill'
+import TableSortIcon from '@components/shared/TableSortIcon'
 import { formatUsd } from '@utils/formatUsd'
 
 export type TimeframeSummaryRow = {
@@ -15,32 +16,6 @@ export type TimeframeSummaryRow = {
 
 type SortKey = 'memo' | 'budget_category' | 'count' | 'amount'
 type SortDir = 'asc' | 'desc'
-
-function SortIcon(props: { active: boolean; dir: SortDir }): JSX.Element {
-  return (
-    <svg
-      class={`size-3 shrink-0 ${props.active ? 'text-primary' : 'opacity-40'}`}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      stroke-width="2"
-      stroke-linecap="round"
-      stroke-linejoin="round"
-    >
-      <Show
-        when={props.active}
-        fallback={
-          <>
-            <path d="m7 15 5 5 5-5" />
-            <path d="m7 9 5-5 5 5" />
-          </>
-        }
-      >
-        <path d={props.dir === 'asc' ? 'm7 15 5 5 5-5' : 'm7 9 5-5 5 5'} />
-      </Show>
-    </svg>
-  )
-}
 
 export default function TimeframeSummaryTable(props: {
   dataTestId: string
@@ -146,22 +121,23 @@ export default function TimeframeSummaryTable(props: {
                     <tr>
                       <th class={thClass} onClick={() => handleSort('memo')}>
                         <span class="flex items-center gap-1">
-                          Memo <SortIcon active={sortKey() === 'memo'} dir={sortDir()} />
+                          Memo <TableSortIcon active={sortKey() === 'memo'} dir={sortDir()} />
                         </span>
                       </th>
                       <th class={thClass} onClick={() => handleSort('budget_category')}>
                         <span class="flex items-center gap-1">
-                          Category <SortIcon active={sortKey() === 'budget_category'} dir={sortDir()} />
+                          Category <TableSortIcon active={sortKey() === 'budget_category'} dir={sortDir()} />
                         </span>
                       </th>
                       <th class={`${thClass} text-right`} onClick={() => handleSort('count')}>
                         <span class="flex items-center justify-end gap-1">
-                          <SortIcon active={sortKey() === 'count'} dir={sortDir()} /> Count
+                          <TableSortIcon active={sortKey() === 'count'} dir={sortDir()} /> Count
                         </span>
                       </th>
                       <th class={`${thClass} text-right`} onClick={() => handleSort('amount')}>
                         <span class="flex items-center justify-end gap-1">
-                          <SortIcon active={sortKey() === 'amount'} dir={sortDir()} /> {props.amountHeader}
+                          <TableSortIcon active={sortKey() === 'amount'} dir={sortDir()} />{' '}
+                          {props.amountHeader}
                         </span>
                       </th>
                     </tr>

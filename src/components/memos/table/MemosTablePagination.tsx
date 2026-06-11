@@ -2,13 +2,7 @@ import type { Accessor } from 'solid-js'
 import { onMount } from 'solid-js'
 import useMemosCount from '@api/hooks/memos/useMemosCount'
 import TablePaginationBar from '@components/shared/TablePaginationBar'
-import {
-  clearMemosByOffset,
-  setMemosCount,
-  setMemosTableLimit,
-  transactionsState,
-  updateMemosTableOffset,
-} from '@stores/transactionsStore'
+import { setMemosTableLimit, transactionsState, updateMemosTableOffset } from '@stores/transactionsStore'
 
 export default function MemosTablePagination(
   props: {
@@ -21,10 +15,6 @@ export default function MemosTablePagination(
   onMount(() => {
     void countQuery.refetch()
     updateMemosTableOffset(0)
-    const d = countQuery.data
-    if (d !== undefined) {
-      setMemosCount(d)
-    }
   })
 
   const currentPage = () =>
@@ -58,7 +48,6 @@ export default function MemosTablePagination(
       pageSize={transactionsState.memosTableLimit}
       onPageSizeChange={(v) => {
         setMemosTableLimit(v)
-        clearMemosByOffset()
         updateMemosTableOffset(0)
       }}
       currentPage={currentPage()}

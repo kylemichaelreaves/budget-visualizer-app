@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/solid-query'
 import { queryKeys } from '@api/queryKeys'
-import { fetchIsIntervalGreaterThanOldestDate } from '@api/transactions/fetchIsIntervalGreaterThanOIdestDate'
+import { fetchIsIntervalGreaterThanOldestDate } from '@api/transactions/fetchIsIntervalGreaterThanOldestDate'
 
 export function useIsIntervalGreaterThanOldestDate(interval: () => string) {
   return useQuery(() => ({

@@ -1,7 +1,7 @@
 import { createEffect, createMemo, createSignal, on } from 'solid-js'
 import usePendingTransactions from '@api/hooks/transactions/usePendingTransactions'
+import { useInfiniteQueryPagePrefetch } from '@composables/infiniteQueryPagePrefetch'
 import {
-  clearPendingTransactionsByOffset,
   setSelectedStatus,
   transactionsState,
   updateTransactionsTableOffset,
@@ -18,14 +18,12 @@ export function usePendingTransactionsTable() {
   const viewMode = () => transactionsState.selectedStatus
   const setViewMode = (v: 'pending' | 'reviewed') => {
     setSelectedStatus(v)
-    clearPendingTransactionsByOffset()
   }
 
   createEffect(
     on(
       () => transactionsState.selectedStatus,
       () => {
-        clearPendingTransactionsByOffset()
         updateTransactionsTableOffset(0)
       },
     ),
@@ -50,21 +48,7 @@ export function usePendingTransactionsTable() {
     return flattenedData().slice(start, start + LIMIT())
   })
 
-  createEffect(
-    on(
-      () => currentPage(),
-      () => {
-        void loadMore()
-      },
-    ),
-  )
-
-  async function loadMore() {
-    const need = currentPage() * LIMIT()
-    while (flattenedData().length < need && query.hasNextPage) {
-      await query.fetchNextPage()
-    }
-  }
+  useInfiniteQueryPagePrefetch(currentPage, LIMIT, () => flattenedData().length, query)
 
   const isPaginationDisabled = () =>
     Boolean(

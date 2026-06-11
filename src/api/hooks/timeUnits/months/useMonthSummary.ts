@@ -10,7 +10,7 @@ export default function useMonthSummary(month?: () => string) {
   return useQuery(() => {
     const m = resolvedMonth()
     return {
-      queryKey: queryKeys.monthSummary(m),
+      queryKey: queryKeys.monthSummary.detail(m),
       queryFn: () => fetchMonthSummary(m),
       enabled: !!m && m.trim() !== '',
       refetchOnWindowFocus: false,

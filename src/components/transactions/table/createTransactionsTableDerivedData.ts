@@ -1,6 +1,7 @@
-import { createEffect, createMemo, createRenderEffect, on } from 'solid-js'
+import { createMemo, createRenderEffect, on } from 'solid-js'
 import { getPeriodLabel } from '@api/helpers/formatPeriodLabels'
 import useTransactions from '@api/hooks/transactions/useTransactions'
+import { useInfiniteQueryPagePrefetch } from '@composables/infiniteQueryPagePrefetch'
 import {
   takeAndApplyPendingTransactionsScrollRestore,
   transactionsState,
@@ -42,21 +43,7 @@ export function createTransactionsTableDerivedData() {
   const isLoadingCondition = () =>
     isInitialLoading() || query.isFetchingNextPage || query.isFetchingPreviousPage
 
-  async function loadMorePagesIfNeeded() {
-    const requiredDataCount = currentPage() * LIMIT()
-    while (flattenedData().length < requiredDataCount && query.hasNextPage) {
-      await query.fetchNextPage()
-    }
-  }
-
-  createEffect(
-    on(
-      () => currentPage(),
-      () => {
-        void loadMorePagesIfNeeded()
-      },
-    ),
-  )
+  useInfiniteQueryPagePrefetch(currentPage, LIMIT, () => flattenedData().length, query)
 
   /**
    * Clamp table pagination when the result set shrinks, and after a refetch restore pill scroll.
@@ -98,6 +85,7 @@ export function createTransactionsTableDerivedData() {
 
   return {
     query,
+    flattenedData,
     paginatedData,
     firstDay: chart.firstDay,
     chartTimeFrame: chart.chartTimeFrame,

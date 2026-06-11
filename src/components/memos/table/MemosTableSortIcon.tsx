@@ -1,6 +1,5 @@
 import type { Accessor } from 'solid-js'
-import { Show } from 'solid-js'
-import { ChevronDownIcon, ChevronUpDownIcon, ChevronUpIcon } from '@shared/icons'
+import TableSortIcon from '@components/shared/TableSortIcon'
 import type { MemosTableSortDir, MemosTableSortKey } from '@components/memos/table/memosTableSort'
 
 export default function MemosTableSortIcon(props: {
@@ -8,9 +7,5 @@ export default function MemosTableSortIcon(props: {
   sortKey: Accessor<MemosTableSortKey | null>
   sortDir: Accessor<MemosTableSortDir>
 }) {
-  return (
-    <Show when={props.sortKey() === props.columnKey} fallback={<ChevronUpDownIcon class="size-3" />}>
-      {props.sortDir() === 'asc' ? <ChevronUpIcon class="size-3" /> : <ChevronDownIcon class="size-3" />}
-    </Show>
-  )
+  return <TableSortIcon active={props.sortKey() === props.columnKey} dir={props.sortDir()} class="size-3" />
 }

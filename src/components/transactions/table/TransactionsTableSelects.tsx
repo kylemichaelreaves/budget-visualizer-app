@@ -11,7 +11,6 @@ import TransactionMemoFilterField from '@components/transactions/selects/Transac
 import TransactionTimeframeSelect, {
   type TimeframeViewMode,
 } from '@components/transactions/selects/TransactionTimeframeSelect'
-import { useHydrateTransactionsTimeframeStoreFromQueries } from '@composables/hydrateTransactionsTimeframeStore'
 import { useTransactionTableFilterUrlSync } from '@composables/transactionTableFilterUrlSync'
 import {
   clearAllFilters,
@@ -79,13 +78,6 @@ export default function TransactionsTableSelects(props: Readonly<{ dataTestId?: 
   const monthsQ = useMonths()
   const weeksQ = useWeeks()
   const daysQ = useDays()
-
-  useHydrateTransactionsTimeframeStoreFromQueries({
-    yearsQ,
-    monthsQ,
-    weeksQ,
-    daysQ,
-  })
 
   const yearOptions = createMemo(() => yearsQ.data ?? [])
   const monthOptions = createMemo(() => monthsQ.data ?? [])

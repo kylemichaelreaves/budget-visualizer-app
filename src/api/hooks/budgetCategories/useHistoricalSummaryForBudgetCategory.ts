@@ -4,7 +4,7 @@ import { fetchTransactions } from '@api/transactions/fetchTransactions'
 import type { SummaryTypeBase, Timeframe } from '@types'
 import { memoQuerySliceFromStore } from '@composables/memoQueryFromTransactionsStore'
 
-export function useHistoricalSummaryForBudgetCategory(
+export default function useHistoricalSummaryForBudgetCategory(
   budgetCategory: () => string,
   timeFrame: () => Timeframe,
   date: () => string,

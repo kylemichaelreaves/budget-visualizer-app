@@ -10,7 +10,7 @@ export default function useWeekSummary(week?: () => string) {
   return useQuery(() => {
     const w = resolvedWeek()
     return {
-      queryKey: queryKeys.weekSummary(w),
+      queryKey: queryKeys.weekSummary.detail(w),
       queryFn: () => fetchWeekSummary(w),
       enabled: !!w && w.trim() !== '',
       refetchOnWindowFocus: false,

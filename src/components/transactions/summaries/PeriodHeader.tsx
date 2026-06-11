@@ -1,5 +1,9 @@
 import type { JSX } from 'solid-js'
 import { createMemo, Show } from 'solid-js'
+import useDays from '@api/hooks/timeUnits/days/useDays'
+import useMonths from '@api/hooks/timeUnits/months/useMonths'
+import useWeeks from '@api/hooks/timeUnits/weeks/useWeeks'
+import useYears from '@api/hooks/timeUnits/years/useYears'
 import {
   transactionsState,
   selectDayView,
@@ -23,40 +27,50 @@ function getSelectedValue(): string {
   return ''
 }
 
-/** Lists are sorted descending (newest first: index 0 = most recent). */
-function getList(): string[] {
-  const s = transactionsState
-  if (s.viewMode === 'day') return s.days.map((d) => String(d.day).split('T')[0]!)
-  if (s.viewMode === 'week') return s.weeks.map((w) => w.week_year)
-  if (s.viewMode === 'month') return s.months.map((m) => m.month_year)
-  if (s.viewMode === 'year') return s.years.map((y) => y.year)
-  return []
-}
-
-function selectAtIndex(idx: number): void {
-  const list = getList()
-  const next = list[idx]
-  if (!next) return
-  const vm = transactionsState.viewMode
-  if (vm === 'day') selectDayView(next)
-  else if (vm === 'week') selectWeekView(next)
-  else if (vm === 'month') selectMonthView(next)
-  else if (vm === 'year') selectYearView(next)
-}
-
 export default function PeriodHeader(props: { onAddTransaction?: () => void }): JSX.Element {
+  const yearsQ = useYears()
+  const monthsQ = useMonths()
+  const weeksQ = useWeeks()
+  const daysQ = useDays()
+
+  /** Lists are sorted descending (newest first: index 0 = most recent). */
+  const periodList = createMemo((): string[] => {
+    const vm = transactionsState.viewMode
+    if (vm === 'day') {
+      return (daysQ.data ?? []).map((d) => String(d.day).split('T')[0]!)
+    }
+    if (vm === 'week') {
+      return (weeksQ.data ?? []).map((w) => w.week_year)
+    }
+    if (vm === 'month') {
+      return (monthsQ.data ?? []).map((m) => m.month_year)
+    }
+    if (vm === 'year') {
+      return (yearsQ.data ?? []).map((y) => y.year)
+    }
+    return []
+  })
+
   const label = createMemo(() => getPeriodLabel(transactionsState.viewMode, getSelectedValue()))
 
-  const currentIndex = createMemo(() => {
-    const list = getList()
-    return list.indexOf(getSelectedValue())
-  })
+  const currentIndex = createMemo(() => periodList().indexOf(getSelectedValue()))
 
   const canGoNewer = createMemo(() => currentIndex() > 0)
   const canGoOlder = createMemo(() => {
-    const list = getList()
+    const list = periodList()
     return currentIndex() >= 0 && currentIndex() < list.length - 1
   })
+
+  function selectAtIndex(idx: number): void {
+    const list = periodList()
+    const next = list[idx]
+    if (!next) return
+    const vm = transactionsState.viewMode
+    if (vm === 'day') selectDayView(next)
+    else if (vm === 'week') selectWeekView(next)
+    else if (vm === 'month') selectMonthView(next)
+    else if (vm === 'year') selectYearView(next)
+  }
 
   const isTimePeriod = () =>
     transactionsState.viewMode === 'day' ||

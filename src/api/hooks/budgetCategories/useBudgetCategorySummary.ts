@@ -5,7 +5,7 @@ import type { Timeframe } from '@types'
 import { memoQuerySliceFromStore } from '@composables/memoQueryFromTransactionsStore'
 import { devConsole } from '@utils/devConsole'
 
-export function useBudgetCategorySummary(timeFrame: () => Timeframe, date: () => string) {
+export default function useBudgetCategorySummary(timeFrame: () => Timeframe, date: () => string) {
   return useQuery(() => {
     const { key: memoKey, params: memoParams } = memoQuerySliceFromStore()
     return {

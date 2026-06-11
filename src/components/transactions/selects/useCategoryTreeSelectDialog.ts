@@ -1,7 +1,7 @@
 import { createEffect, createMemo, createSignal, on } from 'solid-js'
 import { extractBudgetCategoriesData } from '@api/helpers/extractBudgetCategoriesData'
 import { convertToTree } from '@api/helpers/convertToTree'
-import { useBudgetCategories } from '@api/hooks/budgetCategories/useBudgetCategories'
+import useBudgetCategories from '@api/hooks/budgetCategories/useBudgetCategories'
 import type { CategoryNode } from '@types'
 import { flattenWithBreadcrumb, getVisibleNodes } from './categoryTreeSelectDialogUtils'
 

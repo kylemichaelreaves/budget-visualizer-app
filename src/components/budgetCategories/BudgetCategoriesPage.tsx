@@ -1,6 +1,6 @@
 import type { JSX } from 'solid-js'
 import { For, Show } from 'solid-js'
-import { useBudgetCategorySummary } from '@api/hooks/budgetCategories/useBudgetCategorySummary'
+import useBudgetCategorySummary from '@api/hooks/budgetCategories/useBudgetCategorySummary'
 import AlertComponent from '@components/shared/AlertComponent'
 import BudgetCategorySunburst from '@components/transactions/charts/BudgetCategorySunburst'
 import { Button } from '@components/ui/button'
