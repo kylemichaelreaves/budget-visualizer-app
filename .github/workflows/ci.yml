@@ -11,9 +11,9 @@ jobs:
     name: Lint & Format
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
       - run: bun install --frozen-lockfile
@@ -25,9 +25,9 @@ jobs:
     needs: lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
       - run: bun install --frozen-lockfile
@@ -37,14 +37,17 @@ jobs:
     name: E2E Tests
     needs: unit-tests
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
       - run: bun install --frozen-lockfile
-      - run: npx playwright install chromium --with-deps
+      # `--with-deps` runs apt-get and can hang on hosted ubuntu runners; the base
+      # image already ships Chromium's system libraries, so install the browser only.
+      - run: npx playwright install chromium
       - run: bun run test:e2e
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
