@@ -1,11 +1,12 @@
 import type { JSX } from 'solid-js'
 
-export type BankId = 'chase' | 'amex' | 'boa' | 'csv'
+export type BankId = 'chase' | 'amex' | 'boa' | 'wells' | 'csv'
 
 const PALETTE: Record<BankId, { letters: string; bg: string }> = {
   chase: { letters: 'CH', bg: '#1f4d8c' },
   amex: { letters: 'AX', bg: '#2a6c9a' },
   boa: { letters: 'BA', bg: '#7a4f5a' },
+  wells: { letters: 'WF', bg: '#9a6a1c' },
   csv: { letters: 'CSV', bg: '#5b6270' },
 }
 
@@ -15,6 +16,7 @@ export function inferBankId(filename: string): BankId {
   if (lower.includes('chase')) return 'chase'
   if (lower.includes('amex')) return 'amex'
   if (lower.includes('bofa') || lower.includes('boa')) return 'boa'
+  if (lower.includes('wells') || lower.includes('wf_')) return 'wells'
   return 'csv'
 }
 
