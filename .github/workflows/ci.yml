@@ -45,6 +45,9 @@ jobs:
       image: mcr.microsoft.com/playwright:v1.61.0-noble
     steps:
       - uses: actions/checkout@v5
+      # The Playwright image is minimal and lacks `unzip`, which setup-bun needs to
+      # extract the Bun release archive.
+      - run: apt-get update && apt-get install -y unzip
       - uses: oven-sh/setup-bun@v2
       - uses: actions/setup-node@v5
         with:
