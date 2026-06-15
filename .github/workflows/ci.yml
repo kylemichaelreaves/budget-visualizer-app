@@ -38,6 +38,11 @@ jobs:
     needs: unit-tests
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # Run in the official Playwright image: browsers + system deps are baked in, so
+    # there's no runtime `playwright install` (its browser download reliably hung on
+    # hosted runners). The image tag MUST match the pinned playwright version above.
+    container:
+      image: mcr.microsoft.com/playwright:v1.61.0-noble
     steps:
       - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
@@ -45,9 +50,6 @@ jobs:
         with:
           node-version-file: .nvmrc
       - run: bun install --frozen-lockfile
-      # `--with-deps` runs apt-get and can hang on hosted ubuntu runners; the base
-      # image already ships Chromium's system libraries, so install the browser only.
-      - run: npx playwright install chromium
       - run: bun run test:e2e
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}
