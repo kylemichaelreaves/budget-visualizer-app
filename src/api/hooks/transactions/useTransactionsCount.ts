@@ -2,21 +2,16 @@ import { useQuery } from '@tanstack/solid-query'
 import { queryKeys } from '@api/queryKeys'
 import { fetchTransactionsCount } from '@api/transactions/fetchTransactionsCount'
 import { memoQuerySliceFromStore } from '@composables/memoQueryFromTransactionsStore'
-import useTimeframeTypeAndValue from '@api/hooks/timeUnits/useTimeframeTypeAndValue'
+import { transactionQueryScopeFromStore } from '@composables/transactionQueryScopeFromStore'
 import { transactionsState } from '@stores/transactionsStore'
 import type { PendingTransactionStatus } from '@types'
 
 /** When `status` is set, counts pending rows for that status; otherwise counts regular transactions. */
 export default function useTransactionsCount(status?: () => PendingTransactionStatus | undefined) {
-  const { timeFrame, selectedValue } = useTimeframeTypeAndValue()
-
   return useQuery(() => {
     const st = status?.()
     const { key: memoKey, params: memoParam } = memoQuerySliceFromStore()
-    const rawDate = selectedValue()
-    const hasTimeframe = Boolean(rawDate && String(rawDate).trim() !== '')
-    const tf = hasTimeframe ? timeFrame() : undefined
-    const date = hasTimeframe ? rawDate : undefined
+    const { timeFrame: tf, date } = transactionQueryScopeFromStore()
     const budgetCategory = transactionsState.selectedBudgetCategory
 
     return {
@@ -26,7 +21,7 @@ export default function useTransactionsCount(status?: () => PendingTransactionSt
           ? { status: st, ...memoParam }
           : {
               ...memoParam,
-              ...(hasTimeframe ? { timeFrame: tf, date } : {}),
+              ...(tf && date ? { timeFrame: tf, date } : {}),
               ...(budgetCategory ? { budgetCategory } : {}),
             }
         const data = await fetchTransactionsCount(params)

@@ -14,7 +14,7 @@ export const queryKeys = {
     ) => ['transactions', limit, memoKey, tf, date, budgetCategory] as const,
     summaries: (tf: string, summary: boolean, summaryType: string) =>
       ['transactions', 'summaries', tf, summary, summaryType] as const,
-    csvRecent: ['transactions', 'csv', 'recent'] as const,
+    csv: ['transactions', 'csv'] as const,
   },
   transactionsCount: {
     all: ['transactions-count'] as const,
@@ -66,9 +66,16 @@ export const queryKeys = {
     list: (flatten: boolean, tf: string | undefined, d: string | undefined) =>
       ['budgetCategories', flatten, tf, d] as const,
   },
-  weekSummary: (week: string) => ['week-summary', week] as const,
-  monthSummary: (month: string) => ['month-summary', month] as const,
+  weekSummary: {
+    all: ['week-summary'] as const,
+    detail: (week: string) => ['week-summary', week] as const,
+  },
+  monthSummary: {
+    all: ['month-summary'] as const,
+    detail: (month: string) => ['month-summary', month] as const,
+  },
   timeUnits: {
+    all: ['time-units'] as const,
     days: ['time-units', 'days'] as const,
     daysOfWeek: (week: string) => ['time-units', 'days-of-week', week] as const,
     daySummary: (day: string) => ['time-units', 'day-summary', day] as const,
@@ -77,10 +84,15 @@ export const queryKeys = {
     weeksOfMonth: (month: string) => ['time-units', 'weeks-of-month', month] as const,
     years: ['time-units', 'years'] as const,
   },
-  dailyTotalAmountDebitForInterval: (interval: string, startDate: string, memoKey: string) =>
-    ['daily-total-amount-debit-for-interval', interval, startDate, memoKey] as const,
-  sumAmountDebitByDate: (timeFrame: string, date: string) =>
-    ['sum-amount-debit-by-date', timeFrame, date] as const,
+  dailyTotalAmountDebitForInterval: {
+    all: ['daily-total-amount-debit-for-interval'] as const,
+    detail: (interval: string, startDate: string, memoKey: string) =>
+      ['daily-total-amount-debit-for-interval', interval, startDate, memoKey] as const,
+  },
+  sumAmountDebitByDate: {
+    all: ['sum-amount-debit-by-date'] as const,
+    detail: (timeFrame: string, date: string) => ['sum-amount-debit-by-date', timeFrame, date] as const,
+  },
   isIntervalGreaterThanOldestDate: (interval: string) =>
     ['is-interval-greater-than-oldest-date', interval] as const,
   user: ['user'] as const,
@@ -103,7 +115,7 @@ export const mutationKeys = {
   passwordChange: ['password-change'] as const,
   geocodeAddress: ['geocode-address'] as const,
   createTransaction: ['create-transaction'] as const,
-  uploadCsv: ['upload-csv'] as const,
+  createCsvImport: ['create-csv-import'] as const,
   mutateTransaction: ['mutate-transaction'] as const,
   mutatePendingTransaction: ['mutate-pending-transaction'] as const,
   mutateMemo: ['mutate-memo'] as const,

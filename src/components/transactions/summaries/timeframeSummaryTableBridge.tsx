@@ -1,5 +1,5 @@
 import { createMemo } from 'solid-js'
-import { useBudgetCategorySummary } from '@api/hooks/budgetCategories/useBudgetCategorySummary'
+import useBudgetCategorySummary from '@api/hooks/budgetCategories/useBudgetCategorySummary'
 import { budgetCategoryColorsFromData } from '@composables/budgetCategoryColors'
 import type { BudgetCategorySummary, MonthSummary, WeekSummary } from '@types'
 import { transactionsState } from '@stores/transactionsStore'

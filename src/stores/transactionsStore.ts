@@ -1,15 +1,6 @@
 import { batch } from 'solid-js'
 import { createStore } from 'solid-js/store'
-import type {
-  DayYear,
-  Memo,
-  MonthYear,
-  PendingTransaction,
-  Transaction,
-  ViewMode,
-  WeekYear,
-  Year,
-} from '@types'
+import type { ViewMode } from '@types'
 
 export type TransactionsState = {
   selectedDay: string
@@ -23,27 +14,10 @@ export type TransactionsState = {
   selectedDescription: string
   selectedStatus: 'pending' | 'reviewed'
   viewMode: ViewMode
-  days: DayYear[]
-  daysForSelectedWeek: string[]
-  weeksForSelectedMonth: string[]
-  weeks: WeekYear[]
-  months: MonthYear[]
-  memos: Memo[]
-  years: Year[]
-  descriptions: string[]
-  transactionsCurrentPage: number
-  transactionsPageSize: number
-  filter: Record<string, string>
-  sort: { prop: string; order: string }
   memosTableLimit: number
   memosTableOffset: number
-  memosByOffset: Record<number, Memo[]>
   transactionsTableLimit: number
   transactionsTableOffset: number
-  transactions: Transaction[]
-  memosCount: number
-  pendingTransactionsByOffset: Record<number, PendingTransaction[]>
-  pendingTransactionsCount: number
 }
 
 const initial: TransactionsState = {
@@ -58,46 +32,13 @@ const initial: TransactionsState = {
   selectedDescription: '',
   selectedStatus: 'pending',
   viewMode: null,
-  days: [],
-  daysForSelectedWeek: [],
-  weeksForSelectedMonth: [],
-  weeks: [],
-  months: [],
-  memos: [],
-  years: [],
-  descriptions: [],
-  transactionsCurrentPage: 1,
-  transactionsPageSize: 100,
-  filter: {},
-  sort: { prop: '', order: '' },
   memosTableLimit: 100,
   memosTableOffset: 0,
-  memosByOffset: {},
   transactionsTableLimit: 100,
   transactionsTableOffset: 0,
-  transactions: [],
-  memosCount: 0,
-  pendingTransactionsByOffset: {},
-  pendingTransactionsCount: 0,
 }
 
 export const [transactionsState, setTransactionsState] = createStore<TransactionsState>({ ...initial })
-
-export function getMemosByOffset(offset: number): Memo[] {
-  return transactionsState.memosByOffset[offset] ?? []
-}
-
-export function setMemosByOffset(offset: number, rows: Memo[]): void {
-  setTransactionsState('memosByOffset', offset, rows)
-}
-
-export function clearMemosByOffset(): void {
-  setTransactionsState('memosByOffset', {})
-}
-
-export function setMemosCount(count: number): void {
-  setTransactionsState('memosCount', count)
-}
 
 export function setMemosTableLimit(limit: number): void {
   setTransactionsState('memosTableLimit', limit)
@@ -105,32 +46,6 @@ export function setMemosTableLimit(limit: number): void {
 
 export function updateMemosTableOffset(offset: number): void {
   setTransactionsState('memosTableOffset', offset)
-}
-
-export function getPendingTransactionsByOffset(offset: number): PendingTransaction[] {
-  return transactionsState.pendingTransactionsByOffset[offset] ?? []
-}
-
-export function clearSelectionForSummary(): void {
-  setTransactionsState({
-    selectedDay: '',
-    selectedWeek: '',
-    selectedMonth: '',
-    selectedYear: '',
-    selectedMemo: '',
-    selectedMemoId: null,
-  })
-}
-
-export function clearSelectionForPending(): void {
-  setTransactionsState({
-    selectedDay: '',
-    selectedWeek: '',
-    selectedMonth: '',
-    selectedYear: '',
-    selectedMemo: '',
-    selectedMemoId: null,
-  })
 }
 
 export function setViewMode(mode: ViewMode): void {
@@ -222,20 +137,6 @@ export function clearAllFilters(): void {
   })
 }
 
-export function applyMonthSummaryRoute(month: string): void {
-  batch(() => {
-    clearAllSelections()
-    setTransactionsState({ selectedMonth: month, viewMode: 'month' })
-  })
-}
-
-export function applyWeekSummaryRoute(week: string): void {
-  batch(() => {
-    clearAllSelections()
-    setTransactionsState({ selectedWeek: week, viewMode: 'week' })
-  })
-}
-
 export function applyMemoSummaryRoute(memoId: string): void {
   const n = Number(memoId)
   const valid = Number.isFinite(n) && n > 0
@@ -265,17 +166,11 @@ export function setSelectedWeek(week: string): void {
 export function setSelectedYear(year: string): void {
   setTransactionsState('selectedYear', year)
 }
-export function setMonths(monthsArray: MonthYear[]): void {
-  setTransactionsState('months', monthsArray)
-}
 export function setTransactionsTableLimit(limit: number): void {
   setTransactionsState('transactionsTableLimit', limit)
 }
 export function updateTransactionsTableOffset(offset: number): void {
   setTransactionsState('transactionsTableOffset', offset)
-}
-export function updateTransactionsPageSize(pageSize: number): void {
-  setTransactionsState('transactionsPageSize', pageSize)
 }
 
 type PendingTransactionsScrollRestore = {
@@ -328,32 +223,4 @@ export function setSelectedBudgetCategory(
 
 export function setSelectedStatus(status: 'pending' | 'reviewed'): void {
   setTransactionsState('selectedStatus', status)
-}
-
-export function setPendingTransactionsByOffset(offset: number, rows: PendingTransaction[]): void {
-  setTransactionsState('pendingTransactionsByOffset', offset, rows)
-}
-
-export function clearPendingTransactionsByOffset(): void {
-  setTransactionsState('pendingTransactionsByOffset', {})
-}
-
-export function setDaysForSelectedWeek(days: string[]): void {
-  setTransactionsState('daysForSelectedWeek', days)
-}
-
-export function setWeeks(weeks: WeekYear[]): void {
-  setTransactionsState('weeks', weeks)
-}
-
-export function setWeeksForSelectedMonth(weeks: string[]): void {
-  setTransactionsState('weeksForSelectedMonth', weeks)
-}
-
-export function setDays(days: DayYear[]): void {
-  setTransactionsState('days', days)
-}
-
-export function setYears(years: Year[]): void {
-  setTransactionsState('years', years)
 }

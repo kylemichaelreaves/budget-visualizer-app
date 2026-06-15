@@ -5,6 +5,7 @@ import {
   MEMOS_SEARCH_PREFETCH_DEBOUNCE_MS,
   MEMOS_SEARCH_PREFETCH_MAX_PAGES,
 } from '@components/memos/table/memosTableConstants'
+import { fetchInfinitePagesUntilCount } from '@composables/infiniteQueryPagePrefetch'
 import { updateMemosTableOffset } from '@stores/transactionsStore'
 import type { Memo } from '@types'
 import { devConsole } from '@utils/devConsole'
@@ -77,10 +78,11 @@ export function createMemosTableInfiniteSync(
 
     try {
       if (!opts.searchQuery().trim()) {
-        const requiredFlat = page * limit
-        while (opts.flattenedData().length < requiredFlat && query.hasNextPage) {
-          await enqueueFetchNextPage()
-        }
+        await fetchInfinitePagesUntilCount(query, {
+          currentCount: () => opts.flattenedData().length,
+          requiredCount: page * limit,
+          fetchNextPage: enqueueFetchNextPage,
+        })
         return
       }
 

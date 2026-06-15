@@ -1,6 +1,6 @@
 import type { Accessor } from 'solid-js'
 import { createMemo } from 'solid-js'
-import { useBudgetCategorySummary } from '@api/hooks/budgetCategories/useBudgetCategorySummary'
+import useBudgetCategorySummary from '@api/hooks/budgetCategories/useBudgetCategorySummary'
 import { budgetCategoryColorsFromData } from '@composables/budgetCategoryColors'
 import { createBudgetCategorySummaryTimeframeFromStore } from '@composables/budgetCategorySummaryTimeframeFromStore'
 import type { BudgetCategorySummary, Transaction } from '@types'

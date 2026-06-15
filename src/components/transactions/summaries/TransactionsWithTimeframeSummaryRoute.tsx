@@ -1,6 +1,6 @@
 import { createEffect } from 'solid-js'
 import { useParams } from '@solidjs/router'
-import { applyMonthSummaryRoute, applyWeekSummaryRoute } from '@stores/transactionsStore'
+import { selectMonthView, selectWeekView } from '@stores/transactionsStore'
 import TransactionsTable from '../table/TransactionsTable'
 
 /** Handles `/transactions/weeks/:week/summary` and `/transactions/months/:month/summary`. */
@@ -10,9 +10,9 @@ export default function TransactionsWithTimeframeSummaryRoute() {
     const w = params.week
     const m = params.month
     if (w != null && w !== '') {
-      applyWeekSummaryRoute(w)
+      selectWeekView(w)
     } else if (m != null && m !== '') {
-      applyMonthSummaryRoute(m)
+      selectMonthView(m)
     }
   })
   return <TransactionsTable />

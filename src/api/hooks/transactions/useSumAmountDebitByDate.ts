@@ -4,7 +4,7 @@ import { fetchSumAmountDebitByDate } from '@api/transactions/fetchSumAmountDebit
 
 export default function useSumAmountDebitByDate(timeFrame: () => string, date: () => string) {
   return useQuery(() => ({
-    queryKey: queryKeys.sumAmountDebitByDate(timeFrame(), date()),
+    queryKey: queryKeys.sumAmountDebitByDate.detail(timeFrame(), date()),
     queryFn: () => fetchSumAmountDebitByDate(timeFrame(), date()),
     refetchOnWindowFocus: false,
     enabled: !!date() && date().trim() !== '',

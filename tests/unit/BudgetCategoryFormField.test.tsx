@@ -9,7 +9,7 @@ vi.mock('@api/hooks/timeUnits/useTimeframeTypeAndValue', () => ({
 }))
 
 vi.mock('@api/hooks/budgetCategories/useBudgetCategories', () => ({
-  useBudgetCategories: () => ({ data: undefined, isLoading: false }),
+  default: () => ({ data: undefined, isLoading: false }),
 }))
 
 const { default: BudgetCategoryFormField } =

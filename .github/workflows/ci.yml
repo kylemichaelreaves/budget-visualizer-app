@@ -11,9 +11,9 @@ jobs:
     name: Lint & Format
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
       - run: bun install --frozen-lockfile
@@ -25,9 +25,9 @@ jobs:
     needs: lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: oven-sh/setup-bun@v2
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
       - run: bun install --frozen-lockfile
@@ -37,14 +37,22 @@ jobs:
     name: E2E Tests
     needs: unit-tests
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Run in the official Playwright image: browsers + system deps are baked in, so
+    # there's no runtime `playwright install` (its browser download reliably hung on
+    # hosted runners). The image tag MUST match the pinned playwright version above.
+    container:
+      image: mcr.microsoft.com/playwright:v1.61.0-noble
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+      # The Playwright image is minimal and lacks `unzip`, which setup-bun needs to
+      # extract the Bun release archive.
+      - run: apt-get update && apt-get install -y unzip
       - uses: oven-sh/setup-bun@v2
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
       - run: bun install --frozen-lockfile
-      - run: npx playwright install chromium --with-deps
       - run: bun run test:e2e
       - uses: actions/upload-artifact@v4
         if: ${{ !cancelled() }}

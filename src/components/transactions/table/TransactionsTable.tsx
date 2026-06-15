@@ -53,7 +53,7 @@ export default function TransactionsTable() {
 
       <PeriodHeader />
 
-      <SummaryStatsCards transactions={data.paginatedData()} />
+      <SummaryStatsCards transactions={data.flattenedData()} />
 
       <MonthSummaryTable />
       <WeekSummaryTable />

@@ -48,7 +48,7 @@ export default function App() {
         <Route path="/memos/:memoId/summary" component={MemoSummaryPage} />
         <Route path="/memos/:memoId/edit" component={MemoEditPage} />
         <Route path="/budget-categories" component={BudgetCategoriesPage} />
-        <Route path="/data-import" component={DataImportPage} />
+        <Route path="/transactions/csv" component={DataImportPage} />
         <Route path="/loan-calculator" component={LoanCalculator} />
         <Route path="/genealogy" component={GenealogyPage} />
         <Route path="/account" component={AccountSettingsPage} />

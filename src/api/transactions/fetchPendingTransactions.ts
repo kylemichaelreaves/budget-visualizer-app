@@ -1,6 +1,6 @@
 import { httpClient } from '@api/httpClient'
 import type { TransactionQueryParams } from '@types'
-import { isValidParam } from '@api/helpers/isValidParam.ts'
+import { isValidParam } from '@api/helpers/isValidParam'
 import { devConsole } from '@utils/devConsole'
 
 export async function fetchPendingTransactions(queryParams: TransactionQueryParams) {

@@ -3,7 +3,7 @@ import { queryKeys } from '@api/queryKeys'
 import { fetchBudgetCategories } from '@api/budgetCategories/fetchBudgetCategories'
 import type { Timeframe } from '@types'
 
-export function useBudgetCategories(
+export default function useBudgetCategories(
   timeframe?: () => Timeframe | undefined,
   date?: () => string | undefined,
   flatten = false,

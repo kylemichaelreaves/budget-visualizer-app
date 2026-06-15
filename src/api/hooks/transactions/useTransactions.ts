@@ -2,19 +2,16 @@ import { useInfiniteQuery } from '@tanstack/solid-query'
 import { queryKeys } from '@api/queryKeys'
 import { fetchTransactions } from '@api/transactions/fetchTransactions'
 import { memoQuerySliceFromStore } from '@composables/memoQueryFromTransactionsStore'
+import { transactionQueryScopeFromStore } from '@composables/transactionQueryScopeFromStore'
 import { transactionsState } from '@stores/transactionsStore'
-import useTimeframeTypeAndValue from '@api/hooks/timeUnits/useTimeframeTypeAndValue'
 import type { Transaction } from '@types'
 import { devConsole } from '@utils/devConsole'
 
 export default function useTransactions() {
-  const { timeFrame, selectedValue } = useTimeframeTypeAndValue()
-
   return useInfiniteQuery(() => {
     const limit = transactionsState.transactionsTableLimit
     const { key: memoKey, params: memoParams } = memoQuerySliceFromStore()
-    const tf = timeFrame()
-    const date = selectedValue()
+    const { timeFrame: tf, date } = transactionQueryScopeFromStore()
     const budgetCategory = transactionsState.selectedBudgetCategory
 
     devConsole('log', '[useTransactions] memo query key:', memoKey)
@@ -29,8 +26,7 @@ export default function useTransactions() {
           limit,
           offset: page,
           ...memoParams,
-          timeFrame: tf,
-          date,
+          ...(tf && date ? { timeFrame: tf, date } : {}),
           budgetCategory: budgetCategory ?? undefined,
         })) as Transaction[]
       },
