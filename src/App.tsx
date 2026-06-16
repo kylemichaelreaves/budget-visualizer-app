@@ -12,6 +12,7 @@ import MemosTable from '@components/memos/table/MemosTable'
 import BudgetCategoriesPage from '@components/budgetCategories/BudgetCategoriesPage'
 import DataImportPage from '@components/dataImport/DataImportPage'
 import GenealogyPage from '@genealogy/GenealogyPage'
+import BerlinTripPage from '@components/berlin/BerlinTripPage'
 import AccountSettingsPage from '@components/settings/AccountSettingsPage'
 import PendingTransactionsTable from '@components/transactions/pending/PendingTransactionsTable'
 import TransactionEditPage from '@components/transactions/forms/TransactionEditPage'
@@ -51,6 +52,7 @@ export default function App() {
         <Route path="/transactions/csv" component={DataImportPage} />
         <Route path="/loan-calculator" component={LoanCalculator} />
         <Route path="/genealogy" component={GenealogyPage} />
+        <Route path="/berlin" component={BerlinTripPage} />
         <Route path="/account" component={AccountSettingsPage} />
       </Route>
     </Router>

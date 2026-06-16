@@ -4,3 +4,6 @@ bun.lock
 coverage
 playwright-report
 test-results
+
+# Generated Berlin map geo data (kept minified)
+src/components/berlin/data/*.json
