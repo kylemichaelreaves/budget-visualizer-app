@@ -23,6 +23,14 @@ export default function BerlinTripMap(props: BerlinTripMapProps): JSX.Element {
   const [dims, attachWrapper] = useElementSize()
   const width = createMemo(() => dims().w)
   const [tooltip, setTooltip] = createSignal<Tooltip>(null)
+  const [viewportH, setViewportH] = createSignal(typeof window !== 'undefined' ? window.innerHeight : 800)
+
+  // Track viewport height so the map can be capped to the space below it.
+  createEffect(() => {
+    const onResize = () => setViewportH(window.innerHeight)
+    window.addEventListener('resize', onResize)
+    onCleanup(() => window.removeEventListener('resize', onResize))
+  })
 
   let handle: BerlinMapHandle | null = null
 
@@ -30,7 +38,10 @@ export default function BerlinTripMap(props: BerlinTripMapProps): JSX.Element {
     const el = svgEl
     const w = width()
     if (!el || w <= 0) return
-    const h = Math.max(360, Math.round(w * ASPECT))
+    // Cap height to the remaining viewport so the page doesn't overflow, while
+    // keeping the natural aspect ratio as an upper bound.
+    const available = viewportH() - el.getBoundingClientRect().top - 28
+    const h = Math.max(360, Math.min(Math.round(w * ASPECT), Math.round(available)))
 
     handle?.destroy()
     handle = createBerlinMap(el, props.places, w, h, {

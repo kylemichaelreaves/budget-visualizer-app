@@ -52,22 +52,9 @@ export default function BerlinTripPage(): JSX.Element {
   )
 
   return (
-    <div class="flex flex-col gap-4" data-testid="berlin-trip-page">
-      <header class="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 class="text-2xl font-semibold">Berlin Trip</h1>
-          <p class="text-sm text-muted-foreground">
-            {BERLIN_PLACES.length} places across {BERLIN_CATEGORIES.length} themes. Click a pin or a list item
-            to focus it.
-          </p>
-        </div>
-        <Button type="button" variant="outline" onClick={resetView}>
-          Reset view
-        </Button>
-      </header>
-
+    <div class="flex flex-col gap-3" data-testid="berlin-trip-page">
       {/* Legend / category toggles */}
-      <div class="flex flex-wrap gap-2">
+      <div class="flex flex-wrap items-center gap-2">
         <For each={BERLIN_CATEGORIES}>
           {(cat) => {
             const active = () => visible().has(cat.key)
@@ -92,6 +79,9 @@ export default function BerlinTripPage(): JSX.Element {
             )
           }}
         </For>
+        <Button type="button" variant="outline" size="sm" class="ml-auto" onClick={resetView}>
+          Reset view
+        </Button>
       </div>
 
       {/* Base-layer toggles */}
