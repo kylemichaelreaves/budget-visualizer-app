@@ -1,5 +1,6 @@
 import { createMemo, createRenderEffect, on } from 'solid-js'
 import { getPeriodLabel } from '@api/helpers/formatPeriodLabels'
+import useSumAmountDebitByDate from '@api/hooks/transactions/useSumAmountDebitByDate'
 import useTransactions from '@api/hooks/transactions/useTransactions'
 import { useInfiniteQueryPagePrefetch } from '@composables/infiniteQueryPagePrefetch'
 import {
@@ -37,6 +38,12 @@ export function createTransactionsTableDerivedData() {
 
   // eslint-disable-next-line solid/reactivity -- flattenedData is read inside createTransactionsTableChartSlice memos
   const chart = createTransactionsTableChartSlice(flattenedData)
+
+  // Server-side debit total for the selected period, so the Total Debits card reflects the
+  // whole result set rather than only the rows on the current page. Falls back (undefined)
+  // to the client-side sum in SummaryStatsCards until the aggregate resolves.
+  const sumDebitQuery = useSumAmountDebitByDate(chart.chartTimeFrame, chart.chartDate)
+  const debitTotal = () => sumDebitQuery.data?.[0]?.total_amount_debit
 
   const isInitialLoading = () => query.isLoading || (query.isFetching && !query.data?.pages?.length)
 
@@ -91,6 +98,7 @@ export function createTransactionsTableDerivedData() {
     chartTimeFrame: chart.chartTimeFrame,
     chartDate: chart.chartDate,
     categoryColors: chart.categoryColors,
+    debitTotal,
     isLoadingCondition,
     cardTitle,
   }

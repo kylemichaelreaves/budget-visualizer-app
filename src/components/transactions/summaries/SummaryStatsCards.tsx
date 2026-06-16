@@ -7,7 +7,11 @@ import SummaryCategoriesCard from './SummaryCategoriesCard'
 
 type TransactionRow = Record<string, unknown>
 
-export default function SummaryStatsCards(props: { transactions: TransactionRow[] }): JSX.Element {
+export default function SummaryStatsCards(props: {
+  transactions: TransactionRow[]
+  /** Server-side debit total for the selected period; preferred over the page-local sum when present. */
+  debitTotal?: number
+}): JSX.Element {
   const credits = createMemo(() => {
     const rows = props.transactions.filter((t) => {
       const c = Number(t.amount_credit)
@@ -22,7 +26,8 @@ export default function SummaryStatsCards(props: { transactions: TransactionRow[
       const d = Number(t.amount_debit)
       return Number.isFinite(d) && d !== 0
     })
-    const total = rows.reduce((s, t) => s + Math.abs(Number(t.amount_debit)), 0)
+    const pageTotal = rows.reduce((s, t) => s + Math.abs(Number(t.amount_debit)), 0)
+    const total = props.debitTotal != null ? Math.abs(props.debitTotal) : pageTotal
     return { total, count: rows.length }
   })
 

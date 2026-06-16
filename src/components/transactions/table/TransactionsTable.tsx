@@ -53,7 +53,7 @@ export default function TransactionsTable() {
 
       <PeriodHeader />
 
-      <SummaryStatsCards transactions={data.flattenedData()} />
+      <SummaryStatsCards transactions={data.flattenedData()} debitTotal={data.debitTotal()} />
 
       <MonthSummaryTable />
       <WeekSummaryTable />
