@@ -58,17 +58,24 @@ export default function DataImportPage(): JSX.Element {
     setView({ kind: 'empty' })
   }
 
+  const subtitle = () => {
+    switch (view().kind) {
+      case 'uploading':
+        return 'Uploading your file…'
+      case 'success':
+        return 'Your transactions are on their way in.'
+      case 'empty':
+        return 'Upload a CSV export from your bank to add transactions to your budget.'
+      default:
+        return 'We couldn’t import this file.'
+    }
+  }
+
   return (
-    <div class="flex flex-col" data-testid="data-import-page">
-      <header class="flex items-end justify-between gap-6 px-9 pt-7 pb-5 border-b border-border">
-        <div>
-          <div class="text-xs uppercase tracking-wider font-medium text-muted-foreground mb-1">Import</div>
-          <h1 class="text-2xl font-semibold tracking-tight m-0">Import transactions</h1>
-          <div class="text-sm text-muted-foreground mt-1">
-            Drop a YYYY_MM.csv export from your bank — the bucket-to-DB lambda parses, dedupes, and upserts
-            automatically.
-          </div>
-        </div>
+    <div class="mx-auto flex w-full max-w-[880px] flex-col px-9 pt-7 pb-11" data-testid="data-import-page">
+      <header class="mb-6">
+        <h1 class="m-0 text-2xl font-semibold tracking-tight">CSV Imports</h1>
+        <p class="mt-1.5 text-sm text-muted-foreground">{subtitle()}</p>
       </header>
 
       <Switch>

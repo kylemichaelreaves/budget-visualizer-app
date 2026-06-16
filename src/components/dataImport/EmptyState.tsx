@@ -1,6 +1,24 @@
-import { createSignal, type JSX } from 'solid-js'
+import { createSignal, For, type JSX } from 'solid-js'
 import { Button } from '@components/ui/button'
+import BankGlyph, { inferBankId } from '@components/dataImport/BankGlyph'
+import Icon from '@components/dataImport/Icon'
 import RecentImportsList from '@components/dataImport/RecentImportsList'
+
+const SUPPORTED_BANKS = [
+  { file: 'chase_2026_04.csv', label: 'Chase' },
+  { file: 'amex_2026_04.csv', label: 'Amex' },
+  { file: 'bofa_2026_04.csv', label: 'Bank of America' },
+  { file: 'wells_2026_04.csv', label: 'Wells Fargo' },
+  { file: 'export.csv', label: 'Generic CSV' },
+]
+
+function RulePill(props: { children: JSX.Element }): JSX.Element {
+  return (
+    <span class="inline-flex h-7 items-center gap-1.5 rounded-full bg-muted px-2.5 text-xs font-medium text-muted-foreground">
+      {props.children}
+    </span>
+  )
+}
 
 export default function EmptyState(props: { onFileChosen: (file: File) => void }): JSX.Element {
   const [isDragging, setIsDragging] = createSignal(false)
@@ -11,15 +29,28 @@ export default function EmptyState(props: { onFileChosen: (file: File) => void }
     props.onFileChosen(files[0])
   }
 
+  const openPicker = () => inputRef?.click()
+
   return (
-    <div class="flex-1 px-9 py-7 overflow-auto">
+    <div class="flex flex-col gap-7">
+      {/* Drop zone — brand carries upload intent only; primary CTAs stay neutral. */}
       <div
-        class="border border-dashed rounded-2xl bg-card px-8 py-14 flex flex-col items-center text-center transition-colors"
-        classList={{
-          'border-foreground/40 bg-muted/40': isDragging(),
-          'border-border': !isDragging(),
-        }}
         data-testid="data-import-drop-zone"
+        role="button"
+        tabindex={0}
+        aria-label="Drop a CSV file here or press Enter to browse"
+        class="flex cursor-pointer flex-col items-center rounded-2xl border-2 border-dashed bg-card px-8 pt-[52px] pb-7 text-center shadow-sm transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+        classList={{
+          'border-brand bg-brand/5': isDragging(),
+          'border-foreground/20': !isDragging(),
+        }}
+        onClick={openPicker}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault()
+            openPicker()
+          }
+        }}
         onDragOver={(e) => {
           e.preventDefault()
           setIsDragging(true)
@@ -31,25 +62,42 @@ export default function EmptyState(props: { onFileChosen: (file: File) => void }
           handleFiles(e.dataTransfer?.files ?? null)
         }}
       >
-        <div class="w-14 h-14 rounded-2xl bg-muted border border-border flex items-center justify-center text-muted-foreground mb-4">
-          <svg
-            width="26"
-            height="26"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.6"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-          >
-            <path d="M12 3v12M7 10l5 5 5-5M3 21h18" />
-          </svg>
+        <div class="mb-[18px] flex h-[60px] w-[60px] items-center justify-center rounded-2xl bg-brand/10 text-brand">
+          <Icon name="upload" size={26} stroke={1.8} />
         </div>
-        <div class="text-lg font-semibold tracking-tight mb-1.5">Drop your CSV file here</div>
-        <div class="text-sm text-muted-foreground mb-5">
-          File names must follow the YYYY_MM.csv pattern (e.g. 2026_05.csv).
+        <div class="text-[19px] font-semibold tracking-tight">Drop your CSV file here</div>
+        <div class="mt-1.5 max-w-[420px] text-sm text-muted-foreground">
+          We&rsquo;ll detect your bank and map the columns automatically.
         </div>
 
+        <div class="my-5 flex flex-wrap justify-center gap-2">
+          <RulePill>
+            <Icon name="file" size={13} stroke={2} />
+            CSV files only
+          </RulePill>
+          <RulePill>
+            <Icon name="check" size={13} stroke={2} />
+            Up to 10 MB
+          </RulePill>
+          <RulePill>
+            <Icon name="check" size={13} stroke={2} />
+            Named&nbsp;<span class="font-mono tabular-nums">YYYY_MM.csv</span>
+          </RulePill>
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          data-testid="data-import-browse-button"
+          onClick={(e) => {
+            // Avoid bubbling to the drop zone's onClick (which also opens the picker).
+            e.stopPropagation()
+            openPicker()
+          }}
+        >
+          <Icon name="file" size={14} stroke={1.9} />
+          Browse files
+        </Button>
         <input
           ref={(el) => (inputRef = el)}
           type="file"
@@ -62,27 +110,23 @@ export default function EmptyState(props: { onFileChosen: (file: File) => void }
             e.currentTarget.value = ''
           }}
         />
-        <Button
-          type="button"
-          variant="outline"
-          onClick={() => inputRef?.click()}
-          data-testid="data-import-browse-button"
-        >
-          <svg
-            width="14"
-            height="14"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="1.8"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            class="mr-2"
-          >
-            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z M14 2v6h6 M9 13l3 3 3-3" />
-          </svg>
-          Browse files
-        </Button>
+
+        {/* Supported banks strip — sets the expectation that bank/columns are inferred. */}
+        <div class="mt-6 flex w-full flex-col items-center gap-3 border-t border-border pt-5">
+          <div class="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+            Detected automatically
+          </div>
+          <div class="flex flex-wrap justify-center gap-2">
+            <For each={SUPPORTED_BANKS}>
+              {(bank) => (
+                <span class="inline-flex items-center gap-2 rounded-full border border-border bg-muted py-[5px] pr-3 pl-[5px] text-xs font-medium">
+                  <BankGlyph id={inferBankId(bank.file)} size={22} />
+                  {bank.label}
+                </span>
+              )}
+            </For>
+          </div>
+        </div>
       </div>
 
       <RecentImportsList />
