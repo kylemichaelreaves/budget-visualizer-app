@@ -4,9 +4,11 @@
  * Layer stack (bottom → top under `data-role="berlin-map-root"`):
  * - `districts`       — Berlin Bezirke polygons (muted fill).
  * - `water`           — Spree / Havel rivers + canals (blue lines).
- * - `roads`           — motorway/trunk citywide + central primary streets.
+ * - `roads`           — named motorway/trunk/primary + central secondary streets.
  * - `transit`         — U-Bahn & S-Bahn lines, coloured by official line colour.
+ * - `wall`            — former Berlin Wall route (Mauerweg), dashed stone line.
  * - `district-labels` — subtle Bezirk names.
+ * - `line-hits`       — transparent wide paths for street/Wall name-on-hover.
  * - `markers`         — one pin per place: a coloured circle + a white glyph.
  *
  * Line layers use `vector-effect: non-scaling-stroke` so their widths stay
@@ -19,6 +21,7 @@ import berlinDistrictsRaw from '../data/berlinDistricts.json'
 import berlinWaterRaw from '../data/berlinWater.json'
 import berlinRoadsRaw from '../data/berlinRoads.json'
 import berlinTransitRaw from '../data/berlinTransit.json'
+import berlinWallRaw from '../data/berlinWall.json'
 import {
   BERLIN_CATEGORY_BY_KEY,
   BERLIN_CATEGORIES,
@@ -31,12 +34,17 @@ export type BerlinMapCallbacks = {
   onMove: (place: BerlinPlace, event: PointerEvent) => void
   onLeave: () => void
   onClick: (place: BerlinPlace) => void
+  /** Hover over a named line (street or the Wall route). */
+  onLineEnter: (label: string, event: PointerEvent) => void
+  onLineMove: (label: string, event: PointerEvent) => void
+  onLineLeave: () => void
 }
 
 export type BerlinMapLayers = {
   streets: boolean
   water: boolean
   metro: boolean
+  wall: boolean
 }
 
 export type BerlinMapHandle = {
@@ -56,12 +64,13 @@ const CLICK_DISTANCE_PX_SQ = 25
 const ZOOM_TRANSITION_MS = 600
 
 type DistrictProps = { name: string }
-type LineProps = { c?: string; ref?: string; net?: string; color?: string }
+type LineProps = { c?: string; n?: string; ref?: string; net?: string; color?: string }
 
 const districts = berlinDistrictsRaw as unknown as FeatureCollection<Geometry, DistrictProps>
 const water = berlinWaterRaw as unknown as FeatureCollection<Geometry, LineProps>
 const roads = berlinRoadsRaw as unknown as FeatureCollection<Geometry, LineProps>
 const transit = berlinTransitRaw as unknown as FeatureCollection<Geometry, LineProps>
+const wall = berlinWallRaw as unknown as FeatureCollection<Geometry, LineProps>
 
 export function createBerlinMap(
   svgEl: SVGSVGElement,
@@ -142,7 +151,9 @@ export function createBerlinMap(
     .attr('stroke-width', (f) => (f.properties.c === 'canal' ? 1.4 : 3))
     .attr('vector-effect', 'non-scaling-stroke')
 
-  // Roads — major (motorway/trunk) bolder than central primary streets.
+  // Roads — major (motorway/trunk) bolder than primary, then central secondary.
+  const roadWidth = (c?: string): number => (c === 'major' ? 1.6 : c === 'primary' ? 1 : 0.6)
+  const roadOpacity = (c?: string): number => (c === 'major' ? 0.55 : c === 'primary' ? 0.35 : 0.25)
   const roadsLayer = root.append('g').attr('data-role', 'roads')
   roadsLayer
     .selectAll('path')
@@ -151,10 +162,10 @@ export function createBerlinMap(
     .attr('d', (f) => path(f) ?? '')
     .attr('fill', 'none')
     .attr('stroke', 'var(--muted-foreground)')
-    .attr('stroke-opacity', (f) => (f.properties.c === 'major' ? 0.55 : 0.3))
+    .attr('stroke-opacity', (f) => roadOpacity(f.properties.c))
     .attr('stroke-linecap', 'round')
     .attr('stroke-linejoin', 'round')
-    .attr('stroke-width', (f) => (f.properties.c === 'major' ? 1.6 : 0.8))
+    .attr('stroke-width', (f) => roadWidth(f.properties.c))
     .attr('vector-effect', 'non-scaling-stroke')
 
   // Transit — U-Bahn solid, S-Bahn dashed, each in its official line colour.
@@ -171,6 +182,22 @@ export function createBerlinMap(
     .attr('stroke-linejoin', 'round')
     .attr('stroke-width', 1.8)
     .attr('stroke-dasharray', (f) => (f.properties.net === 'sbahn' ? '5 4' : null))
+    .attr('vector-effect', 'non-scaling-stroke')
+
+  // Berlin Wall — former route (the Mauerweg trail), a bold dashed stone line.
+  const wallLayer = root.append('g').attr('data-role', 'wall')
+  wallLayer
+    .selectAll('path')
+    .data(wall.features)
+    .join('path')
+    .attr('d', (f) => path(f) ?? '')
+    .attr('fill', 'none')
+    .attr('stroke', '#e7e5e4')
+    .attr('stroke-opacity', 0.9)
+    .attr('stroke-linecap', 'round')
+    .attr('stroke-linejoin', 'round')
+    .attr('stroke-width', 2.2)
+    .attr('stroke-dasharray', '5 4')
     .attr('vector-effect', 'non-scaling-stroke')
 
   // District name labels at polygon centroids. Counter-scaled on zoom (see
@@ -196,6 +223,44 @@ export function createBerlinMap(
       return `translate(${cx},${cy}) scale(${1 / k})`
     })
   }
+
+  // Transparent wide "hit" paths for named lines (streets + Wall) so thin,
+  // non-scaling strokes are still easy to hover. Sits above ink layers but
+  // below the markers, which keep hover priority.
+  type HitLayer = 'streets' | 'wall' | 'metro'
+  type HitDatum = { feature: Feature<Geometry, LineProps>; label: string; layer: HitLayer }
+  const hitData: HitDatum[] = [
+    ...roads.features
+      .filter((f) => f.properties.n)
+      .map((f) => ({ feature: f, label: f.properties.n!, layer: 'streets' as const })),
+    ...wall.features
+      .filter((f) => f.properties.n)
+      .map((f) => ({ feature: f, label: f.properties.n!, layer: 'wall' as const })),
+    ...transit.features
+      .filter((f) => f.properties.ref)
+      .map((f) => ({
+        feature: f,
+        label: `${f.properties.ref} · ${f.properties.net === 'sbahn' ? 'S-Bahn' : 'U-Bahn'}`,
+        layer: 'metro' as const,
+      })),
+  ]
+  const hits = root
+    .append('g')
+    .attr('data-role', 'line-hits')
+    .selectAll<SVGPathElement, HitDatum>('path')
+    .data(hitData)
+    .join('path')
+    .attr('d', (d) => path(d.feature) ?? '')
+    .attr('fill', 'none')
+    .attr('stroke', 'transparent')
+    .attr('stroke-width', 14)
+    .attr('vector-effect', 'non-scaling-stroke')
+    .attr('data-hit-layer', (d) => d.layer)
+    .attr('cursor', 'help')
+    .style('pointer-events', 'stroke')
+    .on('pointerenter', (event: PointerEvent, d) => callbacks.onLineEnter(d.label, event))
+    .on('pointermove', (event: PointerEvent, d) => callbacks.onLineMove(d.label, event))
+    .on('pointerleave', () => callbacks.onLineLeave())
 
   const markersLayer = root.append('g').attr('data-role', 'markers')
 
@@ -277,7 +342,7 @@ export function createBerlinMap(
 
   const zoomBehavior = d3
     .zoom<SVGSVGElement, unknown>()
-    .scaleExtent([0.8, 12])
+    .scaleExtent([0.8, 48])
     .on('zoom', (event) => {
       currentZoomK = event.transform.k
       root.attr('transform', event.transform.toString())
@@ -306,6 +371,14 @@ export function createBerlinMap(
     roadsLayer.attr('display', layers.streets ? null : 'none')
     waterLayer.attr('display', layers.water ? null : 'none')
     transitLayer.attr('display', layers.metro ? null : 'none')
+    wallLayer.attr('display', layers.wall ? null : 'none')
+    // Hide hit targets for hidden layers so they aren't invisibly hoverable.
+    const layerOn: Record<HitLayer, boolean> = {
+      streets: layers.streets,
+      wall: layers.wall,
+      metro: layers.metro,
+    }
+    hits.attr('display', (d) => (layerOn[d.layer] ? null : 'none'))
   }
 
   function focusPlace(id: string): void {

@@ -11,6 +11,7 @@ const LAYER_TOGGLES: { key: keyof BerlinMapLayers; label: string }[] = [
   { key: 'streets', label: 'Streets' },
   { key: 'water', label: 'Water' },
   { key: 'metro', label: 'Metro (U/S-Bahn)' },
+  { key: 'wall', label: 'Berlin Wall' },
 ]
 
 export default function BerlinTripPage(): JSX.Element {
@@ -20,6 +21,7 @@ export default function BerlinTripPage(): JSX.Element {
     streets: true,
     water: true,
     metro: true,
+    wall: true,
   })
   let handle: BerlinMapHandle | null = null
 

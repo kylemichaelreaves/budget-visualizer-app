@@ -23,6 +23,7 @@ export default function BerlinTripMap(props: BerlinTripMapProps): JSX.Element {
   const [dims, attachWrapper] = useElementSize()
   const width = createMemo(() => dims().w)
   const [tooltip, setTooltip] = createSignal<Tooltip>(null)
+  const [lineTip, setLineTip] = createSignal<{ x: number; y: number; label: string } | null>(null)
   const [viewportH, setViewportH] = createSignal(typeof window !== 'undefined' ? window.innerHeight : 800)
 
   // Track viewport height so the map can be capped to the space below it.
@@ -45,10 +46,19 @@ export default function BerlinTripMap(props: BerlinTripMapProps): JSX.Element {
 
     handle?.destroy()
     handle = createBerlinMap(el, props.places, w, h, {
-      onEnter: (place, event) => setTooltip({ x: event.offsetX, y: event.offsetY, place }),
+      onEnter: (place, event) => {
+        setLineTip(null)
+        setTooltip({ x: event.offsetX, y: event.offsetY, place })
+      },
       onMove: (place, event) => setTooltip({ x: event.offsetX, y: event.offsetY, place }),
       onLeave: () => setTooltip(null),
       onClick: (place) => props.onSelect(place.id),
+      onLineEnter: (label, event) => {
+        setTooltip(null)
+        setLineTip({ x: event.offsetX, y: event.offsetY, label })
+      },
+      onLineMove: (label, event) => setLineTip({ x: event.offsetX, y: event.offsetY, label }),
+      onLineLeave: () => setLineTip(null),
     })
 
     untrack(() => {
@@ -107,6 +117,16 @@ export default function BerlinTripMap(props: BerlinTripMapProps): JSX.Element {
             <div class="mt-1 text-xs text-muted-foreground">
               {BERLIN_CATEGORY_BY_KEY[tt().place.category].label}
             </div>
+          </div>
+        )}
+      </Show>
+      <Show when={lineTip()}>
+        {(tt) => (
+          <div
+            class="pointer-events-none absolute z-10 max-w-56 rounded-md border border-border bg-popover px-2.5 py-1.5 text-xs font-medium text-popover-foreground shadow-md"
+            style={{ left: `${tt().x + 14}px`, top: `${tt().y + 14}px` }}
+          >
+            {tt().label}
           </div>
         )}
       </Show>
