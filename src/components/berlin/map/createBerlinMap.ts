@@ -130,12 +130,13 @@ export function createBerlinMap(
     .attr('stroke-dasharray', '6 4')
     .attr('opacity', 0.55)
     .attr('vector-effect', 'non-scaling-stroke')
-  districtsLayer
+  // Borough labels are counter-scaled on zoom (see applyLabelScale) so they
+  // stay a constant size instead of ballooning at high zoom.
+  const labelCentroids = districts.features.map((f) => path.centroid(f))
+  const labels = districtsLayer
     .selectAll('text')
     .data(districts.features)
     .join('text')
-    .attr('x', (f) => path.centroid(f)[0])
-    .attr('y', (f) => path.centroid(f)[1])
     .attr('text-anchor', 'middle')
     .attr('font-size', 9)
     .attr('font-family', 'ui-monospace, monospace')
@@ -144,17 +145,46 @@ export function createBerlinMap(
     .style('fill', 'var(--wf-muted)')
     .attr('pointer-events', 'none')
     .text((f) => f.properties.name)
+  function applyLabelScale(k: number): void {
+    labels.attr('transform', (_f, i) => {
+      const [cx, cy] = labelCentroids[i]
+      return `translate(${cx},${cy}) scale(${1 / k})`
+    })
+  }
+  applyLabelScale(1)
 
+  // Render every water polygon as ONE unioned MultiPolygon path. Abutting river
+  // polygons then share no internal seam (which otherwise shows as a hairline
+  // "break" at extreme zoom near e.g. the Reichstag). Canals stay as lines.
   const waterLayer = root.append('g').attr('data-role', 'water')
+  const waterPolys = water.features.filter((f) => f.geometry.type === 'Polygon')
+  const waterMulti: Feature<Geometry> = {
+    type: 'Feature',
+    properties: {},
+    geometry: {
+      type: 'MultiPolygon',
+      coordinates: waterPolys.map((f) => (f.geometry as { coordinates: number[][][] }).coordinates),
+    },
+  }
   waterLayer
-    .selectAll('path')
-    .data(water.features)
-    .join('path')
-    .attr('d', (f) => path(f) ?? '')
-    .style('fill', (f) => (f.properties.k === 'canal' ? 'none' : 'var(--wf-water)'))
+    .append('path')
+    .attr('d', path(waterMulti) ?? '')
+    .style('fill', 'var(--wf-water)')
     .attr('fill-opacity', 0.85)
     .style('stroke', 'var(--wf-water)')
-    .attr('stroke-width', (f) => (f.properties.k === 'canal' ? 1.4 : 0.6))
+    .attr('stroke-width', 0.75)
+    .attr('stroke-linejoin', 'round')
+    .attr('vector-effect', 'non-scaling-stroke')
+  waterLayer
+    .selectAll('path.berlin-canal')
+    .data(water.features.filter((f) => f.properties.k === 'canal'))
+    .join('path')
+    .attr('class', 'berlin-canal')
+    .attr('d', (f) => path(f) ?? '')
+    .attr('fill', 'none')
+    .style('stroke', 'var(--wf-water)')
+    .attr('stroke-width', 1.4)
+    .attr('stroke-linecap', 'round')
     .attr('vector-effect', 'non-scaling-stroke')
 
   const roadsLayer = root.append('g').attr('data-role', 'streets')
@@ -465,6 +495,7 @@ export function createBerlinMap(
     .on('zoom', (event) => {
       transform = event.transform
       root.attr('transform', transform.toString())
+      applyLabelScale(transform.k)
       paint()
     })
   svg.call(zoom)
