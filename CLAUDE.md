@@ -51,6 +51,15 @@ Use **`git commit --no-verify`** only when a hook is misbehaving in the agent en
 - `<select>` elements don't re-apply `value` when async `<option>` elements load — use a `createEffect` watching the options to re-set `ref.value`
 - Props are reactive getters in SolidJS — `props.value` inside `createMemo` tracks automatically via JSX transform
 
+## Component file conventions (single-file components)
+
+Convention, not a lint gate — there is no clean Solid-native rule to enforce it (`react/no-multi-comp` is React-only and misfires on render-prop children and local fragments), so hold it in review instead.
+
+- **One component per file.** A reusable/named component gets its own file named after it (e.g., `ui/TopBar.tsx`, `ui/FitControl.tsx`). The page component is composition + state only.
+- **Co-locate only trivial, single-use fragments** (a one-off `Row`/`Section`/`StepBtn` used by exactly one parent) inside that parent's file. The moment a fragment is reused or grows, promote it to its own file.
+- **Pure helpers live in their own `utils/` files**, one concern per file (e.g., `utils/walkFromHotel.ts`), not mixed into data or component files.
+- See `src/components/berlin/` for the reference layout (`ui/`, `map/`, `data/`, `utils/`).
+
 ## API conventions
 
 - `httpClient` from `@api/httpClient` has base URL `/api/v1` (Vite proxy in dev, API Gateway in prod)
