@@ -64,7 +64,7 @@ const CLICK_DISTANCE_PX_SQ = 25
 const ZOOM_TRANSITION_MS = 600
 
 type DistrictProps = { name: string }
-type LineProps = { c?: string; n?: string; ref?: string; net?: string; color?: string }
+type LineProps = { c?: string; k?: string; n?: string; ref?: string; net?: string; color?: string }
 
 const districts = berlinDistrictsRaw as unknown as FeatureCollection<Geometry, DistrictProps>
 const water = berlinWaterRaw as unknown as FeatureCollection<Geometry, LineProps>
@@ -136,19 +136,23 @@ export function createBerlinMap(
     .attr('stroke-width', 1)
     .attr('vector-effect', 'non-scaling-stroke')
 
-  // Water — rivers thicker than canals.
+  // Water — filled polygons (true river/lake area, so the Spree's width varies)
+  // plus narrow canals as thin centerlines. Polygon rings are pre-wound
+  // exterior-clockwise in the data so d3.geoPath's spherical clip fills the
+  // interior; the opposite winding floods the whole viewport.
   const waterLayer = root.append('g').attr('data-role', 'water')
   waterLayer
     .selectAll('path')
     .data(water.features)
     .join('path')
     .attr('d', (f) => path(f) ?? '')
-    .attr('fill', 'none')
+    .attr('fill', (f) => (f.properties.k === 'canal' ? 'none' : '#3b82f6'))
+    .attr('fill-opacity', 0.5)
     .attr('stroke', '#3b82f6')
-    .attr('stroke-opacity', 0.7)
+    .attr('stroke-opacity', (f) => (f.properties.k === 'canal' ? 0.7 : 0.45))
     .attr('stroke-linecap', 'round')
     .attr('stroke-linejoin', 'round')
-    .attr('stroke-width', (f) => (f.properties.c === 'canal' ? 1.4 : 3))
+    .attr('stroke-width', (f) => (f.properties.k === 'canal' ? 1.4 : 0.5))
     .attr('vector-effect', 'non-scaling-stroke')
 
   // Roads — major (motorway/trunk) bolder than primary, then central secondary.
