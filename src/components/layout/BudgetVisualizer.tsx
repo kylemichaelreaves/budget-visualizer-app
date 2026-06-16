@@ -28,7 +28,7 @@ const menuSections: MenuSection[] = [
   },
   {
     label: 'Travel',
-    items: [{ path: '/budget-visualizer/berlin', title: 'Berlin Trip' }],
+    items: [{ path: '/berlin', title: 'Berlin Trip' }],
   },
 ]
 

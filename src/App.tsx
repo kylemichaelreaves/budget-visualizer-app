@@ -18,12 +18,18 @@ import PendingTransactionsTable from '@components/transactions/pending/PendingTr
 import TransactionEditPage from '@components/transactions/forms/TransactionEditPage'
 import TransactionsTable from '@components/transactions/table/TransactionsTable'
 import TransactionsWithTimeframeSummaryRoute from '@components/transactions/summaries/TransactionsWithTimeframeSummaryRoute'
-import type { JSX } from 'solid-js'
+import { Show, type JSX } from 'solid-js'
+import { useLocation } from '@solidjs/router'
 
 function AppLayout(props: { children?: JSX.Element }) {
+  const loc = useLocation()
+  // The Berlin trip planner is a full-bleed standalone page — no app chrome.
+  const hideNav = () => loc.pathname.startsWith('/berlin')
   return (
     <>
-      <NavBar />
+      <Show when={!hideNav()}>
+        <NavBar />
+      </Show>
       {props.children}
     </>
   )
@@ -37,6 +43,7 @@ export default function App() {
       <Route path="/password/reset" component={ForgotPasswordPage} />
       <Route path="/password/confirm" component={ResetPasswordPage} />
       <Route path="/" component={() => <Navigate href="/budget-visualizer/transactions" />} />
+      <Route path="/berlin" component={BerlinTripPage} />
       <Route path="/budget-visualizer" component={BudgetVisualizer}>
         <Route path="/" component={() => <Navigate href="/budget-visualizer/transactions" />} />
         <Route path="/transactions" component={TransactionsTable} />
@@ -52,7 +59,6 @@ export default function App() {
         <Route path="/transactions/csv" component={DataImportPage} />
         <Route path="/loan-calculator" component={LoanCalculator} />
         <Route path="/genealogy" component={GenealogyPage} />
-        <Route path="/berlin" component={BerlinTripPage} />
         <Route path="/account" component={AccountSettingsPage} />
       </Route>
     </Router>

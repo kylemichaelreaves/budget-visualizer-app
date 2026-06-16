@@ -1,19 +1,14 @@
 /**
- * D3 Berlin trip map factory — projection, base layers, and landmark pins.
+ * D3 Berlin trip map — real geometry, paper-wireframe styling.
  *
- * Layer stack (bottom → top under `data-role="berlin-map-root"`):
- * - `districts`       — Berlin Bezirke polygons (muted fill).
- * - `water`           — Spree / Havel rivers + canals (blue lines).
- * - `roads`           — named motorway/trunk/primary + central secondary streets.
- * - `transit`         — U-Bahn & S-Bahn lines, coloured by official line colour.
- * - `wall`            — former Berlin Wall route (Mauerweg), dashed stone line.
- * - `district-labels` — subtle Bezirk names.
- * - `line-hits`       — transparent wide paths for street/Wall name-on-hover.
- * - `markers`         — one pin per place: a coloured circle + a white glyph.
+ * Basemap layers live inside a zoomed `root` group (districts, water, roads,
+ * rail network, the Wall, plus the three itinerary "trip lines"). Place markers
+ * live in a separate screen-space `overlay` group that is repainted on every
+ * zoom tick — so pins keep constant size, overlapping pins collapse into count
+ * bubbles, and the active day's stops draw on top as numbered pins.
  *
- * Line layers use `vector-effect: non-scaling-stroke` so their widths stay
- * constant on screen while zooming. Zoom transforms the whole `root` group;
- * each marker counter-scales by `1/k` so pins keep a constant screen size.
+ * Themeable colours are set with `.style(..., 'var(--wf-*)')` so toggling the
+ * paper light/dark theme re-colours the map live without a rebuild.
  */
 import * as d3 from 'd3'
 import type { Feature, FeatureCollection, Geometry } from 'geojson'
@@ -25,43 +20,53 @@ import berlinWallRaw from '../data/berlinWall.json'
 import {
   BERLIN_CATEGORY_BY_KEY,
   BERLIN_CATEGORIES,
+  byId,
   type BerlinCategoryKey,
   type BerlinPlace,
 } from '../data/berlinPlaces'
+import { shapeNode } from '../data/berlinShapes'
 
 export type BerlinMapCallbacks = {
-  onEnter: (place: BerlinPlace, event: PointerEvent) => void
-  onMove: (place: BerlinPlace, event: PointerEvent) => void
-  onLeave: () => void
-  onClick: (place: BerlinPlace) => void
-  /** Hover over a named line (street or the Wall route). */
   onLineEnter: (label: string, event: PointerEvent) => void
   onLineMove: (label: string, event: PointerEvent) => void
   onLineLeave: () => void
+  onPinEnter: (place: BerlinPlace, event: PointerEvent) => void
+  onPinLeave: () => void
+  onPinClick: (place: BerlinPlace, screenX: number, screenY: number) => void
 }
 
 export type BerlinMapLayers = {
   streets: boolean
+  boroughs: boolean
   water: boolean
-  metro: boolean
+  rail: boolean
   wall: boolean
+  airport: boolean
+  commute: boolean
+  daytrip: boolean
 }
+
+export type BerlinFitPreset = 'city' | 'region' | 'everything'
 
 export type BerlinMapHandle = {
   setSelected: (id: string | null) => void
   setVisibleCategories: (keys: ReadonlySet<BerlinCategoryKey>) => void
   setLayers: (layers: BerlinMapLayers) => void
-  /** Smoothly zoom to a single place and select it. */
+  setFilterFaded: (ids: ReadonlySet<string>) => void
+  /** Ordered stop ids for the active day (numbered pins + auto-fade others). */
+  setDay: (orderedIds: readonly string[]) => void
+  setCluster: (on: boolean) => void
+  zoomBy: (factor: number) => void
+  fit: (preset: BerlinFitPreset) => void
+  fitPlaces: (ids: readonly string[]) => void
   focusPlace: (id: string) => void
-  /** Reset the viewport to the whole-city fit. */
   resetView: () => void
   destroy: () => void
 }
 
-const PADDING = 28
-const MARKER_R = 13
-const CLICK_DISTANCE_PX_SQ = 25
-const ZOOM_TRANSITION_MS = 600
+const PADDING = 26
+const PIN = 22
+const CLICK_DIST_SQ = 25
 
 type DistrictProps = { name: string }
 type LineProps = { c?: string; k?: string; n?: string; ref?: string; net?: string; color?: string }
@@ -72,9 +77,15 @@ const roads = berlinRoadsRaw as unknown as FeatureCollection<Geometry, LineProps
 const transit = berlinTransitRaw as unknown as FeatureCollection<Geometry, LineProps>
 const wall = berlinWallRaw as unknown as FeatureCollection<Geometry, LineProps>
 
+const FIT_BOUNDS: Record<BerlinFitPreset, [number, number, number, number]> = {
+  // [minLng, minLat, maxLng, maxLat]
+  city: [13.355, 52.498, 13.425, 52.532],
+  region: [13.3, 52.47, 13.51, 52.55],
+  everything: [13.15, 52.35, 13.52, 52.78],
+}
+
 export function createBerlinMap(
   svgEl: SVGSVGElement,
-  places: readonly BerlinPlace[],
   width: number,
   height: number,
   callbacks: BerlinMapCallbacks,
@@ -83,9 +94,8 @@ export function createBerlinMap(
   svg.selectAll('*').remove()
   svg.attr('viewBox', `0 0 ${width} ${height}`).attr('width', width).attr('height', height)
 
-  // Marker positions as GeoJSON points so the projection fit includes outliers
-  // (e.g. Sachsenhausen north of the city, Wannsee/BER to the south).
-  const placePoints: Feature<Geometry>[] = places.map((p) => ({
+  // Projection fit to districts + all place points (so outliers are reachable).
+  const placePoints: Feature<Geometry>[] = Object.values(byId).map((p) => ({
     type: 'Feature',
     properties: {},
     geometry: { type: 'Point', coordinates: [p.lng, p.lat] },
@@ -94,7 +104,6 @@ export function createBerlinMap(
     type: 'FeatureCollection',
     features: [...districts.features, ...placePoints] as Feature<Geometry>[],
   }
-
   const projection = d3.geoMercator().fitExtent(
     [
       [PADDING, PADDING],
@@ -103,92 +112,77 @@ export function createBerlinMap(
     fitTarget,
   )
   const path = d3.geoPath(projection)
-
-  // Per-category glyph symbols, drawn white inside each pin.
-  const defs = svg.append('defs')
-  for (const cat of BERLIN_CATEGORIES) {
-    defs
-      .append('symbol')
-      .attr('id', `berlin-icon-${cat.key}`)
-      .attr('viewBox', '0 0 24 24')
-      .append('path')
-      .attr('d', cat.iconPath)
-      .attr('fill', 'none')
-      .attr('stroke', '#ffffff')
-      .attr('stroke-width', 2)
-      .attr('stroke-linecap', 'round')
-      .attr('stroke-linejoin', 'round')
-  }
+  const project = (p: { lng: number; lat: number }): [number, number] =>
+    projection([p.lng, p.lat]) ?? [-9999, -9999]
 
   const root = svg.append('g').attr('data-role', 'berlin-map-root')
 
-  // District polygons.
-  root
-    .append('g')
-    .attr('data-role', 'districts')
+  // ── Basemap ───────────────────────────────────────────────
+  const districtsLayer = root.append('g').attr('data-role', 'boroughs')
+  districtsLayer
     .selectAll('path')
     .data(districts.features)
     .join('path')
     .attr('d', (f) => path(f) ?? '')
-    .attr('fill', 'var(--muted)')
-    .attr('fill-opacity', 0.5)
-    .attr('stroke', 'var(--border)')
-    .attr('stroke-width', 1)
+    .attr('fill', 'none')
+    .style('stroke', 'var(--wf-ink)')
+    .attr('stroke-width', 1.4)
+    .attr('stroke-dasharray', '6 4')
+    .attr('opacity', 0.55)
     .attr('vector-effect', 'non-scaling-stroke')
+  districtsLayer
+    .selectAll('text')
+    .data(districts.features)
+    .join('text')
+    .attr('x', (f) => path.centroid(f)[0])
+    .attr('y', (f) => path.centroid(f)[1])
+    .attr('text-anchor', 'middle')
+    .attr('font-size', 9)
+    .attr('font-family', 'ui-monospace, monospace')
+    .attr('letter-spacing', 0.5)
+    .attr('opacity', 0.55)
+    .style('fill', 'var(--wf-muted)')
+    .attr('pointer-events', 'none')
+    .text((f) => f.properties.name)
 
-  // Water — filled polygons (true river/lake area, so the Spree's width varies)
-  // plus narrow canals as thin centerlines. Polygon rings are pre-wound
-  // exterior-clockwise in the data so d3.geoPath's spherical clip fills the
-  // interior; the opposite winding floods the whole viewport.
   const waterLayer = root.append('g').attr('data-role', 'water')
   waterLayer
     .selectAll('path')
     .data(water.features)
     .join('path')
     .attr('d', (f) => path(f) ?? '')
-    .attr('fill', (f) => (f.properties.k === 'canal' ? 'none' : '#3b82f6'))
-    .attr('fill-opacity', 0.5)
-    .attr('stroke', '#3b82f6')
-    .attr('stroke-opacity', (f) => (f.properties.k === 'canal' ? 0.7 : 0.45))
-    .attr('stroke-linecap', 'round')
-    .attr('stroke-linejoin', 'round')
-    .attr('stroke-width', (f) => (f.properties.k === 'canal' ? 1.4 : 0.5))
+    .style('fill', (f) => (f.properties.k === 'canal' ? 'none' : 'var(--wf-water)'))
+    .attr('fill-opacity', 0.85)
+    .style('stroke', 'var(--wf-water)')
+    .attr('stroke-width', (f) => (f.properties.k === 'canal' ? 1.4 : 0.6))
     .attr('vector-effect', 'non-scaling-stroke')
 
-  // Roads — major (motorway/trunk) bolder than primary, then central secondary.
-  const roadWidth = (c?: string): number => (c === 'major' ? 1.6 : c === 'primary' ? 1 : 0.6)
-  const roadOpacity = (c?: string): number => (c === 'major' ? 0.55 : c === 'primary' ? 0.35 : 0.25)
-  const roadsLayer = root.append('g').attr('data-role', 'roads')
+  const roadsLayer = root.append('g').attr('data-role', 'streets')
   roadsLayer
     .selectAll('path')
     .data(roads.features)
     .join('path')
     .attr('d', (f) => path(f) ?? '')
     .attr('fill', 'none')
-    .attr('stroke', 'var(--muted-foreground)')
-    .attr('stroke-opacity', (f) => roadOpacity(f.properties.c))
-    .attr('stroke-linecap', 'round')
-    .attr('stroke-linejoin', 'round')
-    .attr('stroke-width', (f) => roadWidth(f.properties.c))
+    .style('stroke', 'var(--wf-line)')
+    .attr('stroke-opacity', (f) => (f.properties.c === 'major' ? 1 : 0.7))
+    .attr('stroke-width', (f) => (f.properties.c === 'major' ? 1.5 : 0.8))
     .attr('vector-effect', 'non-scaling-stroke')
 
-  // Transit — U-Bahn solid, S-Bahn dashed, each in its official line colour.
-  const transitLayer = root.append('g').attr('data-role', 'transit')
-  transitLayer
+  const railLayer = root.append('g').attr('data-role', 'rail')
+  railLayer
     .selectAll('path')
     .data(transit.features)
     .join('path')
     .attr('d', (f) => path(f) ?? '')
     .attr('fill', 'none')
-    .attr('stroke', (f) => f.properties.color ?? '#888')
-    .attr('stroke-opacity', 0.9)
+    .style('stroke', 'var(--wf-muted)')
+    .attr('stroke-opacity', 0.85)
+    .attr('stroke-width', 1.4)
+    .attr('stroke-dasharray', (f) => (f.properties.net === 'sbahn' ? '2 4' : null))
     .attr('stroke-linecap', 'round')
-    .attr('stroke-linejoin', 'round')
-    .attr('stroke-width', 1.8)
-    .attr('stroke-dasharray', (f) => (f.properties.net === 'sbahn' ? '5 4' : null))
     .attr('vector-effect', 'non-scaling-stroke')
 
-  // Berlin Wall — former route (the Mauerweg trail), a bold dashed stone line.
   const wallLayer = root.append('g').attr('data-role', 'wall')
   wallLayer
     .selectAll('path')
@@ -196,42 +190,52 @@ export function createBerlinMap(
     .join('path')
     .attr('d', (f) => path(f) ?? '')
     .attr('fill', 'none')
-    .attr('stroke', '#e7e5e4')
-    .attr('stroke-opacity', 0.9)
-    .attr('stroke-linecap', 'round')
-    .attr('stroke-linejoin', 'round')
-    .attr('stroke-width', 2.2)
+    .style('stroke', 'var(--wf-ink)')
+    .attr('stroke-opacity', 0.8)
+    .attr('stroke-width', 2)
     .attr('stroke-dasharray', '5 4')
+    .attr('stroke-linecap', 'round')
     .attr('vector-effect', 'non-scaling-stroke')
 
-  // District name labels at polygon centroids. Counter-scaled on zoom (see
-  // `applyLabelTransforms`) so they stay legible instead of ballooning.
-  const labelCentroids = districts.features.map((f) => path.centroid(f))
-  const labels = root
-    .append('g')
-    .attr('data-role', 'district-labels')
-    .attr('pointer-events', 'none')
-    .selectAll<SVGTextElement, DistrictProps>('text')
-    .data(districts.features)
-    .join('text')
-    .attr('text-anchor', 'middle')
-    .attr('fill', 'var(--muted-foreground)')
-    .attr('font-size', 9)
-    .attr('opacity', 0.6)
-    .text((f) => f.properties.name)
-
-  function applyLabelTransforms(): void {
-    const k = currentZoomK
-    labels.attr('transform', (_f, i) => {
-      const [cx, cy] = labelCentroids[i]
-      return `translate(${cx},${cy}) scale(${1 / k})`
-    })
+  // ── Trip lines (itinerary) ────────────────────────────────
+  const tripLayer = root.append('g').attr('data-role', 'trip-lines')
+  const seg = (aId: string, bId: string, curve = 0.2): string => {
+    const a = project(byId[aId])
+    const b = project(byId[bId])
+    const mx = (a[0] + b[0]) / 2
+    const my = (a[1] + b[1]) / 2 - Math.abs(b[0] - a[0]) * curve
+    return `M ${a[0]} ${a[1]} Q ${mx} ${my} ${b[0]} ${b[1]}`
   }
+  const airportLine = tripLayer
+    .append('path')
+    .attr('d', byId['ber-airport'] && byId['hbf'] ? seg('ber-airport', 'hauptbahnhof', 0.12) : '')
+    .attr('fill', 'none')
+    .style('stroke', 'var(--wf-ink)')
+    .attr('stroke-width', 2.2)
+    .attr('opacity', 0.75)
+    .attr('vector-effect', 'non-scaling-stroke')
+  const commuteLine = tripLayer
+    .append('path')
+    .attr(
+      'd',
+      `M ${project(byId['hilton'])[0]} ${project(byId['hilton'])[1]} L ${project(byId['babbel'])[0]} ${project(byId['babbel'])[1]}`,
+    )
+    .attr('fill', 'none')
+    .style('stroke', 'var(--wf-accent)')
+    .attr('stroke-width', 2.4)
+    .attr('vector-effect', 'non-scaling-stroke')
+  const daytripLine = tripLayer
+    .append('path')
+    .attr('d', seg('hauptbahnhof', 'sachsenhausen', 0.18))
+    .attr('fill', 'none')
+    .style('stroke', 'var(--wf-ink)')
+    .attr('stroke-width', 2.2)
+    .attr('stroke-dasharray', '7 5')
+    .attr('opacity', 0.75)
+    .attr('vector-effect', 'non-scaling-stroke')
 
-  // Transparent wide "hit" paths for named lines (streets + Wall) so thin,
-  // non-scaling strokes are still easy to hover. Sits above ink layers but
-  // below the markers, which keep hover priority.
-  type HitLayer = 'streets' | 'wall' | 'metro'
+  // ── Hover hit targets for named lines (streets / wall / rail) ──
+  type HitLayer = 'streets' | 'wall' | 'rail'
   type HitDatum = { feature: Feature<Geometry, LineProps>; label: string; layer: HitLayer }
   const hitData: HitDatum[] = [
     ...roads.features
@@ -245,7 +249,7 @@ export function createBerlinMap(
       .map((f) => ({
         feature: f,
         label: `${f.properties.ref} · ${f.properties.net === 'sbahn' ? 'S-Bahn' : 'U-Bahn'}`,
-        layer: 'metro' as const,
+        layer: 'rail' as const,
       })),
   ]
   const hits = root
@@ -260,147 +264,307 @@ export function createBerlinMap(
     .attr('stroke-width', 14)
     .attr('vector-effect', 'non-scaling-stroke')
     .attr('data-hit-layer', (d) => d.layer)
-    .attr('cursor', 'help')
     .style('pointer-events', 'stroke')
+    .style('cursor', 'help')
     .on('pointerenter', (event: PointerEvent, d) => callbacks.onLineEnter(d.label, event))
     .on('pointermove', (event: PointerEvent, d) => callbacks.onLineMove(d.label, event))
     .on('pointerleave', () => callbacks.onLineLeave())
 
-  const markersLayer = root.append('g').attr('data-role', 'markers')
+  // ── Marker overlay (screen-space, repainted on zoom) ──────
+  const overlay = svg.append('g').attr('data-role', 'markers')
 
-  let currentZoomK = 1
+  // base (unzoomed) projected positions
+  const base = new Map<string, [number, number]>()
+  for (const p of Object.values(byId)) base.set(p.id, project(p))
+
+  let transform = d3.zoomIdentity
   let selectedId: string | null = null
   let visibleCategories: ReadonlySet<BerlinCategoryKey> = new Set(BERLIN_CATEGORIES.map((c) => c.key))
+  let filterFaded: ReadonlySet<string> = new Set()
+  let dayIds: readonly string[] = []
+  let clusterOn = true
 
-  const projected = new Map<string, [number, number]>()
-  for (const p of places) {
-    const xy = projection([p.lng, p.lat])
-    if (xy) projected.set(p.id, xy)
+  const screen = (id: string): [number, number] => {
+    const m = base.get(id) ?? [-9999, -9999]
+    return [transform.applyX(m[0]), transform.applyY(m[1])]
   }
 
-  const markers = markersLayer
-    .selectAll<SVGGElement, BerlinPlace>('g')
-    .data(places, (p) => p.id)
-    .join('g')
-    .attr('data-place-id', (p) => p.id)
-    .attr('cursor', 'pointer')
-    .attr('aria-label', (p) => p.name)
-
-  markers.each(function (p) {
-    const g = d3.select(this)
-    const cat = BERLIN_CATEGORY_BY_KEY[p.category]
-    g.append('circle')
-      .attr('r', MARKER_R)
+  function appendPin(
+    g: d3.Selection<SVGGElement, unknown, null, undefined>,
+    place: BerlinPlace,
+    x: number,
+    y: number,
+    opts: { active?: boolean; n?: number; faded?: boolean },
+  ): void {
+    const cat = BERLIN_CATEGORY_BY_KEY[place.category]
+    const node = g
+      .append('g')
+      .attr('transform', `translate(${x},${y})`)
+      .style('cursor', 'pointer')
+      .attr('opacity', opts.faded ? 0.28 : 1)
+      .attr('data-place-id', place.id)
+    // active / selected ring around the glyph centre
+    const glyphCenterY = -(6 + PIN / 2)
+    if (opts.active) {
+      node
+        .append('circle')
+        .attr('cx', 0)
+        .attr('cy', glyphCenterY)
+        .attr('r', PIN / 2 + 6)
+        .attr('fill', 'none')
+        .style('stroke', 'var(--wf-accent)')
+        .attr('stroke-width', 2)
+    }
+    // stem + anchor dot
+    node
+      .append('line')
+      .attr('x1', 0)
+      .attr('y1', -6)
+      .attr('x2', 0)
+      .attr('y2', 0)
+      .style('stroke', 'var(--wf-ink)')
+      .attr('stroke-width', 1.4)
+    node.append('circle').attr('cx', 0).attr('cy', 0).attr('r', 1.4).style('fill', 'var(--wf-ink)')
+    // glyph
+    const glyph = node.append('g').attr('transform', `translate(${-PIN / 2},${-(PIN + 6)})`)
+    const sn = shapeNode(cat.shape, PIN, 1.4)
+    glyph
+      .append(sn.tag)
       .attr('fill', cat.color)
-      .attr('stroke', 'var(--background)')
-      .attr('stroke-width', 2)
-    g.append('use')
-      .attr('href', `#berlin-icon-${p.category}`)
-      .attr('x', -8)
-      .attr('y', -8)
-      .attr('width', 16)
-      .attr('height', 16)
+      .style('stroke', 'var(--wf-ink)')
+      .attr('stroke-width', 1.4)
+      .attr('stroke-linejoin', 'round')
+      .each(function () {
+        const el = d3.select(this)
+        for (const [k, v] of Object.entries(sn.attrs)) el.attr(k, v as number | string)
+      })
+    if (opts.n != null) {
+      node
+        .append('text')
+        .attr('x', 0)
+        .attr('y', glyphCenterY + 4)
+        .attr('text-anchor', 'middle')
+        .attr('font-size', 11)
+        .attr('font-weight', 700)
+        .attr('fill', '#fff')
+        .attr('pointer-events', 'none')
+        .text(opts.n)
+    }
+    // interactions
+    let down: { x: number; y: number } | null = null
+    node
+      .on('pointerenter', (event: PointerEvent) => callbacks.onPinEnter(place, event))
+      .on('pointerleave', () => callbacks.onPinLeave())
+      .on('pointerdown', (event: PointerEvent) => (down = { x: event.clientX, y: event.clientY }))
+      .on('pointerup', (event: PointerEvent) => {
+        const start = down
+        down = null
+        if (!start) return
+        const dx = event.clientX - start.x
+        const dy = event.clientY - start.y
+        if (dx * dx + dy * dy > CLICK_DIST_SQ) return
+        callbacks.onPinClick(place, x, y)
+      })
+  }
+
+  function appendCluster(
+    g: d3.Selection<SVGGElement, unknown, null, undefined>,
+    count: number,
+    x: number,
+    y: number,
+    bbox: [number, number, number, number],
+    faded: boolean,
+  ): void {
+    const node = g
+      .append('g')
+      .attr('transform', `translate(${x},${y})`)
+      .style('cursor', 'pointer')
+      .attr('opacity', faded ? 0.45 : 1)
+    node
+      .append('circle')
+      .attr('r', 16)
+      .style('fill', 'var(--wf-paper-2)')
+      .style('stroke', 'var(--wf-ink)')
+      .attr('stroke-width', 1.5)
+    node
+      .append('text')
+      .attr('text-anchor', 'middle')
+      .attr('y', 4)
+      .attr('font-size', 13)
+      .attr('font-weight', 700)
+      .style('fill', 'var(--wf-ink)')
       .attr('pointer-events', 'none')
-  })
-
-  function applyMarkerTransforms(): void {
-    const k = currentZoomK
-    markers.attr('transform', (p) => {
-      const xy = projected.get(p.id)
-      if (!xy) return 'translate(-9999,-9999)'
-      return `translate(${xy[0]},${xy[1]}) scale(${1 / k})`
-    })
+      .text(count)
+    node.on('click', () => fitBounds(bbox[0], bbox[1], bbox[2], bbox[3], 0.5))
   }
 
-  function applyMarkerVisualState(): void {
-    markers
-      .attr('display', (p) => (visibleCategories.has(p.category) ? null : 'none'))
-      .attr('opacity', (p) => (selectedId === null || p.id === selectedId ? 1 : 0.35))
-    markers
-      .select('circle')
-      .attr('stroke', (p) => (p.id === selectedId ? 'var(--foreground)' : 'var(--background)'))
-      .attr('stroke-width', (p) => (p.id === selectedId ? 3 : 2))
+  function isFaded(p: BerlinPlace): boolean {
+    if (filterFaded.has(p.id)) return true
+    if (dayIds.length && !dayIds.includes(p.id)) return true
+    return false
   }
 
-  let pointerDown: { x: number; y: number; id: string } | null = null
-  markers
-    .on('pointerenter', (event: PointerEvent, p) => callbacks.onEnter(p, event))
-    .on('pointermove', (event: PointerEvent, p) => callbacks.onMove(p, event))
-    .on('pointerleave', () => callbacks.onLeave())
-    .on('pointerdown', (event: PointerEvent, p) => {
-      pointerDown = { x: event.clientX, y: event.clientY, id: p.id }
-    })
-    .on('pointerup', (event: PointerEvent, p) => {
-      const start = pointerDown
-      pointerDown = null
-      if (!start || start.id !== p.id) return
-      const dx = event.clientX - start.x
-      const dy = event.clientY - start.y
-      if (dx * dx + dy * dy > CLICK_DISTANCE_PX_SQ) return
-      callbacks.onClick(p)
-    })
+  function paint(): void {
+    overlay.selectAll('*').remove()
+    const g = overlay.append('g')
+    const dayset = new Set(dayIds)
+    const dayIndex = new Map(dayIds.map((id, i) => [id, i + 1]))
+    const vis = Object.values(byId).filter((p) => visibleCategories.has(p.category))
+    const rest = vis.filter((p) => !dayset.has(p.id))
+    const onScreen = (x: number, y: number) => x > -40 && x < width + 40 && y > -40 && y < height + 40
 
-  applyMarkerTransforms()
-  applyMarkerVisualState()
-  applyLabelTransforms()
+    if (clusterOn) {
+      const cell = 46
+      const buckets: Record<string, { p: BerlinPlace; x: number; y: number }[]> = {}
+      for (const p of rest) {
+        const [x, y] = screen(p.id)
+        if (!onScreen(x, y)) continue
+        const key = `${Math.round(x / cell)},${Math.round(y / cell)}`
+        ;(buckets[key] ||= []).push({ p, x, y })
+      }
+      for (const grp of Object.values(buckets)) {
+        if (grp.length > 1) {
+          const cx = grp.reduce((a, o) => a + o.x, 0) / grp.length
+          const cy = grp.reduce((a, o) => a + o.y, 0) / grp.length
+          const lngs = grp.map((o) => o.p.lng)
+          const lats = grp.map((o) => o.p.lat)
+          const faded = grp.every((o) => isFaded(o.p))
+          appendCluster(
+            g,
+            grp.length,
+            cx,
+            cy,
+            [Math.min(...lngs), Math.min(...lats), Math.max(...lngs), Math.max(...lats)],
+            faded,
+          )
+        } else {
+          const { p, x, y } = grp[0]
+          appendPin(g, p, x, y, { faded: isFaded(p), active: p.id === selectedId })
+        }
+      }
+    } else {
+      for (const p of rest) {
+        const [x, y] = screen(p.id)
+        if (!onScreen(x, y)) continue
+        appendPin(g, p, x, y, { faded: isFaded(p), active: p.id === selectedId })
+      }
+    }
+    // active day pins on top, numbered
+    for (const id of dayIds) {
+      const p = byId[id]
+      if (!p || !visibleCategories.has(p.category)) continue
+      const [x, y] = screen(id)
+      appendPin(g, p, x, y, { active: true, n: dayIndex.get(id) })
+    }
+  }
 
-  const zoomBehavior = d3
+  // ── Zoom ──────────────────────────────────────────────────
+  const zoom = d3
     .zoom<SVGSVGElement, unknown>()
-    .scaleExtent([0.8, 48])
+    .scaleExtent([0.6, 48])
     .on('zoom', (event) => {
-      currentZoomK = event.transform.k
-      root.attr('transform', event.transform.toString())
-      applyMarkerTransforms()
-      applyLabelTransforms()
+      transform = event.transform
+      root.attr('transform', transform.toString())
+      paint()
     })
+  svg.call(zoom)
 
-  svg.call(zoomBehavior)
-
-  function zoomTo(x: number, y: number, k: number): void {
-    const transform = d3.zoomIdentity.translate(width / 2 - x * k, height / 2 - y * k).scale(k)
-    svg.transition().duration(ZOOM_TRANSITION_MS).call(zoomBehavior.transform, transform)
+  function fitBounds(minLng: number, minLat: number, maxLng: number, maxLat: number, padFrac = 0.12): void {
+    const tl = projection([minLng, maxLat]) ?? [0, 0]
+    const br = projection([maxLng, minLat]) ?? [width, height]
+    const dx = Math.max(1, Math.abs(br[0] - tl[0]))
+    const dy = Math.max(1, Math.abs(br[1] - tl[1]))
+    const cx = (tl[0] + br[0]) / 2
+    const cy = (tl[1] + br[1]) / 2
+    const ext = zoom.scaleExtent()
+    const k = Math.max(ext[0], Math.min(ext[1], (1 - padFrac) * Math.min(width / dx, height / dy)))
+    const t = d3.zoomIdentity.translate(width / 2 - cx * k, height / 2 - cy * k).scale(k)
+    svg.transition().duration(650).call(zoom.transform, t)
   }
 
+  // ── Handle ────────────────────────────────────────────────
   function setSelected(id: string | null): void {
     selectedId = id
-    applyMarkerVisualState()
+    paint()
   }
-
   function setVisibleCategories(keys: ReadonlySet<BerlinCategoryKey>): void {
     visibleCategories = keys
-    applyMarkerVisualState()
+    paint()
   }
-
+  function setFilterFaded(ids: ReadonlySet<string>): void {
+    filterFaded = ids
+    paint()
+  }
+  function setDay(orderedIds: readonly string[]): void {
+    dayIds = orderedIds
+    paint()
+  }
+  function setCluster(on: boolean): void {
+    clusterOn = on
+    paint()
+  }
   function setLayers(layers: BerlinMapLayers): void {
     roadsLayer.attr('display', layers.streets ? null : 'none')
+    districtsLayer.attr('display', layers.boroughs ? null : 'none')
     waterLayer.attr('display', layers.water ? null : 'none')
-    transitLayer.attr('display', layers.metro ? null : 'none')
+    railLayer.attr('display', layers.rail ? null : 'none')
     wallLayer.attr('display', layers.wall ? null : 'none')
-    // Hide hit targets for hidden layers so they aren't invisibly hoverable.
-    const layerOn: Record<HitLayer, boolean> = {
-      streets: layers.streets,
-      wall: layers.wall,
-      metro: layers.metro,
-    }
-    hits.attr('display', (d) => (layerOn[d.layer] ? null : 'none'))
+    airportLine.attr('display', layers.airport ? null : 'none')
+    commuteLine.attr('display', layers.commute ? null : 'none')
+    daytripLine.attr('display', layers.daytrip ? null : 'none')
+    const on: Record<HitLayer, boolean> = { streets: layers.streets, wall: layers.wall, rail: layers.rail }
+    hits.attr('display', (d) => (on[d.layer] ? null : 'none'))
   }
-
+  function fitPlaces(ids: readonly string[]): void {
+    const pts = ids.map((id) => byId[id]).filter(Boolean)
+    if (!pts.length) return fitBounds(...FIT_BOUNDS.city)
+    const lngs = pts.map((p) => p.lng)
+    const lats = pts.map((p) => p.lat)
+    const padLng = Math.max(0.004, (Math.max(...lngs) - Math.min(...lngs)) * 0.2)
+    const padLat = Math.max(0.003, (Math.max(...lats) - Math.min(...lats)) * 0.2)
+    fitBounds(
+      Math.min(...lngs) - padLng,
+      Math.min(...lats) - padLat,
+      Math.max(...lngs) + padLng,
+      Math.max(...lats) + padLat,
+      0.18,
+    )
+  }
+  function fit(preset: BerlinFitPreset): void {
+    fitBounds(...FIT_BOUNDS[preset])
+  }
+  function zoomBy(factor: number): void {
+    svg.transition().duration(250).call(zoom.scaleBy, factor)
+  }
   function focusPlace(id: string): void {
-    const xy = projected.get(id)
-    if (!xy) return
     setSelected(id)
-    zoomTo(xy[0], xy[1], 5)
+    fitPlaces([id])
   }
-
   function resetView(): void {
     setSelected(null)
-    svg.transition().duration(ZOOM_TRANSITION_MS).call(zoomBehavior.transform, d3.zoomIdentity)
+    fit('city')
   }
-
   function destroy(): void {
     svg.on('.zoom', null)
     svg.selectAll('*').remove()
   }
 
-  return { setSelected, setVisibleCategories, setLayers, focusPlace, resetView, destroy }
+  // initial paint + fit to city
+  paint()
+  fitBounds(...FIT_BOUNDS.city)
+
+  return {
+    setSelected,
+    setVisibleCategories,
+    setLayers,
+    setFilterFaded,
+    setDay,
+    setCluster,
+    zoomBy,
+    fit,
+    fitPlaces,
+    focusPlace,
+    resetView,
+    destroy,
+  }
 }

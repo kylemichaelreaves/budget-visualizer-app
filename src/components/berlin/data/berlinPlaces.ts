@@ -2,20 +2,27 @@
  * Static data for the Berlin trip map.
  *
  * Each place has true WGS84 coordinates ([lng, lat] order when projected) and a
- * category. Categories carry a display label, a marker colour, and a 24×24 SVG
- * glyph path rendered inside each pin (see `createBerlinMap.ts`). Colours are
- * fixed hexes so the SVG markers and the HTML legend/list stay in sync.
+ * category. Following the paper-wireframe design, each category is a distinct
+ * SHAPE + muted colour so the six groups read apart even in grayscale. Colours
+ * are fixed so the SVG markers and the HTML legend/list stay in sync.
  */
 
 export type BerlinCategoryKey = 'base' | 'philosophy' | 'history' | 'stationery' | 'craft' | 'transit'
 
+/** Marker silhouette per category (drawn in `createBerlinMap` / `CatGlyph`). */
+export type BerlinShape = 'square' | 'circle' | 'triangle' | 'diamond' | 'hexagon' | 'pentagon'
+
 export type BerlinCategory = {
   key: BerlinCategoryKey
   label: string
+  /** Short label used in compact chips/legends. */
+  short: string
   /** Marker fill + legend swatch. */
   color: string
-  /** 24×24 viewBox path(s) drawn in white inside the pin. */
-  iconPath: string
+  /** Marker silhouette. */
+  shape: BerlinShape
+  /** Example places, shown in the category key. */
+  ex: string
 }
 
 export type BerlinPlace = {
@@ -26,50 +33,72 @@ export type BerlinPlace = {
   lng: number
 }
 
+/** Home base — walk-from-hotel times are measured from here (Hilton, Gendarmenmarkt). */
+export const BERLIN_HOTEL = { lat: 52.5122, lng: 13.3929 }
+
+/** Rough walking minutes from the hotel (~80 m/min). null ⇒ beyond ~45 min ⇒ "transit needed". */
+export function walkMinutesFromHotel(place: { lat: number; lng: number }): number | null {
+  const R = 6371000
+  const toRad = (d: number) => (d * Math.PI) / 180
+  const dLat = toRad(place.lat - BERLIN_HOTEL.lat)
+  const dLng = toRad(place.lng - BERLIN_HOTEL.lng)
+  const a =
+    Math.sin(dLat / 2) ** 2 +
+    Math.cos(toRad(BERLIN_HOTEL.lat)) * Math.cos(toRad(place.lat)) * Math.sin(dLng / 2) ** 2
+  const meters = 2 * R * Math.asin(Math.sqrt(a))
+  const min = Math.round(meters / 80)
+  return min > 45 ? null : min
+}
+
+// Shapes + muted colours mirror the paper-wireframe handoff (berlin-map.jsx).
 export const BERLIN_CATEGORIES: readonly BerlinCategory[] = [
   {
     key: 'base',
     label: 'Base & work',
-    color: '#0ea5e9',
-    // bed
-    iconPath: 'M3 7v10M3 12h15a3 3 0 0 1 3 3v2M3 17h18M7 12V9a1 1 0 0 1 1-1h3a1 1 0 0 1 1 1v3',
+    short: 'Base',
+    shape: 'square',
+    color: '#34322d',
+    ex: 'hotel · office',
   },
   {
     key: 'philosophy',
     label: 'Philosophy & humanities',
-    color: '#8b5cf6',
-    // open book
-    iconPath: 'M12 6c-2-1.3-4.7-2-7-2v13c2.3 0 5 .7 7 2 2-1.3 4.7-2 7-2V4c-2.3 0-5 .7-7 2zM12 6v13',
+    short: 'Philosophy',
+    shape: 'circle',
+    color: 'oklch(0.60 0.085 250)',
+    ex: 'graves · uni · museums · libraries',
   },
   {
     key: 'history',
     label: 'History — WWII & Cold War',
-    color: '#ef4444',
-    // monument / classical building
-    iconPath: 'M3 21h18M4 21V10h16v11M4 10l8-6 8 6M9 21v-7h6v7',
+    short: 'History',
+    shape: 'triangle',
+    color: 'oklch(0.58 0.10 32)',
+    ex: 'memorials · the Wall · Stasi',
   },
   {
     key: 'stationery',
-    label: 'Stationery',
-    color: '#f59e0b',
-    // pen
-    iconPath: 'M4 20l4-1 11-11-3-3L5 16l-1 4zM14 5l3 3',
+    label: 'Stationery & books',
+    short: 'Stationery',
+    shape: 'diamond',
+    color: 'oklch(0.60 0.085 155)',
+    ex: 'paper · pens · books',
   },
   {
     key: 'craft',
-    label: 'For mom (craft)',
-    color: '#ec4899',
-    // scissors
-    iconPath:
-      'M6 6a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM6 13a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5zM8.2 9.8L20 18M8.2 14.2L20 6',
+    label: 'Craft & shops (for mom)',
+    short: 'Craft',
+    shape: 'hexagon',
+    color: 'oklch(0.58 0.085 312)',
+    ex: 'yarn · beads',
   },
   {
     key: 'transit',
-    label: 'Transit anchor',
-    color: '#10b981',
-    // train
-    iconPath:
-      'M6 4h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM4 11h16M8.5 19l-1.5 2M15.5 19l1.5 2M9 14h.01M15 14h.01',
+    label: 'Transit anchors',
+    short: 'Transit',
+    shape: 'pentagon',
+    color: 'oklch(0.62 0.075 70)',
+    ex: 'airport · stations',
   },
 ]
 
@@ -161,4 +190,30 @@ export const BERLIN_PLACES: readonly BerlinPlace[] = [
   { id: 'friedrichstrasse', name: 'Friedrichstraße', category: 'transit', lat: 52.5202, lng: 13.387 },
   { id: 'stadtmitte', name: 'Stadtmitte (U2/U6)', category: 'transit', lat: 52.5108, lng: 13.3897 },
   { id: 'alexanderplatz', name: 'Alexanderplatz', category: 'transit', lat: 52.5219, lng: 13.4132 },
+  // Added for the itinerary (well-known landmarks with confident coordinates).
+  { id: 'dussmann', name: 'Dussmann das KulturKaufhaus', category: 'stationery', lat: 52.5189, lng: 13.3884 },
+  { id: 'naturkunde', name: 'Museum für Naturkunde', category: 'philosophy', lat: 52.5305, lng: 13.3793 },
+  {
+    id: 'hamburger-bahnhof',
+    name: 'Hamburger Bahnhof (museum)',
+    category: 'philosophy',
+    lat: 52.5277,
+    lng: 13.3717,
+  },
+  {
+    id: 'berlinische-galerie',
+    name: 'Berlinische Galerie',
+    category: 'philosophy',
+    lat: 52.5046,
+    lng: 13.4007,
+  },
+  {
+    id: 'soviet-memorial',
+    name: 'Soviet War Memorial (Treptow)',
+    category: 'history',
+    lat: 52.4869,
+    lng: 13.4699,
+  },
 ]
+
+export const byId: Record<string, BerlinPlace> = Object.fromEntries(BERLIN_PLACES.map((p) => [p.id, p]))

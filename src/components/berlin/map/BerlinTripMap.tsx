@@ -1,134 +1,189 @@
-import type { JSX } from 'solid-js'
-import { createEffect, createMemo, createSignal, onCleanup, Show, untrack } from 'solid-js'
+import { type JSX, createEffect, createMemo, createSignal, onCleanup, Show, untrack } from 'solid-js'
 import { useElementSize } from '@composables/useElementSize'
-import { BERLIN_CATEGORY_BY_KEY, type BerlinCategoryKey, type BerlinPlace } from '../data/berlinPlaces'
+import {
+  BERLIN_CATEGORY_BY_KEY,
+  byId,
+  walkMinutesFromHotel,
+  type BerlinCategoryKey,
+} from '../data/berlinPlaces'
+import { DAYS } from '../data/berlinItinerary'
+import { CatGlyph } from '../ui/BerlinPrimitives'
 import { createBerlinMap, type BerlinMapHandle, type BerlinMapLayers } from './createBerlinMap'
 
-const ASPECT = 0.7 // height / width
-
-type Tooltip = { x: number; y: number; place: BerlinPlace } | null
+type Tip = { x: number; y: number; label: string } | null
+type Pop = { id: string; x: number; y: number } | null
 
 export type BerlinTripMapProps = {
-  places: readonly BerlinPlace[]
-  selectedId: () => string | null
-  visibleCategories: () => ReadonlySet<BerlinCategoryKey>
   layers: () => BerlinMapLayers
+  visibleCategories: () => ReadonlySet<BerlinCategoryKey>
+  filterFaded: () => ReadonlySet<string>
+  dayIds: () => readonly string[]
+  cluster: () => boolean
+  selectedId: () => string | null
   onSelect: (id: string | null) => void
-  /** Exposes the imperative handle so the page can focus / reset the view. */
-  onReady?: (handle: BerlinMapHandle) => void
+  registerHandle: (h: BerlinMapHandle) => void
+}
+
+function placeDays(id: string): string[] {
+  return DAYS.filter((d) => d.stops.some((s) => s.placeId === id)).map((d) => `${d.short} ${d.date}`)
 }
 
 export default function BerlinTripMap(props: BerlinTripMapProps): JSX.Element {
   let svgEl: SVGSVGElement | undefined
   const [dims, attachWrapper] = useElementSize()
-  const width = createMemo(() => dims().w)
-  const [tooltip, setTooltip] = createSignal<Tooltip>(null)
-  const [lineTip, setLineTip] = createSignal<{ x: number; y: number; label: string } | null>(null)
-  const [viewportH, setViewportH] = createSignal(typeof window !== 'undefined' ? window.innerHeight : 800)
-
-  // Track viewport height so the map can be capped to the space below it.
-  createEffect(() => {
-    const onResize = () => setViewportH(window.innerHeight)
-    window.addEventListener('resize', onResize)
-    onCleanup(() => window.removeEventListener('resize', onResize))
-  })
-
+  const [tip, setTip] = createSignal<Tip>(null)
+  const [pop, setPop] = createSignal<Pop>(null)
   let handle: BerlinMapHandle | null = null
 
   createEffect(() => {
     const el = svgEl
-    const w = width()
-    if (!el || w <= 0) return
-    // Cap height to the remaining viewport so the page doesn't overflow, while
-    // keeping the natural aspect ratio as an upper bound.
-    const available = viewportH() - el.getBoundingClientRect().top - 28
-    const h = Math.max(360, Math.min(Math.round(w * ASPECT), Math.round(available)))
+    const w = dims().w
+    const h = dims().h
+    if (!el || w <= 0 || h <= 0) return
 
     handle?.destroy()
-    handle = createBerlinMap(el, props.places, w, h, {
-      onEnter: (place, event) => {
-        setLineTip(null)
-        setTooltip({ x: event.offsetX, y: event.offsetY, place })
+    handle = createBerlinMap(el, w, h, {
+      onLineEnter: (label, e) => {
+        setPop(null)
+        setTip({ x: e.offsetX, y: e.offsetY, label })
       },
-      onMove: (place, event) => setTooltip({ x: event.offsetX, y: event.offsetY, place }),
-      onLeave: () => setTooltip(null),
-      onClick: (place) => props.onSelect(place.id),
-      onLineEnter: (label, event) => {
-        setTooltip(null)
-        setLineTip({ x: event.offsetX, y: event.offsetY, label })
+      onLineMove: (label, e) => setTip({ x: e.offsetX, y: e.offsetY, label }),
+      onLineLeave: () => setTip(null),
+      onPinEnter: (place, e) => setTip({ x: e.offsetX, y: e.offsetY, label: place.name }),
+      onPinLeave: () => setTip(null),
+      onPinClick: (place, x, y) => {
+        setTip(null)
+        setPop({ id: place.id, x, y })
+        props.onSelect(place.id)
       },
-      onLineMove: (label, event) => setLineTip({ x: event.offsetX, y: event.offsetY, label }),
-      onLineLeave: () => setLineTip(null),
     })
 
     untrack(() => {
-      handle?.setSelected(props.selectedId())
       handle?.setVisibleCategories(props.visibleCategories())
       handle?.setLayers(props.layers())
-      props.onReady?.(handle!)
+      handle?.setFilterFaded(props.filterFaded())
+      handle?.setDay(props.dayIds())
+      handle?.setCluster(props.cluster())
+      handle?.setSelected(props.selectedId())
+      props.registerHandle(handle!)
     })
   })
 
-  createEffect(() => {
-    const id = props.selectedId()
-    handle?.setSelected(id)
-  })
-
-  createEffect(() => {
-    const keys = props.visibleCategories()
-    handle?.setVisibleCategories(keys)
-  })
-
-  createEffect(() => {
-    const layers = props.layers()
-    handle?.setLayers(layers)
-  })
+  createEffect(() => handle?.setVisibleCategories(props.visibleCategories()))
+  createEffect(() => handle?.setLayers(props.layers()))
+  createEffect(() => handle?.setFilterFaded(props.filterFaded()))
+  createEffect(() => handle?.setDay(props.dayIds()))
+  createEffect(() => handle?.setCluster(props.cluster()))
+  createEffect(() => handle?.setSelected(props.selectedId()))
 
   onCleanup(() => {
     handle?.destroy()
     handle = null
   })
 
+  const popPlace = createMemo(() => {
+    const p = pop()
+    return p ? byId[p.id] : null
+  })
+
   return (
-    <div ref={(el) => attachWrapper(el)} class="relative w-full" data-testid="berlin-trip-map">
+    <div ref={(el) => attachWrapper(el)} class="relative h-full w-full" data-testid="berlin-trip-map">
       <svg
         ref={(el) => {
           svgEl = el
         }}
-        class="block w-full bg-card rounded-md border border-border text-foreground"
+        class="block h-full w-full"
+        style={{ background: 'var(--wf-paper)' }}
         data-testid="berlin-trip-map-svg"
       />
-      <Show when={tooltip()}>
-        {(tt) => (
+
+      <Show when={tip()}>
+        {(t) => (
           <div
-            class="pointer-events-none absolute z-10 max-w-56 rounded-md border border-border bg-popover px-3 py-2 text-sm text-popover-foreground shadow-md"
+            class="pointer-events-none absolute z-10 max-w-[15rem] rounded-md px-2.5 py-1.5 text-xs font-semibold shadow-md"
             style={{
-              left: `${tt().x + 14}px`,
-              top: `${tt().y + 14}px`,
+              left: `${t().x + 14}px`,
+              top: `${t().y + 14}px`,
+              background: 'var(--wf-glass)',
+              border: '1.5px solid var(--wf-line)',
+              color: 'var(--wf-ink)',
             }}
           >
-            <div class="flex items-center gap-2">
-              <span
-                class="inline-block size-2.5 shrink-0 rounded-full"
-                style={{ 'background-color': BERLIN_CATEGORY_BY_KEY[tt().place.category].color }}
-              />
-              <span class="font-medium leading-tight">{tt().place.name}</span>
-            </div>
-            <div class="mt-1 text-xs text-muted-foreground">
-              {BERLIN_CATEGORY_BY_KEY[tt().place.category].label}
-            </div>
+            {t().label}
           </div>
         )}
       </Show>
-      <Show when={lineTip()}>
-        {(tt) => (
-          <div
-            class="pointer-events-none absolute z-10 max-w-56 rounded-md border border-border bg-popover px-2.5 py-1.5 text-xs font-medium text-popover-foreground shadow-md"
-            style={{ left: `${tt().x + 14}px`, top: `${tt().y + 14}px` }}
-          >
-            {tt().label}
-          </div>
-        )}
+
+      <Show when={popPlace()} keyed>
+        {(place) => {
+          const cat = BERLIN_CATEGORY_BY_KEY[place.category]
+          const walk = walkMinutesFromHotel(place)
+          const days = placeDays(place.id)
+          const p = pop()!
+          return (
+            <div
+              class="absolute z-20 w-60 overflow-hidden rounded-lg shadow-xl"
+              style={{
+                left: `${Math.min(p.x + 16, dims().w - 250)}px`,
+                top: `${Math.max(8, p.y - 150)}px`,
+                background: 'var(--wf-paper-2)',
+                border: '1.5px solid var(--wf-ink)',
+              }}
+            >
+              <div
+                class="flex items-start gap-2 px-3 pb-2.5 pt-3"
+                style={{ 'border-bottom': '1px solid var(--wf-line)' }}
+              >
+                <CatGlyph cat={place.category} size={17} />
+                <div class="flex-1">
+                  <div class="text-sm font-bold leading-tight">{place.name}</div>
+                  <div class="mt-0.5 text-[10.5px]" style={{ color: 'var(--wf-muted)' }}>
+                    {cat.label}
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  class="text-base leading-none"
+                  style={{ color: 'var(--wf-muted)' }}
+                  onClick={() => {
+                    setPop(null)
+                    props.onSelect(null)
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+              <div class="flex flex-col gap-1.5 px-3 py-2.5 text-[11.5px]">
+                <div class="flex gap-2">
+                  <span class="w-[68px] shrink-0" style={{ color: 'var(--wf-muted)' }}>
+                    From hotel
+                  </span>
+                  <span class="font-semibold">
+                    {walk == null ? 'transit needed' : walk === 0 ? 'you are here' : `${walk} min walk`}
+                  </span>
+                </div>
+                <Show when={days.length}>
+                  <div class="flex gap-2">
+                    <span class="w-[68px] shrink-0" style={{ color: 'var(--wf-muted)' }}>
+                      On
+                    </span>
+                    <span class="font-semibold">{days.join(', ')}</span>
+                  </div>
+                </Show>
+              </div>
+              <div class="flex gap-2 px-3 pb-3">
+                <button
+                  type="button"
+                  class="flex-1 rounded-full py-1.5 text-[11px] font-bold"
+                  style={{ background: 'var(--wf-ink)', color: 'var(--wf-paper)' }}
+                  onClick={() => handle?.focusPlace(place.id)}
+                >
+                  Focus on map
+                </button>
+              </div>
+            </div>
+          )
+        }}
       </Show>
     </div>
   )
