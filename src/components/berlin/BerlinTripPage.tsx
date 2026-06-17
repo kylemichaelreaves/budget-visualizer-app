@@ -160,6 +160,7 @@ export default function BerlinTripPage(): JSX.Element {
     <div
       class="berlin-paper flex flex-col"
       data-theme={theme()}
+      data-testid="berlin-trip-page"
       style={{ height: '100dvh', overflow: 'hidden' }}
     >
       <TopBar
