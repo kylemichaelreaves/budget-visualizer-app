@@ -22,7 +22,7 @@ export function FilterPanel(props: {
           onInput={(e) => props.setQuery(e.currentTarget.value)}
           placeholder="Search places…"
           class="w-full bg-transparent text-xs outline-none"
-          style={{ color: 'var(--wf-ink)', 'font-family': "'Patrick Hand', sans-serif" }}
+          style={{ color: 'var(--wf-ink)', 'font-family': 'inherit' }}
         />
       </div>
       <div class="mb-3 flex flex-wrap gap-1.5">

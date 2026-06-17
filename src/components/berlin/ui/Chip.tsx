@@ -26,7 +26,7 @@ export function Chip(props: {
         color: props.on ? 'var(--wf-ink)' : 'var(--wf-muted)',
         'white-space': 'nowrap',
         cursor: 'pointer',
-        'font-family': "'Patrick Hand', system-ui, sans-serif",
+        'font-family': 'inherit',
       }}
     >
       <Show when={props.cat}>{(c) => <CatGlyph cat={c()} size={12} />}</Show>

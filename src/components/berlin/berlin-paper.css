@@ -12,8 +12,12 @@
 
   color: var(--wf-ink);
   background: var(--wf-paper);
-  font-family: 'Patrick Hand', system-ui, sans-serif;
-  letter-spacing: 0.2px;
+  font-family:
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    sans-serif;
 }
 
 .berlin-paper[data-theme='dark'] {
@@ -26,8 +30,9 @@
   --wf-water: #3b4a55;
 }
 
+/* Annotation callouts: regular sans-serif (no script font). */
 .berlin-paper .wf-hand {
-  font-family: 'Caveat', cursive;
+  font-family: inherit;
 }
 .berlin-paper .wf-mono {
   font-family: ui-monospace, monospace;
