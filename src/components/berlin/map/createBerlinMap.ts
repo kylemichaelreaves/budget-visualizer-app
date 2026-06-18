@@ -153,10 +153,34 @@ export function createBerlinMap(
   }
   applyLabelScale(1)
 
-  // Render every water polygon as ONE unioned MultiPolygon path. Abutting river
-  // polygons then share no internal seam (which otherwise shows as a hairline
-  // "break" at extreme zoom near e.g. the Reichstag). Canals stay as lines.
+  // Water = river/canal centerlines (continuous) drawn UNDER the fill polygons
+  // (true width where mapped). OSM only maps the Spree's through-channel as a
+  // centerline through the Spreebogen — the fill polygons cover just the basins
+  // — so a polygons-only render looks disconnected by the Reichstag. The
+  // centerline reconnects it. Everything sits in one opacity group so the
+  // line/polygon overlaps don't composite into darker bands.
+  // River stroke width ≈ a constant real-world width (~85 m): scaling stroke
+  // (no non-scaling) so it tracks zoom like the projected geometry.
+  const wRef = projection([13.376, 52.52])
+  const wRef2 = projection([13.376, 52.52 + 85 / 111320])
+  const riverWidth = wRef && wRef2 ? Math.max(0.6, Math.abs(wRef[1] - wRef2[1])) : 2
+  const canalWidth = riverWidth * 0.5
+
   const waterLayer = root.append('g').attr('data-role', 'water')
+  const waterFill = waterLayer.append('g').attr('opacity', 0.85)
+  // centerlines under the fill
+  waterFill
+    .selectAll('path.berlin-waterline')
+    .data(water.features.filter((f) => f.properties.k === 'river' || f.properties.k === 'canal'))
+    .join('path')
+    .attr('class', 'berlin-waterline')
+    .attr('d', (f) => path(f) ?? '')
+    .attr('fill', 'none')
+    .style('stroke', 'var(--wf-water)')
+    .attr('stroke-width', (f) => (f.properties.k === 'canal' ? canalWidth : riverWidth))
+    .attr('stroke-linecap', 'round')
+    .attr('stroke-linejoin', 'round')
+  // fill polygons over the centerlines (true width where OSM maps the area)
   const waterPolys = water.features.filter((f) => f.geometry.type === 'Polygon')
   const waterMulti: Feature<Geometry> = {
     type: 'Feature',
@@ -166,25 +190,13 @@ export function createBerlinMap(
       coordinates: waterPolys.map((f) => (f.geometry as { coordinates: number[][][] }).coordinates),
     },
   }
-  waterLayer
+  waterFill
     .append('path')
     .attr('d', path(waterMulti) ?? '')
     .style('fill', 'var(--wf-water)')
-    .attr('fill-opacity', 0.85)
     .style('stroke', 'var(--wf-water)')
-    .attr('stroke-width', 0.75)
+    .attr('stroke-width', 0.6)
     .attr('stroke-linejoin', 'round')
-    .attr('vector-effect', 'non-scaling-stroke')
-  waterLayer
-    .selectAll('path.berlin-canal')
-    .data(water.features.filter((f) => f.properties.k === 'canal'))
-    .join('path')
-    .attr('class', 'berlin-canal')
-    .attr('d', (f) => path(f) ?? '')
-    .attr('fill', 'none')
-    .style('stroke', 'var(--wf-water)')
-    .attr('stroke-width', 1.4)
-    .attr('stroke-linecap', 'round')
     .attr('vector-effect', 'non-scaling-stroke')
 
   const roadsLayer = root.append('g').attr('data-role', 'streets')
