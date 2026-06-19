@@ -59,12 +59,34 @@ export default function BerlinTripMap(props: BerlinTripMapProps): JSX.Element {
     })
   })
 
-  createEffect(() => handle?.setVisibleCategories(props.visibleCategories()))
-  createEffect(() => handle?.setLayers(props.layers()))
-  createEffect(() => handle?.setFilterFaded(props.filterFaded()))
-  createEffect(() => handle?.setDay(props.dayIds()))
-  createEffect(() => handle?.setCluster(props.cluster()))
-  createEffect(() => handle?.setSelected(props.selectedId()))
+  // Read each reactive prop into a local FIRST so the effect always tracks it,
+  // then forward to the handle. Writing `handle?.setX(props.x())` would
+  // short-circuit the whole call (args included) when `handle` is null on the
+  // first run — the effect would never subscribe and never fire again.
+  createEffect(() => {
+    const v = props.visibleCategories()
+    handle?.setVisibleCategories(v)
+  })
+  createEffect(() => {
+    const v = props.layers()
+    handle?.setLayers(v)
+  })
+  createEffect(() => {
+    const v = props.filterFaded()
+    handle?.setFilterFaded(v)
+  })
+  createEffect(() => {
+    const v = props.dayIds()
+    handle?.setDay(v)
+  })
+  createEffect(() => {
+    const v = props.cluster()
+    handle?.setCluster(v)
+  })
+  createEffect(() => {
+    const v = props.selectedId()
+    handle?.setSelected(v)
+  })
 
   onCleanup(() => {
     handle?.destroy()
