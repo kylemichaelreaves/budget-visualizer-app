@@ -13,6 +13,8 @@ const meta = {
 
 export default meta
 type Story = StoryObj<typeof meta>
+// Render-only stories build the component directly (local signals / no args).
+type RenderStory = StoryObj
 
 export const Default: Story = {
   args: {
@@ -47,7 +49,7 @@ export const AtLast: Story = {
   },
 }
 
-export const WithReset: Story = {
+export const WithReset: RenderStory = {
   render: () => {
     const [index, setIndex] = createSignal(2)
     const total = 5

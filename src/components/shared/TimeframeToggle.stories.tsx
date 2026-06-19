@@ -12,7 +12,7 @@ const meta = {
 } satisfies Meta<typeof TimeframeToggle>
 
 export default meta
-type Story = StoryObj<typeof meta>
+type Story = StoryObj // render-only stories build the component directly (no args)
 
 export const Default: Story = {
   render: () => {

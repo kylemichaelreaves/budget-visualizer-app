@@ -17,7 +17,7 @@ const meta = {
 } satisfies Meta<typeof SplitBudgetCategoryDrawer>
 
 export default meta
-type Story = StoryObj<typeof meta>
+type Story = StoryObj // render-only stories build the component directly (no args)
 
 export const Interactive: Story = {
   render: () => {

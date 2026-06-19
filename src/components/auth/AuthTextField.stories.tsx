@@ -21,7 +21,7 @@ const meta = {
 } satisfies Meta<typeof AuthTextField>
 
 export default meta
-type Story = StoryObj<typeof meta>
+type Story = StoryObj // render-only stories build the component directly (no args)
 
 /** Lucide components cannot live in `args` (non-serializable); pass `icon` from `render` only. */
 function fieldProps(partial: Partial<AuthTextFieldProps>): AuthTextFieldProps {
