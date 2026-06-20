@@ -1,6 +1,16 @@
-import { type JSX, createEffect, createMemo, createSignal, onCleanup, Show, untrack } from 'solid-js'
+import {
+  type JSX,
+  createEffect,
+  createMemo,
+  createResource,
+  createSignal,
+  onCleanup,
+  Show,
+  untrack,
+} from 'solid-js'
 import { useElementSize } from '@composables/useElementSize'
 import { byId, type BerlinCategoryKey } from '../data/berlinPlaces'
+import { loadBerlinGeo } from '../data/berlinGeo'
 import { PinPopover } from './PinPopover'
 import { createBerlinMap, type BerlinMapHandle, type BerlinMapLayers } from './createBerlinMap'
 
@@ -25,14 +35,18 @@ export default function BerlinTripMap(props: BerlinTripMapProps): JSX.Element {
   const [pop, setPop] = createSignal<Pop>(null)
   let handle: BerlinMapHandle | null = null
 
+  // Lazy-load the ~1.5 MB basemap geometry (kept out of the bundle).
+  const [geo] = createResource(loadBerlinGeo)
+
   createEffect(() => {
     const el = svgEl
     const w = dims().w
     const h = dims().h
-    if (!el || w <= 0 || h <= 0) return
+    const data = geo()
+    if (!el || !data || w <= 0 || h <= 0) return
 
     handle?.destroy()
-    handle = createBerlinMap(el, w, h, {
+    handle = createBerlinMap(el, data, w, h, {
       onLineEnter: (label, e) => {
         setPop(null)
         setTip({ x: e.offsetX, y: e.offsetY, label })
@@ -108,6 +122,35 @@ export default function BerlinTripMap(props: BerlinTripMapProps): JSX.Element {
         style={{ background: 'var(--wf-paper)' }}
         data-testid="berlin-trip-map-svg"
       />
+
+      <Show when={geo.loading}>
+        <div class="pointer-events-none absolute inset-0 flex items-center justify-center">
+          <div
+            class="rounded-md px-3 py-2 text-sm font-semibold"
+            style={{
+              background: 'var(--wf-glass)',
+              border: '1.5px solid var(--wf-line)',
+              color: 'var(--wf-muted)',
+            }}
+          >
+            Loading map…
+          </div>
+        </div>
+      </Show>
+      <Show when={geo.error}>
+        <div class="absolute inset-0 flex items-center justify-center p-6">
+          <div
+            class="max-w-xs rounded-md px-3 py-2 text-center text-sm"
+            style={{
+              background: 'var(--wf-glass)',
+              border: '1.5px solid var(--wf-line)',
+              color: 'var(--wf-ink)',
+            }}
+          >
+            Couldn't load the map data.
+          </div>
+        </div>
+      </Show>
 
       <Show when={tip()}>
         {(t) => (

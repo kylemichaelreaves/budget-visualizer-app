@@ -12,11 +12,6 @@
  */
 import * as d3 from 'd3'
 import type { Feature, FeatureCollection, Geometry } from 'geojson'
-import berlinDistrictsRaw from '../data/berlinDistricts.json'
-import berlinWaterRaw from '../data/berlinWater.json'
-import berlinRoadsRaw from '../data/berlinRoads.json'
-import berlinTransitRaw from '../data/berlinTransit.json'
-import berlinWallRaw from '../data/berlinWall.json'
 import {
   BERLIN_CATEGORY_BY_KEY,
   BERLIN_CATEGORIES,
@@ -24,6 +19,7 @@ import {
   type BerlinCategoryKey,
   type BerlinPlace,
 } from '../data/berlinPlaces'
+import type { BerlinGeo, LineProps } from '../data/berlinGeo'
 import { shapeNode } from '../data/berlinShapes'
 
 export type BerlinMapCallbacks = {
@@ -68,15 +64,6 @@ const PADDING = 26
 const PIN = 22
 const CLICK_DIST_SQ = 25
 
-type DistrictProps = { name: string }
-type LineProps = { c?: string; k?: string; n?: string; ref?: string; net?: string; color?: string }
-
-const districts = berlinDistrictsRaw as unknown as FeatureCollection<Geometry, DistrictProps>
-const water = berlinWaterRaw as unknown as FeatureCollection<Geometry, LineProps>
-const roads = berlinRoadsRaw as unknown as FeatureCollection<Geometry, LineProps>
-const transit = berlinTransitRaw as unknown as FeatureCollection<Geometry, LineProps>
-const wall = berlinWallRaw as unknown as FeatureCollection<Geometry, LineProps>
-
 const FIT_BOUNDS: Record<BerlinFitPreset, [number, number, number, number]> = {
   // [minLng, minLat, maxLng, maxLat]
   city: [13.355, 52.498, 13.425, 52.532],
@@ -86,10 +73,12 @@ const FIT_BOUNDS: Record<BerlinFitPreset, [number, number, number, number]> = {
 
 export function createBerlinMap(
   svgEl: SVGSVGElement,
+  geo: BerlinGeo,
   width: number,
   height: number,
   callbacks: BerlinMapCallbacks,
 ): BerlinMapHandle {
+  const { districts, water, roads, transit, wall } = geo
   const svg = d3.select(svgEl)
   svg.selectAll('*').remove()
   svg.attr('viewBox', `0 0 ${width} ${height}`).attr('width', width).attr('height', height)
