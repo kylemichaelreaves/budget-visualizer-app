@@ -12,17 +12,24 @@ import MemosTable from '@components/memos/table/MemosTable'
 import BudgetCategoriesPage from '@components/budgetCategories/BudgetCategoriesPage'
 import DataImportPage from '@components/dataImport/DataImportPage'
 import GenealogyPage from '@genealogy/GenealogyPage'
+import BerlinTripPage from '@components/berlin/BerlinTripPage'
 import AccountSettingsPage from '@components/settings/AccountSettingsPage'
 import PendingTransactionsTable from '@components/transactions/pending/PendingTransactionsTable'
 import TransactionEditPage from '@components/transactions/forms/TransactionEditPage'
 import TransactionsTable from '@components/transactions/table/TransactionsTable'
 import TransactionsWithTimeframeSummaryRoute from '@components/transactions/summaries/TransactionsWithTimeframeSummaryRoute'
-import type { JSX } from 'solid-js'
+import { Show, type JSX } from 'solid-js'
+import { useLocation } from '@solidjs/router'
 
 function AppLayout(props: { children?: JSX.Element }) {
+  const loc = useLocation()
+  // The Berlin trip planner is a full-bleed standalone page — no app chrome.
+  const hideNav = () => loc.pathname.startsWith('/berlin')
   return (
     <>
-      <NavBar />
+      <Show when={!hideNav()}>
+        <NavBar />
+      </Show>
       {props.children}
     </>
   )
@@ -36,6 +43,7 @@ export default function App() {
       <Route path="/password/reset" component={ForgotPasswordPage} />
       <Route path="/password/confirm" component={ResetPasswordPage} />
       <Route path="/" component={() => <Navigate href="/budget-visualizer/transactions" />} />
+      <Route path="/berlin" component={BerlinTripPage} />
       <Route path="/budget-visualizer" component={BudgetVisualizer}>
         <Route path="/" component={() => <Navigate href="/budget-visualizer/transactions" />} />
         <Route path="/transactions" component={TransactionsTable} />
