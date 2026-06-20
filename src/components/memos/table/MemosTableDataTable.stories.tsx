@@ -67,7 +67,7 @@ const meta = {
 } satisfies Meta<typeof MemosTableDataTable>
 
 export default meta
-type Story = StoryObj<typeof meta>
+type Story = StoryObj // render-only stories build the component directly (no args)
 
 export const WithData: Story = {
   render: () => {

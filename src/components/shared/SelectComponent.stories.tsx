@@ -20,8 +20,10 @@ const meta = {
 
 export default meta
 type Story = StoryObj<typeof meta>
+// Render-only stories build the component directly (local signals / no args).
+type RenderStory = StoryObj
 
-export const Default: Story = {
+export const Default: RenderStory = {
   render: () => {
     const [value, setValue] = createSignal('pending')
     return (
@@ -38,7 +40,7 @@ export const Default: Story = {
   },
 }
 
-export const Loading: Story = {
+export const Loading: RenderStory = {
   render: () => {
     const [value, setValue] = createSignal('')
     return (

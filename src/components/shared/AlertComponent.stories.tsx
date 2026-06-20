@@ -13,6 +13,8 @@ const meta = {
 
 export default meta
 type Story = StoryObj<typeof meta>
+// Render-only stories build the component directly (local signals / no args).
+type RenderStory = StoryObj
 
 export const Success: Story = {
   args: {
@@ -50,7 +52,7 @@ export const Error: Story = {
   },
 }
 
-export const Dismissible: Story = {
+export const Dismissible: RenderStory = {
   render: () => {
     const [visible, setVisible] = createSignal(true)
     return (

@@ -121,6 +121,8 @@ const meta = {
 
 export default meta
 type Story = StoryObj<typeof meta>
+// Render-only stories build the component directly (local signals / no args).
+type RenderStory = StoryObj
 
 export const WithData: Story = {
   args: {
@@ -144,7 +146,7 @@ export const Empty: Story = {
   },
 }
 
-export const WithSliceClick: Story = {
+export const WithSliceClick: RenderStory = {
   render: () => {
     const [clicked, setClicked] = createSignal<string | null>(null)
     return (
