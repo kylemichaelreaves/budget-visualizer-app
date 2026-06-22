@@ -5,5 +5,5 @@ coverage
 playwright-report
 test-results
 
-# Generated Berlin map geo data (kept minified)
-src/components/berlin/data/*.json
+# Generated Berlin map geo data (kept minified; served as static assets, lazy-loaded)
+public/berlin/*.json
