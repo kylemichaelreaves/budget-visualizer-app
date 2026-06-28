@@ -2,6 +2,52 @@
 
 A SolidJS client which hits my resourceQuerier.
 
+<p>
+  <img src="docs/logos/solidjs.svg" alt="SolidJS" title="SolidJS" height="44" />
+  &nbsp;&nbsp;
+  <img src="docs/logos/typescript.svg" alt="TypeScript" title="TypeScript" height="44" />
+  &nbsp;&nbsp;
+  <img src="docs/logos/vite.svg" alt="Vite" title="Vite" height="44" />
+  &nbsp;&nbsp;
+  <img src="docs/logos/bun.svg" alt="Bun" title="Bun" height="44" />
+  &nbsp;&nbsp;
+  <img src="docs/logos/tailwindcss.svg" alt="Tailwind CSS" title="Tailwind CSS" height="44" />
+  &nbsp;&nbsp;
+  <img src="docs/logos/tanstack-query.svg" alt="TanStack Query" title="TanStack Query" height="44" />
+  &nbsp;&nbsp;
+  <img src="docs/logos/d3.svg" alt="D3" title="D3" height="44" />
+  &nbsp;&nbsp;
+  <img src="docs/logos/vitest.svg" alt="Vitest" title="Vitest" height="44" />
+  &nbsp;&nbsp;
+  <img src="docs/logos/playwright.svg" alt="Playwright" title="Playwright" height="44" />
+  &nbsp;&nbsp;
+  <img src="docs/logos/storybook.svg" alt="Storybook" title="Storybook" height="44" />
+</p>
+
+## Architecture
+
+The app is the SolidJS client in a small serverless stack: it talks to **resourceQuerier** (a Node Lambda behind API Gateway) for every read and write, while CSV statements are ingested asynchronously by **transactions-bucket-to-db** (a Python Lambda triggered by S3) into a shared PostgreSQL database.
+
+### CSV ingestion pipeline
+
+Uploading a statement issues a presigned S3 `PUT`; the `ObjectCreated` event triggers the ingestion Lambda, which parses, dedupes, and upserts rows into PostgreSQL.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/ingestion-pipeline-dark.png" />
+  <img alt="CSV ingestion pipeline" src="docs/diagrams/ingestion-pipeline.png" />
+</picture>
+
+### Making a query (read path)
+
+Reads are user-scoped: API Gateway authorizes the JWT, then resourceQuerier assembles a `WHERE user_id = $1` query before returning JSON — cached client-side by TanStack Query.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/query-sequence-dark.png" />
+  <img alt="Query sequence" src="docs/diagrams/query-sequence.png" />
+</picture>
+
+> Diagrams are maintained in [Figma](https://www.figma.com/design/XFuOT2EyY24FZTBZHk4EU0).
+
 ## Usage
 
 This project uses **[Bun](https://bun.sh)** to install dependencies, run the dev server, and build locally.
