@@ -32,13 +32,19 @@ The app is the SolidJS client in a small serverless stack: it talks to **resourc
 
 Uploading a statement issues a presigned S3 `PUT`; the `ObjectCreated` event triggers the ingestion Lambda, which parses, dedupes, and upserts rows into PostgreSQL.
 
-![CSV ingestion pipeline](docs/diagrams/ingestion-pipeline.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/ingestion-pipeline-dark.png" />
+  <img alt="CSV ingestion pipeline" src="docs/diagrams/ingestion-pipeline.png" />
+</picture>
 
 ### Making a query (read path)
 
 Reads are user-scoped: API Gateway authorizes the JWT, then resourceQuerier assembles a `WHERE user_id = $1` query before returning JSON — cached client-side by TanStack Query.
 
-![Query sequence](docs/diagrams/query-sequence.png)
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/diagrams/query-sequence-dark.png" />
+  <img alt="Query sequence" src="docs/diagrams/query-sequence.png" />
+</picture>
 
 > Diagrams are maintained in [Figma](https://www.figma.com/design/XFuOT2EyY24FZTBZHk4EU0).
 
