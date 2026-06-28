@@ -46,8 +46,6 @@ Reads are user-scoped: API Gateway authorizes the JWT, then resourceQuerier asse
   <img alt="Query sequence" src="docs/diagrams/query-sequence.png" />
 </picture>
 
-> Diagrams are maintained in [Figma](https://www.figma.com/design/XFuOT2EyY24FZTBZHk4EU0).
-
 ## Usage
 
 This project uses **[Bun](https://bun.sh)** to install dependencies, run the dev server, and build locally.
