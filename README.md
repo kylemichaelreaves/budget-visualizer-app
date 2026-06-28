@@ -9,7 +9,19 @@ A SolidJS client which hits my resourceQuerier.
   &nbsp;&nbsp;
   <img src="docs/logos/vite.svg" alt="Vite" title="Vite" height="44" />
   &nbsp;&nbsp;
+  <img src="docs/logos/bun.svg" alt="Bun" title="Bun" height="44" />
+  &nbsp;&nbsp;
+  <img src="docs/logos/tailwindcss.svg" alt="Tailwind CSS" title="Tailwind CSS" height="44" />
+  &nbsp;&nbsp;
   <img src="docs/logos/tanstack-query.svg" alt="TanStack Query" title="TanStack Query" height="44" />
+  &nbsp;&nbsp;
+  <img src="docs/logos/d3.svg" alt="D3" title="D3" height="44" />
+  &nbsp;&nbsp;
+  <img src="docs/logos/vitest.svg" alt="Vitest" title="Vitest" height="44" />
+  &nbsp;&nbsp;
+  <img src="docs/logos/playwright.svg" alt="Playwright" title="Playwright" height="44" />
+  &nbsp;&nbsp;
+  <img src="docs/logos/storybook.svg" alt="Storybook" title="Storybook" height="44" />
 </p>
 
 ## Architecture
