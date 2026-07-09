@@ -86,6 +86,14 @@ export function ItineraryPanel(props: {
                           {s.transit}
                         </div>
                       </Show>
+                      <Show when={s.notes}>
+                        <div
+                          class="mt-0.5 text-[11px] italic leading-tight"
+                          style={{ color: 'var(--wf-muted)' }}
+                        >
+                          {s.notes}
+                        </div>
+                      </Show>
                     </div>
                   </button>
                 )

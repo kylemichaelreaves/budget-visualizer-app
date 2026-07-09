@@ -175,6 +175,8 @@ export const BERLIN_PLACES: readonly BerlinPlace[] = [
   { id: 'alexanderplatz', name: 'Alexanderplatz', category: 'transit', lat: 52.5219, lng: 13.4132 },
   // Added for the itinerary (well-known landmarks with confident coordinates).
   { id: 'dussmann', name: 'Dussmann das KulturKaufhaus', category: 'stationery', lat: 52.5189, lng: 13.3884 },
+  { id: 'gendarmenmarkt', name: 'Gendarmenmarkt', category: 'philosophy', lat: 52.5132, lng: 13.3925 },
+  { id: 'neues-museum', name: 'Neues Museum', category: 'philosophy', lat: 52.5201, lng: 13.3976 },
   { id: 'naturkunde', name: 'Museum für Naturkunde', category: 'philosophy', lat: 52.5305, lng: 13.3793 },
   {
     id: 'hamburger-bahnhof',

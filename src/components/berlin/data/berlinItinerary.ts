@@ -17,6 +17,8 @@ export type ItineraryStop = {
   label: string
   /** "Getting there" note. */
   transit?: string
+  /** Descriptive aside about the stop itself (opening hours, what to see). */
+  notes?: string
   /** Links to a `BERLIN_PLACES` id → numbered pin on the map. */
   placeId?: string
 }
@@ -45,6 +47,36 @@ export const DAYS: ItineraryDay[] = [
     title: 'Arrival',
     stops: [
       {
+        time: '8:00 AM',
+        label: 'Einstein Kaffee (breakfast)',
+        notes: 'Opens 8:00 Sunday, right on Gendarmenmarkt',
+      },
+      {
+        label: 'Gendarmenmarkt',
+        notes: 'German/French Cathedrals, Konzerthaus',
+        placeId: 'gendarmenmarkt',
+      },
+      {
+        label: 'Bebelplatz',
+        notes: "Micha Ullman's empty-library memorial, 1933 book-burning site",
+        placeId: 'bebelplatz',
+      },
+      {
+        label: 'Humboldt University',
+        notes: 'Main building on Unter den Linden',
+        placeId: 'humboldt-uni',
+      },
+      {
+        label: 'Neue Wache',
+        notes: 'Kollwitz Pietà under the oculus, opens 10:00',
+        placeId: 'neue-wache',
+      },
+      {
+        label: 'Neues Museum',
+        notes: 'Nefertiti, Egyptian/prehistoric collections. Pergamon next door is closed for renovation.',
+        placeId: 'neues-museum',
+      },
+      {
         time: 'Morning',
         label: 'Land at BER — S9 → Friedrichstr. → U6 → Stadtmitte',
         transit: 'ABC ticket ~€4.70',
@@ -56,12 +88,6 @@ export const DAYS: ItineraryDay[] = [
         label: 'East Side Gallery + Karl-Marx-Allee stroll',
         transit: 'S-Bahn / tram from Mitte',
         placeId: 'east-side-gallery',
-      },
-      {
-        time: '6:30–8:30 PM',
-        label: 'Dussmann — buy KSA + Hegel Werke (arrange shipping)',
-        transit: '15-min walk from Hilton',
-        placeId: 'dussmann',
       },
     ],
   },
@@ -80,6 +106,13 @@ export const DAYS: ItineraryDay[] = [
       },
       { label: 'Neue Wache', placeId: 'neue-wache' },
       { label: "Bebelplatz + St. Hedwig's (Hegel statue en route)", placeId: 'bebelplatz' },
+      {
+        time: '8:30 PM',
+        label: 'Dussmann — buy KSA + Hegel Werke (arrange shipping)',
+        transit: 'walk via Friedrichstr.',
+        notes: 'Open till midnight Mon–Fri (closed Sundays)',
+        placeId: 'dussmann',
+      },
       { time: '~9:30 PM', label: 'Staatsbibliothek + stationery stop', placeId: 'staatsbibliothek' },
     ],
   },

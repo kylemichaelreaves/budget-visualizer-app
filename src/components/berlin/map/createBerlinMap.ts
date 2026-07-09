@@ -44,6 +44,12 @@ export type BerlinMapLayers = {
 
 export type BerlinFitPreset = 'city' | 'region' | 'everything'
 
+/** One decoded leg of the active itinerary route ([lng, lat] pairs). */
+export type BerlinMapRouteLeg = {
+  mode: 'walk' | 'transit'
+  coords: readonly [number, number][]
+}
+
 export type BerlinMapHandle = {
   setSelected: (id: string | null) => void
   setVisibleCategories: (keys: ReadonlySet<BerlinCategoryKey>) => void
@@ -51,10 +57,13 @@ export type BerlinMapHandle = {
   setFilterFaded: (ids: ReadonlySet<string>) => void
   /** Ordered stop ids for the active day (numbered pins + auto-fade others). */
   setDay: (orderedIds: readonly string[]) => void
+  /** Route for the active itinerary leg — walk legs dotted, transit solid. */
+  setRoute: (legs: readonly BerlinMapRouteLeg[] | null) => void
   setCluster: (on: boolean) => void
   zoomBy: (factor: number) => void
   fit: (preset: BerlinFitPreset) => void
   fitPlaces: (ids: readonly string[]) => void
+  fitCoords: (coords: readonly [number, number][]) => void
   focusPlace: (id: string) => void
   resetView: () => void
   destroy: () => void
@@ -264,6 +273,42 @@ export function createBerlinMap(
     .attr('stroke-dasharray', '7 5')
     .attr('opacity', 0.75)
     .attr('vector-effect', 'non-scaling-stroke')
+
+  // ── Active itinerary route (walk/transit legs, set via setRoute) ──
+  const routeLayer = root.append('g').attr('data-role', 'route')
+  function setRoute(legs: readonly BerlinMapRouteLeg[] | null): void {
+    routeLayer.selectAll('*').remove()
+    if (!legs?.length) return
+    const line = d3.line()
+    const ds = legs
+      .map((leg) => ({ leg, d: line(leg.coords.map(([lng, lat]) => project({ lng, lat }))) }))
+      .filter((x): x is { leg: BerlinMapRouteLeg; d: string } => Boolean(x.d))
+    // paper-coloured casing under every leg so the route reads over busy streets
+    for (const { d } of ds) {
+      routeLayer
+        .append('path')
+        .attr('d', d)
+        .attr('fill', 'none')
+        .style('stroke', 'var(--wf-paper)')
+        .attr('stroke-width', 5.5)
+        .attr('stroke-linecap', 'round')
+        .attr('stroke-linejoin', 'round')
+        .attr('opacity', 0.75)
+        .attr('vector-effect', 'non-scaling-stroke')
+    }
+    for (const { leg, d } of ds) {
+      routeLayer
+        .append('path')
+        .attr('d', d)
+        .attr('fill', 'none')
+        .style('stroke', 'var(--wf-accent)')
+        .attr('stroke-width', 2.6)
+        .attr('stroke-linecap', 'round')
+        .attr('stroke-linejoin', 'round')
+        .attr('stroke-dasharray', leg.mode === 'walk' ? '0.5 5' : null)
+        .attr('vector-effect', 'non-scaling-stroke')
+    }
+  }
 
   // ── Hover hit targets for named lines (streets / wall / rail) ──
   type HitLayer = 'streets' | 'wall' | 'rail'
@@ -548,10 +593,17 @@ export function createBerlinMap(
     hits.attr('display', (d) => (on[d.layer] ? null : 'none'))
   }
   function fitPlaces(ids: readonly string[]): void {
-    const pts = ids.map((id) => byId[id]).filter(Boolean)
-    if (!pts.length) return fitBounds(...FIT_BOUNDS.city)
-    const lngs = pts.map((p) => p.lng)
-    const lats = pts.map((p) => p.lat)
+    fitCoords(
+      ids
+        .map((id) => byId[id])
+        .filter(Boolean)
+        .map((p) => [p.lng, p.lat]),
+    )
+  }
+  function fitCoords(coords: readonly [number, number][]): void {
+    if (!coords.length) return fitBounds(...FIT_BOUNDS.city)
+    const lngs = coords.map((c) => c[0])
+    const lats = coords.map((c) => c[1])
     const padLng = Math.max(0.004, (Math.max(...lngs) - Math.min(...lngs)) * 0.2)
     const padLat = Math.max(0.003, (Math.max(...lats) - Math.min(...lats)) * 0.2)
     fitBounds(
@@ -591,10 +643,12 @@ export function createBerlinMap(
     setLayers,
     setFilterFaded,
     setDay,
+    setRoute,
     setCluster,
     zoomBy,
     fit,
     fitPlaces,
+    fitCoords,
     focusPlace,
     resetView,
     destroy,

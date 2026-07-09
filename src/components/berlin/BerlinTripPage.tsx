@@ -1,11 +1,13 @@
-import { type JSX, createEffect, createMemo, createSignal, onCleanup, onMount } from 'solid-js'
+import { type JSX, Show, createEffect, createMemo, createSignal, onCleanup, onMount } from 'solid-js'
 import { useNavigate } from '@solidjs/router'
 import { authState } from '@stores/authStore'
 import './berlin-paper.css'
 import { BERLIN_CATEGORIES, BERLIN_PLACES, type BerlinCategoryKey } from './data/berlinPlaces'
 import { DAYS, DAY_BY_KEY, dayPlaceIds, type ItineraryDay } from './data/berlinItinerary'
 import { walkMinutesFromHotel } from './utils/walkFromHotel'
+import { stopRoute, type StopRoute } from './utils/stopRoute'
 import { TopBar } from './ui/TopBar'
+import { RouteInfo } from './ui/RouteInfo'
 import { Sidebar } from './ui/Sidebar'
 import { DayStepper } from './ui/DayStepper'
 import { MapLegend } from './ui/MapLegend'
@@ -71,6 +73,12 @@ export default function BerlinTripPage(): JSX.Element {
     const k = activeDayKey()
     return k ? (DAY_BY_KEY[k] ?? null) : null
   })
+  // Route arriving at the stepper's current stop (null on overview/text-only stops).
+  const activeRoute = createMemo<StopRoute | null>(() => {
+    const day = activeDay()
+    const i = stopIndex()
+    return day && i >= 0 ? stopRoute(day, i) : null
+  })
 
   function toggleCat(key: BerlinCategoryKey): void {
     const next = new Set(catOn())
@@ -92,7 +100,10 @@ export default function BerlinTripPage(): JSX.Element {
     if (!s) return
     if (s.placeId) {
       setSelectedId(s.placeId)
-      mapHandle?.focusPlace(s.placeId)
+      // frame the whole incoming leg when there is one, else just the stop
+      const r = stopRoute(day, i)
+      if (r) mapHandle?.fitCoords(r.legs.flatMap((l) => l.coords))
+      else mapHandle?.fitPlaces([s.placeId])
     } else {
       // text-only stop (food / spa / boutique): just highlight in the list
       setSelectedId(null)
@@ -194,12 +205,20 @@ export default function BerlinTripPage(): JSX.Element {
               visibleCategories={visibleCategories}
               filterFaded={filterFaded}
               dayIds={dayIds}
+              route={() => activeRoute()?.legs ?? null}
               cluster={cluster}
               selectedId={selectedId}
               onSelect={setSelectedId}
               registerHandle={(h) => (mapHandle = h)}
             />
             <div class="pointer-events-none absolute inset-0">
+              <Show when={activeRoute()} keyed>
+                {(r) => (
+                  <div class="absolute left-1/2 top-3.5 -translate-x-1/2">
+                    <RouteInfo seg={r.seg} route={r.route} />
+                  </div>
+                )}
+              </Show>
               <div class="pointer-events-auto absolute bottom-3.5 left-3.5">
                 <MapLegend catOn={catOn()} toggleCat={toggleCat} />
               </div>

@@ -12,7 +12,12 @@ import { useElementSize } from '@composables/useElementSize'
 import { byId, type BerlinCategoryKey } from '../data/berlinPlaces'
 import { loadBerlinGeo } from '../data/berlinGeo'
 import { PinPopover } from './PinPopover'
-import { createBerlinMap, type BerlinMapHandle, type BerlinMapLayers } from './createBerlinMap'
+import {
+  createBerlinMap,
+  type BerlinMapHandle,
+  type BerlinMapLayers,
+  type BerlinMapRouteLeg,
+} from './createBerlinMap'
 
 type Tip = { x: number; y: number; label: string } | null
 type Pop = { id: string; x: number; y: number } | null
@@ -22,6 +27,7 @@ export type BerlinTripMapProps = {
   visibleCategories: () => ReadonlySet<BerlinCategoryKey>
   filterFaded: () => ReadonlySet<string>
   dayIds: () => readonly string[]
+  route: () => readonly BerlinMapRouteLeg[] | null
   cluster: () => boolean
   selectedId: () => string | null
   onSelect: (id: string | null) => void
@@ -67,6 +73,7 @@ export default function BerlinTripMap(props: BerlinTripMapProps): JSX.Element {
       handle?.setLayers(props.layers())
       handle?.setFilterFaded(props.filterFaded())
       handle?.setDay(props.dayIds())
+      handle?.setRoute(props.route())
       handle?.setCluster(props.cluster())
       handle?.setSelected(props.selectedId())
       props.registerHandle(handle!)
@@ -92,6 +99,10 @@ export default function BerlinTripMap(props: BerlinTripMapProps): JSX.Element {
   createEffect(() => {
     const v = props.dayIds()
     handle?.setDay(v)
+  })
+  createEffect(() => {
+    const v = props.route()
+    handle?.setRoute(v)
   })
   createEffect(() => {
     const v = props.cluster()
