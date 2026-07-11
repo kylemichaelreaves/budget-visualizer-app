@@ -199,6 +199,20 @@ export const BERLIN_PLACES: readonly BerlinPlace[] = [
     lat: 52.4869,
     lng: 13.4699,
   },
+  {
+    id: 'hegel-house',
+    name: "Hegel's House (Am Kupfergraben 4a)",
+    category: 'philosophy',
+    lat: 52.5203,
+    lng: 13.3958,
+  },
+  {
+    id: 'staatsbibliothek-unter-den-linden',
+    name: 'Staatsbibliothek zu Berlin — Handschriftenabteilung (Unter den Linden)',
+    category: 'philosophy',
+    lat: 52.5168,
+    lng: 13.3941,
+  },
 ]
 
 export const byId: Record<string, BerlinPlace> = Object.fromEntries(BERLIN_PLACES.map((p) => [p.id, p]))

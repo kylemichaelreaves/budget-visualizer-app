@@ -63,8 +63,27 @@ export const DAYS: ItineraryDay[] = [
       },
       {
         label: 'Humboldt University',
-        notes: 'Main building on Unter den Linden',
+        notes:
+          'Main building on Unter den Linden. Hegel held the chair of philosophy here from 1818 until his death, delivered his Berlin lectures (history of philosophy, aesthetics, philosophy of religion, philosophy of right), and served as Rector 1829–30. Courtyard and entrance hall open to visitors.',
         placeId: 'humboldt-uni',
+      },
+      {
+        label: "Hegel's House (Am Kupfergraben 4a)",
+        notes:
+          'Hegel lived here from 1820 until his death on 14 Nov 1831 (likely cholera) — he had told his wife he wished to die in this house. Private residence today, marked by a plaque; view from the street / Kupfergraben canal.',
+        placeId: 'hegel-house',
+      },
+      {
+        label: 'Staatsbibliothek — Handschriftenabteilung (Hegel Nachlass)',
+        notes:
+          "Holds Hegel's handwritten Nachlass (per Eva Ziesche's catalogue). Manuscript access needs advance arrangement (handschriften-historischedrucke@sbb.spk-berlin.de); the reading rooms and building can be visited more casually.",
+        placeId: 'staatsbibliothek-unter-den-linden',
+      },
+      {
+        label: "Hegel's grave (Dorotheenstädtischer Friedhof)",
+        notes:
+          'Buried 16 Nov 1831 in a plot he chose himself, next to Fichte and Solger (also nearby: Brecht, Heinrich Mann, Marcuse). ~20–25 min walk or short U-Bahn ride north of Unter den Linden.',
+        placeId: 'hegel-grave',
       },
       {
         label: 'Neue Wache',
