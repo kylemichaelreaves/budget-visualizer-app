@@ -98,13 +98,6 @@ export const queryKeys = {
   user: ['user'] as const,
   userDetail: (userId: number | undefined) => ['user', userId] as const,
   address: (id: string, fetchURL: string) => ['address', id, fetchURL] as const,
-  historicalCounties: {
-    all: ['historical-counties'] as const,
-    index: ['historical-counties', 'index'] as const,
-    state: (abbr: string) => ['historical-counties', 'state', abbr] as const,
-    byStates: (abbrs: readonly string[]) =>
-      ['historical-counties', 'states', [...abbrs].sort().join(',')] as const,
-  },
 } as const
 
 /** TanStack mutation keys (devtools / dedupe); not used for cache invalidation prefixes. */

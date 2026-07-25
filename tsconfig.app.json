@@ -20,8 +20,7 @@
       "@utils/*": ["src/utils/*"],
       "@router": ["src/router/index.tsx"],
       "@shared/*": ["src/shared/*"],
-      "@mocks/*": ["src/mocks/*"],
-      "@genealogy/*": ["src/components/genealogy/*"]
+      "@mocks/*": ["src/mocks/*"]
     },
 
     /* Bundler mode */
