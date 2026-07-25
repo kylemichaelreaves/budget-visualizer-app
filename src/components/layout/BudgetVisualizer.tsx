@@ -22,10 +22,6 @@ const menuSections: MenuSection[] = [
       { path: '/budget-visualizer/loan-calculator', title: 'Loan Calculator' },
     ],
   },
-  {
-    label: 'Genealogy',
-    items: [{ path: '/budget-visualizer/genealogy', title: 'Family Tree' }],
-  },
 ]
 
 export default function BudgetVisualizer(props: { children?: JSX.Element }) {
@@ -60,7 +56,6 @@ export default function BudgetVisualizer(props: { children?: JSX.Element }) {
           when={
             !loc.pathname.includes('/budget-categories') &&
             !loc.pathname.includes('/loan-calculator') &&
-            !loc.pathname.includes('/genealogy') &&
             !loc.pathname.includes('/account') &&
             !loc.pathname.includes('/transactions/csv')
           }

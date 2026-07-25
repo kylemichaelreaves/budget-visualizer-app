@@ -55,10 +55,10 @@ Use **`git commit --no-verify`** only when a hook is misbehaving in the agent en
 
 Convention, not a lint gate — there is no clean Solid-native rule to enforce it (`react/no-multi-comp` is React-only and misfires on render-prop children and local fragments), so hold it in review instead.
 
-- **One component per file.** A reusable/named component gets its own file named after it (e.g., `tree/PersonCard.tsx`, `map/GenealogyMapPanel.tsx`). The page component is composition + state only.
+- **One component per file.** A reusable/named component gets its own file named after it (e.g., `forms/TransactionCreateForm.tsx`, `table/TransactionsTable.tsx`). The page component is composition + state only.
 - **Co-locate only trivial, single-use fragments** (a one-off `Row`/`Section`/`StepBtn` used by exactly one parent) inside that parent's file. The moment a fragment is reused or grows, promote it to its own file.
-- **Pure helpers live in their own `lib/`/`utils/` files**, one concern per file (e.g., `lib/matchHistoricalCounty.ts`), not mixed into data or component files.
-- See `src/components/genealogy/` for the reference layout (`map/`, `tree/`, `lib/`, `hooks/`).
+- **Pure helpers live in their own `helpers/`/`utils/` files**, one concern per file, not mixed into data or component files.
+- See `src/components/transactions/` for the reference layout (`table/`, `forms/`, `charts/`, `summaries/`, `helpers/`).
 
 ## API conventions
 
