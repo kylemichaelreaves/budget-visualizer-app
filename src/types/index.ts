@@ -45,11 +45,8 @@ export interface Categories {
   [key: string]: Categories
 }
 
+/** Row from `GET /transactions?totalAmountDebit` — one per day in the interval. */
 export interface DailyInterval {
-  day_number?: number
-  week_number?: number
-  month_number?: number
-  year?: number
   date: Date
   total_amount_debit: number
   total_debit?: number
@@ -138,13 +135,13 @@ export interface MonthYear {
   month_year: string
 }
 
+/**
+ * Row from a summary endpoint. Exactly one of `period_start` (historical
+ * summaries) or `date` (daily totals) is present — see `summaryPointDate`.
+ */
 export type SummaryTypeBase = {
   total_debit: number
   total_amount_debit?: number
-  year: string
-  day_number?: string
-  week_number?: string
-  month_number?: string
   json?: JsonObjectType
   date?: string
   period_start?: string

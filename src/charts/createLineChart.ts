@@ -28,14 +28,18 @@ export function createLineChart(
   if (!parentElement) return
   const parentWidth = parentElement.getBoundingClientRect().width
 
-  const chartData = summaries.flat().map((item: SummaryTypeBase | DailyInterval) => {
-    const date = summaryPointDate(item)
-    const total_debit = item.total_amount_debit ?? item.total_debit
-    return {
-      date,
-      total_debit: total_debit as number,
-    }
-  })
+  const chartData = summaries
+    .flat()
+    .map((item: SummaryTypeBase | DailyInterval) => {
+      const total_debit = item.total_amount_debit ?? item.total_debit
+      return {
+        date: summaryPointDate(item),
+        total_debit: total_debit as number,
+      }
+    })
+    // Rows with no parseable date are dropped rather than plotted at a guessed
+    // position — see summaryPointDate.
+    .filter((d): d is LineChartDataPoint => d.date !== null)
 
   if (chartData.length === 0) return
 
