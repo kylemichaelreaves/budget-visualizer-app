@@ -150,7 +150,7 @@ It deliberately sets **no `default-src`**: that would inherit into `connect-src`
 
 ## Unit tests run in a non-UTC timezone
 
-The `test` scripts pin **`TZ=America/New_York`**, matching where the project is developed. This is load-bearing, not cosmetic: in a UTC process, code that builds dates with the local-time `new Date(y, m, d)` constructor behaves identically to correct `Date.UTC(...)` code, so a whole class of off-by-one-day bug is invisible. CI containers default to UTC, which is exactly how the `createLineChart` fallback bug survived.
+The `test` scripts pin **`TZ=America/New_York`**, matching where the project is developed. This is load-bearing, not cosmetic: in a UTC process, code that resolves dates in the local zone behaves identically to correct UTC code, so a whole class of off-by-one-day bug is invisible. CI containers default to UTC.
 
 - Don't drop `TZ` from those scripts — `tests/unit/summaryPointDate.test.ts` has a precondition test that fails loudly if the suite ends up in UTC.
 - Setting `process.env.TZ` inside a test, or via vitest's `env` option, **does not work** — Node caches the zone at startup. It has to be set before the process starts.
@@ -160,6 +160,10 @@ The `test` scripts pin **`TZ=America/New_York`**, matching where the project is 
 ## Period filter value formats
 
 Month (`MM-YYYY`) and ISO week (`IW-YYYY`) filter values are the **same wire shape** and are indistinguishable for leading values 01–12 — `05-2026` is a valid month _and_ a valid ISO week, and `parseDateMMYYYY` / `parseDateIWIYYY` will each accept it and return dates ~4 months apart. The caller must already know which it holds (from `selectedMonth` vs `selectedWeek`, or the `month=` vs `week=` param). Don't add format "detection", and don't route one of these strings through a channel that has lost the distinction. See `periodValueFormat.ts`.
+
+## Summary rows always carry a string date
+
+Both endpoints behind `LineChart` select a date column, so a summary row has either `period_start` (historical summaries, `date_trunc`) or `date` (daily totals, `DATE(date)`). There are no `year` / `day_number` / `week_number` / `month_number` fields — those names appear nowhere in resourceQuerier, and the client-side fallback that once reconstructed a date from them was unreachable. Don't reintroduce it: `summaryPointDate` returns `null` for an unusable row and `createLineChart` drops the point, which is preferable to plotting a guessed position.
 
 ## Playwright tests
 

@@ -4,23 +4,20 @@ import { summaryPointDate } from '@charts/summaryPointDate'
 import type { SummaryTypeBase } from '@types'
 
 /**
- * In a UTC process the buggy local-time arithmetic and the correct UTC
- * arithmetic are *behaviourally identical*, so no assertion here could tell them
- * apart — that is why the original bug survived CI, whose containers run UTC.
- * The suite therefore pins `TZ=America/New_York` in the `test` script. Node
- * caches the zone at startup, so setting `process.env.TZ` from inside a test, or
- * via vitest's `env` option, is too late and silently does nothing.
+ * `summaryPointDate` must always land on a UTC instant, because the chart scales
+ * with `d3.scaleUtc()` and emits `d3.utcFormat('%Y-%m-%d')` on click. Left to the
+ * local zone, a timezone-less timestamp shifts the plotted point — and the date
+ * it filters by — a day for anyone east of UTC.
  *
- * Any non-zero offset is sufficient, because the assertions below check the
- * exact resolved *instant* rather than the formatted calendar day. Asserting
- * `2026-03-01T00:00:00.000Z` is strictly stronger than asserting the day reads
- * "2026-03-01": an instant of exactly UTC midnight is the correct calendar day
- * in every timezone, so pinning the zone developers actually work in loses no
- * coverage versus picking one east of UTC.
+ * In a UTC process, correct and incorrect handling are indistinguishable, so the
+ * suite pins `TZ=America/New_York` in the `test` script. Node caches the zone at
+ * startup, so setting `process.env.TZ` inside a test, or via vitest's `env`
+ * option, is too late and silently does nothing. The guard below makes that
+ * dependency load-bearing instead of implicit.
  *
- * This guard makes the dependency load-bearing rather than implicit: if the TZ
- * is ever dropped from the script, this fails loudly instead of letting the
- * suite below quietly stop testing anything.
+ * Assertions check the resolved instant rather than the formatted day:
+ * `2026-03-01T00:00:00.000Z` is strictly stronger than `'2026-03-01'`, since an
+ * instant at UTC midnight is the correct calendar day in every zone.
  */
 const localUtcOffsetMinutes = new Date('2026-03-01T00:00:00Z').getTimezoneOffset()
 
@@ -28,84 +25,80 @@ describe('timezone precondition', () => {
   it('runs in a non-UTC zone, or the assertions below prove nothing', () => {
     expect(
       localUtcOffsetMinutes,
-      'Expected TZ=America/New_York (see the `test` script). In UTC the local-time bug this file ' +
-        'guards against is indistinguishable from correct behaviour, so these tests would pass either way.',
+      'Expected TZ=America/New_York (see the `test` script). In UTC, local-time and UTC date ' +
+        'handling are indistinguishable, so these tests would pass either way.',
     ).not.toBe(0)
   })
 })
 
-/**
- * Exactly what LineChart's click handler emits from the resolved date. Checked
- * alongside the instant so a failure names the user-visible symptom (the wrong
- * day gets filtered), but the instant assertion is the one with teeth in a
- * west-of-UTC zone.
- */
+/** Exactly what LineChart's click handler emits from the resolved date. */
 const asFilterDate = d3.utcFormat('%Y-%m-%d')
 
 function row(fields: Partial<SummaryTypeBase>): SummaryTypeBase {
-  return { total_debit: 0, year: '2026', ...fields }
+  return { total_debit: 0, ...fields }
 }
 
 describe('summaryPointDate', () => {
-  describe('field fallbacks resolve to UTC, not local midnight', () => {
-    it('day_number resolves to UTC midnight on that day', () => {
-      const date = summaryPointDate(row({ year: '2026', month_number: '3', day_number: '1' }))
-      expect(date.toISOString()).toBe('2026-03-01T00:00:00.000Z')
-      expect(asFilterDate(date)).toBe('2026-03-01')
+  describe('period_start — historical summaries (date_trunc)', () => {
+    it('parses a full ISO instant', () => {
+      const date = summaryPointDate(row({ period_start: '2026-05-20T00:00:00.000Z' }))
+      expect(date?.toISOString()).toBe('2026-05-20T00:00:00.000Z')
+      expect(date && asFilterDate(date)).toBe('2026-05-20')
     })
 
-    it('month-only rows land on the first of the month', () => {
-      const date = summaryPointDate(row({ year: '2026', month_number: '3' }))
-      expect(asFilterDate(date)).toBe('2026-03-01')
-      expect(date.toISOString()).toBe('2026-03-01T00:00:00.000Z')
+    it('takes precedence over date', () => {
+      const date = summaryPointDate(row({ period_start: '2026-05-20T00:00:00.000Z', date: '2026-01-01' }))
+      expect(date && asFilterDate(date)).toBe('2026-05-20')
     })
 
-    it('week_number rows resolve at UTC midnight', () => {
-      const date = summaryPointDate(row({ year: '2026', week_number: '2' }))
-      expect(date.getUTCHours()).toBe(0)
-      expect(date.toISOString()).toBe('2026-01-08T00:00:00.000Z')
+    it('anchors a timezone-less timestamp to UTC, not the local zone', () => {
+      const date = summaryPointDate(row({ period_start: '2026-03-01T00:00:00' }))
+      expect(date?.toISOString()).toBe('2026-03-01T00:00:00.000Z')
+      expect(date && asFilterDate(date)).toBe('2026-03-01')
     })
 
-    it('is unaffected by DST (America/New_York is UTC-4 in July, UTC-5 in March)', () => {
-      const date = summaryPointDate(row({ year: '2026', month_number: '7', day_number: '15' }))
-      expect(date.toISOString()).toBe('2026-07-15T00:00:00.000Z')
-      expect(asFilterDate(date)).toBe('2026-07-15')
-    })
-
-    it('does not shift January 1 across a year boundary', () => {
-      const date = summaryPointDate(row({ year: '2026', month_number: '1', day_number: '1' }))
-      expect(date.toISOString()).toBe('2026-01-01T00:00:00.000Z')
-      expect(asFilterDate(date)).toBe('2026-01-01')
+    it('handles a stringified Date, as the pg driver may produce', () => {
+      const stringified = String(new Date('2026-03-01T00:00:00.000Z'))
+      const date = summaryPointDate(row({ period_start: stringified }))
+      expect(date && asFilterDate(date)).toBe('2026-03-01')
     })
   })
 
-  describe('string date fields still take precedence', () => {
-    it('prefers period_start over the numeric fields', () => {
-      const date = summaryPointDate(
-        row({ period_start: '2026-05-20T00:00:00.000Z', month_number: '3', day_number: '1' }),
-      )
-      expect(asFilterDate(date)).toBe('2026-05-20')
+  describe('date — daily interval totals (DATE(date))', () => {
+    it('treats a date-only string as UTC midnight', () => {
+      const date = summaryPointDate(row({ date: '2026-03-01' }))
+      expect(date?.toISOString()).toBe('2026-03-01T00:00:00.000Z')
+      expect(date && asFilterDate(date)).toBe('2026-03-01')
     })
 
-    it('parses a full ISO instant', () => {
-      const date = summaryPointDate(row({ date: '2026-05-20T00:00:00.000Z' }))
-      expect(date.toISOString()).toBe('2026-05-20T00:00:00.000Z')
+    it('does not shift a date-only string across a year boundary', () => {
+      const date = summaryPointDate(row({ date: '2026-01-01' }))
+      expect(date?.toISOString()).toBe('2026-01-01T00:00:00.000Z')
     })
 
-    it('treats a timezone-less ISO timestamp as UTC', () => {
-      const date = summaryPointDate(row({ date: '2026-05-20T00:00:00' }))
-      expect(asFilterDate(date)).toBe('2026-05-20')
+    it('is unaffected by DST (America/New_York is UTC-4 in July, UTC-5 in January)', () => {
+      expect(summaryPointDate(row({ date: '2026-07-15' }))?.toISOString()).toBe('2026-07-15T00:00:00.000Z')
+      expect(summaryPointDate(row({ date: '2026-01-15' }))?.toISOString()).toBe('2026-01-15T00:00:00.000Z')
     })
 
     it('honours an explicit non-UTC offset rather than re-anchoring it', () => {
       const date = summaryPointDate(row({ date: '2026-05-20T23:30:00+02:00' }))
-      expect(date.toISOString()).toBe('2026-05-20T21:30:00.000Z')
+      expect(date?.toISOString()).toBe('2026-05-20T21:30:00.000Z')
+    })
+  })
+
+  describe('unusable rows yield null so the caller can drop the point', () => {
+    it('returns null when neither field is present', () => {
+      expect(summaryPointDate(row({}))).toBeNull()
     })
 
-    it('falls through to the numeric fields when the string is unparseable', () => {
-      const date = summaryPointDate(row({ date: 'not a date', month_number: '3', day_number: '1' }))
-      expect(date.toISOString()).toBe('2026-03-01T00:00:00.000Z')
-      expect(asFilterDate(date)).toBe('2026-03-01')
+    it('returns null for an empty or whitespace value', () => {
+      expect(summaryPointDate(row({ date: '' }))).toBeNull()
+      expect(summaryPointDate(row({ period_start: '   ' }))).toBeNull()
+    })
+
+    it('returns null for an unparseable value rather than guessing', () => {
+      expect(summaryPointDate(row({ date: 'not a date' }))).toBeNull()
     })
   })
 })

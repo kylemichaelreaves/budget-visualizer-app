@@ -30,8 +30,6 @@ function generateMonthlyData(months: number): SummaryTypeBase[] {
     data.push({
       period_start: dt.toISOString(),
       total_debit: Math.round((Math.random() * 3000 + 800) * 100) / 100,
-      year: String(y),
-      month_number: String(m),
     })
   }
   return data
