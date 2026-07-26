@@ -1,5 +1,6 @@
 import type { DailyInterval, LineChartDataPoint, SummaryTypeBase } from '@types'
 import * as d3 from 'd3'
+import { summaryPointDate } from './summaryPointDate'
 
 const moneyFormatter = new Intl.NumberFormat('en-US', {
   style: 'currency',
@@ -27,38 +28,8 @@ export function createLineChart(
   if (!parentElement) return
   const parentWidth = parentElement.getBoundingClientRect().width
 
-  const parseDateUTC = d3.utcParse('%Y-%m-%dT%H:%M:%S.%LZ')
-
-  const hasExplicitTimezone = (s: string): boolean => /[zZ]$|[+-]\d{2}:?\d{2}$/.test(s.trim())
-
-  const createDateFromItem = (item: SummaryTypeBase | DailyInterval): Date => {
-    const raw = (item as SummaryTypeBase).period_start ?? item.date
-    if (raw) {
-      const str = String(raw).trim()
-      const parsed = parseDateUTC(str)
-      if (parsed) return parsed
-      // Timezone-less ISO timestamps: parse as UTC so x-axis matches utc scales
-      if (!hasExplicitTimezone(str) && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}/.test(str)) {
-        const utc = new Date(str.endsWith('Z') ? str : `${str.replace(/Z$/i, '')}Z`)
-        if (!Number.isNaN(utc.getTime())) return utc
-      }
-      const fallback = new Date(str)
-      if (!Number.isNaN(fallback.getTime())) return fallback
-    }
-
-    if (item.day_number) {
-      return new Date(Number(item.year), Number(item.month_number) - 1, Number(item.day_number))
-    }
-
-    if (item.week_number) {
-      return new Date(Number(item.year), 0, 1 + (Number(item.week_number) - 1) * 7)
-    }
-
-    return new Date(Number(item.year), Number(item.month_number) - 1, 1)
-  }
-
   const chartData = summaries.flat().map((item: SummaryTypeBase | DailyInterval) => {
-    const date = createDateFromItem(item)
+    const date = summaryPointDate(item)
     const total_debit = item.total_amount_debit ?? item.total_debit
     return {
       date,
