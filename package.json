@@ -15,9 +15,10 @@
     "test:all": "bun run test && bun run test:e2e",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "typecheck": "tsc -b",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "prepush": "bun run lint && bun run format:check",
+    "prepush": "bun run lint && bun run format:check && bun run typecheck",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build"
   },

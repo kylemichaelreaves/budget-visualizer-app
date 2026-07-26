@@ -5,9 +5,15 @@
 Always run these before committing or creating a PR:
 
 ```bash
-bun run lint           # eslint
+bun run prepush        # lint + format:check + typecheck — mirrors the CI gates
+```
+
+Or individually:
+
+```bash
+bun run lint           # eslint (covers src, tests/unit, tests/e2e, and root configs)
 bun run format:check   # prettier (or `bun run format` to fix)
-npx tsc -b             # TypeScript type checking (build mode — matches CI)
+bun run typecheck      # tsc -b — builds app, node, unit-test, and e2e projects
 ```
 
 ## Git hooks (optional, no extra npm deps)
@@ -18,7 +24,7 @@ Tracked hooks live in **`.githooks/`**. Point Git at them once per clone:
 git config core.hooksPath .githooks
 ```
 
-- **`pre-push`** runs `bun run prepush` (`lint` + `format:check`).
+- **`pre-push`** runs `bun run prepush` (`lint` + `format:check` + `typecheck`).
 - **`pre-commit`** runs **`bun run test`** (Vitest unit tests; not `bun test`, which uses Bun’s built-in runner).
 
 **Before every `git push`:** run `bun run prepush` (or rely on the hook). If it fails, run `bun run format` and fix lint, then push again. Agents should do the same even when using `--no-verify`.
@@ -79,6 +85,13 @@ Convention, not a lint gate — there is no clean Solid-native rule to enforce i
   - `invalidateAfterMemoMutation(queryClient)` — memos + transactions
 - **Do not** `await` invalidation inside hook-level `onSuccess` for `mutateTransaction` — TanStack Query v5 blocks `mutate()`-level callbacks, which prevents `history.back()` navigation. Call `invalidateAfterTransactionUpdate` at the call site instead.
 - Don't use store-level caches that short-circuit `queryFn` — let TanStack manage caching
+
+## Retry policy
+
+Set in `@api/queryClient` defaults; don't override per-call without a stated reason.
+
+- **Mutations never auto-retry** (`retry: false`). Every mutation here is a non-idempotent POST/PATCH, so a replay duplicates the write — a second transaction row, a second reset email, or a password change retried with a now-stale `currentPassword` that reports failure after succeeding. If a specific endpoint becomes genuinely idempotent, opt that one mutation back in and say why.
+- **Queries retry only when a retry could work** — see `shouldRetryQuery`: transport failures (no response) and 5xx, capped at `MAX_QUERY_RETRIES`. Never 4xx, never cancellations, never errors thrown by our own `queryFn`.
 - For loading states during mutations, only show skeleton on initial load (`!query.data?.pages?.length`), not on background refetches — this preserves scroll position
 
 ## Utilities

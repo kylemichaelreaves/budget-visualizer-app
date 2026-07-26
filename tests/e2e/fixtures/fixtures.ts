@@ -1,4 +1,11 @@
 import { test as base } from '@playwright/test'
+import type {
+  Fixtures as PlaywrightFixtures,
+  PlaywrightTestArgs,
+  PlaywrightTestOptions,
+  PlaywrightWorkerArgs,
+  PlaywrightWorkerOptions,
+} from '@playwright/test'
 import { E2E_AUTH_TOKEN, E2E_AUTH_USER } from './auth-storage'
 import { installApiMocks } from './install-api-mocks'
 import { ForgotPasswordPage } from '../pages/ForgotPasswordPage'
@@ -47,8 +54,17 @@ type Fixtures = {
 
 /**
  * Page Object Model instances shared by unauthenticated `test` and `authenticatedTest`.
+ *
+ * Annotated explicitly: hoisting this map out of the `base.extend<Fixtures>({ … })`
+ * call site strips its contextual type, so without this every `{ page }` and `use`
+ * below would silently infer as `any`.
  */
-const pageObjectFixtures = {
+const pageObjectFixtures: PlaywrightFixtures<
+  Fixtures,
+  NonNullable<unknown>,
+  PlaywrightTestArgs & PlaywrightTestOptions,
+  PlaywrightWorkerArgs & PlaywrightWorkerOptions
+> = {
   loginPage: async ({ page }, use) => {
     await use(new LoginPage(page))
   },
