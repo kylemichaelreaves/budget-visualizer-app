@@ -16,6 +16,27 @@ bun run format:check   # prettier (or `bun run format` to fix)
 bun run typecheck      # tsc -b — builds app, node, unit-test, and e2e projects
 ```
 
+## CI job names are load-bearing
+
+`main` is protected: merging requires a PR whose **Lint & Format**, **Typecheck**, **Unit Tests**, and **E2E Tests** checks have all passed, and requires the branch to be up to date with `main` first. This is enforced for admins too.
+
+Those four strings are registered as required status check _contexts_, matched against the `name:` of each job in `.github/workflows/ci.yml`. **Renaming a job — or removing one — silently blocks every PR forever**, because the required context stops reporting and GitHub waits for a check that will never arrive. If you rename or add a job, update the protection contexts in the same change:
+
+```bash
+gh api repos/kylemichaelreaves/budget-visualizer-app/branches/main/protection/required_status_checks \
+  -X PATCH -f strict=true -f 'contexts[]=Lint & Format' -f 'contexts[]=Typecheck' \
+  -f 'contexts[]=Unit Tests' -f 'contexts[]=E2E Tests'
+```
+
+Escape hatch if you ever lock yourself out (re-enable immediately after):
+
+```bash
+gh api -X DELETE repos/kylemichaelreaves/budget-visualizer-app/branches/main/protection/enforce_admins
+gh api -X POST   repos/kylemichaelreaves/budget-visualizer-app/branches/main/protection/enforce_admins
+```
+
+Linear history is deliberately **not** required, so merge commits are allowed — stacked PRs depend on them.
+
 ## Git hooks (optional, no extra npm deps)
 
 Tracked hooks live in **`.githooks/`**. Point Git at them once per clone:
