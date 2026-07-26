@@ -3,8 +3,10 @@ name: CI
 on:
   push:
     branches: [main]
+  # No `branches:` filter — that would restrict runs to PRs targeting main, so in
+  # a stack only the bottom PR gets checked and every one above it merges on
+  # faith. Any open PR should be gated, whatever it targets.
   pull_request:
-    branches: [main]
 
 # Supersede in-flight runs for the same ref so rapid pushes don't queue behind
 # results nobody will read. `main` is excluded — those runs gate the deployable
