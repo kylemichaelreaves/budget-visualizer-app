@@ -1,8 +1,8 @@
-import { createMemo, createRenderEffect, on } from 'solid-js'
+import { createEffect, createMemo, createRenderEffect, on } from 'solid-js'
 import { getPeriodLabel } from '@api/helpers/formatPeriodLabels'
 import useSumAmountDebitByDate from '@api/hooks/transactions/useSumAmountDebitByDate'
 import useTransactions from '@api/hooks/transactions/useTransactions'
-import { useInfiniteQueryPagePrefetch } from '@composables/infiniteQueryPagePrefetch'
+import { fetchInfinitePagesUntilCount } from '@composables/infiniteQueryPagePrefetch'
 import {
   takeAndApplyPendingTransactionsScrollRestore,
   transactionsState,
@@ -10,31 +10,45 @@ import {
 } from '@stores/transactionsStore'
 import { createTransactionsTableChartSlice } from '@components/transactions/table/createTransactionsTableChartSlice'
 import { getTransactionsTableSelectedValue } from '@components/transactions/table/transactionsTableSelectedValue'
+import {
+  maxOffsetForLoadedPages,
+  rowsForPage,
+} from '@components/transactions/table/transactionsTablePageWindow'
 
 export function createTransactionsTableDerivedData() {
   const query = useTransactions()
 
   const LIMIT = () => transactionsState.transactionsTableLimit
 
-  const flattenedData = createMemo(() => {
-    const pages = query.data?.pages
-    if (!pages) return []
-    return pages
-      .flat()
-      .filter(
-        (transaction) =>
-          transaction.transaction_number && String(transaction.transaction_number).trim() !== '',
-      )
-  })
+  /** Pages exactly as the server returned them, in offset order. */
+  const loadedPages = createMemo(() => query.data?.pages ?? [])
 
   const currentPage = () =>
     Math.floor(transactionsState.transactionsTableOffset / transactionsState.transactionsTableLimit) + 1
 
-  const paginatedData = createMemo(() => {
-    const start = (currentPage() - 1) * LIMIT()
-    const end = start + LIMIT()
-    return flattenedData().slice(start, end)
-  })
+  /**
+   * The rows the server returned for this page's offset.
+   *
+   * Deliberately **not** a client-side re-slice of every loaded row. The older
+   * approach flattened all pages, dropped some rows, then sliced by page index —
+   * while `TransactionsTablePagination` took `totalPages` from the server's
+   * unfiltered count. Two sources of truth for "how many rows are there", so every
+   * dropped row shifted the later page boundaries and could leave a trailing page
+   * empty. Rendering the page the server actually returned keeps the rows and the
+   * count derived from the same query.
+   *
+   * The old `transaction_number` filter went with it: the column is `NOT NULL` in
+   * the schema and the importer deletes legacy rows where it was null, so the
+   * filter guarded a state that can no longer occur. Nothing keys on the field —
+   * it is only shown as a fallback label when `description` is empty.
+   */
+  const paginatedData = createMemo(() => rowsForPage(loadedPages(), currentPage()))
+
+  /**
+   * Every loaded row. The summary cards and chart slice describe the whole fetched
+   * window rather than a single page, so they keep using this.
+   */
+  const flattenedData = createMemo(() => loadedPages().flat())
 
   // eslint-disable-next-line solid/reactivity -- flattenedData is read inside createTransactionsTableChartSlice memos
   const chart = createTransactionsTableChartSlice(flattenedData)
@@ -50,26 +64,42 @@ export function createTransactionsTableDerivedData() {
   const isLoadingCondition = () =>
     isInitialLoading() || query.isFetchingNextPage || query.isFetchingPreviousPage
 
-  useInfiniteQueryPagePrefetch(currentPage, LIMIT, () => flattenedData().length, query)
+  /**
+   * The query only appends, so reaching page N means pages 1..N must be fetched.
+   * Counted in pages, not rows — row counts are what let the rendered window drift
+   * from the page index in the first place.
+   */
+  createEffect(
+    on(currentPage, () => {
+      void fetchInfinitePagesUntilCount(query, {
+        currentCount: () => loadedPages().length,
+        requiredCount: currentPage(),
+      })
+    }),
+  )
 
   /**
-   * Clamp table pagination when the result set shrinks, and after a refetch restore pill scroll.
-   * Clamp runs in this render effect first; scroll restore is queued so it runs after any offset-driven
-   * DOM update (so the anchor row exists when we scrollIntoView).
+   * Clamp pagination when the offset points past the end of the result set, and
+   * after a refetch restore pill scroll.
+   *
+   * Clamping waits for the window to settle (`!isFetching && !hasNextPage`).
+   * Acting mid-prefetch would measure the offset against pages that have not
+   * arrived yet and bounce the user back. Scroll restore is queued so it runs after
+   * any offset-driven DOM update, so the anchor row exists when we scrollIntoView.
    */
   createRenderEffect(
     on(
       () =>
         [
           query.isFetching,
-          flattenedData().length,
+          loadedPages(),
           transactionsState.transactionsTableOffset,
           LIMIT(),
+          query.hasNextPage,
         ] as const,
-      ([isFetching, len, offset, limit], prev) => {
-        if (len > 0) {
-          const maxPageIndex = Math.max(0, Math.ceil(len / limit) - 1)
-          const maxOffset = maxPageIndex * limit
+      ([isFetching, pages, offset, limit, hasNextPage], prev) => {
+        if (!isFetching && !hasNextPage && pages.length > 0) {
+          const maxOffset = maxOffsetForLoadedPages(pages, limit)
           if (offset > maxOffset) {
             updateTransactionsTableOffset(maxOffset)
           }
