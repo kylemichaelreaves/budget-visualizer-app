@@ -3,8 +3,17 @@ name: CI
 on:
   push:
     branches: [main]
+  # No `branches:` filter — that would restrict runs to PRs targeting main, so in
+  # a stack only the bottom PR gets checked and every one above it merges on
+  # faith. Any open PR should be gated, whatever it targets.
   pull_request:
-    branches: [main]
+
+# Supersede in-flight runs for the same ref so rapid pushes don't queue behind
+# results nobody will read. `main` is excluded — those runs gate the deployable
+# history and must each complete.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   lint:
@@ -20,9 +29,25 @@ jobs:
       - run: bun run format:check
       - run: bun run lint
 
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+      - run: bun install --frozen-lockfile
+      # Builds every project in tsconfig.json's `references`: app, node configs,
+      # unit tests, and e2e. Vitest does not typecheck, so without this job a
+      # type error reaches main and only surfaces as an opaque `vite build`
+      # failure inside the Playwright webServer startup.
+      - run: bun run typecheck
+
   unit-tests:
     name: Unit Tests
-    needs: lint
+    needs: [lint, typecheck]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5

@@ -5,10 +5,37 @@
 Always run these before committing or creating a PR:
 
 ```bash
-bun run lint           # eslint
-bun run format:check   # prettier (or `bun run format` to fix)
-npx tsc -b             # TypeScript type checking (build mode — matches CI)
+bun run prepush        # lint + format:check + typecheck — mirrors the CI gates
 ```
+
+Or individually:
+
+```bash
+bun run lint           # eslint (covers src, tests/unit, tests/e2e, and root configs)
+bun run format:check   # prettier (or `bun run format` to fix)
+bun run typecheck      # tsc -b — builds app, node, unit-test, and e2e projects
+```
+
+## CI job names are load-bearing
+
+`main` is protected: merging requires a PR whose **Lint & Format**, **Typecheck**, **Unit Tests**, and **E2E Tests** checks have all passed, and requires the branch to be up to date with `main` first. This is enforced for admins too.
+
+Those four strings are registered as required status check _contexts_, matched against the `name:` of each job in `.github/workflows/ci.yml`. **Renaming a job — or removing one — silently blocks every PR forever**, because the required context stops reporting and GitHub waits for a check that will never arrive. If you rename or add a job, update the protection contexts in the same change:
+
+```bash
+gh api repos/kylemichaelreaves/budget-visualizer-app/branches/main/protection/required_status_checks \
+  -X PATCH -f strict=true -f 'contexts[]=Lint & Format' -f 'contexts[]=Typecheck' \
+  -f 'contexts[]=Unit Tests' -f 'contexts[]=E2E Tests'
+```
+
+Escape hatch if you ever lock yourself out (re-enable immediately after):
+
+```bash
+gh api -X DELETE repos/kylemichaelreaves/budget-visualizer-app/branches/main/protection/enforce_admins
+gh api -X POST   repos/kylemichaelreaves/budget-visualizer-app/branches/main/protection/enforce_admins
+```
+
+Linear history is deliberately **not** required, so merge commits are allowed — stacked PRs depend on them.
 
 ## Git hooks (optional, no extra npm deps)
 
@@ -18,7 +45,7 @@ Tracked hooks live in **`.githooks/`**. Point Git at them once per clone:
 git config core.hooksPath .githooks
 ```
 
-- **`pre-push`** runs `bun run prepush` (`lint` + `format:check`).
+- **`pre-push`** runs `bun run prepush` (`lint` + `format:check` + `typecheck`).
 - **`pre-commit`** runs **`bun run test`** (Vitest unit tests; not `bun test`, which uses Bun’s built-in runner).
 
 **Before every `git push`:** run `bun run prepush` (or rely on the hook). If it fails, run `bun run format` and fix lint, then push again. Agents should do the same even when using `--no-verify`.
@@ -79,6 +106,13 @@ Convention, not a lint gate — there is no clean Solid-native rule to enforce i
   - `invalidateAfterMemoMutation(queryClient)` — memos + transactions
 - **Do not** `await` invalidation inside hook-level `onSuccess` for `mutateTransaction` — TanStack Query v5 blocks `mutate()`-level callbacks, which prevents `history.back()` navigation. Call `invalidateAfterTransactionUpdate` at the call site instead.
 - Don't use store-level caches that short-circuit `queryFn` — let TanStack manage caching
+
+## Retry policy
+
+Set in `@api/queryClient` defaults; don't override per-call without a stated reason.
+
+- **Mutations never auto-retry** (`retry: false`). Every mutation here is a non-idempotent POST/PATCH, so a replay duplicates the write — a second transaction row, a second reset email, or a password change retried with a now-stale `currentPassword` that reports failure after succeeding. If a specific endpoint becomes genuinely idempotent, opt that one mutation back in and say why.
+- **Queries retry only when a retry could work** — see `shouldRetryQuery`: transport failures (no response) and 5xx, capped at `MAX_QUERY_RETRIES`. Never 4xx, never cancellations, never errors thrown by our own `queryFn`.
 - For loading states during mutations, only show skeleton on initial load (`!query.data?.pages?.length`), not on background refetches — this preserves scroll position
 
 ## Utilities
