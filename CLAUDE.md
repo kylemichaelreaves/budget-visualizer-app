@@ -131,9 +131,18 @@ Set in `@api/queryClient` defaults; don't override per-call without a stated rea
 
 The production `index.html` gets a CSP injected by the `csp-meta-tags` plugin in `vite.config.ts` (build-only — the dev server needs its inline HMR preamble and websocket).
 
-It deliberately sets **no `default-src`**: that would inherit into `connect-src` and cut off both the API Gateway origin (cross-origin in prod, same-origin in dev via the Vite proxy) and the per-upload presigned S3 host, whose bucket and region aren't knowable at build time. `script-src 'self'` is the directive doing the real work. If you add an inline script or a third-party script/style host, update `CSP_DIRECTIVES` or the app will break in prod but not in dev.
+`script-src 'self'` and `connect-src` do the real work: the bearer token is in `localStorage`, so restricting both where script comes from and where the page may send data is what stops an injected script from stealing it.
 
-`frame-ancestors` and HSTS can't be set via meta tag — those belong on the CloudFront response headers, which is also where a `Content-Security-Policy-Report-Only` rollout of a stricter `default-src`/`connect-src` policy should happen.
+**`connect-src` has exactly two destinations**, and both are load-bearing:
+
+- The **API origin**, derived from `VITE_APIGATEWAY_URL` via `loadEnv` — the same variable `src/constants.ts` builds the client `baseURL` from, so the policy cannot drift from the URL the app calls. Use `loadEnv`, never plain `process.env`: `process.env` does not see `.env` files, while the client does via `import.meta.env`, so the allowlist would silently omit the real host. When the variable is unset the client uses a relative `/api/v1`, covered by `'self'`.
+- The **presigned CSV upload host** (`CSV_UPLOAD_ORIGINS`). resourceQuerier signs a `PutObjectCommand` against the bucket in SSM `/dev/resourceQuerier/s3/transactionsBucket` — currently `transactions-bucket` in `us-east-1`. **If that bucket or region changes, update `CSV_UPLOAD_ORIGINS` or CSV import breaks in production only.** Path-style S3 URLs are deliberately excluded; they would allowlist every bucket on the endpoint.
+
+Adding any new network destination, inline script, or third-party host means updating `cspDirectives()` — otherwise it works in dev (no CSP there) and fails in prod.
+
+Still **no `default-src`**: it would inherit into directives this app hasn't been audited against — `style-src` in particular, since d3 sets inline styles.
+
+`frame-ancestors` and HSTS can't be set via meta tag — those belong on the CloudFront response headers, which is also where a `Content-Security-Policy-Report-Only` rollout of a stricter `default-src` policy should happen.
 
 ## Store
 
