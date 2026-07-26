@@ -114,10 +114,11 @@ Set in `@api/queryClient` defaults; don't override per-call without a stated rea
 
 ## Unit tests run in a non-UTC timezone
 
-The `test` scripts pin **`TZ=Europe/Berlin`** (UTC+1/+2). This is load-bearing, not cosmetic: in a UTC process, code that builds dates with the local-time `new Date(y, m, d)` constructor behaves identically to correct `Date.UTC(...)` code, so a whole class of off-by-one-day bug is invisible. CI containers default to UTC, which is exactly how the `createLineChart` fallback bug reached production.
+The `test` scripts pin **`TZ=America/New_York`**, matching where the project is developed. This is load-bearing, not cosmetic: in a UTC process, code that builds dates with the local-time `new Date(y, m, d)` constructor behaves identically to correct `Date.UTC(...)` code, so a whole class of off-by-one-day bug is invisible. CI containers default to UTC, which is exactly how the `createLineChart` fallback bug survived.
 
 - Don't drop `TZ` from those scripts — `tests/unit/summaryPointDate.test.ts` has a precondition test that fails loudly if the suite ends up in UTC.
 - Setting `process.env.TZ` inside a test, or via vitest's `env` option, **does not work** — Node caches the zone at startup. It has to be set before the process starts.
+- **Assert the resolved instant, not the formatted day.** `expect(d.toISOString()).toBe('2026-03-01T00:00:00.000Z')` is strictly stronger than `expect(fmt(d)).toBe('2026-03-01')`: an instant of exactly UTC midnight is the correct calendar day in every zone. Day-only assertions have no teeth west of UTC, where local-midnight construction still yields the right date — which is why any non-zero offset suffices and the pin can match your own machine.
 - When formatting or parsing dates for charts, remember the scales are `d3.scaleUtc()` and the click handlers emit `d3.utcFormat(…)`. Build dates with `Date.UTC(...)` or luxon's `{ zone: 'utc' }`.
 
 ## Period filter value formats
