@@ -11,7 +11,8 @@ type CategoryColorHelpers = ReturnType<typeof budgetCategoryColorsFromData>
 export default function TransactionsTableListCard(props: {
   cardTitle: Accessor<string>
   isLoadingCondition: Accessor<boolean>
-  paginatedData: Accessor<Transaction[]>
+  /** Read-only: these are the query's stored page rows, not a copy to mutate. */
+  paginatedData: Accessor<readonly Transaction[]>
   categoryColors: Accessor<CategoryColorHelpers>
   mutatingTransactionId: Accessor<number | null>
   openCategoryDialog: (row: Transaction) => void
