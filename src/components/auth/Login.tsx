@@ -44,12 +44,22 @@ export default function Login() {
     return null
   })
 
+  const [sessionError, setSessionError] = createSignal('')
+
   const loginMut = useMutation(() => ({
     mutationKey: mutationKeys.login,
     mutationFn: async () => loginRequest(emailTrimmed(), password()),
     onSuccess: (data) => {
-      devConsole('log', 'Login successful', data)
-      persistSession(data.user, data.token)
+      // Never log `data` — it carries the session bearer token. devConsole is
+      // dev-only, but a token in a console transcript is still a token.
+      devConsole('log', 'Login successful')
+
+      if (!persistSession(data.user, data.token)) {
+        setSessionError('Signed in, but the account details from the server were unreadable.')
+        return
+      }
+
+      setSessionError('')
       const path = redirectTarget()
       window.location.replace(`${window.location.origin}${path}`)
     },
@@ -88,6 +98,12 @@ export default function Login() {
               <AlertDescription>{errorDescription()}</AlertDescription>
             </Alert>
           ) : null}
+          <Show when={sessionError()}>
+            <Alert variant="destructive" class="mb-4" data-testid="login-session-error">
+              <AlertTitle>Could not start your session</AlertTitle>
+              <AlertDescription>{sessionError()}</AlertDescription>
+            </Alert>
+          </Show>
           <form
             class="flex flex-col gap-4"
             onSubmit={(e) => {

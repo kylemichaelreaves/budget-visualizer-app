@@ -77,15 +77,18 @@ export function useCreateUserRegistration() {
       }),
     onSuccess: (data: unknown) => {
       const session = parseCreateUserSession(data)
-      if (session) {
-        persistSession(session.user, session.token)
+      // `parseCreateUserSession` already normalized the user, so persistSession
+      // should not reject it — but fall through to the sign-in prompt rather
+      // than navigating into the app with no session if it ever does.
+      if (session && persistSession(session.user, session.token)) {
         navigate(redirectTarget(), { replace: true })
-      } else {
-        const qs = new URLSearchParams({ registered: '1' })
-        const safe = safeRedirectPath(searchParams.redirect)
-        if (safe) qs.set('redirect', safe)
-        navigate(`/login?${qs.toString()}`, { replace: true })
+        return
       }
+
+      const qs = new URLSearchParams({ registered: '1' })
+      const safe = safeRedirectPath(searchParams.redirect)
+      if (safe) qs.set('redirect', safe)
+      navigate(`/login?${qs.toString()}`, { replace: true })
     },
   }))
 

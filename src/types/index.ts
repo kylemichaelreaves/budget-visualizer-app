@@ -215,20 +215,25 @@ export interface TransactionQueryParams {
   status?: PendingTransactionStatus
 }
 
+/**
+ * The identity of the signed-in user. Deliberately carries **no credential
+ * fields**: this object is JSON-serialized into `localStorage` by
+ * `persistSession`, so a `password` here would mean a password at rest in the
+ * browser. Forms hold password input in local signals and pass it separately
+ * (see `CreateUserInput`, `changePassword`).
+ */
 export interface User {
   id?: number
   username: string
   firstName: string
   lastName: string
   email: string
-  password?: string
-  confirmPassword?: string
   role?: UserRole
 }
 
 export type UserRole = 'admin' | 'user' | 'guest'
 
-/** Body.user for `POST /api/v1/users` — fields persisted by resourceQuerier today; confirmPassword is client-only. */
+/** Body.user for `POST /api/v1/users` — fields persisted by resourceQuerier today. */
 export type CreateUserInput = Pick<User, 'username' | 'email'> & {
   password: string
 }

@@ -99,6 +99,21 @@ Set in `@api/queryClient` defaults; don't override per-call without a stated rea
 - **Currency formatting**: use `formatUsd`, `formatUsdOrDash`, or `formatUsdAbs` from `@utils/formatUsd` — do not create local `Intl.NumberFormat` instances
 - **Budget category path delimiter**: use `BUDGET_CATEGORY_PATH_DELIMITER` from `@api/helpers/convertToTree` (not hardcoded `' - '`)
 
+## Session and auth
+
+- The session bearer token lives in `localStorage`, so treat anything that could execute script on this origin as able to steal it. Don't add inline `<script>`, and don't log a login/session response — `devConsole` is dev-only but a token in a console transcript is still a token.
+- **`User` carries no credential fields.** It is JSON-serialized into `localStorage` by `persistSession`, so a `password` on it would mean a password at rest in the browser. Password input belongs in local form signals (see `CreateUserInput`, `changePassword`).
+- A `User` may only enter `authState` through **`normalizeUserFromApi`**, in both directions: API responses are `unknown`, and stored JSON is attacker-controlled if anything else on the origin can write it. Never `JSON.parse(raw) as User`. `persistSession` returns `false` when the payload is unusable — handle it, don't ignore it.
+- Route guards must be **reactive** (`createEffect` on `authState.isUserAuthenticated`), not `onMount`, and authenticated child routes should be wrapped in a `<Show>` on the same condition — otherwise they mount and fire their queries before the redirect lands, producing a burst of 401s that races the interceptor's own redirect.
+
+## Content Security Policy
+
+The production `index.html` gets a CSP injected by the `csp-meta-tags` plugin in `vite.config.ts` (build-only — the dev server needs its inline HMR preamble and websocket).
+
+It deliberately sets **no `default-src`**: that would inherit into `connect-src` and cut off both the API Gateway origin (cross-origin in prod, same-origin in dev via the Vite proxy) and the per-upload presigned S3 host, whose bucket and region aren't knowable at build time. `script-src 'self'` is the directive doing the real work. If you add an inline script or a third-party script/style host, update `CSP_DIRECTIVES` or the app will break in prod but not in dev.
+
+`frame-ancestors` and HSTS can't be set via meta tag — those belong on the CloudFront response headers, which is also where a `Content-Security-Policy-Report-Only` rollout of a stricter `default-src`/`connect-src` policy should happen.
+
 ## Store
 
 - `transactionsStore.ts` holds filter state: `selectedDay`, `selectedWeek`, `selectedMonth`, `selectedYear`, `selectedMemo`, `selectedMemoId`
