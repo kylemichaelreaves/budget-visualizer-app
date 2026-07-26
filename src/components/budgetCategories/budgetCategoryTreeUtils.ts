@@ -2,7 +2,7 @@ import { BUDGET_CATEGORY_PATH_DELIMITER } from '@api/helpers/convertToTree'
 import type { CategoryNode } from '@types'
 
 /** Stable `data-testid` segment from category path (`node.value`); avoids duplicate/unsafe IDs from labels. */
-export function categoryPathTestIdSlug(pathValue: string): string {
+function categoryPathTestIdSlug(pathValue: string): string {
   const s = pathValue.replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_+|_+$/g, '')
   return s || 'root'
 }

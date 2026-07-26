@@ -150,22 +150,6 @@ export function applyMemoSummaryRoute(memoId: string): void {
   })
 }
 
-export function setSelectedDay(day: string): void {
-  setTransactionsState('selectedDay', day)
-}
-export function setSelectedMonth(month: string): void {
-  setTransactionsState('selectedMonth', month)
-}
-export function setSelectedMemo(memo: string, memoId?: number | null): void {
-  setTransactionsState('selectedMemo', memo)
-  if (memoId !== undefined) setTransactionsState('selectedMemoId', memoId ?? null)
-}
-export function setSelectedWeek(week: string): void {
-  setTransactionsState('selectedWeek', week)
-}
-export function setSelectedYear(year: string): void {
-  setTransactionsState('selectedYear', year)
-}
 export function setTransactionsTableLimit(limit: number): void {
   setTransactionsState('transactionsTableLimit', limit)
 }

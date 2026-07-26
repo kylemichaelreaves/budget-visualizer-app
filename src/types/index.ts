@@ -1,47 +1,3 @@
-import type { Accessor, Component } from 'solid-js'
-
-export interface AddressFields {
-  streetAddress: string
-  unitOrAptNum?: string
-  municipality: string
-  state: string
-  zipcode?: string
-}
-
-export interface Address {
-  house_number: string
-  road: string
-  town?: string
-  village?: string
-  neighbourhood?: string
-  county: string
-  state: string
-  postcode: string
-  country: string
-  country_code: string
-  'ISO3166-2-lvl4': string
-}
-
-export interface AddressResponse {
-  osm_type: string
-  osm_id: number
-  licence: string
-  boundingbox: string[]
-  address: Address
-  importance: number
-  lon: string
-  display_name: string
-  type: string
-  class: string
-  place_id: number
-  lat: string
-}
-
-export type Breadcrumb = {
-  label: string
-  to: string
-}
-
 export interface BudgetCategory {
   name: string
   necessary: boolean
@@ -99,11 +55,6 @@ export interface DailyInterval {
   total_debit?: number
 }
 
-export interface DaySummary {
-  memo: string
-  daily_amount_debit: number
-}
-
 export interface DayYear {
   day: string
 }
@@ -127,16 +78,6 @@ export type LoanFormType = {
   loanTerm: number
   startDate: Date
   [key: string]: number | Date
-}
-
-export type loginFormKeys = 'username' | 'password'
-
-export interface LoginFormFields {
-  component: 'el-input'
-  label: string
-  placeholder: string
-  type: string
-  showPassword?: boolean
 }
 
 export interface Memo {
@@ -185,25 +126,6 @@ export interface MemoQueryParams extends MemoFilters {
   search?: boolean
 }
 
-export interface MemoFormFields {
-  component: 'el-input' | 'el-switch' | 'el-select' | Component
-  label: string
-  placeholder?: string
-  disabledCondition?: boolean | Accessor<boolean>
-  options?: { value: string; label: string }[]
-  dataTestId?: string
-  teleported?: boolean
-}
-
-export type MemoKeys =
-  | 'name'
-  | 'recurring'
-  | 'necessary'
-  | 'frequency'
-  | 'budget_category'
-  | 'ambiguous'
-  | 'avatar_s3_url'
-
 export interface MonthSummary {
   memo: string
   total_amount_debit: number
@@ -216,10 +138,6 @@ export interface MonthYear {
   month_year: string
 }
 
-export type RouterQueryParams = {
-  [key: string]: string | number | null | undefined
-}
-
 export type SummaryTypeBase = {
   total_debit: number
   total_amount_debit?: number
@@ -230,13 +148,6 @@ export type SummaryTypeBase = {
   json?: JsonObjectType
   date?: string
   period_start?: string
-}
-
-export type Summaries = {
-  period: string
-  total_debit: number
-  total_credit: number
-  amount_difference: number
 }
 
 export const Timeframe = {
@@ -284,29 +195,6 @@ export type PendingTransaction = {
 }
 
 export type PendingTransactionStatus = 'pending' | 'reviewed'
-
-export type TransactionKeys =
-  | 'id'
-  | 'transaction_number'
-  | 'date'
-  | 'description'
-  | 'memo'
-  | 'amount_debit'
-  | 'amount_credit'
-  | 'balance'
-  | 'check_number'
-  | 'fees'
-  | 'budget_category'
-
-export type TransactionFormFields = {
-  component: Component | string
-  'aria-label'?: string
-  label: string
-  placeholder?: string
-  props?: Record<string, unknown>
-  disabledCondition?: boolean
-  dataTestId?: string
-}
 
 export interface TransactionQueryParams {
   date?: string
@@ -364,40 +252,6 @@ export interface WeekYear {
 
 export interface Year {
   year: string
-}
-
-export interface MockMemoOptions {
-  id?: number
-  name?: string
-  recurring?: boolean
-  necessary?: boolean
-  frequency?: string | null
-  budget_category?: string | null
-  ambiguous?: boolean
-  avatar_s3_url?: string | null
-}
-
-export interface BudgetCategoryHierarchyOptions {
-  timeFrame: Timeframe
-  includeChildren?: boolean
-  maxParentCategories?: number
-  sourceId?: number
-}
-
-// SelectComponent types for testing and component usage
-export interface SelectOption {
-  value: string
-  label: string
-}
-
-export interface SelectComponentProps {
-  options: SelectOption[]
-  selectedValue: string
-  placeholder: string
-  onChange: (value: string) => void
-  disabled?: boolean
-  loading?: boolean
-  loadingText?: string
 }
 
 export type BudgetCategoryState =

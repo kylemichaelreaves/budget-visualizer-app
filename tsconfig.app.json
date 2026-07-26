@@ -8,5 +8,5 @@
     "jsx": "preserve",
     "jsxImportSource": "solid-js"
   },
-  "include": ["src", "constants.node.ts"]
+  "include": ["src"]
 }

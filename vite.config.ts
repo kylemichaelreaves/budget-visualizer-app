@@ -1,11 +1,7 @@
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import { defineConfig } from 'vite'
 import solid from 'vite-plugin-solid'
-import { ROUTE_ALIASES } from './constants.node'
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
+import { tsconfigPathAliases } from './aliases.node'
 
 const LAMBDA_DEV_URL = 'http://127.0.0.1:3000'
 const API_GATEWAY_URL =
@@ -33,11 +29,6 @@ export default defineConfig({
     },
   },
   resolve: {
-    alias: [
-      ...ROUTE_ALIASES.map((alias) => ({
-        find: `@${alias}`,
-        replacement: path.resolve(__dirname, `src/${alias}`),
-      })),
-    ],
+    alias: tsconfigPathAliases(),
   },
 })

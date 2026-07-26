@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@components/*": ["src/components/*"],
+      "@api/*": ["src/api/*"],
+      "@types": ["src/types/index.ts"],
+      "@stores/*": ["src/stores/*"],
+      "@charts/*": ["src/charts/*"],
+      "@composables/*": ["src/composables/*"],
+      "@constants": ["src/constants.ts"],
+      "@utils/*": ["src/utils/*"],
+      "@shared/*": ["src/shared/*"],
+      "@mocks/*": ["src/mocks/*"]
+    }
+  }
+}
