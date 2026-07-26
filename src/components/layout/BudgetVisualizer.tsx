@@ -1,6 +1,6 @@
 import type { JSX } from 'solid-js'
 import { A, useLocation, useNavigate } from '@solidjs/router'
-import { createSignal, For, onMount, Show } from 'solid-js'
+import { createEffect, createSignal, For, Show } from 'solid-js'
 import TransactionCreateForm from '@components/transactions/forms/TransactionCreateForm'
 import { Button } from '@components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@components/ui/dialog'
@@ -29,10 +29,19 @@ export default function BudgetVisualizer(props: { children?: JSX.Element }) {
   const navigate = useNavigate()
   const [showCreate, setShowCreate] = createSignal(false)
 
-  onMount(() => {
-    if (!authState.isUserAuthenticated) {
-      navigate(`/login?redirect=${encodeURIComponent('/budget-visualizer/transactions')}`, { replace: true })
-    }
+  /**
+   * Reactive, not `onMount`: a one-shot check only fires on the initial mount,
+   * so losing the session while inside the app left the whole authenticated
+   * shell rendered until something else happened to navigate.
+   *
+   * The redirect preserves the path the user actually asked for. It previously
+   * hardcoded `/transactions`, so a deep link to any other page sent them
+   * somewhere else after signing in.
+   */
+  createEffect(() => {
+    if (authState.isUserAuthenticated) return
+    const target = `${loc.pathname}${loc.search}`
+    navigate(`/login?redirect=${encodeURIComponent(target)}`, { replace: true })
   })
 
   /* AppLayout stacks NavBar above this section; avoid min-h-screen (100vh) or min document height
@@ -96,7 +105,13 @@ export default function BudgetVisualizer(props: { children?: JSX.Element }) {
               )}
             </For>
           </nav>
-          <main class="flex-1 min-w-0">{props.children}</main>
+          {/* Gate the child route on the session. Without this, an unauthenticated
+              deep link mounted the page and fired its whole query set before the
+              redirect landed — a burst of 401s, each racing the interceptor's own
+              `window.location.assign` against this component's `navigate`. */}
+          <main class="flex-1 min-w-0">
+            <Show when={authState.isUserAuthenticated}>{props.children}</Show>
+          </main>
         </div>
       </div>
     </section>

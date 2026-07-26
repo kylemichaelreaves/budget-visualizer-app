@@ -14,7 +14,14 @@ const config: StorybookConfig = {
   stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
   addons: ['@storybook/addon-docs', '@storybook/addon-themes', 'msw-storybook-addon', '@storybook/addon-mcp'],
   framework: 'storybook-solidjs-vite',
-  staticDirs: ['../public'],
+  /**
+   * `./public` carries mockServiceWorker.js, which msw-storybook-addon needs
+   * served from the origin root. It deliberately does NOT live in the app's
+   * `../public`: everything there is copied into `dist/`, which meant the
+   * production build published a request-interception service worker at the
+   * site root even though MSW is a Storybook-only dependency.
+   */
+  staticDirs: ['../public', './public'],
   viteFinal: async (c) =>
     mergeConfig(c, {
       plugins: [tailwindcss()],

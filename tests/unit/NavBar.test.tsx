@@ -21,7 +21,6 @@ describe('NavBar', () => {
       lastName: '',
       username: '',
       email: '',
-      password: '',
       role: 'guest',
     })
   })

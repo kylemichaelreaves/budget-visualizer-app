@@ -2,6 +2,7 @@ import { QueryCache, QueryClient } from '@tanstack/solid-query'
 import axios from 'axios'
 import { extractApiErrorMessage } from '@api/extractApiErrorMessage'
 import { shouldRetryQuery } from '@api/shouldRetryQuery'
+import { devConsole } from '@utils/devConsole'
 
 export const queryClient = new QueryClient({
   queryCache: new QueryCache({
@@ -9,7 +10,9 @@ export const queryClient = new QueryClient({
       if (axios.isAxiosError(error) && error.response?.status === 401) return
       if (axios.isCancel(error)) return
       if (query.meta?.skipGlobalError) return
-      console.error('[query]', extractApiErrorMessage(error))
+      // devConsole, not console: `extractApiErrorMessage` surfaces the server's
+      // own message, which has no business in a production console.
+      devConsole('error', '[query]', extractApiErrorMessage(error))
     },
   }),
   defaultOptions: {
