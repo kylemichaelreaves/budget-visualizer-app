@@ -112,6 +112,18 @@ Set in `@api/queryClient` defaults; don't override per-call without a stated rea
 - `LineChart.tsx` is a SolidJS wrapper that passes props through
 - Budget category colors: `buildBudgetCategoryColorMap` in `composables/budgetCategoryColors.ts` keys by `category_id`, `category_name`, `budget_category`, and `full_path`
 
+## Unit tests run in a non-UTC timezone
+
+The `test` scripts pin **`TZ=Europe/Berlin`** (UTC+1/+2). This is load-bearing, not cosmetic: in a UTC process, code that builds dates with the local-time `new Date(y, m, d)` constructor behaves identically to correct `Date.UTC(...)` code, so a whole class of off-by-one-day bug is invisible. CI containers default to UTC, which is exactly how the `createLineChart` fallback bug reached production.
+
+- Don't drop `TZ` from those scripts — `tests/unit/summaryPointDate.test.ts` has a precondition test that fails loudly if the suite ends up in UTC.
+- Setting `process.env.TZ` inside a test, or via vitest's `env` option, **does not work** — Node caches the zone at startup. It has to be set before the process starts.
+- When formatting or parsing dates for charts, remember the scales are `d3.scaleUtc()` and the click handlers emit `d3.utcFormat(…)`. Build dates with `Date.UTC(...)` or luxon's `{ zone: 'utc' }`.
+
+## Period filter value formats
+
+Month (`MM-YYYY`) and ISO week (`IW-YYYY`) filter values are the **same wire shape** and are indistinguishable for leading values 01–12 — `05-2026` is a valid month _and_ a valid ISO week, and `parseDateMMYYYY` / `parseDateIWIYYY` will each accept it and return dates ~4 months apart. The caller must already know which it holds (from `selectedMonth` vs `selectedWeek`, or the `month=` vs `week=` param). Don't add format "detection", and don't route one of these strings through a channel that has lost the distinction. See `periodValueFormat.ts`.
+
 ## Playwright tests
 
 - POMs are in `tests/e2e/pages/`

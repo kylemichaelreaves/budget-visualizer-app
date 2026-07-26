@@ -1,18 +1,22 @@
 import { DateTime } from 'luxon'
 import { devConsole } from '@utils/devConsole'
+import { TWO_DIGIT_DASH_YEAR_PATTERN } from '@api/helpers/periodValueFormat'
 
 /**
- * Parses a date string in the format WW-YYYY (ISO week number and year) and returns a Date object.
+ * Parses a week filter value in `IW-YYYY` form (ISO week number and ISO week
+ * year) into the UTC start of that week.
  *
- * @param {string} input - The date string to parse.
- * @returns {Date | null} - A Date object if the input is valid, otherwise null.
+ * The caller must already know it holds a *week* value: this shape is
+ * indistinguishable from the `MM-YYYY` month form for leading values 01–12, and
+ * `parseDateMMYYYY` will accept the same string and return a different date. See
+ * {@link TWO_DIGIT_DASH_YEAR_PATTERN}.
+ *
+ * @param input - The week string to parse.
+ * @returns A Date at the UTC start of the ISO week, or `null` if malformed.
  */
-
 // used by the DailyIntervalLineChart
 export function parseDateIWIYYY(input: string): Date | null {
-  // regex to match the format WW-YYYY
-  const regex = /^(\d{2})-(\d{4})$/
-  const match = RegExp(regex).exec(input)
+  const match = TWO_DIGIT_DASH_YEAR_PATTERN.exec(input)
 
   if (!match) {
     return null

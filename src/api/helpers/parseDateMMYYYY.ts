@@ -1,23 +1,27 @@
 import { DateTime } from 'luxon'
+import { TWO_DIGIT_DASH_YEAR_PATTERN } from '@api/helpers/periodValueFormat'
 
+/**
+ * Parses a month filter value in `MM-YYYY` form into the UTC first of that month.
+ *
+ * The caller must already know it holds a *month* value: this shape is
+ * indistinguishable from the `IW-YYYY` week form for leading values 01–12, and
+ * `parseDateIWIYYY` will accept the same string and return a different date. See
+ * {@link TWO_DIGIT_DASH_YEAR_PATTERN}.
+ *
+ * @param input - The month string to parse.
+ * @returns A Date at the UTC first of the month, or `null` if malformed.
+ */
 // used by the DailyIntervalLineChart
 export function parseDateMMYYYY(input: string) {
-  // regex to match the format MM-YYYY
-  const regex = /^(\d{2})-(\d{4})$/
-  const match = regex.exec(input)
+  const match = TWO_DIGIT_DASH_YEAR_PATTERN.exec(input)
 
   if (!match) {
     return null
   }
 
-  const parts = input.split('-')
-  if (parts.length !== 2) {
-    return null
-  }
-
-  // Ensure parts exist before parsing
-  const monthStr = parts[0]
-  const yearStr = parts[1]
+  const monthStr = match[1]
+  const yearStr = match[2]
 
   if (!monthStr || !yearStr) {
     return null
