@@ -1,24 +1,13 @@
 {
+  /* `paths` lives in its own comment-free file so vite/vitest/storybook can
+     JSON.parse it and derive their aliases from the same declaration.
+     See aliases.node.ts. */
+  "extends": "./tsconfig.paths.json",
   "compilerOptions": {
     "target": "ES2023",
     "module": "ESNext",
     "skipLibCheck": true,
     "ignoreDeprecations": "6.0",
-    "baseUrl": ".",
-    "paths": {
-      "@components/*": ["src/components/*"],
-      "@api/*": ["src/api/*"],
-      "@types": ["src/types/index.ts"],
-      "@stores/*": ["src/stores/*"],
-      "@charts/*": ["src/charts/*"],
-      "@composables/*": ["src/composables/*"],
-      "@constants": ["src/constants.ts"],
-      "@utils/*": ["src/utils/*"],
-      "@router": ["src/router/index.tsx"],
-      "@shared/*": ["src/shared/*"],
-      "@mocks/*": ["src/mocks/*"],
-      "@genealogy/*": ["src/components/genealogy/*"]
-    },
 
     /* Bundler mode */
     "moduleResolution": "bundler",

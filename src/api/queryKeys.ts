@@ -12,8 +12,6 @@ export const queryKeys = {
       date: string | undefined,
       budgetCategory?: string | null,
     ) => ['transactions', limit, memoKey, tf, date, budgetCategory] as const,
-    summaries: (tf: string, summary: boolean, summaryType: string) =>
-      ['transactions', 'summaries', tf, summary, summaryType] as const,
     csv: ['transactions', 'csv'] as const,
   },
   transactionsCount: {
@@ -77,11 +75,8 @@ export const queryKeys = {
   timeUnits: {
     all: ['time-units'] as const,
     days: ['time-units', 'days'] as const,
-    daysOfWeek: (week: string) => ['time-units', 'days-of-week', week] as const,
-    daySummary: (day: string) => ['time-units', 'day-summary', day] as const,
     months: ['time-units', 'months'] as const,
     weeks: ['time-units', 'weeks'] as const,
-    weeksOfMonth: (month: string) => ['time-units', 'weeks-of-month', month] as const,
     years: ['time-units', 'years'] as const,
   },
   dailyTotalAmountDebitForInterval: {
@@ -95,9 +90,6 @@ export const queryKeys = {
   },
   isIntervalGreaterThanOldestDate: (interval: string) =>
     ['is-interval-greater-than-oldest-date', interval] as const,
-  user: ['user'] as const,
-  userDetail: (userId: number | undefined) => ['user', userId] as const,
-  address: (id: string, fetchURL: string) => ['address', id, fetchURL] as const,
 } as const
 
 /** TanStack mutation keys (devtools / dedupe); not used for cache invalidation prefixes. */
@@ -106,13 +98,10 @@ export const mutationKeys = {
   passwordResetRequest: ['password-reset-request'] as const,
   passwordResetConfirm: ['password-reset-confirm'] as const,
   passwordChange: ['password-change'] as const,
-  geocodeAddress: ['geocode-address'] as const,
   createTransaction: ['create-transaction'] as const,
   createCsvImport: ['create-csv-import'] as const,
   mutateTransaction: ['mutate-transaction'] as const,
   mutatePendingTransaction: ['mutate-pending-transaction'] as const,
   mutateMemo: ['mutate-memo'] as const,
   createUser: ['create-user'] as const,
-  updateUser: ['update-user'] as const,
-  deleteUser: ['delete-user'] as const,
 } as const

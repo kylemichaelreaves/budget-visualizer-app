@@ -1,11 +1,16 @@
 import { describe, expect, it } from 'vitest'
-import {
-  FIELD_PAIRS,
-  snakeToCamelMap,
-  camelToSnakeMap,
-  mapSnakeToCamel,
-  mapCamelToSnake,
-} from '@api/helpers/fieldMappings'
+import { FIELD_PAIRS, snakeToCamelMap, camelToSnakeMap, mapCamelToSnake } from '@api/helpers/fieldMappings'
+
+/**
+ * Local stand-in for the snake→camel direction. `mapCamelToSnake` ships (the E2E
+ * mocks use it); the reverse whole-object mapper never had a caller, so it lives
+ * here purely to drive the round-trip assertion below.
+ */
+function toCamelKeys(obj: Record<string, unknown>): Record<string, unknown> {
+  return Object.fromEntries(
+    Object.entries(obj).map(([key, value]) => [snakeToCamelMap.get(key) ?? key, value]),
+  )
+}
 
 describe('fieldMappings', () => {
   describe('FIELD_PAIRS', () => {
@@ -26,23 +31,6 @@ describe('fieldMappings', () => {
         expect(snakeToCamelMap.get(snake)).toBe(camel)
         expect(camelToSnakeMap.get(camel)).toBe(snake)
       }
-    })
-  })
-
-  describe('mapSnakeToCamel', () => {
-    it('maps known snake_case keys to camelCase', () => {
-      expect(mapSnakeToCamel({ budget_category: 'Food', amount_debit: -50 })).toEqual({
-        budgetCategory: 'Food',
-        amountDebit: -50,
-      })
-    })
-
-    it('passes through unmapped keys', () => {
-      expect(mapSnakeToCamel({ id: 1, date: '2025-01-01', memo: 'm' })).toEqual({
-        id: 1,
-        date: '2025-01-01',
-        memo: 'm',
-      })
     })
   })
 
@@ -73,7 +61,7 @@ describe('fieldMappings', () => {
         memo_id: 10,
         date: '2025-01-15',
       }
-      expect(mapCamelToSnake(mapSnakeToCamel(original))).toEqual(original)
+      expect(mapCamelToSnake(toCamelKeys(original))).toEqual(original)
     })
   })
 })

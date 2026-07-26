@@ -1,11 +1,7 @@
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
 import tailwindcss from '@tailwindcss/vite'
 import { mergeConfig } from 'vite'
 import type { StorybookConfig } from 'storybook-solidjs-vite'
-import { ROUTE_ALIASES } from '../constants.node.ts'
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url))
+import { tsconfigPathAliases } from '../aliases.node.ts'
 
 const config: StorybookConfig = {
   /**
@@ -23,16 +19,7 @@ const config: StorybookConfig = {
     mergeConfig(c, {
       plugins: [tailwindcss()],
       resolve: {
-        alias: [
-          ...ROUTE_ALIASES.map((alias) => ({
-            find: `@${alias}`,
-            replacement: path.resolve(__dirname, '../src', alias),
-          })),
-          {
-            find: '@genealogy',
-            replacement: path.resolve(__dirname, '../src/components/genealogy'),
-          },
-        ],
+        alias: tsconfigPathAliases(),
       },
     }),
 }
