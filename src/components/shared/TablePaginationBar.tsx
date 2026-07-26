@@ -1,7 +1,13 @@
 import type { JSX } from 'solid-js'
 import { For } from 'solid-js'
 import AlertComponent from '@components/shared/AlertComponent'
-import { Button } from '@components/ui/button'
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from '@components/ui/pagination'
 
 export default function TablePaginationBar(props: {
   dataTestId: string
@@ -58,29 +64,34 @@ export default function TablePaginationBar(props: {
             <For each={sizes()}>{(n) => <option value={n}>{n}</option>}</For>
           </select>
         </label>
-        <Button
-          variant="outline"
-          size="sm"
-          type="button"
-          onClick={props.onPrev}
-          disabled={props.prevDisabled}
-          data-testid={props.prevTestId}
-        >
-          Previous
-        </Button>
-        <span class="text-foreground">
-          Page {props.currentPage} / {props.totalPages} ({props.totalCount} total)
-        </span>
-        <Button
-          variant="outline"
-          size="sm"
-          type="button"
-          onClick={props.onNext}
-          disabled={props.nextDisabled}
-          data-testid={props.nextTestId}
-        >
-          Next
-        </Button>
+        {/* Kobalte-styled pagination primitives: a labelled <nav> wrapping list
+            semantics, so the controls are announced as a pagination group rather
+            than two loose buttons. */}
+        <Pagination class="mx-0 w-auto justify-start">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                variant="outline"
+                onClick={props.onPrev}
+                disabled={props.prevDisabled}
+                data-testid={props.prevTestId}
+              />
+            </PaginationItem>
+            <PaginationItem>
+              <span class="text-foreground px-2" aria-live="polite">
+                Page {props.currentPage} / {props.totalPages} ({props.totalCount} total)
+              </span>
+            </PaginationItem>
+            <PaginationItem>
+              <PaginationNext
+                variant="outline"
+                onClick={props.onNext}
+                disabled={props.nextDisabled}
+                data-testid={props.nextTestId}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       </div>
     </div>
   )
