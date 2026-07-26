@@ -30,13 +30,29 @@ describe('TablePaginationBar', () => {
     render(() => (
       <TablePaginationBar {...baseProps({ onPrev, onNext, prevDisabled: true, nextDisabled: false })} />
     ))
-    const prev = screen.getByRole('button', { name: 'Previous' })
-    const next = screen.getByRole('button', { name: 'Next' })
+    // Named by the primitives' aria-label, which stays descriptive when the
+    // visible "Previous"/"Next" text is hidden at small widths.
+    const prev = screen.getByRole('button', { name: 'Go to previous page' })
+    const next = screen.getByRole('button', { name: 'Go to next page' })
     expect(prev).toBeDisabled()
     expect(next).not.toBeDisabled()
     fireEvent.click(next)
     expect(onNext).toHaveBeenCalledOnce()
     expect(onPrev).not.toHaveBeenCalled()
+  })
+
+  it('exposes the controls as a labelled pagination landmark with list semantics', () => {
+    render(() => <TablePaginationBar {...baseProps()} />)
+    const nav = screen.getByRole('navigation', { name: 'pagination' })
+    expect(nav).toBeInTheDocument()
+    // Prev, the page indicator, and Next are each a list item.
+    expect(screen.getAllByRole('listitem')).toHaveLength(3)
+  })
+
+  it('keeps prev/next test ids for e2e locators', () => {
+    render(() => <TablePaginationBar {...baseProps({ prevTestId: 'pg-prev', nextTestId: 'pg-next' })} />)
+    expect(screen.getByTestId('pg-prev')).toBeInTheDocument()
+    expect(screen.getByTestId('pg-next')).toBeInTheDocument()
   })
 
   it('calls onPageSizeChange with the new numeric size', () => {

@@ -34,10 +34,16 @@ type PaginationLinkProps = JSX.ButtonHTMLAttributes<HTMLButtonElement> & {
   class?: string
   isActive?: boolean
   size?: 'default' | 'sm' | 'lg' | 'icon'
+  /**
+   * Overrides the default styling. `isActive` still drives `aria-current`, so use
+   * this when a control needs a particular look without claiming to be the
+   * current page — e.g. outlined prev/next controls.
+   */
+  variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link'
 }
 
 function PaginationLink(props: PaginationLinkProps) {
-  const [local, rest] = splitProps(props, ['class', 'isActive', 'size', 'type'])
+  const [local, rest] = splitProps(props, ['class', 'isActive', 'size', 'type', 'variant'])
   return (
     <button
       {...rest}
@@ -47,7 +53,7 @@ function PaginationLink(props: PaginationLinkProps) {
       data-active={local.isActive}
       class={cn(
         buttonVariants({
-          variant: local.isActive ? 'outline' : 'ghost',
+          variant: local.variant ?? (local.isActive ? 'outline' : 'ghost'),
           size: local.size ?? 'icon',
         }),
         local.class,

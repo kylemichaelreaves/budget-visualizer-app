@@ -94,6 +94,29 @@ describe('DataImportPage', () => {
       expect(mutateAsyncMock).toHaveBeenCalledOnce()
     })
 
+    /**
+     * The upload bar delegates to Kobalte's Progress, which owns role="progressbar"
+     * and the aria-value* attributes. Asserted rather than assumed — the hand-rolled
+     * markup it replaced set those by hand, so a silent regression here would be
+     * invisible without this.
+     */
+    it('exposes the upload bar as a labelled progressbar with value bounds', async () => {
+      mutateAsyncMock.mockImplementation(() => new Promise(() => {}))
+      setProgress(0.42)
+      render(() => <DataImportPage />)
+      dropFile(makeFile('2026_05.csv', 1024))
+
+      await waitFor(() => {
+        expect(screen.getByTestId('data-import-uploading-card')).toBeInTheDocument()
+      })
+
+      const bar = screen.getByRole('progressbar', { name: 'Upload progress' })
+      expect(bar).toHaveAttribute('aria-valuenow', '42')
+      expect(bar).toHaveAttribute('aria-valuemin', '0')
+      expect(bar).toHaveAttribute('aria-valuemax', '100')
+      expect(screen.getByTestId('data-import-progress-pct')).toHaveTextContent('42%')
+    })
+
     it('accepts a valid .csv even when the browser reports an unexpected MIME type', async () => {
       // Browsers/OSes sometimes report application/octet-stream or text/plain for CSVs.
       mutateAsyncMock.mockImplementation(() => new Promise(() => {}))

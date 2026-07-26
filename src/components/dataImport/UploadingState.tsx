@@ -2,6 +2,7 @@ import type { Accessor, JSX } from 'solid-js'
 import BankGlyph, { inferBankId } from '@components/dataImport/BankGlyph'
 import Icon from '@components/dataImport/Icon'
 import { Button } from '@components/ui/button'
+import { Progress } from '@components/ui/progress'
 import { formatBytes } from '@utils/formatBytes'
 
 export default function UploadingState(props: {
@@ -48,19 +49,9 @@ export default function UploadingState(props: {
           {pct()}%
         </span>
       </div>
-      <div
-        class="h-2 overflow-hidden rounded-full bg-muted"
-        role="progressbar"
-        aria-label="Upload progress"
-        aria-valuenow={pct()}
-        aria-valuemin={0}
-        aria-valuemax={100}
-      >
-        <div
-          class="h-full rounded-full bg-brand transition-[width] duration-150 ease-linear"
-          style={{ width: `${pct()}%` }}
-        />
-      </div>
+      {/* Kobalte Progress owns role="progressbar" and the aria-value* attributes,
+          so they stay in sync with `value` instead of being hand-maintained. */}
+      <Progress value={pct()} minValue={0} maxValue={100} aria-label="Upload progress" class="bg-muted" />
       <div class="mt-2.5 font-mono text-xs tabular-nums text-muted-foreground">
         {formatBytes(loadedBytes())} of {formatBytes(props.file.size)}
       </div>
