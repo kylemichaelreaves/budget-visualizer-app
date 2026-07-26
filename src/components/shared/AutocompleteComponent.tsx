@@ -1,8 +1,31 @@
 import type { JSX } from 'solid-js'
-import { createMemo, createSignal, For, onCleanup, onMount, Show } from 'solid-js'
+import { createMemo, createSignal, onCleanup, Show } from 'solid-js'
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxControl,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxTrigger,
+} from '@components/ui/combobox'
 
 export type AutocompleteOption = { value: string; label: string }
 
+const SEARCH_DEBOUNCE_MS = 450
+const MAX_SUGGESTIONS = 50
+
+/**
+ * Typeahead built on Kobalte's Combobox.
+ *
+ * The public props are unchanged from the hand-rolled version this replaces, so
+ * call sites did not move. What changed is underneath: the old implementation
+ * rendered `<div role="option">` rows inside a plain popover with a
+ * manually-tracked highlight index and a `document` click listener. Those divs
+ * were not focusable and the input advertised none of the relationship —
+ * no `aria-expanded`, `aria-controls`, or `aria-activedescendant` — so assistive
+ * technology had no way to know a listbox existed or which row was current.
+ * Kobalte owns all of that, plus dismiss behaviour and portalling.
+ */
 export default function AutocompleteComponent(props: {
   value: string
   onChange: (value: string) => void
@@ -21,181 +44,145 @@ export default function AutocompleteComponent(props: {
   /** Fires on Enter when there are no suggestions (e.g. commit typed filter text). */
   onEnterNoSuggestions?: () => void
 }): JSX.Element {
-  const [open, setOpen] = createSignal(false)
   const [query, setQuery] = createSignal('')
   const [asyncSuggestions, setAsyncSuggestions] = createSignal<AutocompleteOption[]>([])
-  const [highlight, setHighlight] = createSignal(0)
 
   const minChars = () => props.minCharacters ?? 0
 
-  let root: HTMLDivElement | undefined
   let debounceId: ReturnType<typeof setTimeout> | undefined
 
   function scheduleFetch(q: string) {
     if (debounceId) clearTimeout(debounceId)
     debounceId = setTimeout(() => {
       debounceId = undefined
-      if (props.onSearch) {
-        props.onSearch(q, (results) => {
-          setAsyncSuggestions(results)
-        })
-        return
-      }
-
-      if (!q || q.length === 0) {
-        setAsyncSuggestions((props.options ?? []).slice(0, 50))
-        return
-      }
-      if (q.length < minChars()) {
-        setAsyncSuggestions((props.options ?? []).slice(0, 50))
-        return
-      }
-      const results =
-        props.options?.filter((option) => option.label.toLowerCase().includes(q.toLowerCase())) ?? []
-      setAsyncSuggestions(results.slice(0, 50))
-    }, 450)
+      props.onSearch?.(q, setAsyncSuggestions)
+    }, SEARCH_DEBOUNCE_MS)
   }
 
   onCleanup(() => {
     if (debounceId) clearTimeout(debounceId)
   })
 
+  /** Server-driven when `onSearch` is supplied; otherwise filter the given options. */
   const suggestions = createMemo(() => {
-    if (props.onSearch) {
-      return asyncSuggestions()
-    }
+    if (props.onSearch) return asyncSuggestions().slice(0, MAX_SUGGESTIONS)
     const q = query().trim()
-    if (!q) return (props.options ?? []).slice(0, 50)
-    if (q.length < minChars()) return (props.options ?? []).slice(0, 50)
-    return (
-      props.options?.filter((option) => option.label.toLowerCase().includes(q.toLowerCase())) ?? []
-    ).slice(0, 50)
+    if (!q || q.length < minChars()) return (props.options ?? []).slice(0, MAX_SUGGESTIONS)
+    const lowered = q.toLowerCase()
+    return (props.options ?? [])
+      .filter((option) => option.label.toLowerCase().includes(lowered))
+      .slice(0, MAX_SUGGESTIONS)
   })
 
-  onMount(() => {
-    function onDocClick(e: MouseEvent) {
-      if (root && !root.contains(e.target as Node)) {
-        setOpen(false)
-      }
-    }
-    document.addEventListener('click', onDocClick)
-    onCleanup(() => document.removeEventListener('click', onDocClick))
-  })
-
-  const displayValue = createMemo(() => {
-    if (open()) return query()
+  /** Show the human label for a committed value, falling back to the raw value. */
+  const selectedOption = createMemo<AutocompleteOption | null>(() => {
+    if (!props.value) return null
     const hit = props.options.find((o) => o.value === props.value)
-    return hit?.label ?? props.value
+    return hit ?? { value: props.value, label: props.value }
   })
+
+  function clear() {
+    setQuery('')
+    setAsyncSuggestions([])
+    props.onChange('')
+    props.onClear?.()
+  }
 
   return (
-    <div class="relative w-full" data-testid={props.dataTestId} ref={(el) => (root = el)}>
-      <div class="relative flex items-center">
-        <input
-          class="w-full rounded-md border border-input bg-input-background px-3 py-1.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50"
-          type="text"
-          placeholder={props.placeholder}
-          disabled={props.disabled}
-          aria-label={props.ariaLabel || props.placeholder}
-          value={displayValue()}
-          onInput={(e) => {
-            const v = e.currentTarget.value
-            setQuery(v)
-            props.onChange(v)
-            setOpen(true)
-            setHighlight(0)
-            scheduleFetch(v)
-          }}
-          onFocus={() => {
-            setOpen(true)
-            if (props.onSearch) {
-              scheduleFetch('')
-            } else {
-              setQuery('')
-            }
-          }}
-          onBlur={(e) => {
-            const rt = e.relatedTarget as Node | null
-            const stayingInside = !!(rt && root?.contains(rt))
-            setOpen(false)
-            if (!stayingInside) props.onInputBlur?.()
-          }}
-          onKeyDown={(e) => {
-            const list = suggestions()
-            if (e.key === 'ArrowDown') {
-              e.preventDefault()
-              setHighlight((i) => Math.min(i + 1, Math.max(0, list.length - 1)))
-            } else if (e.key === 'ArrowUp') {
-              e.preventDefault()
-              setHighlight((i) => Math.max(i - 1, 0))
-            } else if (e.key === 'Enter' && list.length > 0) {
-              e.preventDefault()
-              const item = list[highlight()]
-              if (item) {
-                props.onChange(item.value)
-                setOpen(false)
+    <div class="relative w-full" data-testid={props.dataTestId}>
+      <Combobox<AutocompleteOption>
+        options={suggestions()}
+        optionValue="value"
+        optionTextValue="label"
+        optionLabel="label"
+        value={selectedOption()}
+        disabled={props.disabled}
+        placeholder={props.placeholder}
+        // Preserves the previous behaviour of showing suggestions as soon as the
+        // field is focused, rather than only once the user types.
+        triggerMode="focus"
+        // Kobalte filters internally by default; suggestions are already filtered
+        // (or server-supplied), so pass them straight through.
+        onInputChange={(v) => {
+          setQuery(v)
+          props.onChange(v)
+          scheduleFetch(v)
+        }}
+        onChange={(option) => {
+          if (!option) return
+          props.onChange(option.value)
+          setQuery('')
+        }}
+        itemComponent={(itemProps) => (
+          <ComboboxItem item={itemProps.item}>{itemProps.item.rawValue.label}</ComboboxItem>
+        )}
+      >
+        <ComboboxControl>
+          <ComboboxInput
+            aria-label={props.ariaLabel || props.placeholder}
+            class={props.value ? 'pr-14' : 'pr-8'}
+            onBlur={() => props.onInputBlur?.()}
+            onKeyDown={(e: KeyboardEvent) => {
+              if (e.key !== 'Enter') return
+
+              // Enter with nothing to pick commits the typed text (free-text filter).
+              if (suggestions().length === 0) {
+                if (!props.onEnterNoSuggestions) return
+                e.preventDefault()
+                props.onEnterNoSuggestions()
                 setQuery('')
+                return
               }
-            } else if (e.key === 'Enter' && list.length === 0 && props.onEnterNoSuggestions) {
+
+              /**
+               * Preserve "Enter picks the first suggestion" from the previous
+               * implementation. Kobalte does not highlight an option on open, so
+               * without this, Enter would do nothing until the user arrowed down —
+               * a regression for the memo filter, which is typed into constantly.
+               *
+               * `aria-activedescendant` is Kobalte's own record of the current
+               * option, so an empty value means the user has not moved the cursor
+               * and Kobalte will not act on this Enter itself.
+               */
+              const input = e.currentTarget as HTMLInputElement | null
+              if (input?.getAttribute('aria-activedescendant')) return
+
+              const first = suggestions()[0]
+              if (!first) return
               e.preventDefault()
-              props.onEnterNoSuggestions()
-              setOpen(false)
+              props.onChange(first.value)
               setQuery('')
-            } else if (e.key === 'Escape') {
-              setOpen(false)
-            }
-          }}
-        />
-        <Show when={props.value && !props.disabled}>
-          <button
-            type="button"
-            class="absolute right-2 flex items-center justify-center size-5 rounded-full bg-transparent text-muted-foreground hover:text-foreground border-none cursor-pointer text-base leading-none"
-            aria-label="Clear"
-            onClick={(ev) => {
-              ev.stopPropagation()
-              setQuery('')
-              setAsyncSuggestions([])
-              setOpen(false)
-              setHighlight(0)
-              props.onChange('')
-              props.onClear?.()
             }}
+          />
+          <Show when={props.value && !props.disabled}>
+            <button
+              type="button"
+              class="absolute right-8 flex size-5 items-center justify-center rounded-full border-none bg-transparent text-base leading-none text-muted-foreground hover:text-foreground"
+              aria-label="Clear"
+              onClick={(ev) => {
+                ev.stopPropagation()
+                clear()
+              }}
+            >
+              ×
+            </button>
+          </Show>
+          <ComboboxTrigger aria-label={props.placeholder} />
+        </ComboboxControl>
+
+        <Show when={!props.disabled}>
+          <Show
+            when={!props.loading}
+            fallback={
+              <div class="absolute z-50 mt-1 w-full rounded-md border border-border bg-popover px-3 py-2 text-sm text-muted-foreground shadow-lg">
+                {props.loadingText ?? 'Loading...'}
+              </div>
+            }
           >
-            ×
-          </button>
+            <ComboboxContent />
+          </Show>
         </Show>
-      </div>
-      <Show when={open() && !props.disabled}>
-        <div
-          class="absolute z-50 mt-1 w-full max-h-[220px] overflow-y-auto rounded-md border border-border bg-popover text-popover-foreground shadow-lg"
-          role="listbox"
-        >
-          <Show when={props.loading}>
-            <div class="px-3 py-2 text-sm text-muted-foreground">{props.loadingText ?? 'Loading...'}</div>
-          </Show>
-          <Show when={!props.loading}>
-            <For each={suggestions()}>
-              {(item, index) => (
-                <div
-                  class="cursor-default select-none px-3 py-1.5 text-sm"
-                  classList={{
-                    'bg-accent text-accent-foreground': index() === highlight(),
-                  }}
-                  role="option"
-                  onMouseEnter={() => setHighlight(index())}
-                  onClick={() => {
-                    props.onChange(item.value)
-                    setOpen(false)
-                    setQuery('')
-                  }}
-                >
-                  <span>{item.label}</span>
-                </div>
-              )}
-            </For>
-          </Show>
-        </div>
-      </Show>
+      </Combobox>
     </div>
   )
 }

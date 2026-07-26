@@ -16,6 +16,52 @@ describe('AutocompleteComponent', () => {
     expect(screen.getByPlaceholderText('Search fruit')).toBeInTheDocument()
   })
 
+  /**
+   * The reason this component was moved onto Kobalte. The hand-rolled version
+   * rendered `<div role="option">` rows with none of this wiring, so assistive
+   * technology could not tell a listbox existed or which row was current.
+   */
+  describe('combobox accessibility wiring', () => {
+    it('advertises itself as a combobox that controls a listbox', () => {
+      render(() => (
+        <AutocompleteComponent value="" onChange={() => {}} options={options} placeholder="Fruit" />
+      ))
+      const input = screen.getByRole('combobox')
+      expect(input).toHaveAttribute('aria-expanded', 'false')
+
+      fireEvent.focus(input)
+      expect(input).toHaveAttribute('aria-expanded', 'true')
+      expect(input).toHaveAttribute('aria-controls', screen.getByRole('listbox').id)
+    })
+
+    it('tracks the highlighted option via aria-activedescendant as the user arrows', () => {
+      render(() => (
+        <AutocompleteComponent value="" onChange={() => {}} options={options} placeholder="Fruit" />
+      ))
+      const input = screen.getByRole('combobox')
+      fireEvent.focus(input)
+      expect(input).not.toHaveAttribute('aria-activedescendant')
+
+      fireEvent.keyDown(input, { key: 'ArrowDown' })
+      const active = input.getAttribute('aria-activedescendant')
+      expect(active).toBeTruthy()
+      // It names a real option element, not a stale or invented id.
+      expect(screen.getAllByRole('option').some((o) => o.id === active)).toBe(true)
+    })
+
+    it('gives every row the option role with a selected state', () => {
+      render(() => (
+        <AutocompleteComponent value="" onChange={() => {}} options={options} placeholder="Fruit" />
+      ))
+      fireEvent.focus(screen.getByRole('combobox'))
+      const rows = screen.getAllByRole('option')
+      expect(rows).toHaveLength(options.length)
+      for (const row of rows) {
+        expect(row).toHaveAttribute('aria-selected')
+      }
+    })
+  })
+
   it('shows dropdown on focus', () => {
     render(() => <AutocompleteComponent value="" onChange={() => {}} options={options} placeholder="Fruit" />)
     fireEvent.focus(screen.getByPlaceholderText('Fruit'))
