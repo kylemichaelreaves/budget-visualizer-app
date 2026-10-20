@@ -113,10 +113,10 @@ describe('seriesTotals', () => {
     expect(seriesTotals([s(6), s(12), s(4)])).toEqual({ seriesCount: 3, transactionCount: 22 })
   })
 
-  it('excludes dismissed series from both figures', () => {
+  it('includes dismissed series in both figures: dismissal silences the lane, not the count', () => {
     expect(seriesTotals([s(6), s(100, '2026-10-01T00:00:00.000Z')])).toEqual({
-      seriesCount: 1,
-      transactionCount: 6,
+      seriesCount: 2,
+      transactionCount: 106,
     })
   })
 

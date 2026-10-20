@@ -325,8 +325,25 @@ describe('RecurringPage', () => {
       ])
       renderPage()
       expect(await screen.findByTestId('recurring-totals')).toHaveTextContent(
-        '3 series across 22 transactions',
+        '4 series across 122 transactions',
       )
+    })
+
+    it('counts a dismissed series in the header, matching the stat cards', async () => {
+      const dismissedAt = '2026-10-01T00:00:00.000Z'
+      fetchMock.mockResolvedValue([
+        makeSeries({ occurrenceCount: 6 }),
+        makeSeries({ occurrenceCount: 6, dismissedAt }),
+        makeSeries({ occurrenceCount: 6, status: 'stopped' }),
+        makeSeries({ occurrenceCount: 6, status: 'stopped', dismissedAt }),
+      ])
+      renderPage()
+      const header = await screen.findByTestId('recurring-totals')
+      const active = Number(screen.getByTestId('recurring-stat-active-value').textContent)
+      const stopped = Number(screen.getByTestId('recurring-stat-stopped-value').textContent)
+      expect([active, stopped]).toEqual([2, 2])
+      // No overdue series in this fixture, so every series is Active or Stopped: the figures must agree.
+      expect(header).toHaveTextContent(`${active + stopped} series across 24 transactions`)
     })
 
     it('pluralises a single transaction', async () => {

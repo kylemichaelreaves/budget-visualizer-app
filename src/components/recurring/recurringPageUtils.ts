@@ -82,12 +82,15 @@ export function isScanStale(instant: string, now: Date, thresholdDays: number = 
 
 /**
  * Header counts: detected series and the transactions behind them (the summed `occurrenceCount`).
- * Dismissed series are the user's own "ignore this", so they are excluded, as in the stat band.
+ *
+ * Dismissed series are INCLUDED, on purpose. Dismissal means "stop flagging this" and silences the
+ * triage lane only; every count and total on the page describes reality. Filtering them here would
+ * make the header disagree with the stat cards (Active, Stopped) on the same screen. Do not add a
+ * dismissal filter back.
  */
 export function seriesTotals(list: RecurringSeries[]): { seriesCount: number; transactionCount: number } {
-  const shown = list.filter((s) => s.dismissedAt == null)
   return {
-    seriesCount: shown.length,
-    transactionCount: shown.reduce((total, s) => total + s.occurrenceCount, 0),
+    seriesCount: list.length,
+    transactionCount: list.reduce((total, s) => total + s.occurrenceCount, 0),
   }
 }
