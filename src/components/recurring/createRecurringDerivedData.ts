@@ -1,3 +1,17 @@
+/**
+ * Pure derived-data helpers for the recurring-payments page.
+ *
+ * Mixed epoch, deliberately: a series' `status` (`active` / `overdue` / `stopped`) is the value
+ * the backend stored at the last scan (`detectedAt`). It is not recomputed here, because that
+ * would duplicate the detector's grace and month-anchoring rules in a second language. Between
+ * scans, then, a series that has since fallen overdue is not flagged `late` and still counts
+ * toward the monthly burn. The injected `today` governs one thing only: how long a series that
+ * is already `stopped` stays in the review lane (it ages out live, 2 cadences after crossing
+ * into `stopped`). The UI must present these figures as "as of last scan".
+ *
+ * Money: `monthlyAmount` is the single cent-exact boundary. Every total here is a sum of those
+ * per-series figures, so a headline can never disagree with the rows beneath it.
+ */
 import type { RecurringCadence, RecurringSeries } from '@types'
 
 export type TriageState = 'price-up' | 'price-down' | 'late' | 'conflict' | 'stopped' | null
@@ -88,10 +102,10 @@ export function formatSeriesDate(isoDate: string): string {
 /**
  * Rounds a euro amount to whole cents on the decimal the API sent, not on its binary expansion
  * (`1.005 * 100` is `100.49999999999999`; the string `1.005e2` is exactly `100.5`). Half rounds
- * away from zero. This is the single rounding boundary: the table rows and every total derive
- * from it, so a headline figure cannot disagree with the rows beneath it.
+ * away from zero. This is the single rounding boundary: `monthlyAmount` and every total
+ * derive from it. Private on purpose: callers get `monthlyAmount`, not a raw rounder to misuse.
  */
-export function roundCents(amount: number): number {
+function roundCents(amount: number): number {
   if (!Number.isFinite(amount)) return 0
   const magnitude = Math.abs(amount)
   const text = String(magnitude)
@@ -135,7 +149,9 @@ function isRecentlyStopped(s: RecurringSeries, today: string): boolean {
 
   let expectedDay = s.nextExpectedDate === null ? null : toDayNumber(s.nextExpectedDate)
   if (expectedDay === null) {
-    // No usable next date: reconstruct it as one cadence after the last payment.
+    // No usable next date: reconstruct it as one cadence after the last payment. This steps by
+    // round(cadenceDays), whereas the backend's addCadence is month-anchored, so a monthly series
+    // can differ by a day. Harmless against a 121-day window, but a deliberate divergence.
     const lastDay = toDayNumber(s.lastDate)
     if (lastDay === null) return false
     expectedDay = lastDay + Math.round(cadenceDays)
@@ -169,6 +185,14 @@ export function needsReviewCount(list: RecurringSeries[], today: string): number
     const state = triageState(s, today)
     return state !== null && state !== 'stopped'
   }).length
+}
+
+/**
+ * A series' normalised monthly figure in euros, cent-exact. This is what a table row must show:
+ * `monthlyBurn` and `burnByCategory` are sums of exactly these values.
+ */
+export function monthlyAmount(s: RecurringSeries): number {
+  return roundCents(s.monthlyNormalized) / 100
 }
 
 const sumCents = (list: RecurringSeries[]): number =>

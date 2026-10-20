@@ -5,7 +5,7 @@ import {
   formatSeriesDate,
   monthlyBurn,
   needsReviewCount,
-  roundCents,
+  monthlyAmount,
   stoppedSavings,
   triageState,
 } from '@components/recurring/createRecurringDerivedData'
@@ -193,6 +193,15 @@ describe('triageState', () => {
       expect(triageState(s, TODAY)).toBe('conflict')
     })
 
+    it('flags memoRecurring false even when memoFrequency is null', () => {
+      expect(triageState(makeSeries({ memoRecurring: false, memoFrequency: null }), TODAY)).toBe('conflict')
+    })
+
+    it('does not read a missing memoRecurring as false', () => {
+      const legacy = makeSeries({ memoRecurring: undefined as unknown as boolean, memoFrequency: null })
+      expect(triageState(legacy, TODAY)).toBeNull()
+    })
+
     it('does not flag the recurring-flag conflict when memoRecurring is true', () => {
       expect(triageState(makeSeries({ memoRecurring: true }), TODAY)).toBeNull()
     })
@@ -239,8 +248,16 @@ describe('triageState', () => {
     })
 
     it('falls back to lastDate + one cadence when nextExpectedDate is null', () => {
-      const s = stoppedWeekly('2026-10-05', { nextExpectedDate: null, lastDate: '2026-09-28' })
-      expect(triageState(s, TODAY)).toBe('stopped') // derived next = 2026-10-05, 15 days past
+      // Weekly: derived next = lastDate + 7 days, and the lane window is 28 days past that.
+      const fallback = (lastDate: string) => stoppedWeekly('2026-10-05', { nextExpectedDate: null, lastDate })
+      // 35 days since the last payment = 28 days past the derived next: the last day inside.
+      expect(triageState(fallback('2026-09-15'), TODAY)).toBe('stopped')
+      // 36 days since = 29 past. Without the + cadence offset, 35 days would already be out.
+      expect(triageState(fallback('2026-09-14'), TODAY)).toBeNull()
+    })
+
+    it('returns null for a stopped series with neither a usable next date nor last date', () => {
+      expect(triageState(stoppedWeekly('x', { nextExpectedDate: null, lastDate: 'x' }), TODAY)).toBeNull()
     })
 
     it('measures day gaps on the calendar, unaffected by the DST change in America/New_York', () => {
@@ -303,19 +320,33 @@ describe('needsReviewCount', () => {
   })
 })
 
-describe('roundCents', () => {
+describe('monthlyAmount', () => {
+  const amount = (monthlyNormalized: number) => monthlyAmount(makeSeries({ monthlyNormalized }))
+
   it('rounds half up on the decimal the API shows, not the binary double', () => {
-    expect(roundCents(1.005)).toBe(101)
-    expect(roundCents(2.675)).toBe(268)
-    expect(roundCents(0.334)).toBe(33)
-    expect(roundCents(0.1 + 0.2)).toBe(30)
+    expect(amount(1.005)).toBe(1.01) // 1.005 * 100 is 100.49999999999999
+    expect(amount(2.675)).toBe(2.68)
+    expect(amount(0.334)).toBe(0.33)
+    expect(amount(0.1 + 0.2)).toBe(0.3)
   })
 
   it('handles zero, negatives and non-finite input', () => {
-    expect(roundCents(0)).toBe(0)
-    expect(roundCents(-1.005)).toBe(-101)
-    expect(roundCents(Number.NaN)).toBe(0)
-    expect(roundCents(Number.POSITIVE_INFINITY)).toBe(0)
+    expect(amount(0)).toBe(0)
+    expect(Object.is(amount(0), 0)).toBe(true)
+    expect(Object.is(amount(-0.001), 0)).toBe(true) // rounds to zero cents; must not render as -0
+    expect(amount(-1.005)).toBe(-1.01)
+    expect(amount(Number.NaN)).toBe(0)
+    expect(amount(Number.POSITIVE_INFINITY)).toBe(0)
+  })
+
+  it('sums, across a set of rows, to exactly monthlyBurn', () => {
+    const list = [(9.99 * 30.44) / 7, (15.49 * 30.44) / 14, 0.334, 0.334, 1.005, 0.1, 0.2].map(
+      (monthlyNormalized) => makeSeries({ monthlyNormalized }),
+    )
+    const rowsInCents = list.reduce((sum, s) => sum + Math.round(monthlyAmount(s) * 100), 0)
+    expect(monthlyBurn(list)).toBe(rowsInCents / 100)
+    // Each row is itself a whole number of cents.
+    for (const s of list) expect(monthlyAmount(s)).toBe(Number(monthlyAmount(s).toFixed(2)))
   })
 })
 
@@ -337,7 +368,7 @@ describe('monthlyBurn', () => {
   it('equals the sum of the displayed per-month figures', () => {
     // Each row shows its figure to the cent; the headline must be the sum of what is shown.
     const list = [0.334, 0.334, 0.334].map((monthlyNormalized) => makeSeries({ monthlyNormalized }))
-    const displayedCents = list.reduce((sum, s) => sum + roundCents(s.monthlyNormalized), 0)
+    const displayedCents = list.reduce((sum, s) => sum + Math.round(monthlyAmount(s) * 100), 0)
     expect(displayedCents).toBe(99)
     expect(monthlyBurn(list)).toBe(0.99) // not 1.00, which rounding the raw sum would give
   })
@@ -355,7 +386,7 @@ describe('monthlyBurn', () => {
     const list = [(9.99 * 30.44) / 7, (15.49 * 30.44) / 14, (120 * 30.44) / 365.25].map((monthlyNormalized) =>
       makeSeries({ monthlyNormalized }),
     )
-    const expected = list.reduce((sum, s) => sum + roundCents(s.monthlyNormalized), 0) / 100
+    const expected = list.reduce((sum, s) => sum + Math.round(monthlyAmount(s) * 100), 0) / 100
     expect(monthlyBurn(list)).toBe(expected)
     expect(Number.isInteger(Math.round(monthlyBurn(list) * 100))).toBe(true)
     expect(monthlyBurn(list)).toBe(Number(monthlyBurn(list).toFixed(2)))
@@ -447,6 +478,15 @@ describe('burnByCategory', () => {
     ])
   })
 
+  it('leaves pct unrounded', () => {
+    const rows = burnByCategory([
+      makeSeries({ budgetCategory: 'A', monthlyNormalized: 1 }),
+      makeSeries({ budgetCategory: 'B', monthlyNormalized: 2 }),
+    ])
+    expect(rows[0].pct).toBeCloseTo(66.666666667, 8) // 66.67 would fail
+    expect(rows[1].pct).toBeCloseTo(33.333333333, 8) // 33.33 would fail
+  })
+
   it('returns no rows, and no NaN pct, when there is nothing to total', () => {
     expect(burnByCategory([])).toEqual([])
     expect(burnByCategory([makeSeries({ monthlyNormalized: 0 })])).toEqual([
@@ -484,6 +524,8 @@ describe('formatSeriesDate', () => {
     expect(formatSeriesDate('not a date')).toBe('not a date')
     expect(formatSeriesDate('2026-13-01')).toBe('2026-13-01')
     expect(formatSeriesDate('2026-00-10')).toBe('2026-00-10')
+    expect(formatSeriesDate('2026-02-31')).toBe('2026-02-31') // not a real calendar date
+    expect(formatSeriesDate('2026-04-31')).toBe('2026-04-31')
   })
 
   it('runs under America/New_York, as the npm script guarantees', () => {
