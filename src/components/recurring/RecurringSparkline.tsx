@@ -19,13 +19,15 @@ interface Plotted {
 }
 
 /**
- * Colour is by direction of the latest step: `--negative` when the price rose, `--muted-foreground`
- * otherwise. They are Tailwind classes on the `<svg>`, and every shape draws with `currentColor`,
- * so the whole mark takes one token and there is no literal colour anywhere.
+ * Colour is by direction of the latest step, matching the triage lane: `--negative` when the price
+ * rose, `--positive` when it fell, `--muted-foreground` when nothing changed. Three distinct
+ * tokens, so a price cut is never mistaken for no change. They are Tailwind classes on the `<svg>`,
+ * and every shape draws with `currentColor`, so the whole mark takes one token and there is no
+ * literal colour anywhere.
  */
 const DIRECTION_COLOUR: Record<Direction, string> = {
   up: 'text-negative',
-  down: 'text-muted-foreground',
+  down: 'text-positive',
   flat: 'text-muted-foreground',
 }
 

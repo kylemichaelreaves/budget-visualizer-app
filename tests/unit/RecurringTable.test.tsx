@@ -122,6 +122,33 @@ describe('RecurringTable', () => {
     expect(names).toEqual(['Bravo', 'Charlie', 'Alpha'])
   })
 
+  it('sinks stopped rows to the bottom, keeping the given order within each group', () => {
+    const live1 = makeSeries({ memoName: 'Live1', monthlyNormalized: 50 })
+    const stopped1 = makeSeries({ memoName: 'Stopped1', status: 'stopped', monthlyNormalized: 40 })
+    const late = makeSeries({ memoName: 'Late', status: 'overdue', monthlyNormalized: 30 })
+    const stopped2 = makeSeries({ memoName: 'Stopped2', status: 'stopped', monthlyNormalized: 20 })
+    const live2 = makeSeries({ memoName: 'Live2', monthlyNormalized: 10 })
+    render(() => <RecurringTable series={[live1, stopped1, late, stopped2, live2]} />)
+    const names = screen.getAllByTestId('recurring-table-row-name').map((el) => el.textContent)
+    // Not re-sorted by amount: Live1 (50) stays ahead of Late (30) and Live2 (10) as given.
+    expect(names).toEqual(['Live1', 'Late', 'Live2', 'Stopped1', 'Stopped2'])
+  })
+
+  it('moves a row to the stopped group when a refetch stops it, without remounting it', () => {
+    const a = makeSeries({ memoName: 'Alpha' })
+    const b = makeSeries({ memoName: 'Bravo' })
+    const [list, setList] = createSignal([a, b])
+    render(() => <RecurringTable series={list()} />)
+    const rowA = row(a)
+    setList([{ ...a, status: 'stopped' as const }, { ...b }])
+    expect(screen.getAllByTestId('recurring-table-row-name').map((el) => el.textContent)).toEqual([
+      'Bravo',
+      'Alpha',
+    ])
+    expect(row(a).dataset.status).toBe('stopped')
+    expect(rowA.dataset.status).toBe('stopped')
+  })
+
   describe('dismissed series', () => {
     it('keeps a dismissed series in the table, visibly marked, still carrying its monthly figure', () => {
       const dismissed = makeSeries({
@@ -265,6 +292,15 @@ describe('RecurringTable', () => {
         'data-weak',
         'false',
       )
+    })
+
+    it('lets the visible percentage carry the value, so the bar is not announced twice', () => {
+      const s = makeSeries({ confidence: 0.9 })
+      render(() => <RecurringTable series={[s]} />)
+      const meter = within(cell(s, 'confidence')).getByTestId('recurring-table-confidence-meter')
+      expect(meter).toHaveAttribute('aria-hidden', 'true')
+      expect(meter).not.toHaveAttribute('aria-label')
+      expect(cell(s, 'confidence')).toHaveTextContent('90%')
     })
 
     it('clamps an out-of-range confidence into the bar', () => {
@@ -451,7 +487,15 @@ describe('RecurringSparkline', () => {
     expect(rise.svg).toHaveAttribute('data-direction', 'up')
     expect(fall.svg).toHaveAttribute('data-direction', 'down')
     expect(rise.svg).toHaveClass('text-negative')
-    expect(fall.svg).toHaveClass('text-muted-foreground')
+    expect(fall.svg).toHaveClass('text-positive')
+    const flat = points([
+      { date: '2026-09-15', amount: 10 },
+      { date: '2026-10-15', amount: 10 },
+    ])
+    expect(flat.svg).toHaveClass('text-muted-foreground')
+    // All three directions are told apart: a price cut must not look like nothing happened.
+    const classes = [rise, fall, flat].map((v) => v.svg.getAttribute('class'))
+    expect(new Set(classes).size).toBe(3)
     expect(rise.svg.getAttribute('class')).not.toBe(fall.svg.getAttribute('class'))
     expectNoLiteralColours(rise.svg.outerHTML)
     expectNoLiteralColours(fall.svg.outerHTML)
@@ -467,6 +511,32 @@ describe('RecurringSparkline', () => {
     const fall = polylineYs(points(FALL).svg)
     expect(rise[2]).toBeLessThan(rise[0])
     expect(fall[2]).toBeGreaterThan(fall[0])
+  })
+
+  it.each([
+    ['a rise', RISE],
+    ['a fall', FALL],
+    ['a flat history', [RISE[0], { ...RISE[1], amount: 10 }]],
+    ['a single entry', [RISE[0]]],
+    [
+      'a steep climb',
+      [
+        { date: '2026-09-15', amount: 0.01 },
+        { date: '2026-10-15', amount: 9999 },
+      ],
+    ],
+  ])('keeps every point, with its radius, inside the viewBox for %s', (_label, history) => {
+    const { svg } = points(history)
+    const [, , width, height] = (svg.getAttribute('viewBox') ?? '').split(' ').map(Number)
+    expect([width, height]).toEqual([80, 24])
+    expect(circles(svg).length).toBeGreaterThan(0)
+    for (const c of circles(svg)) {
+      const [cx, cy, r] = ['cx', 'cy', 'r'].map((a) => Number(c.getAttribute(a)))
+      expect(cx - r, c.outerHTML).toBeGreaterThanOrEqual(0)
+      expect(cx + r, c.outerHTML).toBeLessThanOrEqual(width)
+      expect(cy - r, c.outerHTML).toBeGreaterThanOrEqual(0)
+      expect(cy + r, c.outerHTML).toBeLessThanOrEqual(height)
+    }
   })
 
   it('dashes only the trailing segment of a stopped series', () => {

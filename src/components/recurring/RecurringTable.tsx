@@ -52,8 +52,7 @@ function ConfidenceMeter(props: { confidence: number }) {
         viewBox={`0 0 ${BAR_WIDTH} 6`}
         width="48"
         height="6"
-        role="img"
-        aria-label={`Confidence ${Math.round(value() * 100)}%`}
+        aria-hidden="true"
         data-testid="recurring-table-confidence-meter"
         data-weak={weak()}
         class={weak() ? 'text-caution' : 'text-primary'}
@@ -160,8 +159,15 @@ function SeriesRow(props: { series: () => RecurringSeries }) {
  * Per-month figures come from `monthlyAmount`, so the rows sum to the headline.
  */
 export default function RecurringTable(props: { series: RecurringSeries[] }) {
-  const ids = createMemo(() => props.series.map((s) => s.id))
-  const byId = createMemo(() => new Map(props.series.map((s) => [s.id, s])))
+  // Stopped rows sink to the bottom, API order kept within each group (`filter` is stable). The
+  // backend orders by monthly amount, but a stopped row shows a dash there, so left in place it
+  // would interleave among live rows by a number the table never shows. Not re-sorted by amount.
+  const ordered = createMemo(() => [
+    ...props.series.filter((s) => s.status !== 'stopped'),
+    ...props.series.filter((s) => s.status === 'stopped'),
+  ])
+  const ids = createMemo(() => ordered().map((s) => s.id))
+  const byId = createMemo(() => new Map(ordered().map((s) => [s.id, s])))
 
   return (
     <section
