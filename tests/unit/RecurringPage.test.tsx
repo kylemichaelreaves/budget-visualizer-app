@@ -457,6 +457,92 @@ describe('RecurringPage', () => {
     })
   })
 
+  describe('category breakdown', () => {
+    it('mounts the section below the table, open, with one row per category', async () => {
+      fetchMock.mockResolvedValue([
+        makeSeries({ budgetCategory: 'Software', monthlyNormalized: 30 }),
+        makeSeries({ budgetCategory: 'Food', monthlyNormalized: 10 }),
+      ])
+      renderPage()
+      const section = await screen.findByTestId('recurring-category-breakdown')
+      expect(within(section).getByTestId('recurring-breakdown-details')).toHaveAttribute('open')
+      expect(within(section).getAllByTestId('recurring-breakdown-row')).toHaveLength(2)
+      expect(within(section).getByRole('img')).toHaveAccessibleName(/Software 75\.0%, Food 25\.0%/)
+      const table = screen.getByTestId('recurring-table')
+      expect(table.compareDocumentPosition(section) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    })
+
+    it('names the same burn total as the stat card it explains', async () => {
+      fetchMock.mockResolvedValue([
+        makeSeries({ budgetCategory: 'Software', monthlyNormalized: 15.99 }),
+        makeSeries({ budgetCategory: null, monthlyNormalized: 1.005 }),
+        makeSeries({ budgetCategory: 'Food', monthlyNormalized: 7.5, cadence: 'weekly' }),
+        makeSeries({ budgetCategory: 'Gone', monthlyNormalized: 99, status: 'stopped' }),
+      ])
+      renderPage()
+      const section = await screen.findByTestId('recurring-category-breakdown')
+      const burn = screen.getByTestId('recurring-stat-burn-value').textContent
+      expect(within(section).getByTestId('recurring-breakdown-total')).toHaveTextContent(burn as string)
+      const cents = within(section)
+        .getAllByTestId('recurring-breakdown-amount')
+        .reduce((sum, el) => sum + Math.round(Number((el.textContent ?? '').replace(/[$,]/g, '')) * 100), 0)
+      expect(cents).toBe(1599 + 101 + 750)
+      expect(burn).toBe('$24.50')
+    })
+
+    it('counts a dismissed series, as the headline does', async () => {
+      const dismissed = makeSeries({
+        memoName: 'Gym',
+        budgetCategory: 'Health',
+        monthlyNormalized: 30,
+        dismissedAt: '2026-10-01T02:30:00.000Z',
+      })
+      fetchMock.mockResolvedValue([dismissed, makeSeries({ budgetCategory: 'Food', monthlyNormalized: 10 })])
+      renderPage()
+      const section = await screen.findByTestId('recurring-category-breakdown')
+      expect(within(section).getByTestId('recurring-breakdown-total')).toHaveTextContent('$40.00')
+      expect(screen.getByTestId('recurring-stat-burn-value')).toHaveTextContent('$40.00')
+      expect(within(section).getAllByTestId('recurring-breakdown-row')).toHaveLength(2)
+    })
+
+    it('is scoped to its own section: a memo name shown in the lane and table is not ambiguous here', async () => {
+      // "Late Co" appears in the triage lane and the table. Neither is the breakdown, which lists
+      // categories, so a query scoped to the section finds the category and never the memo.
+      const late = makeSeries({
+        memoName: 'Late Co',
+        budgetCategory: 'Bills',
+        status: 'overdue',
+        nextExpectedDate: '2026-10-10',
+      })
+      fetchMock.mockResolvedValue([late])
+      renderPage()
+      const section = await screen.findByTestId('recurring-category-breakdown')
+      expect(screen.getAllByText('Late Co').length).toBeGreaterThan(1)
+      expect(within(section).queryByText('Late Co')).toBeNull()
+      expect(within(section).getByText('Bills')).toBeInTheDocument()
+    })
+
+    it('shows its own empty state when every series is stopped', async () => {
+      fetchMock.mockResolvedValue([makeSeries({ status: 'stopped' })])
+      renderPage()
+      const section = await screen.findByTestId('recurring-category-breakdown')
+      expect(within(section).getByTestId('recurring-breakdown-empty')).toBeInTheDocument()
+    })
+
+    it('is not rendered in the page empty state', async () => {
+      fetchMock.mockResolvedValue([])
+      renderPage()
+      await screen.findByTestId('recurring-empty-state')
+      expect(screen.queryByTestId('recurring-category-breakdown')).toBeNull()
+    })
+
+    it('is not rendered while the series are still loading', () => {
+      fetchMock.mockReturnValue(new Promise(() => {}))
+      renderPage()
+      expect(screen.queryByTestId('recurring-category-breakdown')).toBeNull()
+    })
+  })
+
   describe('colours come from design tokens', () => {
     it('carries no literal colour in the header, panel, notes or stat band (fresh scan)', async () => {
       fetchMock.mockResolvedValue([makeSeries({ detectedAt: agoIso(60_000) })])

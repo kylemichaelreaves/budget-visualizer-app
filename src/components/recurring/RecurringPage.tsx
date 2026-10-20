@@ -8,6 +8,7 @@ import { RefreshCwIcon } from '@shared/icons'
 import { Alert, AlertDescription } from '@components/ui/alert'
 import { Button } from '@components/ui/button'
 import { Card, CardContent } from '@components/ui/card'
+import RecurringCategoryBreakdown from './RecurringCategoryBreakdown'
 import RecurringStatCards from './RecurringStatCards'
 import RecurringTable from './RecurringTable'
 import RecurringTriageLane from './RecurringTriageLane'
@@ -198,7 +199,7 @@ export default function RecurringPage() {
           <>
             <RecurringTriageLane series={series()} today={todayIso()} />
             <RecurringTable series={series()} />
-            {/* TASK 14 MOUNT POINT: burn-by-category breakdown. */}
+            <RecurringCategoryBreakdown series={series()} />
           </>
         </Show>
       </Show>
