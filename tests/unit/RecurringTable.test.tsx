@@ -123,14 +123,17 @@ describe('RecurringTable', () => {
   })
 
   it('sinks stopped rows to the bottom, keeping the given order within each group', () => {
-    const live1 = makeSeries({ memoName: 'Live1', monthlyNormalized: 50 })
-    const stopped1 = makeSeries({ memoName: 'Stopped1', status: 'stopped', monthlyNormalized: 40 })
-    const late = makeSeries({ memoName: 'Late', status: 'overdue', monthlyNormalized: 30 })
-    const stopped2 = makeSeries({ memoName: 'Stopped2', status: 'stopped', monthlyNormalized: 20 })
+    // Neither group is given in descending amount order, so a stable descending re-sort within a
+    // group (or across the list) would reorder it and fail the assertion below.
+    const live1 = makeSeries({ memoName: 'Live1', monthlyNormalized: 30 })
+    const stopped1 = makeSeries({ memoName: 'Stopped1', status: 'stopped', monthlyNormalized: 20 })
+    const late = makeSeries({ memoName: 'Late', status: 'overdue', monthlyNormalized: 50 })
+    const stopped2 = makeSeries({ memoName: 'Stopped2', status: 'stopped', monthlyNormalized: 40 })
     const live2 = makeSeries({ memoName: 'Live2', monthlyNormalized: 10 })
     render(() => <RecurringTable series={[live1, stopped1, late, stopped2, live2]} />)
     const names = screen.getAllByTestId('recurring-table-row-name').map((el) => el.textContent)
-    // Not re-sorted by amount: Live1 (50) stays ahead of Late (30) and Live2 (10) as given.
+    // Not re-sorted by amount: Live1 (30) stays ahead of Late (50), and Stopped1 (20) ahead of
+    // Stopped2 (40), as given.
     expect(names).toEqual(['Live1', 'Late', 'Live2', 'Stopped1', 'Stopped2'])
   })
 
