@@ -54,8 +54,6 @@ function StatCard(props: {
   )
 }
 
-const isDismissed = (s: RecurringSeries): boolean => s.dismissedAt != null
-
 /**
  * The four headline figures. Every number is as of the last server-side scan; the page header
  * says so. `today` only governs how long a stopped series stays in the needs-review window.
@@ -64,13 +62,10 @@ export default function RecurringStatCards(props: { series: RecurringSeries[]; t
   const burn = createMemo(() => monthlyBurn(props.series))
   const review = createMemo(() => needsReviewCount(props.series, props.today ?? todayIso()))
   const savings = createMemo(() => stoppedSavings(props.series))
-  const activeCount = createMemo(
-    () => props.series.filter((s) => !isDismissed(s) && s.status === 'active').length,
-  )
+  // Counts describe reality, so dismissal (which only silences the triage lane) is not consulted.
+  const activeCount = createMemo(() => props.series.filter((s) => s.status === 'active').length)
   // Same population as `stoppedSavings`, so the count and the saving always describe the same rows.
-  const stoppedCount = createMemo(
-    () => props.series.filter((s) => !isDismissed(s) && s.status === 'stopped').length,
-  )
+  const stoppedCount = createMemo(() => props.series.filter((s) => s.status === 'stopped').length)
 
   return (
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4" data-testid="recurring-stat-cards">

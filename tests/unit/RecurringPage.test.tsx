@@ -79,11 +79,11 @@ describe('RecurringPage', () => {
     vi.restoreAllMocks()
   })
 
-  it('loads the series without filters', async () => {
+  it('loads the series including dismissed ones, so dismissal cannot remove a series from the totals', async () => {
     fetchMock.mockResolvedValue([makeSeries()])
     renderPage()
     await screen.findByTestId('recurring-stat-cards')
-    expect(fetchMock).toHaveBeenCalledWith({})
+    expect(fetchMock).toHaveBeenCalledWith({ includeDismissed: true })
   })
 
   describe('last scanned', () => {

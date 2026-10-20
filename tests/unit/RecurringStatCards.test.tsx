@@ -40,12 +40,12 @@ function makeSeries(overrides: Partial<RecurringSeries> = {}): RecurringSeries {
 }
 
 /**
- * Every figure is distinct so a swapped card cannot pass:
- *   burn      = 12.50 + 7.50 + 10.00 + 20.00 (the overdue one) = $50.00
- *   active    = 3
- *   review    = 1 (the overdue series, "late")
- *   stopped   = 2, saving 8.25 + 4.00 = $12.25 (one recent, one long gone: both count)
- * and two dismissed series (one active, one stopped) that must count toward nothing.
+ * Every figure is distinct so a swapped card cannot pass. Dismissal silences the triage lane only,
+ * so the two dismissed series (one active at 99, one stopped at 77) count everywhere but `review`:
+ *   burn      = 12.50 + 7.50 + 10.00 + 20.00 (the overdue one) + 99 (dismissed, active) = $149.00
+ *   active    = 3 + 1 dismissed = 4
+ *   review    = 1 (the overdue series, "late"; a dismissed series is never in the lane)
+ *   stopped   = 2 + 1 dismissed = 3, saving 8.25 + 4.00 + 77 = $89.25 (one recent, one long gone)
  */
 function mixedSeries(): RecurringSeries[] {
   return [
@@ -56,7 +56,7 @@ function mixedSeries(): RecurringSeries[] {
     makeSeries({ monthlyNormalized: 8.25, status: 'stopped', nextExpectedDate: '2026-07-15' }),
     makeSeries({ monthlyNormalized: 4, status: 'stopped', nextExpectedDate: '2025-01-15' }),
     makeSeries({ monthlyNormalized: 99, dismissedAt: '2026-10-01T00:00:00.000Z' }),
-    makeSeries({ monthlyNormalized: 99, status: 'stopped', dismissedAt: '2026-10-01T00:00:00.000Z' }),
+    makeSeries({ monthlyNormalized: 77, status: 'stopped', dismissedAt: '2026-10-01T00:00:00.000Z' }),
   ]
 }
 
@@ -68,28 +68,28 @@ describe('RecurringStatCards', () => {
     render(() => <RecurringStatCards series={mixedSeries()} today={TODAY} />)
 
     expect(screen.getByTestId('recurring-stat-burn')).toHaveTextContent('Monthly burn')
-    expect(value('burn')).toHaveTextContent(/^\$50\.00$/)
+    expect(value('burn')).toHaveTextContent(/^\$149\.00$/)
     expect(caption('burn')).toHaveTextContent('normalized across cadences')
 
     expect(screen.getByTestId('recurring-stat-active')).toHaveTextContent('Active')
-    expect(value('active')).toHaveTextContent(/^3$/)
+    expect(value('active')).toHaveTextContent(/^4$/)
 
     expect(screen.getByTestId('recurring-stat-review')).toHaveTextContent('Needs review')
     expect(value('review')).toHaveTextContent(/^1$/)
 
     expect(screen.getByTestId('recurring-stat-stopped')).toHaveTextContent('Stopped')
-    expect(value('stopped')).toHaveTextContent(/^2$/)
+    expect(value('stopped')).toHaveTextContent(/^3$/)
   })
 
   it('names the burn population in its caption, since burn includes overdue series but Active does not', () => {
     render(() => <RecurringStatCards series={mixedSeries()} today={TODAY} />)
-    // $50.00 of burn beside 3 active only reconciles because the overdue series is in the burn.
+    // $149.00 of burn beside 4 active only reconciles because the overdue series is in the burn.
     expect(caption('burn')).toHaveTextContent(/active \+ overdue/i)
   })
 
   it('renders the stopped card with the monthly saving it represents', () => {
     render(() => <RecurringStatCards series={mixedSeries()} today={TODAY} />)
-    expect(caption('stopped')).toHaveTextContent('$12.25/mo no longer charged')
+    expect(caption('stopped')).toHaveTextContent('$89.25/mo no longer charged')
   })
 
   it('renders zeroed cards with no series rather than crashing', () => {
@@ -101,11 +101,51 @@ describe('RecurringStatCards', () => {
     expect(caption('stopped')).toHaveTextContent('$0.00/mo no longer charged')
   })
 
-  it('does not count a dismissed series toward any card', () => {
-    const only = [makeSeries({ monthlyNormalized: 5, dismissedAt: '2026-10-01T00:00:00.000Z' })]
+  it('counts a dismissed-but-active series toward burn and Active, but not Needs review', () => {
+    const only = [
+      makeSeries({ monthlyNormalized: 5, status: 'overdue', dismissedAt: '2026-10-01T00:00:00.000Z' }),
+      makeSeries({ monthlyNormalized: 6, dismissedAt: '2026-10-01T00:00:00.000Z' }),
+    ]
     render(() => <RecurringStatCards series={only} today={TODAY} />)
+    expect(value('burn')).toHaveTextContent(/^\$11\.00$/)
+    expect(value('active')).toHaveTextContent(/^1$/) // only the `active` one; overdue is not Active
+    expect(value('review')).toHaveTextContent(/^0$/) // the dismissed overdue series is silenced
+    expect(value('stopped')).toHaveTextContent(/^0$/)
+  })
+
+  it('counts a dismissed-but-stopped series toward Stopped and the saving, not toward burn', () => {
+    const only = [
+      makeSeries({ monthlyNormalized: 9, status: 'stopped', dismissedAt: '2026-10-01T00:00:00.000Z' }),
+    ]
+    render(() => <RecurringStatCards series={only} today={TODAY} />)
+    expect(value('stopped')).toHaveTextContent(/^1$/)
+    expect(caption('stopped')).toHaveTextContent('$9.00/mo no longer charged')
     expect(value('burn')).toHaveTextContent(/^\$0\.00$/)
     expect(value('active')).toHaveTextContent(/^0$/)
+    expect(value('review')).toHaveTextContent(/^0$/)
+  })
+
+  it('leaves every figure but Needs review unchanged when a series is dismissed', () => {
+    const flagged = () =>
+      makeSeries({ monthlyNormalized: 20, status: 'overdue', nextExpectedDate: '2026-10-10' })
+    const others = () => [
+      makeSeries({ monthlyNormalized: 10 }),
+      makeSeries({ monthlyNormalized: 3, status: 'stopped' }),
+    ]
+    const [before, setBefore] = createSignal([flagged(), ...others()])
+    render(() => <RecurringStatCards series={before()} today={TODAY} />)
+    const read = () => ({
+      burn: value('burn').textContent,
+      active: value('active').textContent,
+      stopped: value('stopped').textContent,
+      savings: caption('stopped').textContent,
+      review: value('review').textContent,
+    })
+    const undismissed = read()
+    expect(undismissed.review).toBe('1')
+
+    setBefore([{ ...flagged(), dismissedAt: '2026-10-01T00:00:00.000Z' }, ...others()])
+    expect(read()).toEqual({ ...undismissed, review: '0' })
   })
 
   it('updates in place when the series prop changes', () => {

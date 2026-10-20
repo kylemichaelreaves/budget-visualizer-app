@@ -31,10 +31,13 @@ import {
 export default function RecurringPage() {
   const queryClient = useQueryClient()
 
-  // No filters: `{}` omits every query param. (`minConfidence`, if ever added, is a 0..1 fraction.)
+  // Dismissed series must be fetched: the backend omits them by default, but dismissal only
+  // silences the triage lane. Burn, savings and the Active / Stopped counts describe what the user
+  // still pays, so they need every series. (`minConfidence`, if ever added, is a 0..1 fraction.)
+  const seriesFilters = { includeDismissed: true }
   const seriesQuery = useQuery(() => ({
-    queryKey: queryKeys.recurring.list({}),
-    queryFn: () => fetchRecurringSeries({}),
+    queryKey: queryKeys.recurring.list(seriesFilters),
+    queryFn: () => fetchRecurringSeries(seriesFilters),
   }))
 
   const series = () => seriesQuery.data ?? []

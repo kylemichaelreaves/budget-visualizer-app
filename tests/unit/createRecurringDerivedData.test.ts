@@ -276,6 +276,34 @@ describe('triageState', () => {
       expect(triageState(makeSeries({ dismissedAt, memoRecurring: false }), TODAY)).toBeNull()
       expect(triageState(stoppedWeekly('2026-10-05', { dismissedAt }), TODAY)).toBeNull()
     })
+
+    it('is the dismissal alone that silences each state', () => {
+      const dismissedAt = '2026-10-10T12:00:00.000Z'
+      const cases: Array<[Partial<RecurringSeries>, string]> = [
+        [withHistory(9, 12), 'price-up'],
+        [withHistory(12, 9), 'price-down'],
+        [{ status: 'overdue' }, 'late'],
+        [{ memoRecurring: false }, 'conflict'],
+      ]
+      for (const [overrides, expected] of cases) {
+        expect(triageState(makeSeries(overrides), TODAY)).toBe(expected)
+        expect(triageState(makeSeries({ ...overrides, dismissedAt }), TODAY)).toBeNull()
+      }
+      expect(triageState(stoppedWeekly('2026-10-05'), TODAY)).toBe('stopped')
+      expect(triageState(stoppedWeekly('2026-10-05', { dismissedAt }), TODAY)).toBeNull()
+    })
+
+    it('keeps a conflict-kept series in the burn: the lane hint says it still counts', () => {
+      const conflict = makeSeries({ cadence: 'yearly', memoFrequency: 'monthly', monthlyNormalized: 8 })
+      const kept = { ...conflict, dismissedAt: '2026-10-10T12:00:00.000Z' }
+      expect(triageState(conflict, TODAY)).toBe('conflict')
+      expect(needsReviewCount([conflict], TODAY)).toBe(1)
+      // Keep = dismiss: the lane goes quiet, the ledger does not move.
+      expect(triageState(kept, TODAY)).toBeNull()
+      expect(needsReviewCount([kept], TODAY)).toBe(0)
+      expect(monthlyBurn([kept])).toBe(monthlyBurn([conflict]))
+      expect(monthlyBurn([kept])).toBe(8)
+    })
   })
 
   describe('precedence', () => {
@@ -301,9 +329,22 @@ describe('needsReviewCount', () => {
     expect(needsReviewCount(list, TODAY)).toBe(4)
   })
 
-  it('does not count dismissed series', () => {
-    const list = [makeSeries({ status: 'overdue', dismissedAt: '2026-10-10T12:00:00.000Z' }), makeSeries()]
+  it('does not count dismissed series, however they would otherwise be flagged', () => {
+    const dismissedAt = '2026-10-10T12:00:00.000Z'
+    const list = [
+      makeSeries({ status: 'overdue', dismissedAt }),
+      makeSeries({ memoRecurring: false, dismissedAt }),
+      makeSeries({ ...withHistory(8, 12), dismissedAt }),
+      makeSeries(),
+    ]
     expect(needsReviewCount(list, TODAY)).toBe(0)
+  })
+
+  it('counts the same flagged series once it is not dismissed, so dismissal is what removed it', () => {
+    expect(needsReviewCount([makeSeries({ status: 'overdue' })], TODAY)).toBe(1)
+    expect(
+      needsReviewCount([makeSeries({ status: 'overdue', dismissedAt: '2026-10-10T12:00:00.000Z' })], TODAY),
+    ).toBe(0)
   })
 
   it('counts one per series even when several issues apply', () => {
@@ -351,14 +392,26 @@ describe('monthlyAmount', () => {
 })
 
 describe('monthlyBurn', () => {
-  it('excludes stopped and dismissed series', () => {
+  it('excludes stopped series but still counts dismissed ones', () => {
     const list = [
       makeSeries({ monthlyNormalized: 10 }),
       makeSeries({ monthlyNormalized: 5.5 }),
       stoppedWeekly('2026-10-05', { monthlyNormalized: 100 }),
       makeSeries({ monthlyNormalized: 1000, dismissedAt: '2026-10-10T12:00:00.000Z' }),
     ]
-    expect(monthlyBurn(list)).toBe(15.5)
+    expect(monthlyBurn(list)).toBe(1015.5)
+  })
+
+  it('counts a dismissed-but-active series: dismissal silences the lane, not the ledger', () => {
+    const dismissedAt = '2026-10-10T12:00:00.000Z'
+    expect(monthlyBurn([makeSeries({ monthlyNormalized: 12 })])).toBe(12)
+    expect(monthlyBurn([makeSeries({ monthlyNormalized: 12, dismissedAt })])).toBe(12)
+    expect(monthlyBurn([makeSeries({ monthlyNormalized: 12, status: 'overdue', dismissedAt })])).toBe(12)
+  })
+
+  it('does not count a dismissed-but-stopped series, because it is stopped', () => {
+    const dismissedAt = '2026-10-10T12:00:00.000Z'
+    expect(monthlyBurn([stoppedWeekly('2026-10-05', { monthlyNormalized: 12, dismissedAt })])).toBe(0)
   })
 
   it('includes overdue series, which are still live subscriptions', () => {
@@ -408,12 +461,17 @@ describe('stoppedSavings', () => {
     expect(stoppedSavings(list)).toBe(0.3)
   })
 
-  it('excludes dismissed series', () => {
+  it('includes dismissed-but-stopped series: it is still money no longer going out', () => {
     const list = [
       stoppedWeekly('2026-10-05', { monthlyNormalized: 4 }),
       stoppedWeekly('2026-10-05', { monthlyNormalized: 90, dismissedAt: '2026-10-10T12:00:00.000Z' }),
     ]
-    expect(stoppedSavings(list)).toBe(4)
+    expect(stoppedSavings(list)).toBe(94)
+  })
+
+  it('does not count a dismissed-but-active series as a saving', () => {
+    const list = [makeSeries({ monthlyNormalized: 90, dismissedAt: '2026-10-10T12:00:00.000Z' })]
+    expect(stoppedSavings(list)).toBe(0)
   })
 
   it('returns 0 when nothing has stopped', () => {
@@ -448,7 +506,7 @@ describe('burnByCategory', () => {
     expect(rows.map((r) => r.category)).toEqual(['C', 'A', 'B'])
   })
 
-  it('excludes stopped and dismissed series so the rows sum to monthlyBurn', () => {
+  it('excludes stopped series but keeps dismissed ones, so the rows sum to monthlyBurn', () => {
     const list = [
       makeSeries({ budgetCategory: 'Media', monthlyNormalized: 0.334 }),
       makeSeries({ budgetCategory: 'Media', monthlyNormalized: 0.334 }),
@@ -461,10 +519,28 @@ describe('burnByCategory', () => {
       }),
     ]
     const rows = burnByCategory(list)
-    expect(rows.map((r) => r.category)).toEqual(['Media', 'Tools'])
+    expect(rows.map((r) => r.category)).toEqual(['Hidden', 'Media', 'Tools'])
     const summedCents = rows.reduce((sum, r) => sum + Math.round(r.amount * 100), 0)
     expect(summedCents / 100).toBe(monthlyBurn(list))
-    expect(rows[0].amount).toBe(0.66)
+    expect(rows.find((r) => r.category === 'Media')?.amount).toBe(0.66)
+    expect(rows.find((r) => r.category === 'Hidden')?.amount).toBe(40)
+  })
+
+  it('keeps the rows summing to monthlyBurn with dismissed series present, active and stopped', () => {
+    const dismissedAt = '2026-10-10T12:00:00.000Z'
+    const list = [
+      makeSeries({ budgetCategory: 'Media', monthlyNormalized: 0.334 }),
+      makeSeries({ budgetCategory: 'Media', monthlyNormalized: 0.334, dismissedAt }),
+      makeSeries({ budgetCategory: null, monthlyNormalized: 0.334, dismissedAt }),
+      makeSeries({ budgetCategory: 'Tools', monthlyNormalized: 20, status: 'overdue', dismissedAt }),
+      stoppedWeekly('2026-10-05', { budgetCategory: 'Gone', monthlyNormalized: 40, dismissedAt }),
+    ]
+    const rows = burnByCategory(list)
+    expect(rows.map((r) => r.category)).toEqual(['Tools', 'Media', 'Uncategorized'])
+    const summedCents = rows.reduce((sum, r) => sum + Math.round(r.amount * 100), 0)
+    expect(summedCents / 100).toBe(monthlyBurn(list))
+    expect(monthlyBurn(list)).toBe(20.99)
+    expect(rows.reduce((sum, r) => sum + r.pct, 0)).toBeCloseTo(100, 10)
   })
 
   it('computes pct as a share of the total', () => {

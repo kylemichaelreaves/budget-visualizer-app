@@ -116,8 +116,12 @@ function roundCents(amount: number): number {
 
 const isDismissed = (s: RecurringSeries): boolean => s.dismissedAt !== null && s.dismissedAt !== undefined
 
-/** Counts toward the monthly burn: neither stopped nor dismissed. */
-const isLive = (s: RecurringSeries): boolean => !isDismissed(s) && s.status !== 'stopped'
+/**
+ * Counts toward the monthly burn: anything not stopped. Dismissal is deliberately absent. It
+ * means "stop flagging this" and silences the triage lane; it does not mean "stop counting this",
+ * so a dismissed subscription the user still pays stays in the headline figure.
+ */
+const isLive = (s: RecurringSeries): boolean => s.status !== 'stopped'
 
 /** -1, 0 or 1 for the last step of the amount history; 0 when there is no step to judge. */
 function lastPriceStep(s: RecurringSeries): number {
@@ -187,7 +191,10 @@ export function triageState(s: RecurringSeries, today: string): TriageState {
   return null
 }
 
-/** Series needing a decision. Excludes `stopped`, which has its own stat card. */
+/**
+ * Series needing a decision: the size of the triage lane, so it is dismissal-aware (`triageState`
+ * is null for a dismissed series). Excludes `stopped`, which has its own stat card.
+ */
 export function needsReviewCount(list: RecurringSeries[], today: string): number {
   return list.filter((s) => {
     const state = triageState(s, today)
@@ -211,9 +218,9 @@ export function monthlyBurn(list: RecurringSeries[]): number {
   return sumCents(list.filter(isLive)) / 100
 }
 
-/** Monthly spend no longer being incurred: every stopped, non-dismissed series. */
+/** Monthly spend no longer being incurred: every stopped series, dismissed or not. */
 export function stoppedSavings(list: RecurringSeries[]): number {
-  return sumCents(list.filter((s) => !isDismissed(s) && s.status === 'stopped')) / 100
+  return sumCents(list.filter((s) => s.status === 'stopped')) / 100
 }
 
 /** Live burn grouped by budget category, largest first; the rows sum to `monthlyBurn`. */
