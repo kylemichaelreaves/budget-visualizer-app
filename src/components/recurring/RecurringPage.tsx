@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@components/ui/alert'
 import { Button } from '@components/ui/button'
 import { Card, CardContent } from '@components/ui/card'
 import RecurringStatCards from './RecurringStatCards'
+import RecurringTriageLane from './RecurringTriageLane'
 import {
   describeScanAge,
   formatScanTimestamp,
@@ -191,7 +192,7 @@ export default function RecurringPage() {
           }
         >
           <>
-            {/* TASK 12 MOUNT POINT: triage lane (series needing a decision). */}
+            <RecurringTriageLane series={series()} today={todayIso()} />
             {/* TASK 13 MOUNT POINT: series table. */}
             {/* TASK 14 MOUNT POINT: burn-by-category breakdown. */}
           </>

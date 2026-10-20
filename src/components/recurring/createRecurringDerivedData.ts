@@ -130,15 +130,23 @@ function lastPriceStep(s: RecurringSeries): number {
   return Math.sign(latest - previous)
 }
 
-function hasConflict(s: RecurringSeries): boolean {
-  // Recurring-flag conflict: detected, yet the user said it is not recurring. Strict
-  // `=== false` so a missing value on a legacy row is not read as an assertion.
-  if (s.memoRecurring === false) return true
-  // Cadence conflict: only when both sides are recognised and differ.
+/**
+ * Cadence conflict: the memo's manual frequency and the detected cadence are both recognised
+ * and differ. Exported so the triage card can word its choice ("Set monthly" / "Keep yearly")
+ * from the same rule that put the series in the lane, rather than re-implementing the vocabulary.
+ */
+export function hasCadenceConflict(s: RecurringSeries): boolean {
   const memo = s.memoFrequency
   if (typeof memo !== 'string' || !COMPARABLE_CADENCES.has(memo)) return false
   if (!COMPARABLE_CADENCES.has(s.cadence)) return false
   return memo !== s.cadence
+}
+
+function hasConflict(s: RecurringSeries): boolean {
+  // Recurring-flag conflict: detected, yet the user said it is not recurring. Strict
+  // `=== false` so a missing value on a legacy row is not read as an assertion.
+  if (s.memoRecurring === false) return true
+  return hasCadenceConflict(s)
 }
 
 /** True while a stopped series is within `LANE_WINDOW_CADENCES` of crossing into `stopped`. */
