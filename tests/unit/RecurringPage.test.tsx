@@ -1,4 +1,4 @@
-import { render, screen, waitFor, fireEvent } from '@solidjs/testing-library'
+import { render, screen, waitFor, fireEvent, within } from '@solidjs/testing-library'
 import { QueryClient, QueryClientProvider } from '@tanstack/solid-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mutationKeys } from '@api/queryKeys'
@@ -389,6 +389,71 @@ describe('RecurringPage', () => {
       renderPage()
       await screen.findByTestId('recurring-empty-state')
       expect(screen.queryByTestId('recurring-triage-lane')).toBeNull()
+    })
+  })
+
+  describe('series table', () => {
+    it('mounts the table with one row per series', async () => {
+      const a = makeSeries({ memoName: 'Netflix' })
+      const b = makeSeries({ memoName: 'Gym', status: 'overdue', nextExpectedDate: '2026-10-10' })
+      fetchMock.mockResolvedValue([a, b])
+      renderPage()
+      const table = await screen.findByTestId('recurring-table')
+      expect(within(table).getByTestId(`recurring-table-row-${a.id}`)).toHaveTextContent('Netflix')
+      expect(within(table).getByTestId(`recurring-table-row-${b.id}`)).toHaveTextContent('Gym')
+      expect(within(table).getAllByRole('row')).toHaveLength(3) // header + 2
+    })
+
+    it('lists dismissed series, marked, so the table agrees with the stat cards that count them', async () => {
+      const dismissed = makeSeries({
+        memoName: 'Gym',
+        monthlyNormalized: 30,
+        dismissedAt: '2026-10-01T02:30:00.000Z',
+      })
+      const live = makeSeries({ memoName: 'Netflix', monthlyNormalized: 10 })
+      fetchMock.mockResolvedValue([dismissed, live])
+      renderPage()
+      await screen.findByTestId('recurring-table')
+
+      const dismissedRow = screen.getByTestId(`recurring-table-row-${dismissed.id}`)
+      expect(dismissedRow).toHaveAttribute('data-dismissed', 'true')
+      expect(within(dismissedRow).getByTestId('recurring-table-dismissed')).toBeInTheDocument()
+      // The headline counts the dismissed series; so does the table.
+      expect(screen.getByTestId('recurring-stat-burn-value')).toHaveTextContent('$40.00')
+    })
+
+    it('has per-month figures that sum to the headline burn', async () => {
+      fetchMock.mockResolvedValue([
+        makeSeries({ monthlyNormalized: 15.99 }),
+        makeSeries({ monthlyNormalized: 1.005, dismissedAt: '2026-10-01T02:30:00.000Z' }),
+        makeSeries({ monthlyNormalized: 7.5, cadence: 'weekly', latestAmount: 1.73 }),
+        makeSeries({ monthlyNormalized: 99, status: 'stopped' }),
+      ])
+      renderPage()
+      await screen.findByTestId('recurring-table')
+
+      const cents = screen
+        .getAllByTestId('recurring-table-monthly')
+        .map((el) => el.textContent ?? '')
+        .filter((text) => text.startsWith('$'))
+        .reduce((sum, text) => sum + Math.round(Number(text.replace(/[$,]/g, '')) * 100), 0)
+      expect(screen.getByTestId('recurring-stat-burn-value')).toHaveTextContent(
+        `$${(cents / 100).toFixed(2)}`,
+      )
+      expect(cents).toBe(1599 + 101 + 750)
+    })
+
+    it('is not rendered in the empty state', async () => {
+      fetchMock.mockResolvedValue([])
+      renderPage()
+      await screen.findByTestId('recurring-empty-state')
+      expect(screen.queryByTestId('recurring-table')).toBeNull()
+    })
+
+    it('is not rendered while the series are still loading', () => {
+      fetchMock.mockReturnValue(new Promise(() => {}))
+      renderPage()
+      expect(screen.queryByTestId('recurring-table')).toBeNull()
     })
   })
 
