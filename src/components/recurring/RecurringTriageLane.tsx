@@ -1,4 +1,5 @@
 import { createMemo, For, type JSX, Show } from 'solid-js'
+import { A } from '@solidjs/router'
 import { useMutation, useQueryClient } from '@tanstack/solid-query'
 import { updateRecurringSeries } from '@api/recurring/updateRecurringSeries'
 import mutateMemo from '@api/hooks/memos/mutateMemo'
@@ -197,7 +198,15 @@ function TriageCard(props: { series: RecurringSeries; state: LaneState }) {
         <Show when={props.state === 'conflict'}>
           <Show when={!memoName()}>
             <p class="text-muted-foreground m-0 text-xs" data-testid="recurring-triage-needs-name">
-              This memo has no name, so it cannot be updated here. Name it on the memo page first.
+              This memo has no name, so it cannot be updated here.{' '}
+              <A
+                href={`/budget-visualizer/memos/${props.series.memoId}/edit`}
+                class="text-primary underline underline-offset-2"
+                data-testid="recurring-triage-name-link"
+              >
+                Name it on its memo page
+              </A>{' '}
+              first.
             </p>
           </Show>
         </Show>
@@ -228,6 +237,13 @@ function TriageCard(props: { series: RecurringSeries; state: LaneState }) {
             </Button>
           </Show>
         </div>
+        <Show when={props.state === 'conflict'}>
+          {/* Keep is a dismissal, so say what that does and does not change. */}
+          <p class="text-muted-foreground m-0 text-xs" data-testid="recurring-triage-keep-hint">
+            Keep stops flagging this series, including later price, late and stopped alerts. It still counts
+            toward your monthly total.
+          </p>
+        </Show>
       </CardContent>
     </Card>
   )

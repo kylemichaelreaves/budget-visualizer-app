@@ -337,6 +337,44 @@ describe('RecurringPage', () => {
     })
   })
 
+  describe('triage lane', () => {
+    it('mounts the lane with the series that need a decision', async () => {
+      const flagged = makeSeries({ status: 'overdue', nextExpectedDate: '2026-10-10' })
+      const healthy = makeSeries()
+      fetchMock.mockResolvedValue([flagged, healthy])
+      renderPage()
+      await screen.findByTestId('recurring-stat-cards')
+      expect(screen.getByTestId('recurring-triage-lane')).toBeInTheDocument()
+      expect(screen.getByTestId(`recurring-triage-card-${flagged.id}`)).toHaveAttribute('data-state', 'late')
+      expect(screen.queryByTestId(`recurring-triage-card-${healthy.id}`)).toBeNull()
+    })
+
+    it('leaves no lane when nothing needs a decision', async () => {
+      fetchMock.mockResolvedValue([makeSeries()])
+      renderPage()
+      await screen.findByTestId('recurring-stat-cards')
+      expect(screen.queryByTestId('recurring-triage-lane')).toBeNull()
+    })
+
+    it("passes the page's own today to the lane, so a stopped series ages out of it", async () => {
+      // Pinned "now" is 20 Oct 2026. Monthly: a stopped series lingers ~122 days past its expected date.
+      const recent = makeSeries({ status: 'stopped', lastDate: '2026-07-15', nextExpectedDate: '2026-09-01' })
+      const old = makeSeries({ status: 'stopped', lastDate: '2026-03-15', nextExpectedDate: '2026-04-15' })
+      fetchMock.mockResolvedValue([recent, old])
+      renderPage()
+      await screen.findByTestId('recurring-stat-cards')
+      expect(screen.getByTestId(`recurring-triage-card-${recent.id}`)).toBeInTheDocument()
+      expect(screen.queryByTestId(`recurring-triage-card-${old.id}`)).toBeNull()
+    })
+
+    it('is not rendered in the empty state', async () => {
+      fetchMock.mockResolvedValue([])
+      renderPage()
+      await screen.findByTestId('recurring-empty-state')
+      expect(screen.queryByTestId('recurring-triage-lane')).toBeNull()
+    })
+  })
+
   describe('colours come from design tokens', () => {
     it('carries no literal colour in the header, panel, notes or stat band (fresh scan)', async () => {
       fetchMock.mockResolvedValue([makeSeries({ detectedAt: agoIso(60_000) })])

@@ -1,11 +1,13 @@
 import { createSignal } from 'solid-js'
 import { fireEvent, render, screen, waitFor, within } from '@solidjs/testing-library'
+import { MemoryRouter, Route } from '@solidjs/router'
 import { QueryClient, QueryClientProvider } from '@tanstack/solid-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { queryKeys } from '@api/queryKeys'
 import type { Memo, MemoUpdateInput, RecurringSeries } from '@types'
 import { expectNoLiteralColours } from '../setup/expectNoLiteralColours'
 
+const monthlyAmountSpy = vi.hoisted(() => vi.fn<(s: RecurringSeries) => number>())
 const updateSeriesMock = vi.fn<(id: number, dismissed: boolean) => Promise<RecurringSeries>>()
 const updateMemoMock = vi.fn<(memo: MemoUpdateInput) => Promise<Memo>>()
 
@@ -16,6 +18,16 @@ vi.mock('@api/memos/updateMemo', () => ({
   updateMemo: (memo: MemoUpdateInput) => updateMemoMock(memo),
 }))
 
+// Real derived-data module, except `monthlyAmount`, which a test can override with a sentinel.
+vi.mock('@components/recurring/createRecurringDerivedData', async (importActual) => {
+  const actual = await importActual<typeof import('@components/recurring/createRecurringDerivedData')>()
+  monthlyAmountSpy.mockImplementation(actual.monthlyAmount)
+  return { ...actual, monthlyAmount: (s: RecurringSeries) => monthlyAmountSpy(s) }
+})
+
+const derived = await vi.importActual<typeof import('@components/recurring/createRecurringDerivedData')>(
+  '@components/recurring/createRecurringDerivedData',
+)
 const { default: RecurringAvatar } = await import('@components/recurring/RecurringAvatar')
 const { default: RecurringTriageLane } = await import('@components/recurring/RecurringTriageLane')
 
@@ -93,9 +105,12 @@ function renderLane(series: RecurringSeries[], today = TODAY) {
     defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
   })
   const invalidate = vi.spyOn(queryClient, 'invalidateQueries')
+  // A router is part of the real app; the nameless-memo hint links to the memo's page.
   const view = render(() => (
     <QueryClientProvider client={queryClient}>
-      <RecurringTriageLane series={series} today={today} />
+      <MemoryRouter>
+        <Route path="*" component={() => <RecurringTriageLane series={series} today={today} />} />
+      </MemoryRouter>
     </QueryClientProvider>
   ))
   return { invalidate, ...view }
@@ -112,6 +127,8 @@ beforeEach(() => {
   updateMemoMock.mockReset()
   updateSeriesMock.mockResolvedValue({} as RecurringSeries)
   updateMemoMock.mockResolvedValue({} as Memo)
+  monthlyAmountSpy.mockReset()
+  monthlyAmountSpy.mockImplementation(derived.monthlyAmount)
 })
 afterEach(() => {
   vi.restoreAllMocks()
@@ -251,16 +268,21 @@ describe('RecurringTriageLane', () => {
       expect(within(el).getByTestId('recurring-triage-badge')).toHaveTextContent(badgeText)
     })
 
-    it('tints each badge with its own muted token', () => {
+    it('tints each badge with its own muted background and matching text token', () => {
       const list = [priceUp(), priceDown(), late(), cadenceConflict(), stopped()]
       renderLane(list)
-      const badgeClass = (s: RecurringSeries) =>
-        within(card(s)).getByTestId('recurring-triage-badge').className
-      expect(badgeClass(list[0])).toMatch(/\bbg-negative-muted\b/)
-      expect(badgeClass(list[1])).toMatch(/\bbg-positive-muted\b/)
-      expect(badgeClass(list[2])).toMatch(/\bbg-caution-muted\b/)
-      expect(badgeClass(list[3])).toMatch(/\bbg-accent-purple-muted\b/)
-      expect(badgeClass(list[4])).toMatch(/\bbg-positive-muted\b/)
+      const expected = [
+        ['bg-negative-muted', 'text-negative-emphasis'],
+        ['bg-positive-muted', 'text-positive-emphasis'],
+        ['bg-caution-muted', 'text-caution-on-muted'],
+        ['bg-accent-purple-muted', 'text-accent-purple-foreground'],
+        ['bg-positive-muted', 'text-positive-emphasis'],
+      ]
+      list.forEach((s, i) => {
+        const classes = within(card(s)).getByTestId('recurring-triage-badge').className.split(/\s+/)
+        expect(classes).toContain(expected[i][0])
+        expect(classes).toContain(expected[i][1])
+      })
     })
 
     it('keeps price-down and stopped apart by badge text and icon although they share a stripe', () => {
@@ -298,6 +320,13 @@ describe('RecurringTriageLane', () => {
       expect(within(el).getByTestId('recurring-avatar')).toHaveTextContent('NE')
       expect(within(el).getByText('Netflix')).toBeInTheDocument()
       expect(within(el).getByTestId('recurring-triage-monthly')).toHaveTextContent('$1,234.50/mo')
+    })
+
+    it('takes the monthly figure from monthlyAmount, not from monthlyNormalized', () => {
+      monthlyAmountSpy.mockReturnValue(42.42)
+      const s = priceUp({ monthlyNormalized: 15.99 })
+      renderLane([s])
+      expect(within(card(s)).getByTestId('recurring-triage-monthly')).toHaveTextContent('$42.42/mo')
     })
 
     it('falls back to a readable name for a memo with no name', () => {
@@ -346,7 +375,9 @@ describe('RecurringTriageLane', () => {
     ])('qualifies a %s card as a last-scan snapshot', (_label, make) => {
       const s = make()
       renderLane([s])
-      expect(within(card(s)).getByTestId('recurring-triage-as-of-scan')).toHaveTextContent(/as of last scan/i)
+      const caption = within(card(s)).getByTestId('recurring-triage-as-of-scan')
+      expect(caption).toHaveTextContent(/as of last scan/i)
+      expect(caption).toHaveAttribute('title', 'Status from the last scan. Rescan to refresh it.')
     })
   })
 
@@ -457,6 +488,29 @@ describe('RecurringTriageLane', () => {
       expect(updateMemoMock).not.toHaveBeenCalled()
     })
 
+    it('says what Keep does and does not change', () => {
+      const s = cadenceConflict()
+      renderLane([s])
+      const hint = within(card(s)).getByTestId('recurring-triage-keep-hint')
+      expect(hint).toHaveTextContent(/stops flagging this series/i)
+      expect(hint).toHaveTextContent(/still counts toward your monthly total/i)
+    })
+
+    it('does not show the Keep hint on other cards', () => {
+      const s = priceUp()
+      renderLane([s])
+      expect(within(card(s)).queryByTestId('recurring-triage-keep-hint')).toBeNull()
+    })
+
+    it('links a nameless memo to its memo page', () => {
+      const s = cadenceConflict({ memoName: null, memoId: 321 })
+      renderLane([s])
+      expect(within(card(s)).getByTestId('recurring-triage-name-link')).toHaveAttribute(
+        'href',
+        '/budget-visualizer/memos/321/edit',
+      )
+    })
+
     it('reports a failed memo write', async () => {
       updateMemoMock.mockRejectedValueOnce(new Error('memo boom'))
       const s = cadenceConflict()
@@ -464,5 +518,69 @@ describe('RecurringTriageLane', () => {
       fireEvent.click(within(card(s)).getByRole('button', { name: 'Set monthly' }))
       expect(await within(card(s)).findByRole('alert')).toHaveTextContent('memo boom')
     })
+  })
+})
+
+describe('RecurringTriageLane while a write is in flight', () => {
+  /** A promise the test settles by hand, so the mutation stays pending. */
+  function deferred<T>() {
+    let resolve!: (value: T) => void
+    const promise = new Promise<T>((r) => {
+      resolve = r
+    })
+    return { promise, resolve }
+  }
+
+  it('disables Dismiss once it is clicked, so a second click cannot send a second PATCH', async () => {
+    const pending = deferred<RecurringSeries>()
+    updateSeriesMock.mockReturnValue(pending.promise)
+    const s = priceUp()
+    renderLane([s])
+    const button = within(card(s)).getByRole('button', { name: /dismiss/i })
+
+    fireEvent.click(button)
+    await waitFor(() => expect(button).toBeDisabled())
+    fireEvent.click(button)
+
+    expect(updateSeriesMock).toHaveBeenCalledTimes(1)
+    pending.resolve({} as RecurringSeries)
+  })
+
+  it('disables both conflict buttons while the memo write is pending', async () => {
+    const pending = deferred<Memo>()
+    updateMemoMock.mockReturnValue(pending.promise)
+    const s = cadenceConflict()
+    renderLane([s])
+    const accept = within(card(s)).getByRole('button', { name: 'Set monthly' })
+    const keep = within(card(s)).getByRole('button', { name: 'Keep yearly' })
+
+    fireEvent.click(accept)
+    await waitFor(() => expect(accept).toBeDisabled())
+    expect(keep).toBeDisabled()
+    fireEvent.click(accept)
+    fireEvent.click(keep)
+
+    expect(updateMemoMock).toHaveBeenCalledTimes(1)
+    expect(updateSeriesMock).not.toHaveBeenCalled()
+    pending.resolve({} as Memo)
+  })
+
+  it('disables both conflict buttons while Keep is pending', async () => {
+    const pending = deferred<RecurringSeries>()
+    updateSeriesMock.mockReturnValue(pending.promise)
+    const s = cadenceConflict()
+    renderLane([s])
+    const accept = within(card(s)).getByRole('button', { name: 'Set monthly' })
+    const keep = within(card(s)).getByRole('button', { name: 'Keep yearly' })
+
+    fireEvent.click(keep)
+    await waitFor(() => expect(keep).toBeDisabled())
+    expect(accept).toBeDisabled()
+    fireEvent.click(keep)
+    fireEvent.click(accept)
+
+    expect(updateSeriesMock).toHaveBeenCalledTimes(1)
+    expect(updateMemoMock).not.toHaveBeenCalled()
+    pending.resolve({} as RecurringSeries)
   })
 })
