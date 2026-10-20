@@ -12,7 +12,7 @@
  * Money: `monthlyAmount` is the single cent-exact boundary. Every total here is a sum of those
  * per-series figures, so a headline can never disagree with the rows beneath it.
  */
-import type { RecurringCadence, RecurringSeries } from '@types'
+import type { Frequency, RecurringCadence, RecurringSeries } from '@types'
 
 export type TriageState = 'price-up' | 'price-down' | 'late' | 'conflict' | 'stopped' | null
 
@@ -47,11 +47,13 @@ const LANE_WINDOW_CADENCES = 2
 
 /**
  * `memos.frequency` is an unconstrained varchar, so the typed `Frequency | null` is only a
- * compile-time claim. A `Set` of the vocabulary both sides share is the guard: a plain object
- * lookup would accept inherited keys such as `constructor`. `daily` is deliberately absent,
- * since the detector never produces it, and so is anything legacy or hand-edited.
+ * compile-time claim. A `Set` of the vocabulary the memo form offers is the guard: a plain object
+ * lookup would accept inherited keys such as `constructor`. `daily` is in the set because the memo
+ * edit form offers it: the detector never emits it, so a Daily label disagrees with every detected
+ * cadence, which is a real conflict the user should see. Anything legacy or hand-edited stays out.
  */
-const COMPARABLE_CADENCES: ReadonlySet<string> = new Set<RecurringCadence>([
+const COMPARABLE_CADENCES: ReadonlySet<string> = new Set<Frequency>([
+  'daily',
   'weekly',
   'biweekly',
   'monthly',

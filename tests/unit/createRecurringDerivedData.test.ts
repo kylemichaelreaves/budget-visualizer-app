@@ -3,6 +3,7 @@ import type { Frequency, RecurringAmountPoint, RecurringSeries } from '@types'
 import {
   burnByCategory,
   formatSeriesDate,
+  hasCadenceConflict,
   monthlyBurn,
   needsReviewCount,
   monthlyAmount,
@@ -170,9 +171,13 @@ describe('triageState', () => {
       expect(triageState(makeSeries({ memoFrequency: null }), TODAY)).toBeNull()
     })
 
-    it("does not flag a memoFrequency of 'daily', which has no detected equivalent", () => {
-      expect(triageState(makeSeries({ memoFrequency: 'daily' }), TODAY)).toBeNull()
-    })
+    it.each(['weekly', 'biweekly', 'monthly', 'quarterly', 'yearly'] as const)(
+      "flags a memoFrequency of 'daily' against a detected %s series, since the detector never emits daily",
+      (cadence) => {
+        expect(triageState(makeSeries({ cadence, memoFrequency: 'daily' }), TODAY)).toBe('conflict')
+        expect(hasCadenceConflict(makeSeries({ cadence, memoFrequency: 'daily' }))).toBe(true)
+      },
+    )
 
     it.each([
       'fortnightly',
