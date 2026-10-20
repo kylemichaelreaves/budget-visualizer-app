@@ -3,7 +3,10 @@ import type { RecurringSeries } from '@types'
 import {
   describeScanAge,
   formatScanTimestamp,
+  isScanStale,
   latestDetectedAt,
+  seriesTotals,
+  STALE_SCAN_DAYS,
   todayIso,
 } from '@components/recurring/recurringPageUtils'
 
@@ -77,5 +80,47 @@ describe('todayIso', () => {
 
   it('zero-pads month and day', () => {
     expect(todayIso(new Date('2026-03-05T12:00:00-05:00'))).toBe('2026-03-05')
+  })
+})
+
+describe('isScanStale', () => {
+  const now = new Date('2026-10-20T12:00:00.000Z')
+
+  it('uses a 7-day threshold', () => {
+    expect(STALE_SCAN_DAYS).toBe(7)
+  })
+
+  it('is stale only strictly beyond the threshold', () => {
+    expect(isScanStale('2026-10-13T12:00:00.000Z', now)).toBe(false) // exactly 7 days
+    expect(isScanStale('2026-10-13T11:59:00.000Z', now)).toBe(true)
+    expect(isScanStale('2026-10-19T12:00:00.000Z', now)).toBe(false)
+  })
+
+  it('honours an explicit threshold', () => {
+    expect(isScanStale('2026-10-18T11:00:00.000Z', now, 2)).toBe(true)
+  })
+
+  it('does not call an unparseable instant stale', () => {
+    expect(isScanStale('nope', now)).toBe(false)
+  })
+})
+
+describe('seriesTotals', () => {
+  const s = (occurrenceCount: number, dismissedAt: string | null = null) =>
+    ({ occurrenceCount, dismissedAt }) as RecurringSeries
+
+  it('counts series and sums occurrences', () => {
+    expect(seriesTotals([s(6), s(12), s(4)])).toEqual({ seriesCount: 3, transactionCount: 22 })
+  })
+
+  it('excludes dismissed series from both figures', () => {
+    expect(seriesTotals([s(6), s(100, '2026-10-01T00:00:00.000Z')])).toEqual({
+      seriesCount: 1,
+      transactionCount: 6,
+    })
+  })
+
+  it('is zero for an empty list', () => {
+    expect(seriesTotals([])).toEqual({ seriesCount: 0, transactionCount: 0 })
   })
 })

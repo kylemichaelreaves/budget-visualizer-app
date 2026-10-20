@@ -64,3 +64,30 @@ export function todayIso(now: Date = new Date()): string {
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`
 }
+
+/**
+ * A scan older than this is called out in the caution tone. A week is long enough that a
+ * monthly charge could have landed (or been missed) without the page noticing, and short enough
+ * that a rescan is still the obvious next step.
+ */
+export const STALE_SCAN_DAYS = 7
+
+const MS_PER_DAY = 86_400_000
+
+/** True when `instant` is strictly more than `thresholdDays` before `now`. Unparseable is not stale. */
+export function isScanStale(instant: string, now: Date, thresholdDays: number = STALE_SCAN_DAYS): boolean {
+  const ms = Date.parse(instant)
+  return Number.isFinite(ms) && now.getTime() - ms > thresholdDays * MS_PER_DAY
+}
+
+/**
+ * Header counts: detected series and the transactions behind them (the summed `occurrenceCount`).
+ * Dismissed series are the user's own "ignore this", so they are excluded, as in the stat band.
+ */
+export function seriesTotals(list: RecurringSeries[]): { seriesCount: number; transactionCount: number } {
+  const shown = list.filter((s) => s.dismissedAt == null)
+  return {
+    seriesCount: shown.length,
+    transactionCount: shown.reduce((total, s) => total + s.occurrenceCount, 0),
+  }
+}

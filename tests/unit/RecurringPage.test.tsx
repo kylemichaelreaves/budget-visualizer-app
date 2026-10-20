@@ -1,7 +1,9 @@
 import { render, screen, waitFor, fireEvent } from '@solidjs/testing-library'
 import { QueryClient, QueryClientProvider } from '@tanstack/solid-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { mutationKeys } from '@api/queryKeys'
 import type { RecurringRefreshResult, RecurringSeries } from '@types'
+import { expectNoLiteralColours } from '../setup/expectNoLiteralColours'
 
 const fetchMock = vi.fn<(filters: object) => Promise<RecurringSeries[]>>()
 const refreshMock = vi.fn<() => Promise<RecurringRefreshResult>>()
@@ -14,6 +16,7 @@ vi.mock('@api/recurring/refreshRecurringSeries', () => ({
 }))
 
 const { default: RecurringPage } = await import('@components/recurring/RecurringPage')
+const { STALE_SCAN_DAYS } = await import('@components/recurring/recurringPageUtils')
 
 let nextId = 1
 
@@ -54,8 +57,12 @@ function renderPage() {
       <RecurringPage />
     </QueryClientProvider>
   ))
-  return { invalidate }
+  return { invalidate, queryClient }
 }
+
+const NOW = new Date('2026-10-20T15:00:00.000Z')
+const DAY_MS = 86_400_000
+const agoIso = (ms: number) => new Date(NOW.getTime() - ms).toISOString()
 
 const lastScanned = () => screen.getByTestId('recurring-last-scanned-value')
 
@@ -63,8 +70,12 @@ describe('RecurringPage', () => {
   beforeEach(() => {
     fetchMock.mockReset()
     refreshMock.mockReset()
+    // Pin "now" so staleness and relative ages are deterministic. Only Date is faked.
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(NOW)
   })
   afterEach(() => {
+    vi.useRealTimers()
     vi.restoreAllMocks()
   })
 
@@ -152,6 +163,17 @@ describe('RecurringPage', () => {
       expect(busy).toBeDisabled()
     })
 
+    it('registers the rescan under mutationKeys.refreshRecurring', async () => {
+      fetchMock.mockResolvedValue([makeSeries()])
+      refreshMock.mockReturnValue(new Promise(() => {}))
+      const { queryClient } = renderPage()
+      await screen.findByTestId('recurring-stat-cards')
+      expect(queryClient.isMutating({ mutationKey: mutationKeys.refreshRecurring })).toBe(0)
+      fireEvent.click(screen.getByRole('button', { name: 'Rescan' }))
+      await screen.findByRole('button', { name: 'Scanning…' })
+      expect(queryClient.isMutating({ mutationKey: mutationKeys.refreshRecurring })).toBe(1)
+    })
+
     it('shows the failure and leaves the loaded data alone', async () => {
       fetchMock.mockResolvedValue([makeSeries()])
       refreshMock.mockRejectedValue(new Error('upstream exploded'))
@@ -205,6 +227,147 @@ describe('RecurringPage', () => {
       expect(await screen.findByTestId('recurring-load-error')).toHaveTextContent('network down')
       expect(screen.queryByTestId('recurring-empty-state')).not.toBeInTheDocument()
       expect(screen.queryByTestId('recurring-stat-cards')).not.toBeInTheDocument()
+      // We cannot know the scan state, so the header must not claim "Not scanned yet".
+      expect(lastScanned()).toHaveTextContent('Unavailable')
+      expect(lastScanned()).not.toHaveTextContent(/not scanned yet/i)
+      expect(screen.getByTestId('recurring-last-scanned-age')).toHaveTextContent(
+        'Could not load scan status.',
+      )
+      expect(screen.queryByTestId('recurring-totals')).not.toBeInTheDocument()
+    })
+  })
+
+  describe('last-scanned states with no scan time', () => {
+    it('says "Not scanned yet" for an empty list with no scan on record', async () => {
+      fetchMock.mockResolvedValue([])
+      renderPage()
+      await screen.findByTestId('recurring-empty-state')
+      expect(lastScanned()).toHaveTextContent('Not scanned yet')
+    })
+
+    it('says a scan found nothing, not "Not scanned yet", after a rescan returns no series', async () => {
+      fetchMock.mockResolvedValue([])
+      refreshMock.mockResolvedValue({ upserted: 0, deleted: 0 })
+      renderPage()
+      await screen.findByTestId('recurring-empty-state')
+      fireEvent.click(screen.getByRole('button', { name: 'Rescan' }))
+      await waitFor(() => expect(lastScanned()).toHaveTextContent('None detected'))
+      expect(lastScanned()).not.toHaveTextContent(/not scanned yet/i)
+      expect(screen.getByTestId('recurring-last-scanned-age')).toHaveTextContent(
+        'The last scan found no recurring payments.',
+      )
+    })
+
+    it('does not show the "found nothing" message when the rescan itself failed', async () => {
+      fetchMock.mockResolvedValue([])
+      refreshMock.mockRejectedValue(new Error('boom'))
+      renderPage()
+      await screen.findByTestId('recurring-empty-state')
+      fireEvent.click(screen.getByRole('button', { name: 'Rescan' }))
+      await screen.findByTestId('recurring-rescan-error')
+      expect(lastScanned()).toHaveTextContent('Not scanned yet')
+    })
+  })
+
+  describe('staleness cue', () => {
+    const note = () => screen.getByTestId('recurring-snapshot-note')
+
+    async function renderScannedAgo(ms: number) {
+      fetchMock.mockResolvedValue([makeSeries({ detectedAt: agoIso(ms) })])
+      renderPage()
+      await screen.findByTestId('recurring-stat-cards')
+    }
+
+    it('stays quiet for a fresh scan', async () => {
+      await renderScannedAgo(60_000)
+      expect(note()).toHaveClass('text-muted-foreground', 'text-xs')
+      expect(note()).not.toHaveClass('text-caution-foreground')
+      expect(note()).toHaveAttribute('data-stale', 'false')
+      expect(note()).not.toHaveTextContent(/the last scan was/i)
+    })
+
+    it('stays quiet at exactly 7 days', async () => {
+      await renderScannedAgo(STALE_SCAN_DAYS * DAY_MS)
+      expect(note()).not.toHaveClass('text-caution-foreground')
+    })
+
+    it('escalates to the caution tone once the scan is more than 7 days old', async () => {
+      await renderScannedAgo(STALE_SCAN_DAYS * DAY_MS + 60_000)
+      expect(note()).toHaveClass('text-caution-foreground', 'font-medium')
+      expect(note()).not.toHaveClass('text-muted-foreground')
+      expect(note()).toHaveAttribute('data-stale', 'true')
+    })
+
+    it('says how old the scan is and keeps the rescan instruction', async () => {
+      await renderScannedAgo(21 * DAY_MS)
+      expect(note()).toHaveTextContent('The last scan was 21 days ago.')
+      expect(note()).toHaveTextContent(/not flagged until you rescan/i)
+    })
+
+    it('measures staleness from the newest series, not the oldest', async () => {
+      fetchMock.mockResolvedValue([
+        makeSeries({ detectedAt: agoIso(30 * DAY_MS) }),
+        makeSeries({ detectedAt: agoIso(DAY_MS) }),
+      ])
+      renderPage()
+      await screen.findByTestId('recurring-stat-cards')
+      expect(note()).toHaveAttribute('data-stale', 'false')
+    })
+  })
+
+  describe('header counts', () => {
+    it('shows the series count and the summed occurrences as the transaction count', async () => {
+      fetchMock.mockResolvedValue([
+        makeSeries({ occurrenceCount: 6 }),
+        makeSeries({ occurrenceCount: 12 }),
+        makeSeries({ occurrenceCount: 4 }),
+        makeSeries({ occurrenceCount: 100, dismissedAt: '2026-10-01T00:00:00.000Z' }),
+      ])
+      renderPage()
+      expect(await screen.findByTestId('recurring-totals')).toHaveTextContent(
+        '3 series across 22 transactions',
+      )
+    })
+
+    it('pluralises a single transaction', async () => {
+      fetchMock.mockResolvedValue([makeSeries({ occurrenceCount: 1 })])
+      renderPage()
+      expect(await screen.findByTestId('recurring-totals')).toHaveTextContent('1 series across 1 transaction')
+      expect(screen.getByTestId('recurring-totals')).not.toHaveTextContent(/transactions/)
+    })
+  })
+
+  describe('colours come from design tokens', () => {
+    it('carries no literal colour in the header, panel, notes or stat band (fresh scan)', async () => {
+      fetchMock.mockResolvedValue([makeSeries({ detectedAt: agoIso(60_000) })])
+      renderPage()
+      await screen.findByTestId('recurring-stat-cards')
+      expectNoLiteralColours(screen.getByTestId('recurring-page').outerHTML)
+    })
+
+    it('carries no literal colour with the stale caution note and rescan states showing', async () => {
+      fetchMock.mockResolvedValue([makeSeries({ detectedAt: agoIso(30 * DAY_MS) })])
+      refreshMock.mockRejectedValue(new Error('boom'))
+      renderPage()
+      await screen.findByTestId('recurring-stat-cards')
+      fireEvent.click(screen.getByRole('button', { name: 'Rescan' }))
+      await screen.findByTestId('recurring-rescan-error')
+      expect(screen.getByTestId('recurring-snapshot-note')).toHaveAttribute('data-stale', 'true')
+      expectNoLiteralColours(screen.getByTestId('recurring-page').outerHTML)
+    })
+
+    it('carries no literal colour in the empty state', async () => {
+      fetchMock.mockResolvedValue([])
+      renderPage()
+      await screen.findByTestId('recurring-empty-state')
+      expectNoLiteralColours(screen.getByTestId('recurring-page').outerHTML)
+    })
+
+    it('carries no literal colour in the load-error state', async () => {
+      fetchMock.mockRejectedValue(new Error('network down'))
+      renderPage()
+      await screen.findByTestId('recurring-load-error')
+      expectNoLiteralColours(screen.getByTestId('recurring-page').outerHTML)
     })
   })
 })

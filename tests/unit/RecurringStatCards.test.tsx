@@ -3,6 +3,7 @@ import { createSignal } from 'solid-js'
 import { describe, expect, it } from 'vitest'
 import type { RecurringSeries } from '@types'
 import RecurringStatCards from '@components/recurring/RecurringStatCards'
+import { expectNoLiteralColours } from '../setup/expectNoLiteralColours'
 
 const TODAY = '2026-10-20'
 
@@ -68,7 +69,7 @@ describe('RecurringStatCards', () => {
 
     expect(screen.getByTestId('recurring-stat-burn')).toHaveTextContent('Monthly burn')
     expect(value('burn')).toHaveTextContent(/^\$50\.00$/)
-    expect(caption('burn')).toHaveTextContent('Normalized across cadences')
+    expect(caption('burn')).toHaveTextContent('normalized across cadences')
 
     expect(screen.getByTestId('recurring-stat-active')).toHaveTextContent('Active')
     expect(value('active')).toHaveTextContent(/^3$/)
@@ -78,6 +79,12 @@ describe('RecurringStatCards', () => {
 
     expect(screen.getByTestId('recurring-stat-stopped')).toHaveTextContent('Stopped')
     expect(value('stopped')).toHaveTextContent(/^2$/)
+  })
+
+  it('names the burn population in its caption, since burn includes overdue series but Active does not', () => {
+    render(() => <RecurringStatCards series={mixedSeries()} today={TODAY} />)
+    // $50.00 of burn beside 3 active only reconciles because the overdue series is in the burn.
+    expect(caption('burn')).toHaveTextContent(/active \+ overdue/i)
   })
 
   it('renders the stopped card with the monthly saving it represents', () => {
@@ -129,14 +136,7 @@ describe('RecurringStatCards', () => {
 
     it('carries no literal colour: no inline style, hex/rgb/oklch, arbitrary-value or palette classes', () => {
       render(() => <RecurringStatCards series={mixedSeries()} today={TODAY} />)
-      const html = screen.getByTestId('recurring-stat-cards').outerHTML
-      expect(html).not.toMatch(/style=/)
-      expect(html).not.toMatch(/#[0-9a-f]{3,8}\b/i)
-      expect(html).not.toMatch(/\b(rgb|rgba|hsl|hsla|oklch|oklab|lab|lch)\(/i)
-      expect(html).not.toMatch(/\b(?:text|bg|border|fill|stroke|ring)-\[/)
-      expect(html).not.toMatch(
-        /\b(?:text|bg|border|fill|stroke|ring)-(?:red|orange|amber|yellow|lime|green|emerald|teal|cyan|sky|blue|indigo|violet|purple|fuchsia|pink|rose|slate|gray|zinc|neutral|stone|black|white)\b/,
-      )
+      expectNoLiteralColours(screen.getByTestId('recurring-stat-cards').outerHTML)
     })
   })
 })

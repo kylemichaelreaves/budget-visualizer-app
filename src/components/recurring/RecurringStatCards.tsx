@@ -80,7 +80,7 @@ export default function RecurringStatCards(props: { series: RecurringSeries[]; t
         label="Monthly burn"
         icon={<ArrowDownCircleIcon class="size-5 text-negative" />}
         value={formatUsdAbs(burn())}
-        caption="Normalized across cadences"
+        caption="Active + overdue, normalized across cadences"
       />
       <StatCard
         testId="recurring-stat-active"
