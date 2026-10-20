@@ -43,7 +43,15 @@ export const OneCategoryDominates: Story = {
 
 /**
  * A long tail at realistic proportions: more categories than palette colours (so colours repeat,
- * never beside each other), and a 0.0% category held at the minimum visible width.
+ * never beside each other), and a category worth $0.07 listed as "<0.1%" yet drawn at the minimum
+ * visible width.
+ *
+ * Read the bar as a visibility aid, not a measurement. Any category under 1% is drawn 1% wide, so
+ * the floor **overstates the small segments** (here six of them) and, since the bar still totals
+ * 100%, **understates the large ones**. The shortfall (about 3.3 points here) is shared by the
+ * segments above the floor in proportion to their width, so each is drawn about 3.5% narrower than
+ * its true share: Housing is listed at 68.8% and drawn at about 66.4%. The list and the bar's
+ * aria-label are exact.
  */
 export const LongTail: Story = {
   args: {

@@ -281,8 +281,9 @@ describe('RecurringTable', () => {
       render(() => <RecurringTable series={[strong, weak]} />)
 
       const barWidth = (s: RecurringSeries) =>
-        Number(
-          within(cell(s, 'confidence')).getByTestId('recurring-table-confidence-bar').getAttribute('width'),
+        parseFloat(
+          within(cell(s, 'confidence')).getByTestId('recurring-table-confidence-bar').getAttribute('width') ??
+            '',
         )
       expect(cell(weak, 'confidence')).toHaveTextContent('35%')
       expect(barWidth(weak)).toBeLessThan(barWidth(strong))
@@ -306,11 +307,22 @@ describe('RecurringTable', () => {
       expect(cell(s, 'confidence')).toHaveTextContent('90%')
     })
 
+    it('draws a real-height bar with a track: no viewBox to squash it, fill as a percentage of the track', () => {
+      const s = makeSeries({ confidence: 0.52 })
+      render(() => <RecurringTable series={[s]} />)
+      const meter = within(cell(s, 'confidence')).getByTestId('recurring-table-confidence-meter')
+      expect(meter).not.toHaveAttribute('viewBox')
+      expect(Number(meter.getAttribute('height'))).toBeGreaterThanOrEqual(8)
+      expect(within(meter).getByTestId('recurring-table-confidence-track')).toHaveAttribute('width', '100%')
+      expect(within(meter).getByTestId('recurring-table-confidence-bar')).toHaveAttribute('width', '52%')
+      expectNoLiteralColours(meter.outerHTML)
+    })
+
     it('clamps an out-of-range confidence into the bar', () => {
       const s = makeSeries({ confidence: 1.4 })
       render(() => <RecurringTable series={[s]} />)
       const bar = within(cell(s, 'confidence')).getByTestId('recurring-table-confidence-bar')
-      expect(Number(bar.getAttribute('width'))).toBeLessThanOrEqual(100)
+      expect(parseFloat(bar.getAttribute('width') ?? '')).toBeLessThanOrEqual(100)
     })
   })
 

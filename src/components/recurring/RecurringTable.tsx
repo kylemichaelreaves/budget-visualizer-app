@@ -39,29 +39,43 @@ const AS_OF_SCAN: ReadonlySet<RecurringStatus> = new Set<RecurringStatus>(['over
 
 /** Below this a detection is shown as weak, in a caution colour as well as a short bar. */
 const WEAK_CONFIDENCE = 0.6
-const BAR_WIDTH = 100
+const METER_WIDTH = 64
+const METER_HEIGHT = 8
 
 const clampUnit = (n: number) => (Number.isFinite(n) ? Math.min(1, Math.max(0, n)) : 0)
 
+/**
+ * A confidence bar: a visible track and a fill whose length is the confidence. It is an SVG with
+ * no `viewBox`, so it is `METER_HEIGHT` px tall exactly (a `viewBox` would scale the height by the
+ * width's aspect ratio and squash it to a dash), and the fill is a percentage of the track, so no
+ * inline `style` is needed. The track is the muted foreground at low opacity: the plain `muted`
+ * surface colour is within a hair of the card colour in light mode and does not show. The bar is
+ * decorative: the percentage beside it carries the value.
+ */
 function ConfidenceMeter(props: { confidence: number }) {
   const value = () => clampUnit(props.confidence)
   const weak = () => value() < WEAK_CONFIDENCE
   return (
     <span class="inline-flex items-center justify-end gap-2">
       <svg
-        viewBox={`0 0 ${BAR_WIDTH} 6`}
-        width="48"
-        height="6"
+        width={METER_WIDTH}
+        height={METER_HEIGHT}
         aria-hidden="true"
         data-testid="recurring-table-confidence-meter"
         data-weak={weak()}
-        class={weak() ? 'text-caution' : 'text-primary'}
+        class={`block shrink-0 overflow-hidden rounded-full ${weak() ? 'text-caution' : 'text-primary'}`}
       >
-        <rect width={BAR_WIDTH} height="6" rx="3" fill="currentColor" class="text-muted" />
         <rect
-          width={Number((value() * BAR_WIDTH).toFixed(2))}
-          height="6"
-          rx="3"
+          width="100%"
+          height="100%"
+          fill="currentColor"
+          fill-opacity="0.3"
+          class="text-muted-foreground"
+          data-testid="recurring-table-confidence-track"
+        />
+        <rect
+          width={`${Number((value() * 100).toFixed(2))}%`}
+          height="100%"
           fill="currentColor"
           data-testid="recurring-table-confidence-bar"
         />

@@ -4,10 +4,11 @@ import { fetchRecurringSeries } from '@api/recurring/fetchRecurringSeries'
 import { refreshRecurringSeries } from '@api/recurring/refreshRecurringSeries'
 import { extractApiErrorMessage } from '@api/extractApiErrorMessage'
 import { mutationKeys, queryKeys } from '@api/queryKeys'
-import { RefreshCwIcon } from '@shared/icons'
+import { RefreshCwIcon, WarningTriangleIcon } from '@shared/icons'
 import { Alert, AlertDescription } from '@components/ui/alert'
 import { Button } from '@components/ui/button'
 import { Card, CardContent } from '@components/ui/card'
+import { Skeleton } from '@components/ui/skeleton'
 import RecurringCategoryBreakdown from './RecurringCategoryBreakdown'
 import RecurringStatCards from './RecurringStatCards'
 import RecurringTable from './RecurringTable'
@@ -20,6 +21,15 @@ import {
   seriesTotals,
   todayIso,
 } from './recurringPageUtils'
+
+/**
+ * The shared destructive Alert only tints its text, on the card colour, with the default 10% border,
+ * which in light mode reads as red text in an empty box. This page raises it with the `negative`
+ * tokens (a tinted surface and a visible border, readable in both themes). Applied here rather than
+ * in `ui/alert.tsx` so the other features that use that variant are untouched.
+ */
+const ERROR_ALERT_CLASS =
+  'border-negative bg-negative-muted text-negative-emphasis *:data-[slot=alert-description]:text-negative-emphasis'
 
 /**
  * Recurring-payments audit page: header, stat band, and the mount points for the triage lane,
@@ -141,7 +151,8 @@ export default function RecurringPage() {
       </header>
 
       <Show when={rescan.isError}>
-        <Alert variant="destructive" data-testid="recurring-rescan-error">
+        <Alert variant="destructive" class={ERROR_ALERT_CLASS} data-testid="recurring-rescan-error">
+          <WarningTriangleIcon class="size-4" />
           <AlertDescription>Rescan failed: {extractApiErrorMessage(rescan.error)}</AlertDescription>
         </Alert>
       </Show>
@@ -152,11 +163,30 @@ export default function RecurringPage() {
       </Show>
 
       <Show when={seriesQuery.isError}>
-        <Alert variant="destructive" data-testid="recurring-load-error">
+        <Alert variant="destructive" class={ERROR_ALERT_CLASS} data-testid="recurring-load-error">
+          <WarningTriangleIcon class="size-4" />
           <AlertDescription>
             Could not load recurring payments: {extractApiErrorMessage(seriesQuery.error)}
           </AlertDescription>
         </Alert>
+      </Show>
+
+      <Show when={seriesQuery.isPending}>
+        <div
+          class="flex flex-col gap-6"
+          role="status"
+          aria-busy="true"
+          aria-label="Loading recurring payments"
+          data-testid="recurring-loading"
+        >
+          <div class="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <Skeleton class="h-24" />
+            <Skeleton class="h-24" />
+            <Skeleton class="h-24" />
+            <Skeleton class="h-24" />
+          </div>
+          <Skeleton class="h-64" />
+        </div>
       </Show>
 
       <Show when={seriesQuery.isSuccess}>

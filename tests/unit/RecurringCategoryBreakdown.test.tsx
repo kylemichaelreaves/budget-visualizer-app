@@ -7,6 +7,7 @@ import RecurringCategoryBreakdown, {
   segmentWidths,
 } from '@components/recurring/RecurringCategoryBreakdown'
 import { burnByCategory, monthlyBurn } from '@components/recurring/createRecurringDerivedData'
+import { LongTail } from '@components/recurring/RecurringCategoryBreakdown.stories'
 import { expectNoLiteralColours } from '../setup/expectNoLiteralColours'
 
 let nextId = 1
@@ -57,7 +58,7 @@ const bar = () => within(root()).getByTestId('recurring-breakdown-bar')
 
 const cents = (text: string) => Math.round(Number(text.replace(/[$,]/g, '')) * 100)
 /** The tenths of a percent a text such as `33.3%` shows. */
-const tenths = (text: string) => Math.round(Number(text.replace('%', '')) * 10)
+const tenths = (text: string) => (text === '<0.1%' ? 0 : Math.round(Number(text.replace('%', '')) * 10))
 const widthOf = (el: Element) => Number((el.getAttribute('width') ?? '').replace('%', ''))
 const xOf = (el: Element) => Number((el.getAttribute('x') ?? '').replace('%', ''))
 
@@ -258,8 +259,56 @@ describe('RecurringCategoryBreakdown', () => {
       // The list is not fudged: it still shows the true share.
       const coffeeRow = rows().find((r) => r.getAttribute('data-category') === 'Food - Coffee')
       expect(within(coffeeRow as HTMLElement).getByTestId('recurring-breakdown-pct')).toHaveTextContent(
-        '0.0%',
+        '<0.1%',
       )
+    })
+
+    it('never shows a category that has money in it as 0.0%', () => {
+      renderBreakdown([inCategory('Housing', 2300), inCategory('Food - Coffee', 0.07)])
+      const coffeeRow = rows().find((r) => r.getAttribute('data-category') === 'Food - Coffee')
+      expect(within(coffeeRow as HTMLElement).getByTestId('recurring-breakdown-pct')).toHaveTextContent(
+        /^<0\.1%$/,
+      )
+      expect(within(coffeeRow as HTMLElement).getByTestId('recurring-breakdown-amount')).toHaveTextContent(
+        '$0.07',
+      )
+      expect(bar().getAttribute('aria-label')).toContain('Food - Coffee <0.1%')
+      expect(bar().getAttribute('aria-label')).not.toMatch(/\b0\.0%/)
+    })
+
+    it('spreads the minimum-width shortfall over the larger segments instead of taking it all from one', () => {
+      const series = LongTail.args?.series ?? []
+      expect(series.length).toBeGreaterThan(0)
+      renderBreakdown(series)
+      const burns = burnByCategory(series).filter((row) => row.amount !== 0)
+      const drawn = segments().map(widthOf)
+      expect(drawn).toHaveLength(burns.length)
+      expect(Math.round(drawn.reduce((a, b) => a + b, 0) * 10)).toBe(1000)
+
+      const errors = burns.map((row, i) => drawn[i] - row.pct)
+      // A lifted sliver gains at most the floor itself (1 point).
+      burns.forEach((row, i) => {
+        if (row.pct < 1) expect(errors[i]).toBeLessThanOrEqual(1.0001)
+      })
+
+      // The above-floor segments pay for the lifted ones, each by about the same fraction of its
+      // own width (3.5% here). Before, the largest alone gave up 3.4 points (68.8% listed, 65.4%
+      // drawn) and the rest nothing. The six slivers need 3.3 points in all, so the largest still
+      // carries most of it in absolute terms (about 2.4 points); what changes is that every
+      // segment shares it instead of one.
+      const payers = burns.map((row, i) => ({ row, error: errors[i] })).filter(({ row }) => row.pct > 1.5)
+      expect(payers.length).toBeGreaterThan(3)
+      for (const { row, error } of payers) {
+        expect(error).toBeLessThanOrEqual(0.05) // never wider than true (tenths rounding aside)
+        expect(Math.abs(error)).toBeLessThanOrEqual(0.036 * row.pct + 0.1) // 3.6% of itself plus one tenth of rounding
+      }
+      const [largest] = payers.sort((a, b) => b.row.pct - a.row.pct)
+      expect(Math.abs(largest.error)).toBeLessThan(2.6)
+
+      // And the list and label still show the true shares.
+      const listed = displayedPcts().map(tenths)
+      expect(listed.reduce((a, b) => a + b, 0)).toBe(1000)
+      expect(listed[0]).toBe(Math.round(burns[0].pct * 10))
     })
 
     it('draws a lone category as the whole bar', () => {
@@ -382,5 +431,16 @@ describe('segmentWidths', () => {
 
   it('lifts a sliver to the minimum and takes the difference from the largest', () => {
     expect(segmentWidths([999, 1, 0])).toEqual([980, 10, 10])
+  })
+
+  it('shares the shortfall across the above-floor segments in proportion to their width', () => {
+    // 10 units are needed; 600, 300 and 100 donate 6, 3 and 1.
+    expect(segmentWidths([600, 300, 100, 0])).toEqual([594, 297, 99, 10])
+  })
+
+  it('never pushes a segment below the floor to pay for another', () => {
+    const widths = segmentWidths([900, 12, 80, 0, 4, 4])
+    for (const width of widths) expect(width).toBeGreaterThanOrEqual(10)
+    expect(widths.reduce((a, b) => a + b, 0)).toBe(1000)
   })
 })

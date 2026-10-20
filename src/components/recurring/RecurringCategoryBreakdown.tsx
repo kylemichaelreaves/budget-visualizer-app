@@ -23,6 +23,10 @@ const TOTAL_UNITS = 100 * DISPLAY_UNITS
 /**
  * The narrowest a segment is drawn, in units of 0.1%. A category worth 0.1% of the burn would
  * otherwise be a sub-pixel sliver and read as missing from the bar.
+ *
+ * This floor is a distortion, not a rounding: it **overstates small segments** (a 0.0% category is
+ * drawn 1% wide) and, because the bar must still total 100%, **understates the larger ones**
+ * by the same total (see `segmentWidths`). The list and the bar's `aria-label` carry the exact shares.
  */
 const MIN_SEGMENT_UNITS = 1 * DISPLAY_UNITS
 
@@ -62,11 +66,18 @@ const BAR_HEIGHT = 12
 export function apportionTenths(shares: number[]): number[] {
   const scaled = shares.map((share) => share * DISPLAY_UNITS)
   if (scaled.every((s) => !(s > 0))) return scaled.map(() => 0)
+  return largestRemainder(scaled, TOTAL_UNITS)
+}
 
-  const floors = scaled.map((s) => Math.floor(s))
-  let leftover = TOTAL_UNITS - floors.reduce((a, b) => a + b, 0)
-  const byRemainder = scaled
-    .map((s, index) => ({ index, remainder: s - Math.floor(s) }))
+/**
+ * Rounds non-negative values to integers that total exactly `total`: floor each, then hand the
+ * leftover units to the values with the biggest fractional parts (ties to the earlier index).
+ */
+function largestRemainder(values: number[], total: number): number[] {
+  const floors = values.map((v) => Math.floor(v))
+  let leftover = total - floors.reduce((a, b) => a + b, 0)
+  const byRemainder = values
+    .map((v, index) => ({ index, remainder: v - Math.floor(v) }))
     .sort((a, b) => b.remainder - a.remainder || a.index - b.index)
 
   const units = [...floors]
@@ -77,24 +88,58 @@ export function apportionTenths(shares: number[]): number[] {
 }
 
 /**
- * Bar segment widths in units of 0.1%, always totalling exactly 1000. They equal the displayed
- * shares except that a segment under `MIN_SEGMENT_UNITS` is widened to it, the difference being
- * taken from the largest segment (which can best afford it), so a tiny category stays visible
- * without the bar overflowing or leaving a gap.
+ * Bar segment widths in units of 0.1%, always totalling exactly what went in (1000). They equal the
+ * displayed shares except that a segment under `MIN_SEGMENT_UNITS` is widened to it so a tiny
+ * category stays visible.
+ *
+ * The bar is a fixed length, so the widening has to come from somewhere. It is taken from every
+ * segment above the floor *in proportion to its width*, so each is understated by the same small
+ * fraction (about 3% of its own width for a long tail like Housing 68.8% / Groceries 13.0% / six
+ * sub-1% categories), rather than the largest alone absorbing all of it. A segment is never
+ * pushed below the floor to pay for another. The direction of the error is always the same: small
+ * segments are drawn too wide and large ones too narrow. It is a visibility aid, not a measurement;
+ * read the list for exact shares.
  */
 export function segmentWidths(units: number[]): number[] {
-  const widths = [...units]
-  for (let i = 0; i < widths.length; i++) {
-    if (widths[i] >= MIN_SEGMENT_UNITS) continue
-    const largest = widths.reduce((best, w, j) => (w > widths[best] ? j : best), 0)
-    const take = Math.min(MIN_SEGMENT_UNITS - widths[i], Math.max(0, widths[largest] - MIN_SEGMENT_UNITS))
-    widths[i] += take
-    widths[largest] -= take
+  const total = units.reduce((a, b) => a + b, 0)
+  const need = units.map((u) => Math.max(0, MIN_SEGMENT_UNITS - u))
+  const shortfall = need.reduce((a, b) => a + b, 0)
+  if (shortfall === 0) return [...units]
+
+  // Donors are the segments with room above the floor. If they cannot cover every lift (a bar of
+  // more than 100 categories), each lift is scaled back so the total is still kept.
+  const capacity = units.reduce((sum, u) => sum + Math.max(0, u - MIN_SEGMENT_UNITS), 0)
+  const covered = Math.min(shortfall, capacity)
+  const lift = covered / shortfall
+
+  const targets = units.map((u, i) => (need[i] > 0 ? u + need[i] * lift : u))
+
+  // Take `covered` from the donors in proportion to width. A donor that would drop below the
+  // floor is held at it and the rest is re-spread over the others.
+  let remaining = covered
+  let donors = Array.from(units.keys()).filter((i) => units[i] > MIN_SEGMENT_UNITS)
+  while (remaining > 1e-9 && donors.length > 0) {
+    const weight = donors.reduce((sum, i) => sum + targets[i], 0)
+    const pinned = donors.filter((i) => targets[i] - (remaining * targets[i]) / weight < MIN_SEGMENT_UNITS)
+    if (pinned.length === 0) {
+      for (const i of donors) targets[i] -= (remaining * targets[i]) / weight
+      break
+    }
+    for (const i of pinned) {
+      remaining -= targets[i] - MIN_SEGMENT_UNITS
+      targets[i] = MIN_SEGMENT_UNITS
+    }
+    donors = donors.filter((i) => !pinned.includes(i))
   }
-  return widths
+  return largestRemainder(targets, total)
 }
 
-const formatPercent = (units: number) => `${(units / DISPLAY_UNITS).toFixed(1)}%`
+/**
+ * A share to one decimal place. A category with money in it never reads as zero: a positive share
+ * that rounds to 0.0% is shown as "<0.1%", since "0.0%" beside a non-zero amount looks like a bug.
+ */
+const formatShare = (units: number, amount: number) =>
+  units === 0 && amount > 0 ? '<0.1%' : `${(units / DISPLAY_UNITS).toFixed(1)}%`
 const formatOffset = (units: number) => `${Number((units / DISPLAY_UNITS).toFixed(1))}%`
 
 interface BreakdownRow {
@@ -147,7 +192,7 @@ export default function RecurringCategoryBreakdown(props: { series: RecurringSer
 
   const barLabel = () =>
     `Monthly burn by category: ${rows()
-      .map((row) => `${row.category} ${formatPercent(row.units)}`)
+      .map((row) => `${row.category} ${formatShare(row.units, row.amount)}`)
       .join(', ')}`
 
   return (
@@ -216,7 +261,7 @@ export default function RecurringCategoryBreakdown(props: { series: RecurringSer
                       class="text-muted-foreground w-14 text-right tabular-nums"
                       data-testid="recurring-breakdown-pct"
                     >
-                      {formatPercent(row.units)}
+                      {formatShare(row.units, row.amount)}
                     </span>
                   </li>
                 )}

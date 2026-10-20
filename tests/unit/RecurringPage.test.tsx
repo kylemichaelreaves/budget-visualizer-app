@@ -221,6 +221,23 @@ describe('RecurringPage', () => {
       expect(screen.getByTestId('recurring-stat-active-value')).toHaveTextContent('2')
     })
 
+    it('shows a loading skeleton while the series load, and removes it afterwards', async () => {
+      fetchMock.mockResolvedValue([makeSeries()])
+      renderPage()
+      expect(screen.getByTestId('recurring-loading')).toHaveAttribute('aria-busy', 'true')
+      await screen.findByTestId('recurring-stat-cards')
+      expect(screen.queryByTestId('recurring-loading')).not.toBeInTheDocument()
+    })
+
+    it('raises the load error with the negative tokens so it reads as an alert in both themes', async () => {
+      fetchMock.mockRejectedValue(new Error('network down'))
+      renderPage()
+      const alert = await screen.findByTestId('recurring-load-error')
+      expect(screen.queryByTestId('recurring-loading')).not.toBeInTheDocument()
+      expect(alert).toHaveClass('border-negative', 'bg-negative-muted', 'text-negative-emphasis')
+      expect(alert.querySelector('svg')).not.toBeNull()
+    })
+
     it('shows a load error instead of a misleading empty page', async () => {
       fetchMock.mockRejectedValue(new Error('network down'))
       renderPage()
