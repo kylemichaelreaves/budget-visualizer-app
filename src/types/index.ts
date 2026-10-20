@@ -265,3 +265,57 @@ export interface SplitBudgetCategory {
   budget_category_id: string
   amount_debit: number
 }
+
+export type RecurringCadence = 'weekly' | 'biweekly' | 'monthly' | 'quarterly' | 'yearly'
+
+export type RecurringStatus = 'active' | 'overdue' | 'stopped'
+
+/** One point in a series' payment history. `date` is a plain `YYYY-MM-DD` calendar date. */
+export interface RecurringAmountPoint {
+  date: string
+  amount: number
+}
+
+/**
+ * One row of GET `/recurring`. Dates named `*Date` are plain `YYYY-MM-DD` calendar
+ * strings (not instants); `dismissedAt` / `detectedAt` are ISO-8601 instants.
+ */
+export interface RecurringSeries {
+  id: number
+  memoId: number
+  /** `memos.name` is nullable; callers must render a fallback. */
+  memoName: string | null
+  avatarS3Url: string | null
+  cadence: RecurringCadence
+  /** 0..1 */
+  confidence: number
+  occurrenceCount: number
+  firstDate: string
+  lastDate: string
+  nextExpectedDate: string | null
+  latestAmount: number
+  monthlyNormalized: number
+  amountHistory: RecurringAmountPoint[]
+  budgetCategory: string | null
+  status: RecurringStatus
+  /** ISO-8601 instant; null when not dismissed. */
+  dismissedAt: string | null
+  /** ISO-8601 instant of the last detection run for this row. */
+  detectedAt: string
+  /** The memo's manual `recurring` flag (compare against the detected cadence for conflicts). */
+  memoRecurring: boolean
+  /** The memo's manual frequency; null when unset. */
+  memoFrequency: Frequency | null
+}
+
+/** Query params for GET `/recurring`. `minConfidence` is a fraction in 0..1, not a percentage. */
+export interface RecurringFilters {
+  status?: RecurringStatus
+  minConfidence?: number
+  includeDismissed?: boolean
+}
+
+export interface RecurringRefreshResult {
+  upserted: number
+  deleted: number
+}

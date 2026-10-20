@@ -51,5 +51,7 @@ export async function invalidateAfterMemoMutation(queryClient: QueryClient): Pro
     queryClient.invalidateQueries({ queryKey: queryKeys.memosCount }),
     queryClient.invalidateQueries({ queryKey: queryKeys.transactions.all }),
     queryClient.invalidateQueries({ queryKey: queryKeys.transactionsCount.all }),
+    // A memo's manual `recurring` / `frequency` feed the conflict state on the recurring page.
+    queryClient.invalidateQueries({ queryKey: queryKeys.recurring.all }),
   ])
 }
