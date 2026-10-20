@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import type { Memo } from '@types'
+import type { Memo, RecurringCadence } from '@types'
 import {
   MEMO_EDIT_FREQUENCY_OPTIONS,
   buildMemoUpdateInput,
@@ -89,6 +89,21 @@ describe('MEMO_EDIT_FREQUENCY_OPTIONS', () => {
   it('includes a blank option and all frequency values', () => {
     expect(MEMO_EDIT_FREQUENCY_OPTIONS[0]?.value).toBe('')
     const values = MEMO_EDIT_FREQUENCY_OPTIONS.map((o) => o.value).filter(Boolean)
-    expect(values).toEqual(['daily', 'weekly', 'monthly', 'yearly'])
+    expect(values).toEqual(['daily', 'weekly', 'biweekly', 'monthly', 'quarterly', 'yearly'])
+  })
+
+  it('offers biweekly and quarterly, so every cadence the recurring detector emits has a memo value', () => {
+    const byValue = new Map(MEMO_EDIT_FREQUENCY_OPTIONS.map((o) => [o.value, o.label]))
+    expect(byValue.get('biweekly')).toBe('Biweekly')
+    expect(byValue.get('quarterly')).toBe('Quarterly')
+    for (const cadence of [
+      'weekly',
+      'biweekly',
+      'monthly',
+      'quarterly',
+      'yearly',
+    ] satisfies RecurringCadence[]) {
+      expect(byValue.has(cadence)).toBe(true)
+    }
   })
 })

@@ -56,7 +56,7 @@ export interface DayYear {
   day: string
 }
 
-export type Frequency = 'daily' | 'weekly' | 'monthly' | 'yearly'
+export type Frequency = 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'quarterly' | 'yearly'
 
 export type JsonObjectType = {
   total_debit: number

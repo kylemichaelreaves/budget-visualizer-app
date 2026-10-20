@@ -14,7 +14,9 @@ export const MEMO_EDIT_FREQUENCY_OPTIONS: { value: Frequency | ''; label: string
   { value: '', label: '\u2014' },
   { value: 'daily', label: 'Daily' },
   { value: 'weekly', label: 'Weekly' },
+  { value: 'biweekly', label: 'Biweekly' },
   { value: 'monthly', label: 'Monthly' },
+  { value: 'quarterly', label: 'Quarterly' },
   { value: 'yearly', label: 'Yearly' },
 ]
 
