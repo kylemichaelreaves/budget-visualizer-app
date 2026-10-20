@@ -12,6 +12,7 @@ import MemosTable from '@components/memos/table/MemosTable'
 import BudgetCategoriesPage from '@components/budgetCategories/BudgetCategoriesPage'
 import DataImportPage from '@components/dataImport/DataImportPage'
 import AccountSettingsPage from '@components/settings/AccountSettingsPage'
+import RecurringPage from '@components/recurring/RecurringPage'
 import PendingTransactionsTable from '@components/transactions/pending/PendingTransactionsTable'
 import TransactionEditPage from '@components/transactions/forms/TransactionEditPage'
 import TransactionsTable from '@components/transactions/table/TransactionsTable'
@@ -46,6 +47,7 @@ export default function App() {
         <Route path="/memos" component={MemosTable} />
         <Route path="/memos/:memoId/summary" component={MemoSummaryPage} />
         <Route path="/memos/:memoId/edit" component={MemoEditPage} />
+        <Route path="/recurring" component={RecurringPage} />
         <Route path="/budget-categories" component={BudgetCategoriesPage} />
         <Route path="/transactions/csv" component={DataImportPage} />
         <Route path="/loan-calculator" component={LoanCalculator} />
