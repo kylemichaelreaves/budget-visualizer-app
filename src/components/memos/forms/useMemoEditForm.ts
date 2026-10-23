@@ -11,7 +11,6 @@ export function useMemoEditForm(props: { memo: Memo; onSuccess?: () => void; dat
   const [form, setForm] = createStore<MemoEditFormState>({
     id: 0,
     name: '',
-    recurring: false,
     necessary: false,
     ambiguous: false,
     frequency: '',

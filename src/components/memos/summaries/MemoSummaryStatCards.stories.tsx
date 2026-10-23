@@ -30,7 +30,6 @@ type Story = StoryObj // render-only stories build the component directly (no ar
 export const Default: Story = {
   render: () => {
     const [ambiguous, setAmbiguous] = createSignal(false)
-    const [recurring, setRecurring] = createSignal(false)
     const [necessary, setNecessary] = createSignal(true)
     const [frequency, setFrequency] = createSignal<string | undefined>(undefined)
     return (
@@ -42,11 +41,9 @@ export const Default: Story = {
         saving={() => false}
         onOpenCategoryDialog={() => {}}
         onAmbiguousChange={setAmbiguous}
-        onRecurringChange={setRecurring}
         onNecessaryChange={setNecessary}
         onFrequencyChange={setFrequency}
         isAmbiguous={ambiguous}
-        isRecurring={recurring}
         isNecessary={necessary}
         frequency={frequency}
       />
@@ -64,11 +61,9 @@ export const Saving: Story = {
       saving={() => true}
       onOpenCategoryDialog={() => {}}
       onAmbiguousChange={() => {}}
-      onRecurringChange={() => {}}
       onNecessaryChange={() => {}}
       onFrequencyChange={() => {}}
       isAmbiguous={() => false}
-      isRecurring={() => false}
       isNecessary={() => false}
       frequency={() => undefined}
     />
@@ -85,11 +80,9 @@ export const NoCategory: Story = {
       saving={() => false}
       onOpenCategoryDialog={() => {}}
       onAmbiguousChange={() => {}}
-      onRecurringChange={() => {}}
       onNecessaryChange={() => {}}
       onFrequencyChange={() => {}}
       isAmbiguous={() => false}
-      isRecurring={() => false}
       isNecessary={() => false}
       frequency={() => undefined}
     />
@@ -108,11 +101,9 @@ export const WithRecurring: Story = {
         saving={() => false}
         onOpenCategoryDialog={() => {}}
         onAmbiguousChange={() => {}}
-        onRecurringChange={() => {}}
         onNecessaryChange={() => {}}
         onFrequencyChange={setFrequency}
         isAmbiguous={() => false}
-        isRecurring={() => true}
         isNecessary={() => true}
         frequency={frequency}
       />

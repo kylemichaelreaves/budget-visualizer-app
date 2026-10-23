@@ -74,11 +74,9 @@ export default function MemoSummaryTable(): JSX.Element {
           saving={state.saving}
           onOpenCategoryDialog={() => state.setCategoryDialogOpen(true)}
           onAmbiguousChange={state.handleAmbiguousChange}
-          onRecurringChange={state.handleRecurringChange}
           onNecessaryChange={state.handleNecessaryChange}
           onFrequencyChange={state.handleFrequencyChange}
           isAmbiguous={state.isAmbiguous}
-          isRecurring={state.isRecurring}
           isNecessary={state.isNecessary}
           frequency={state.frequency}
         />
