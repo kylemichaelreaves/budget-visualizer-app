@@ -79,6 +79,9 @@ export function useMemoSummaryTable() {
   const totalCredits = createMemo(() => computeTotalCredits(summaryQ.data, txQ.data ?? []))
   const totalDebits = createMemo(() => computeTotalDebits(summaryQ.data, txQ.data ?? []))
 
+  // Resolves only after handling its own failures: it reports through
+  // `patchError` and never rejects, so the handlers below fire it and move on
+  // rather than awaiting a promise that has nothing left to tell them.
   async function patchMemo(fields: MemoPatchFields) {
     const m = memo()
     if (!m || saving()) return
@@ -97,15 +100,15 @@ export function useMemoSummaryTable() {
   }
 
   function handleCategorySelect(value: string) {
-    patchMemo({ budgetCategory: value })
+    void patchMemo({ budgetCategory: value })
   }
 
   function handleAmbiguousChange(checked: boolean) {
-    patchMemo({ ambiguous: checked })
+    void patchMemo({ ambiguous: checked })
   }
 
   function handleNecessaryChange(checked: boolean) {
-    patchMemo({ necessary: checked })
+    void patchMemo({ necessary: checked })
   }
 
   function handleFrequencyChange(value: string) {
@@ -113,7 +116,7 @@ export function useMemoSummaryTable() {
     // An unrecognised value is ignored rather than written: `recurring` and
     // `frequency` have to move together, and there is no pair to build from it.
     if (next === undefined) return
-    patchMemo(recurrenceFields(next))
+    void patchMemo(recurrenceFields(next))
   }
 
   return {
