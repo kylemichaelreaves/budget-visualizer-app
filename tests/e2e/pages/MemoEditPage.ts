@@ -8,7 +8,6 @@ export class MemoEditPage {
   readonly errorAlert: Locator
   readonly form: Locator
   readonly nameInput: Locator
-  readonly recurringCheckbox: Locator
   readonly necessaryCheckbox: Locator
   readonly ambiguousCheckbox: Locator
   readonly frequencySelect: Locator
@@ -22,7 +21,6 @@ export class MemoEditPage {
     this.errorAlert = page.getByTestId('memo-edit-load-error')
     this.form = page.getByTestId('memo-edit-form')
     this.nameInput = this.form.getByLabel('Name')
-    this.recurringCheckbox = this.form.getByLabel('Recurring')
     this.necessaryCheckbox = this.form.getByLabel('Necessary')
     this.ambiguousCheckbox = this.form.getByLabel('Ambiguous')
     this.frequencySelect = this.form.getByLabel('Frequency')

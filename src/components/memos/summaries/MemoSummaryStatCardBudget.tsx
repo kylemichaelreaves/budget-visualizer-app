@@ -2,7 +2,7 @@ import type { Accessor } from 'solid-js'
 import { For, Show } from 'solid-js'
 import { AssignBudgetCategoryButton, BudgetCategoryPill } from '@components/shared/BudgetCategoryPill'
 import { LayoutGridIcon } from '@shared/icons'
-import { MEMO_SUMMARY_FREQUENCY_OPTIONS } from './memoSummaryConstants'
+import { FREQUENCY_VALUES, NOT_RECURRING_VALUE } from '@components/memos/memoRecurrence'
 import MemoSummaryCheckboxRow from './MemoSummaryCheckboxRow'
 import MemoSummaryStatCard from './MemoSummaryStatCard'
 
@@ -12,11 +12,9 @@ export default function MemoSummaryStatCardBudget(props: {
   saving: Accessor<boolean>
   onOpenCategoryDialog: () => void
   onAmbiguousChange: (checked: boolean) => void
-  onRecurringChange: (checked: boolean) => void
   onNecessaryChange: (checked: boolean) => void
   onFrequencyChange: (value: string) => void
   isAmbiguous: Accessor<boolean>
-  isRecurring: Accessor<boolean>
   isNecessary: Accessor<boolean>
   frequency: Accessor<string | undefined>
 }) {
@@ -65,27 +63,27 @@ export default function MemoSummaryStatCardBudget(props: {
             accentClass="accent-caution"
           />
 
-          <MemoSummaryCheckboxRow
-            label="Recurring"
-            checked={props.isRecurring()}
-            disabled={isDisabled()}
-            onChange={props.onRecurringChange}
-            accentClass="accent-info"
-            trailing={
-              <Show when={props.isRecurring()}>
-                <select
-                  value={props.frequency() ?? ''}
-                  onChange={(e) => props.onFrequencyChange(e.currentTarget.value)}
-                  disabled={isDisabled()}
-                  class="ml-1 text-xs border border-input rounded px-1.5 py-0.5 bg-background"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  <option value="">interval...</option>
-                  <For each={MEMO_SUMMARY_FREQUENCY_OPTIONS}>{(f) => <option value={f}>{f}</option>}</For>
-                </select>
-              </Show>
-            }
-          />
+          {/*
+            The interval is the only recurrence control. A memo is recurring
+            exactly when it has one, so there is no separate checkbox that could
+            disagree with the dropdown and send a pair the database rejects.
+          */}
+          <label
+            class="flex items-center gap-2 text-sm"
+            classList={{ 'cursor-not-allowed opacity-60': isDisabled() }}
+          >
+            <span>Recurring</span>
+            <select
+              data-testid="memo-summary-frequency"
+              value={props.frequency() ?? NOT_RECURRING_VALUE}
+              onChange={(e) => props.onFrequencyChange(e.currentTarget.value)}
+              disabled={isDisabled()}
+              class="ml-1 text-xs border border-input rounded px-1.5 py-0.5 bg-background"
+            >
+              <option value={NOT_RECURRING_VALUE}>not recurring</option>
+              <For each={FREQUENCY_VALUES}>{(f) => <option value={f}>{f}</option>}</For>
+            </select>
+          </label>
 
           <MemoSummaryCheckboxRow
             label="Necessary purchase"
