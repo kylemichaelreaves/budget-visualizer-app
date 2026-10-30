@@ -11,11 +11,9 @@ export default function MemoSummaryStatCards(props: {
   saving: Accessor<boolean>
   onOpenCategoryDialog: () => void
   onAmbiguousChange: (checked: boolean) => void
-  onRecurringChange: (checked: boolean) => void
   onNecessaryChange: (checked: boolean) => void
   onFrequencyChange: (value: string) => void
   isAmbiguous: Accessor<boolean>
-  isRecurring: Accessor<boolean>
   isNecessary: Accessor<boolean>
   frequency: Accessor<string | undefined>
 }) {
@@ -29,11 +27,9 @@ export default function MemoSummaryStatCards(props: {
         saving={props.saving}
         onOpenCategoryDialog={props.onOpenCategoryDialog}
         onAmbiguousChange={props.onAmbiguousChange}
-        onRecurringChange={props.onRecurringChange}
         onNecessaryChange={props.onNecessaryChange}
         onFrequencyChange={props.onFrequencyChange}
         isAmbiguous={props.isAmbiguous}
-        isRecurring={props.isRecurring}
         isNecessary={props.isNecessary}
         frequency={props.frequency}
       />

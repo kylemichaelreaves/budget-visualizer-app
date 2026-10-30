@@ -67,7 +67,8 @@ export default function BudgetCategoriesTreeSelect(props: {
     return rows
   })
 
-  const isDisabled = () => Boolean(props.disabled) || q.isLoading || q.isFetching
+  // Not on isFetching: disabling the filter on a background refetch drops its focus.
+  const isDisabled = () => Boolean(props.disabled) || q.isLoading
 
   return (
     <div data-testid={`${tid()}-root`}>
@@ -95,7 +96,7 @@ export default function BudgetCategoriesTreeSelect(props: {
         />
       </Show>
 
-      <Show when={q.isLoading || q.isFetching}>
+      <Show when={q.isLoading}>
         <p data-testid={`${tid()}-loading`} class="mt-1 mb-0 text-muted-foreground text-xs">
           Loading categories...
         </p>

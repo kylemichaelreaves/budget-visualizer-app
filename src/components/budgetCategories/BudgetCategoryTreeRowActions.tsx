@@ -39,7 +39,7 @@ export default function BudgetCategoryTreeRowActions(props: {
         variant="ghost"
         size="icon"
         class="size-7 text-destructive hover:text-destructive"
-        onClick={() => void props.onDelete()}
+        onClick={() => props.onDelete()}
         aria-label={`Delete ${props.nodeLabel}`}
         data-testid={categoryTreeTestId('delete', props.pathValue)}
       >

@@ -58,11 +58,11 @@ export default function CategoryTreeSelectDialog(props: {
         </div>
 
         <div class="px-2 pb-3 max-h-72 overflow-y-auto space-y-0.5" ref={state.setListRef}>
-          <Show when={state.q.isLoading || state.q.isFetching}>
+          <Show when={state.q.isLoading}>
             <p class="text-sm text-muted-foreground text-center py-6">Loading categories...</p>
           </Show>
 
-          <Show when={!state.q.isLoading && !state.q.isFetching}>
+          <Show when={!state.q.isLoading}>
             <Show
               when={state.searchResults() === null}
               fallback={
