@@ -14,5 +14,16 @@ export default defineConfig({
     setupFiles: ['./tests/setup/vitest-setup.ts'],
     pool: 'threads',
     css: true,
+    coverage: {
+      provider: 'v8',
+      // lcov is what SonarCloud reads (sonar.javascript.lcov.reportPaths); text keeps the
+      // summary visible in CI logs. Without an explicit list the default reporters do not
+      // include lcov, so `--coverage` would produce nothing Sonar can consume.
+      reporter: ['text', 'lcov'],
+      reportsDirectory: './coverage',
+      include: ['src/**/*.{ts,tsx}'],
+      // Mirrors sonar.coverage.exclusions in sonar-project.properties.
+      exclude: ['src/**/*.d.ts', 'src/index.tsx', 'src/**/*.stories.tsx', 'src/mocks/**'],
+    },
   },
 })
