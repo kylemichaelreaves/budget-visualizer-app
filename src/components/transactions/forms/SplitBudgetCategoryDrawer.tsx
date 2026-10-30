@@ -151,7 +151,7 @@ export default function SplitBudgetCategoryDrawer(props: {
               Clear splits
             </Button>
           </Show>
-          <Button class="flex-1" onClick={() => props.onSubmit(state.local())} disabled={!state.isValid()}>
+          <Button class="flex-1" onClick={() => props.onSubmit(state.snapshot())} disabled={!state.isValid()}>
             Save splits
           </Button>
         </div>

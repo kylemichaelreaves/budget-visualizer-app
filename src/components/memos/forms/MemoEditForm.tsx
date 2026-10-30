@@ -51,17 +51,6 @@ export default function MemoEditForm(props: {
 
       <Label class="flex items-center gap-2 text-foreground">
         <input
-          id="memo-recurring"
-          type="checkbox"
-          data-testid={`${state.tid()}-recurring`}
-          checked={state.form.recurring}
-          onChange={(e) => state.setForm('recurring', e.currentTarget.checked)}
-        />
-        Recurring
-      </Label>
-
-      <Label class="flex items-center gap-2 text-foreground">
-        <input
           id="memo-necessary"
           type="checkbox"
           data-testid={`${state.tid()}-necessary`}

@@ -8,8 +8,8 @@ import { useMemoById } from '@api/hooks/memos/useMemoById'
 import useMemoSummary from '@api/hooks/memos/useMemoSummary'
 import useMemoTransactionsPage from '@api/hooks/memos/useMemoTransactionsPage'
 import { syncMemoFromSummaryData } from '@stores/transactionsStore'
-import type { Frequency, MemoPatchFields } from '@types'
-import { MEMO_SUMMARY_FREQUENCY_OPTIONS } from './memoSummaryConstants'
+import type { MemoPatchFields } from '@types'
+import { parseFrequencySelection, recurrenceFields } from '@components/memos/memoRecurrence'
 import { computeTotalCredits, computeTotalDebits } from './memoSummaryTableUtils'
 
 export function useMemoSummaryTable() {
@@ -66,7 +66,10 @@ export function useMemoSummaryTable() {
   const memo = () => memoQ.data
   const memoReady = createMemo(() => !!memoQ.data)
   const isAmbiguous = () => memo()?.ambiguous ?? false
-  const isRecurring = () => memo()?.recurring ?? false
+  // Derived from the frequency rather than read from the `recurring` column:
+  // the two are kept in lockstep by `recurrenceFields`, and deriving leaves no
+  // way for the badge and the dropdown to disagree.
+  const isRecurring = () => memo()?.frequency != null
   const isNecessary = () => memo()?.necessary ?? false
   const budgetCategory = () => memo()?.budget_category ?? null
   const frequency = () => memo()?.frequency ?? undefined
@@ -76,6 +79,9 @@ export function useMemoSummaryTable() {
   const totalCredits = createMemo(() => computeTotalCredits(summaryQ.data, txQ.data ?? []))
   const totalDebits = createMemo(() => computeTotalDebits(summaryQ.data, txQ.data ?? []))
 
+  // Resolves only after handling its own failures: it reports through
+  // `patchError` and never rejects, so the handlers below fire it and move on
+  // rather than awaiting a promise that has nothing left to tell them.
   async function patchMemo(fields: MemoPatchFields) {
     const m = memo()
     if (!m || saving()) return
@@ -94,30 +100,23 @@ export function useMemoSummaryTable() {
   }
 
   function handleCategorySelect(value: string) {
-    patchMemo({ budgetCategory: value })
+    void patchMemo({ budgetCategory: value })
   }
 
   function handleAmbiguousChange(checked: boolean) {
-    patchMemo({ ambiguous: checked })
-  }
-
-  function handleRecurringChange(checked: boolean) {
-    patchMemo({ recurring: checked, ...(checked ? {} : { frequency: null }) })
+    void patchMemo({ ambiguous: checked })
   }
 
   function handleNecessaryChange(checked: boolean) {
-    patchMemo({ necessary: checked })
+    void patchMemo({ necessary: checked })
   }
 
   function handleFrequencyChange(value: string) {
-    const v = value.trim()
-    if (!v) {
-      patchMemo({ frequency: null, recurring: true })
-      return
-    }
-    if (MEMO_SUMMARY_FREQUENCY_OPTIONS.includes(v as Frequency)) {
-      patchMemo({ frequency: v as Frequency, recurring: true })
-    }
+    const next = parseFrequencySelection(value)
+    // An unrecognised value is ignored rather than written: `recurring` and
+    // `frequency` have to move together, and there is no pair to build from it.
+    if (next === undefined) return
+    void patchMemo(recurrenceFields(next))
   }
 
   return {
@@ -151,7 +150,6 @@ export function useMemoSummaryTable() {
     totalDebits,
     handleCategorySelect,
     handleAmbiguousChange,
-    handleRecurringChange,
     handleNecessaryChange,
     handleFrequencyChange,
   }

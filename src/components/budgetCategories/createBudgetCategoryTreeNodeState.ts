@@ -2,7 +2,7 @@ import { BUDGET_CATEGORY_PATH_DELIMITER } from '@api/helpers/convertToTree'
 import type { CategoryNode } from '@types'
 import { createSignal } from 'solid-js'
 import type { BudgetCategoryOperation } from './mutateBudgetCategory'
-import { budgetCategorySegmentValidationError } from './budgetCategoryTreeUtils'
+import { budgetCategorySegmentValidationError, countDescendants } from './budgetCategoryTreeUtils'
 
 type TreeNodeProps = {
   node: CategoryNode
@@ -21,6 +21,7 @@ export function createBudgetCategoryTreeNodeState(props: TreeNodeProps) {
   const [renameValue, setRenameValue] = createSignal('')
   const [renameError, setRenameError] = createSignal<string | null>(null)
   const [addingChild, setAddingChild] = createSignal(false)
+  const [confirmingDelete, setConfirmingDelete] = createSignal(false)
 
   const isMutating = () => props.mutatingPaths.has(props.node.value)
   const pathSegments = () => props.node.value.split(BUDGET_CATEGORY_PATH_DELIMITER)
@@ -62,7 +63,14 @@ export function createBudgetCategoryTreeNodeState(props: TreeNodeProps) {
     setExpanded(true)
   }
 
-  const handleDelete = async () => {
+  const descendantCount = () => countDescendants(props.node)
+
+  /** The trash button only asks; `confirmDelete` is what sends the delete. */
+  const requestDelete = () => setConfirmingDelete(true)
+  const cancelDelete = () => setConfirmingDelete(false)
+
+  const confirmDelete = async () => {
+    setConfirmingDelete(false)
     await props.onMutate({ operation: 'delete', path: pathSegments() })
   }
 
@@ -92,7 +100,11 @@ export function createBudgetCategoryTreeNodeState(props: TreeNodeProps) {
     confirmRename,
     handleRenameKeyDown,
     handleAddChild,
-    handleDelete,
+    descendantCount,
+    confirmingDelete,
+    requestDelete,
+    cancelDelete,
+    confirmDelete,
     onRenameValueChange,
     cancelRename,
   }

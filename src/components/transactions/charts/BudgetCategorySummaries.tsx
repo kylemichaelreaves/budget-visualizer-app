@@ -68,7 +68,7 @@ export default function BudgetCategorySummaries(props: {
           <BudgetCategoryTreemap
             data={rows()}
             categoryColors={props.categoryColors}
-            isLoading={summaryQuery.isLoading || summaryQuery.isFetching}
+            isLoading={summaryQuery.isLoading}
             timeFrame={props.timeFrame}
             date={props.date()}
             dataTestId={`${id()}-treemap`}

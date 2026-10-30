@@ -22,12 +22,15 @@ describe('memoToFormState', () => {
     expect(memoToFormState(baseMemo)).toEqual({
       id: 12,
       name: 'Coffee shops',
-      recurring: true,
       necessary: false,
       ambiguous: true,
       frequency: 'monthly',
       budget_category: 'Food - Dining',
     })
+  })
+
+  it('does not carry recurring, which the frequency already determines', () => {
+    expect(memoToFormState(baseMemo)).not.toHaveProperty('recurring')
   })
 
   it('uses empty frequency and null budget category when memo omits them', () => {
@@ -52,7 +55,6 @@ describe('buildMemoUpdateInput', () => {
   const form: MemoEditFormState = {
     id: 12,
     name: 'Coffee shops',
-    recurring: false,
     necessary: true,
     ambiguous: false,
     frequency: 'weekly',
@@ -63,7 +65,7 @@ describe('buildMemoUpdateInput', () => {
     expect(buildMemoUpdateInput(form, 'Coffee shops')).toEqual({
       id: 12,
       name: 'Coffee shops',
-      recurring: false,
+      recurring: true,
       necessary: true,
       ambiguous: false,
       frequency: 'weekly',
@@ -71,7 +73,14 @@ describe('buildMemoUpdateInput', () => {
     })
   })
 
-  it('sends frequency null when form frequency is blank so PATCH can clear an existing value', () => {
+  it('marks a memo recurring whenever a frequency is selected', () => {
+    expect(buildMemoUpdateInput(form, 'Name')).toMatchObject({
+      recurring: true,
+      frequency: 'weekly',
+    })
+  })
+
+  it('clears recurring alongside frequency when the blank option is selected', () => {
     const emptyFreq: MemoEditFormState = { ...form, frequency: '' }
     expect(buildMemoUpdateInput(emptyFreq, 'Name')).toEqual({
       id: 12,
@@ -105,5 +114,9 @@ describe('MEMO_EDIT_FREQUENCY_OPTIONS', () => {
     ] satisfies RecurringCadence[]) {
       expect(byValue.has(cadence)).toBe(true)
     }
+  })
+
+  it('labels the blank option as the way to stop a memo recurring', () => {
+    expect(MEMO_EDIT_FREQUENCY_OPTIONS[0]?.label).toBe('Not recurring')
   })
 })

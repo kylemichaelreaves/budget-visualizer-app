@@ -12,7 +12,6 @@ test.describe('Memo edit', () => {
   test('shows form controls', async ({ memoEditPage }) => {
     await memoEditPage.goto(1)
     await expect(memoEditPage.form).toBeVisible({ timeout: 10_000 })
-    await expect(memoEditPage.recurringCheckbox).toBeVisible()
     await expect(memoEditPage.necessaryCheckbox).toBeVisible()
     await expect(memoEditPage.ambiguousCheckbox).toBeVisible()
     await expect(memoEditPage.frequencySelect).toBeVisible()
@@ -22,8 +21,8 @@ test.describe('Memo edit', () => {
   test('checkboxes reflect memo data', async ({ memoEditPage }) => {
     await memoEditPage.goto(1)
     await expect(memoEditPage.form).toBeVisible({ timeout: 10_000 })
-    // API mock returns recurring: false, necessary: false, ambiguous: false
-    await expect(memoEditPage.recurringCheckbox).not.toBeChecked()
+    // API mock returns necessary: false, ambiguous: false and no frequency
+    await expect(memoEditPage.frequencySelect).toHaveValue('')
     await expect(memoEditPage.necessaryCheckbox).not.toBeChecked()
     await expect(memoEditPage.ambiguousCheckbox).not.toBeChecked()
   })
@@ -40,6 +39,23 @@ test.describe('Memo edit', () => {
     const body = patchReq.postDataJSON()
     expect(body).toHaveProperty('id', 1)
     expect(body).toHaveProperty('name', 'E2E Memo')
+    // The mock memo has no frequency, so it must go back as not recurring:
+    // recurring_frequency_check rejects recurring = true with a null frequency.
+    expect(body).toMatchObject({ recurring: false, frequency: null })
+  })
+
+  test('selecting a frequency saves it as a recurring memo', async ({ memoEditPage, page }) => {
+    await memoEditPage.goto(1)
+    await expect(memoEditPage.form).toBeVisible({ timeout: 10_000 })
+
+    await memoEditPage.frequencySelect.selectOption('monthly')
+
+    const patchPromise = page.waitForRequest(
+      (req) => req.url().includes('/memos/1') && req.method() === 'PATCH',
+    )
+    await memoEditPage.save()
+    const body = (await patchPromise).postDataJSON()
+    expect(body).toMatchObject({ recurring: true, frequency: 'monthly' })
   })
 
   test('back button is visible', async ({ memoEditPage }) => {

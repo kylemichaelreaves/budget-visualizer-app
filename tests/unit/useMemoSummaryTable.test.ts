@@ -19,22 +19,15 @@ vi.mock('@api/hooks/memos/useMemoTransactionsPage', () => ({
 vi.mock('@stores/transactionsStore', () => ({ syncMemoFromSummaryData: vi.fn() }))
 
 import { useMemoSummaryTable } from '@components/memos/summaries/useMemoSummaryTable'
-import { MEMO_SUMMARY_FREQUENCY_OPTIONS } from '@components/memos/summaries/memoSummaryConstants'
+import { FREQUENCY_VALUES } from '@components/memos/memoRecurrence'
 
 function renderHook() {
   return createRoot((dispose) => ({ state: useMemoSummaryTable(), dispose }))
 }
 
-describe('MEMO_SUMMARY_FREQUENCY_OPTIONS', () => {
+describe('FREQUENCY_VALUES', () => {
   it('lists every frequency in period order, including biweekly and quarterly', () => {
-    expect(MEMO_SUMMARY_FREQUENCY_OPTIONS).toEqual([
-      'daily',
-      'weekly',
-      'biweekly',
-      'monthly',
-      'quarterly',
-      'yearly',
-    ])
+    expect(FREQUENCY_VALUES).toEqual(['daily', 'weekly', 'biweekly', 'monthly', 'quarterly', 'yearly'])
   })
 })
 
@@ -63,11 +56,11 @@ describe('useMemoSummaryTable handleFrequencyChange', () => {
     dispose()
   })
 
-  it('clears the frequency on a blank value', async () => {
+  it('clears the frequency and recurring together on a blank value', async () => {
     const { state, dispose } = renderHook()
     state.handleFrequencyChange('')
     await vi.waitFor(() => expect(updateMemo).toHaveBeenCalledTimes(1))
-    expect(updateMemo).toHaveBeenCalledWith({ id: 7, name: 'Gym', frequency: null, recurring: true })
+    expect(updateMemo).toHaveBeenCalledWith({ id: 7, name: 'Gym', frequency: null, recurring: false })
     dispose()
   })
 

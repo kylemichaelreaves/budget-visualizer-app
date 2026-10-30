@@ -29,12 +29,10 @@ export function usePendingTransactionsTable() {
     ),
   )
 
+  // Same rule as the transactions table: a background refetch keeps the rows on screen.
+  const isInitialLoading = () => query.isLoading || (query.isFetching && !query.data?.pages?.length)
   const isLoadingCondition = () =>
-    query.isLoading ||
-    query.isFetching ||
-    query.isRefetching ||
-    query.isFetchingNextPage ||
-    query.isFetchingPreviousPage
+    isInitialLoading() || query.isFetchingNextPage || query.isFetchingPreviousPage
 
   const flattenedData = createMemo(() => query.data?.pages.flat() ?? [])
 
