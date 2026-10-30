@@ -116,12 +116,47 @@ describe('URL → store', () => {
     expect(transactionsState.selectedMonth).toBe('04-2026')
   })
 
-  // #74 — selectMemoFilterByIdOnly runs clearAllSelections after the category was
-  // applied, so the memo+category deep link loses its category. Flip to `it` when fixed.
-  it.fails('keeps budgetCategory on a memoId deep link (#74)', () => {
-    mountAt('/budget-visualizer/transactions?memoId=12&budgetCategory=Food')
-    expect(transactionsState.selectedMemoId).toBe(12)
-    expect(transactionsState.selectedBudgetCategory).toBe('Food')
+  // #74: both memo selectors clear every selection, so this deep link used to lose
+  // its category, first in the store and then in the URL.
+  describe('memoId + budgetCategory deep link (#74)', () => {
+    const memo12: Memo = { id: 12, name: 'WHOLEFDS', recurring: false, necessary: false, ambiguous: false }
+
+    it('keeps the category while scoped by id', () => {
+      mountAt('/budget-visualizer/transactions?memoId=12&budgetCategory=Food')
+      expect(transactionsState.selectedMemoId).toBe(12)
+      expect(transactionsState.selectedBudgetCategory).toBe('Food')
+      expect(search().get('budgetCategory')).toBe('Food')
+    })
+
+    it('keeps the category after the memo name loads', () => {
+      mountAt('/budget-visualizer/transactions?memoId=12&budgetCategory=Food')
+      setMemoQuery({ data: memo12 })
+      expect(transactionsState.selectedMemo).toBe('WHOLEFDS')
+      expect(transactionsState.selectedBudgetCategory).toBe('Food')
+      expect(search().get('memoId')).toBe('12')
+      expect(search().get('budgetCategory')).toBe('Food')
+    })
+
+    it('does not rewrite the URL while restoring it', () => {
+      mountAt('/budget-visualizer/transactions?memoId=12&budgetCategory=Food')
+      setMemoQuery({ data: memo12 })
+      expect(navigate).not.toHaveBeenCalled()
+    })
+
+    it('still follows a category change made in the UI', () => {
+      mountAt('/budget-visualizer/transactions?memoId=12&budgetCategory=Food')
+      setMemoQuery({ data: memo12 })
+      store.setSelectedBudgetCategory('Gas')
+      expect(search().get('budgetCategory')).toBe('Gas')
+      expect(transactionsState.selectedMemoId).toBe(12)
+    })
+
+    it('leaves the category unset when the link has none', () => {
+      mountAt('/budget-visualizer/transactions?memoId=12')
+      setMemoQuery({ data: memo12 })
+      expect(transactionsState.selectedBudgetCategory).toBeNull()
+      expect(search().has('budgetCategory')).toBe(false)
+    })
   })
 })
 

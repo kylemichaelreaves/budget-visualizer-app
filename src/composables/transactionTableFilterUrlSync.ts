@@ -1,4 +1,4 @@
-import { createEffect, on } from 'solid-js'
+import { batch, createEffect, on } from 'solid-js'
 import { useLocation, useNavigate } from '@solidjs/router'
 import { useMemoById } from '@api/hooks/memos/useMemoById'
 import {
@@ -143,6 +143,23 @@ export function useTransactionTableFilterUrlSync(): void {
     return n
   }
 
+  const budgetCategoryFromUrl = () =>
+    (new URLSearchParams(loc.search).get('budgetCategory') ?? '').trim() || null
+
+  /**
+   * Select a memo without losing the URL's `budgetCategory`. Both memo selectors
+   * clear every selection, the category included, and they run after the URL→store
+   * pass already applied it — so `?memoId=5&budgetCategory=Food` lost its category,
+   * and the store→URL effect then wrote it out of the URL as well. Batched so that
+   * effect sees only the final state.
+   */
+  function selectMemoKeepingUrlCategory(select: () => void) {
+    batch(() => {
+      select()
+      setSelectedBudgetCategory(budgetCategoryFromUrl())
+    })
+  }
+
   /** Set `selectedMemoId` immediately so memo-scoped queries match the URL before `useMemoById` resolves the name. */
   createEffect(
     on(
@@ -152,7 +169,7 @@ export function useTransactionTableFilterUrlSync(): void {
         const id = memoIdFromUrl()
         if (id == null) return
         if (transactionsState.selectedMemoId === id && transactionsState.viewMode === 'memo') return
-        selectMemoFilterByIdOnly(id)
+        selectMemoKeepingUrlCategory(() => selectMemoFilterByIdOnly(id))
       },
     ),
   )
@@ -173,7 +190,7 @@ export function useTransactionTableFilterUrlSync(): void {
           ) {
             return
           }
-          selectMemoView(memo.name, memo.id)
+          selectMemoKeepingUrlCategory(() => selectMemoView(memo.name, memo.id))
         }
       },
       { defer: true },
