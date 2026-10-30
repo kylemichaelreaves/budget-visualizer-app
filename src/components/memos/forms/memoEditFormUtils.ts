@@ -13,7 +13,9 @@ export type MemoEditFormState = {
 const FREQUENCY_LABELS: Record<Frequency, string> = {
   daily: 'Daily',
   weekly: 'Weekly',
+  biweekly: 'Biweekly',
   monthly: 'Monthly',
+  quarterly: 'Quarterly',
   yearly: 'Yearly',
 }
 

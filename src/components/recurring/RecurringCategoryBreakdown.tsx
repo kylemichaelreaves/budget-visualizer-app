@@ -1,0 +1,275 @@
+import { createMemo, For, Show } from 'solid-js'
+import { formatUsdAbs } from '@utils/formatUsd'
+import type { RecurringSeries } from '@types'
+import { burnByCategory, monthlyBurn } from './createRecurringDerivedData'
+
+/**
+ * Where the monthly burn goes, as a stacked bar and an itemised list.
+ *
+ * This section is an *explanation* of the headline "Monthly burn" figure, so it must never
+ * disagree with it. Both numbers come from `createRecurringDerivedData` (`monthlyBurn` and
+ * `burnByCategory`), which sum the same cent-exact per-series figures, so the amounts add up to
+ * the headline exactly. This component's own job is to not break that in presentation: amounts
+ * are shown as sent, and the percentages are apportioned (below) so the displayed shares total
+ * exactly 100 rather than 99.9 or 100.1.
+ *
+ * Dismissed series are included because the derived data includes them: dismissal silences the
+ * triage lane, not the ledger.
+ */
+
+const DISPLAY_UNITS = 10 // percentages are shown to one decimal place: units of 0.1%
+const TOTAL_UNITS = 100 * DISPLAY_UNITS
+
+/**
+ * The narrowest a segment is drawn, in units of 0.1%. A category worth 0.1% of the burn would
+ * otherwise be a sub-pixel sliver and read as missing from the bar.
+ *
+ * This floor is a distortion, not a rounding: it **overstates small segments** (a 0.0% category is
+ * drawn 1% wide) and, because the bar must still total 100%, **understates the larger ones**
+ * by the same total (see `segmentWidths`). The list and the bar's `aria-label` carry the exact shares.
+ */
+const MIN_SEGMENT_UNITS = 1 * DISPLAY_UNITS
+
+interface SwatchStyle {
+  /** Fill for the bar segment (the `<rect>` paints with `currentColor`). */
+  fill: string
+  /** The same token as a background, for the list swatch. */
+  swatch: string
+}
+
+// Complete class strings, never assembled, so Tailwind can see them. Ordered so that tokens
+// which look alike (chart-4 / chart-5, info / brand) are never neighbours. The semantic
+// positive / negative / caution tokens are left out on purpose: a category is not good or bad news.
+const PALETTE: SwatchStyle[] = [
+  { fill: 'text-chart-1', swatch: 'bg-chart-1' },
+  { fill: 'text-chart-2', swatch: 'bg-chart-2' },
+  { fill: 'text-chart-3', swatch: 'bg-chart-3' },
+  { fill: 'text-accent-purple', swatch: 'bg-accent-purple' },
+  { fill: 'text-chart-4', swatch: 'bg-chart-4' },
+  { fill: 'text-info', swatch: 'bg-info' },
+  { fill: 'text-chart-5', swatch: 'bg-chart-5' },
+  { fill: 'text-brand', swatch: 'bg-brand' },
+]
+// "Uncategorized" is the absence of a category, so it takes a neutral rather than a palette slot.
+const NEUTRAL: SwatchStyle = { fill: 'text-muted-foreground', swatch: 'bg-muted-foreground' }
+const UNCATEGORIZED = 'Uncategorized'
+
+const BAR_HEIGHT = 12
+
+/**
+ * Rounds percentage shares to units of 0.1% so that they total exactly 100% (1000 units), by
+ * the largest-remainder method: floor every share, then hand the leftover units to the shares
+ * with the biggest fractional parts. Naive per-row rounding can total 99.9 or 100.1, and a
+ * breakdown that does not add up to 100 contradicts the headline it explains. All zeros in
+ * (nothing to apportion) gives all zeros out.
+ */
+export function apportionTenths(shares: number[]): number[] {
+  const scaled = shares.map((share) => share * DISPLAY_UNITS)
+  if (scaled.every((s) => !(s > 0))) return scaled.map(() => 0)
+  return largestRemainder(scaled, TOTAL_UNITS)
+}
+
+/**
+ * Rounds non-negative values to integers that total exactly `total`: floor each, then hand the
+ * leftover units to the values with the biggest fractional parts (ties to the earlier index).
+ */
+function largestRemainder(values: number[], total: number): number[] {
+  const floors = values.map((v) => Math.floor(v))
+  let leftover = total - floors.reduce((a, b) => a + b, 0)
+  const byRemainder = values
+    .map((v, index) => ({ index, remainder: v - Math.floor(v) }))
+    .sort((a, b) => b.remainder - a.remainder || a.index - b.index)
+
+  const units = [...floors]
+  for (let i = 0; leftover > 0 && byRemainder.length > 0; i = (i + 1) % byRemainder.length, leftover--) {
+    units[byRemainder[i].index] += 1
+  }
+  return units
+}
+
+/**
+ * Bar segment widths in units of 0.1%, always totalling exactly what went in (1000). They equal the
+ * displayed shares except that a segment under `MIN_SEGMENT_UNITS` is widened to it so a tiny
+ * category stays visible.
+ *
+ * The bar is a fixed length, so the widening has to come from somewhere. It is taken from every
+ * segment above the floor *in proportion to its width*, so each is understated by the same small
+ * fraction (about 3% of its own width for a long tail like Housing 68.8% / Groceries 13.0% / six
+ * sub-1% categories), rather than the largest alone absorbing all of it. A segment is never
+ * pushed below the floor to pay for another. The direction of the error is always the same: small
+ * segments are drawn too wide and large ones too narrow. It is a visibility aid, not a measurement;
+ * read the list for exact shares.
+ */
+export function segmentWidths(units: number[]): number[] {
+  const total = units.reduce((a, b) => a + b, 0)
+  const need = units.map((u) => Math.max(0, MIN_SEGMENT_UNITS - u))
+  const shortfall = need.reduce((a, b) => a + b, 0)
+  if (shortfall === 0) return [...units]
+
+  // Donors are the segments with room above the floor. If they cannot cover every lift (a bar of
+  // more than 100 categories), each lift is scaled back so the total is still kept.
+  const capacity = units.reduce((sum, u) => sum + Math.max(0, u - MIN_SEGMENT_UNITS), 0)
+  const covered = Math.min(shortfall, capacity)
+  const lift = covered / shortfall
+
+  const targets = units.map((u, i) => (need[i] > 0 ? u + need[i] * lift : u))
+
+  // Take `covered` from the donors in proportion to width. A donor that would drop below the
+  // floor is held at it and the rest is re-spread over the others.
+  let remaining = covered
+  let donors = Array.from(units.keys()).filter((i) => units[i] > MIN_SEGMENT_UNITS)
+  while (remaining > 1e-9 && donors.length > 0) {
+    const weight = donors.reduce((sum, i) => sum + targets[i], 0)
+    const pinned = donors.filter((i) => targets[i] - (remaining * targets[i]) / weight < MIN_SEGMENT_UNITS)
+    if (pinned.length === 0) {
+      for (const i of donors) targets[i] -= (remaining * targets[i]) / weight
+      break
+    }
+    for (const i of pinned) {
+      remaining -= targets[i] - MIN_SEGMENT_UNITS
+      targets[i] = MIN_SEGMENT_UNITS
+    }
+    donors = donors.filter((i) => !pinned.includes(i))
+  }
+  return largestRemainder(targets, total)
+}
+
+/**
+ * A share to one decimal place. A category with money in it never reads as zero: a positive share
+ * that rounds to 0.0% is shown as "<0.1%", since "0.0%" beside a non-zero amount looks like a bug.
+ */
+const formatShare = (units: number, amount: number) =>
+  units === 0 && amount > 0 ? '<0.1%' : `${(units / DISPLAY_UNITS).toFixed(1)}%`
+const formatOffset = (units: number) => `${Number((units / DISPLAY_UNITS).toFixed(1))}%`
+
+interface BreakdownRow {
+  category: string
+  amount: number
+  /** Displayed share, in units of 0.1%. */
+  units: number
+  /** Drawn width, in units of 0.1%. */
+  width: number
+  /** Drawn left edge, in units of 0.1%. */
+  offset: number
+  style: SwatchStyle
+}
+
+/**
+ * A collapsible section (open by default) below the series table. Its summary names the burn
+ * total, so it still reads when collapsed. The stacked bar is an SVG with no `viewBox`: it is
+ * `BAR_HEIGHT` px tall exactly, and segments are positioned in percentages of the available
+ * width, so there is no aspect ratio to squash it. Colour is never the only carrier: the list
+ * labels every segment and the bar's `aria-label` spells out each category and its share.
+ */
+export default function RecurringCategoryBreakdown(props: { series: RecurringSeries[] }) {
+  const burn = createMemo(() => monthlyBurn(props.series))
+
+  const rows = createMemo<BreakdownRow[]>(() => {
+    // A category worth exactly nothing has no share to show and no segment to draw. Neither
+    // changes the total.
+    const burns = burnByCategory(props.series).filter((row) => row.amount !== 0)
+    const units = apportionTenths(burns.map((row) => row.pct))
+    const widths = segmentWidths(units)
+    let nextColour = 0
+    let offset = 0
+    return burns.map((row, i) => {
+      const style = row.category === UNCATEGORIZED ? NEUTRAL : PALETTE[nextColour++ % PALETTE.length]
+      const placed = {
+        category: row.category,
+        amount: row.amount,
+        units: units[i],
+        width: widths[i],
+        offset,
+        style,
+      }
+      offset += widths[i]
+      return placed
+    })
+  })
+
+  // Nothing to break down: no live series, or live series that all cost nothing.
+  const hasBreakdown = () => burn() > 0 && rows().length > 0
+
+  const barLabel = () =>
+    `Monthly burn by category: ${rows()
+      .map((row) => `${row.category} ${formatShare(row.units, row.amount)}`)
+      .join(', ')}`
+
+  return (
+    <section aria-label="Monthly burn by category" data-testid="recurring-category-breakdown">
+      <details open class="rounded-lg border bg-card" data-testid="recurring-breakdown-details">
+        <summary class="text-foreground cursor-pointer px-4 py-3 font-semibold">
+          Where the monthly burn goes:{' '}
+          <span class="tabular-nums" data-testid="recurring-breakdown-total">
+            {formatUsdAbs(burn())}
+          </span>
+          /mo
+        </summary>
+        <div class="flex flex-col gap-4 px-4 pt-1 pb-4">
+          <Show
+            when={hasBreakdown()}
+            fallback={
+              <p class="text-muted-foreground m-0 text-sm" data-testid="recurring-breakdown-empty">
+                No live recurring payments to break down. Stopped payments are not part of the monthly burn.
+              </p>
+            }
+          >
+            <svg
+              width="100%"
+              height={BAR_HEIGHT}
+              role="img"
+              aria-label={barLabel()}
+              data-testid="recurring-breakdown-bar"
+              class="bg-muted block w-full overflow-hidden rounded-full"
+            >
+              <For each={rows()}>
+                {(row) => (
+                  <rect
+                    x={formatOffset(row.offset)}
+                    y="0"
+                    width={formatOffset(row.width)}
+                    height="100%"
+                    fill="currentColor"
+                    class={row.style.fill}
+                    data-testid="recurring-breakdown-segment"
+                    data-category={row.category}
+                  />
+                )}
+              </For>
+            </svg>
+
+            <ul class="m-0 flex list-none flex-col gap-2 p-0">
+              <For each={rows()}>
+                {(row) => (
+                  <li
+                    class="flex items-center gap-3 text-sm"
+                    data-testid="recurring-breakdown-row"
+                    data-category={row.category}
+                  >
+                    <span aria-hidden="true" class={`size-3 shrink-0 rounded-sm ${row.style.swatch}`} />
+                    <span
+                      class="text-foreground min-w-0 flex-1 truncate"
+                      title={row.category}
+                      data-testid="recurring-breakdown-name"
+                    >
+                      {row.category}
+                    </span>
+                    <span class="text-foreground tabular-nums" data-testid="recurring-breakdown-amount">
+                      {formatUsdAbs(row.amount)}
+                    </span>
+                    <span
+                      class="text-muted-foreground w-14 text-right tabular-nums"
+                      data-testid="recurring-breakdown-pct"
+                    >
+                      {formatShare(row.units, row.amount)}
+                    </span>
+                  </li>
+                )}
+              </For>
+            </ul>
+          </Show>
+        </div>
+      </details>
+    </section>
+  )
+}

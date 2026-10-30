@@ -17,6 +17,7 @@ const menuSections: MenuSection[] = [
       { path: '/budget-visualizer/transactions', title: 'Transactions' },
       { path: '/budget-visualizer/transactions/pending', title: 'Pending' },
       { path: '/budget-visualizer/memos', title: 'Memos' },
+      { path: '/budget-visualizer/recurring', title: 'Recurring' },
       { path: '/budget-visualizer/budget-categories', title: 'Budget Categories' },
       { path: '/budget-visualizer/transactions/csv', title: 'CSV Imports' },
       { path: '/budget-visualizer/loan-calculator', title: 'Loan Calculator' },

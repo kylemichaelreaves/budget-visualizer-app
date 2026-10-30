@@ -1,3 +1,5 @@
+import type { RecurringFilters } from '@types'
+
 /**
  * Central TanStack Query keys. Use builders for `useQuery` / `useInfiniteQuery`;
  * use `.all` / root tuples for prefix invalidation.
@@ -88,6 +90,10 @@ export const queryKeys = {
     all: ['sum-amount-debit-by-date'] as const,
     detail: (timeFrame: string, date: string) => ['sum-amount-debit-by-date', timeFrame, date] as const,
   },
+  recurring: {
+    all: ['recurring'] as const,
+    list: (f: RecurringFilters) => ['recurring', f] as const,
+  },
   isIntervalGreaterThanOldestDate: (interval: string) =>
     ['is-interval-greater-than-oldest-date', interval] as const,
 } as const
@@ -103,5 +109,6 @@ export const mutationKeys = {
   mutateTransaction: ['mutate-transaction'] as const,
   mutatePendingTransaction: ['mutate-pending-transaction'] as const,
   mutateMemo: ['mutate-memo'] as const,
+  refreshRecurring: ['refresh-recurring'] as const,
   createUser: ['create-user'] as const,
 } as const

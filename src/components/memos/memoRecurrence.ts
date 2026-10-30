@@ -4,7 +4,7 @@ import type { Frequency } from '@types'
  * Every frequency the UI offers, and the only values that satisfy the recurring
  * half of the database's `recurring_frequency_check`.
  */
-export const FREQUENCY_VALUES: Frequency[] = ['daily', 'weekly', 'monthly', 'yearly']
+export const FREQUENCY_VALUES: Frequency[] = ['daily', 'weekly', 'biweekly', 'monthly', 'quarterly', 'yearly']
 
 /** The blank `<option>` both frequency dropdowns render. It means "not recurring". */
 export const NOT_RECURRING_VALUE = ''

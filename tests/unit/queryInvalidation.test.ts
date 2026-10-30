@@ -66,7 +66,7 @@ describe('invalidateAfterTransactionUpdate', () => {
 })
 
 describe('invalidateAfterMemoMutation', () => {
-  it('invalidates memo queries and the transactions that display memo fields', async () => {
+  it('invalidates memo queries, the transactions that display memo fields, and the recurring page', async () => {
     const keys = await invalidatedKeys((qc) => invalidateAfterMemoMutation(qc))
     const expected: QueryKey[] = [
       queryKeys.memo.all,
@@ -76,6 +76,7 @@ describe('invalidateAfterMemoMutation', () => {
       queryKeys.memosCount,
       queryKeys.transactions.all,
       queryKeys.transactionsCount.all,
+      queryKeys.recurring.all,
     ]
     expect(keys).toEqual(expect.arrayContaining(expected))
     expect(keys).toHaveLength(expected.length)
