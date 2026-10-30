@@ -4,40 +4,9 @@ import { describe, expect, it } from 'vitest'
 import type { RecurringSeries } from '@types'
 import RecurringStatCards from '@components/recurring/RecurringStatCards'
 import { expectNoLiteralColours } from '../setup/expectNoLiteralColours'
+import { makeRecurringSeries as makeSeries } from '../setup/makeRecurringSeries'
 
 const TODAY = '2026-10-20'
-
-let nextId = 1
-
-/** A healthy, active, non-conflicting series; override only what a test cares about. */
-function makeSeries(overrides: Partial<RecurringSeries> = {}): RecurringSeries {
-  const id = nextId++
-  return {
-    id,
-    memoId: id,
-    memoName: `Memo ${id}`,
-    avatarS3Url: null,
-    cadence: 'monthly',
-    confidence: 0.9,
-    occurrenceCount: 6,
-    firstDate: '2026-04-15',
-    lastDate: '2026-10-15',
-    nextExpectedDate: '2026-11-15',
-    latestAmount: 10,
-    monthlyNormalized: 10,
-    amountHistory: [
-      { date: '2026-09-15', amount: 10 },
-      { date: '2026-10-15', amount: 10 },
-    ],
-    budgetCategory: 'Entertainment',
-    status: 'active',
-    dismissedAt: null,
-    detectedAt: '2026-10-19T03:00:00.000Z',
-    memoRecurring: true,
-    memoFrequency: 'monthly',
-    ...overrides,
-  }
-}
 
 /**
  * Every figure is distinct so a swapped card cannot pass. Dismissal silences the triage lane only,
