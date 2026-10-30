@@ -1,5 +1,7 @@
 import { render, screen, fireEvent } from '@solidjs/testing-library'
 import { describe, expect, it, vi } from 'vitest'
+import { createSignal } from 'solid-js'
+import type { BudgetCategoryState } from '@types'
 
 vi.mock('@api/hooks/timeUnits/useTimeframeTypeAndValue', () => ({
   default: () => ({
@@ -150,5 +152,55 @@ describe('BudgetCategoryFormField', () => {
       />
     ))
     expect(screen.queryByText(/doesn't match/)).not.toBeInTheDocument()
+  })
+
+  // #69: Cancel/Escape used to reset the field to single/null, so Save then
+  // deleted the transaction's saved splits.
+  describe('closing the split drawer', () => {
+    const savedSplits: BudgetCategoryState = {
+      mode: 'split',
+      splits: [
+        { id: 'a', budget_category_id: 'Food', amount_debit: 60 },
+        { id: 'b', budget_category_id: 'Gas', amount_debit: 40 },
+      ],
+    }
+
+    function renderControlled(initial: BudgetCategoryState) {
+      const [value, setValue] = createSignal<BudgetCategoryState>(initial)
+      render(() => (
+        <BudgetCategoryFormField modelValue={value()} transactionAmount={100} onChange={setValue} />
+      ))
+      return value
+    }
+
+    it('Cancel restores the saved splits', () => {
+      const value = renderControlled(savedSplits)
+      fireEvent.click(screen.getByRole('button', { name: /edit splits/i }))
+      fireEvent.click(screen.getByRole('button', { name: /^cancel$/i }))
+      expect(value()).toEqual(savedSplits)
+    })
+
+    it('Escape restores the saved splits', () => {
+      const value = renderControlled(savedSplits)
+      fireEvent.click(screen.getByRole('button', { name: /edit splits/i }))
+      fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
+      expect(value()).toEqual(savedSplits)
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    })
+
+    it('Cancel after ticking Split restores the previous single category', () => {
+      const value = renderControlled({ mode: 'single', categoryId: 'Food - Groceries' })
+      fireEvent.click(screen.getByLabelText(/split into multiple categories/i))
+      expect(value().mode).toBe('split')
+      fireEvent.click(screen.getByRole('button', { name: /^cancel$/i }))
+      expect(value()).toEqual({ mode: 'single', categoryId: 'Food - Groceries' })
+    })
+
+    it('Clear splits is the explicit way to drop them', () => {
+      const value = renderControlled(savedSplits)
+      fireEvent.click(screen.getByRole('button', { name: /edit splits/i }))
+      fireEvent.click(screen.getByRole('button', { name: /clear splits/i }))
+      expect(value()).toEqual({ mode: 'single', categoryId: null })
+    })
   })
 })

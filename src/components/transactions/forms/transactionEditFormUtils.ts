@@ -18,6 +18,12 @@ export function initBudgetState(txn: Transaction): BudgetCategoryState {
   }
 }
 
+/** A detached copy, safe to hold while the original is reconciled into a store. */
+export function cloneBudgetState(state: BudgetCategoryState): BudgetCategoryState {
+  if (state.mode === 'single') return { mode: 'single', categoryId: state.categoryId }
+  return { mode: 'split', splits: state.splits.map((split) => ({ ...split })) }
+}
+
 export function getBudgetCategory(state: BudgetCategoryState): string | SplitBudgetCategory[] | null {
   if (state.mode === 'single') return state.categoryId
   return state.splits
