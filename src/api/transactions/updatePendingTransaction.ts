@@ -1,25 +1,18 @@
 import { httpClient } from '@api/httpClient'
-import type { PendingTransaction } from '@types'
 import { devConsole } from '@utils/devConsole'
 
+/**
+ * PATCH `/transactions/pending/:id` — approves a pending row by assigning it a category.
+ * The backend reads only a top-level `budgetCategory` string; it does not accept splits.
+ */
 export async function updatePendingTransaction(
   pendingTransactionId: number,
-  pendingTransaction: PendingTransaction,
+  budgetCategory: string,
 ): Promise<void> {
   try {
-    if (typeof pendingTransaction.transaction_data === 'string') {
-      devConsole('log', '[updatePendingTransaction] API call with:', {
-        pendingTransactionId,
-        pendingTransaction,
-        budget_category: JSON.parse(pendingTransaction.transaction_data).budget_category,
-        assigned_category: pendingTransaction.assigned_category,
-      })
-    }
-
     const response = await httpClient.patch(`/transactions/pending/${pendingTransactionId}`, {
-      pendingTransaction,
+      budgetCategory,
     })
-
     devConsole('log', '[updatePendingTransaction] API response:', response.data)
   } catch (error) {
     devConsole('error', '[updatePendingTransaction] Error updating pending transaction:', error)

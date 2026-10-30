@@ -39,6 +39,7 @@ test.describe('Transaction create', () => {
     await transactionCreateDialog.fill({
       date: '2024-06-15',
       description: 'E2E test transaction',
+      memo: 'E2E MEMO',
       amount: '42.50',
     })
     await transactionCreateDialog.submit()

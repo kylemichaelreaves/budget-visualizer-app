@@ -13,6 +13,8 @@ export default function BudgetCategoryFormField(props: {
   modelValue: BudgetCategoryState
   transactionAmount: number
   dataTestId?: string
+  /** Hide the split toggle where the backend only accepts one category (pending rows). */
+  allowSplit?: boolean
   onChange: (v: BudgetCategoryState) => void
 }): JSX.Element {
   const id = () => props.dataTestId ?? 'budget-category-form-field'
@@ -80,15 +82,17 @@ export default function BudgetCategoryFormField(props: {
           {splits().length ? 'Edit splits' : 'Configure splits'}
         </Button>
       </Show>
-      <Label class="flex items-center gap-2 my-3 text-foreground">
-        <input
-          type="checkbox"
-          checked={isSplit()}
-          data-testid={`${id()}-split-checkbox`}
-          onChange={(e) => toggleSplit(e.currentTarget.checked)}
-        />
-        Split into multiple categories
-      </Label>
+      <Show when={props.allowSplit !== false}>
+        <Label class="flex items-center gap-2 my-3 text-foreground">
+          <input
+            type="checkbox"
+            checked={isSplit()}
+            data-testid={`${id()}-split-checkbox`}
+            onChange={(e) => toggleSplit(e.currentTarget.checked)}
+          />
+          Split into multiple categories
+        </Label>
+      </Show>
       <SplitBudgetCategoryDrawer
         open={drawerOpen()}
         splits={splits()}

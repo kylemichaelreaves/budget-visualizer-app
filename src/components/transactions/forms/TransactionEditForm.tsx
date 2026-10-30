@@ -108,6 +108,7 @@ export default function TransactionEditForm(props: {
           modelValue={state.budgetState}
           transactionAmount={state.transactionAmount()}
           dataTestId={`${state.tid()}-budget-field`}
+          allowSplit={!props.isPending}
           onChange={(v) => state.setBudgetState(reconcile(v))}
         />
       </Field>
@@ -122,7 +123,7 @@ export default function TransactionEditForm(props: {
         type="button"
         onClick={state.saveTransaction}
         class="mt-4"
-        disabled={state.activeMut().isPending}
+        disabled={state.activeMut().isPending || !state.canSave()}
       >
         {state.activeMut().isPending ? 'Saving\u2026' : 'Save'}
       </Button>

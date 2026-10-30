@@ -27,6 +27,11 @@ describe('BudgetCategoryFormField', () => {
     expect(screen.getByLabelText(/split into multiple categories/i)).toBeInTheDocument()
   })
 
+  it('hides the split checkbox when allowSplit is false (pending rows take one category)', () => {
+    render(() => <BudgetCategoryFormField {...defaultProps} allowSplit={false} />)
+    expect(screen.queryByLabelText(/split into multiple categories/i)).not.toBeInTheDocument()
+  })
+
   it('checkbox is unchecked in single mode', () => {
     render(() => <BudgetCategoryFormField {...defaultProps} />)
     const checkbox = screen.getByLabelText(/split into multiple categories/i) as HTMLInputElement
