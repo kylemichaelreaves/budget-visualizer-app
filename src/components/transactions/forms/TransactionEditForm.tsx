@@ -8,6 +8,7 @@ import { Button } from '@components/ui/button'
 import { Input } from '@components/ui/input'
 import { Label } from '@components/ui/label'
 import type { Transaction } from '@types'
+import { isNonZeroAmount } from '@components/transactions/helpers/isNonZeroAmount'
 import { mutationAlertFromError } from './transactionEditFormUtils'
 import { useTransactionEditForm } from './useTransactionEditForm'
 
@@ -57,7 +58,7 @@ export default function TransactionEditForm(props: {
         <Input
           id={`field-${state.tid()}-amount_debit`}
           value={state.tx.amount_debit}
-          disabled={!!state.tx.amount_credit}
+          disabled={isNonZeroAmount(state.tx.amount_credit)}
           onInput={(e) => state.setTx('amount_debit', e.currentTarget.value)}
         />
       </Field>
@@ -65,7 +66,7 @@ export default function TransactionEditForm(props: {
         <Input
           id={`field-${state.tid()}-amount_credit`}
           value={state.tx.amount_credit}
-          disabled={!!state.tx.amount_debit}
+          disabled={isNonZeroAmount(state.tx.amount_debit)}
           onInput={(e) => state.setTx('amount_credit', e.currentTarget.value)}
         />
       </Field>

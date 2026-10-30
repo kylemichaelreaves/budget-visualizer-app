@@ -1,5 +1,5 @@
 import type { JSX } from 'solid-js'
-import { For, Show, createMemo, createSignal } from 'solid-js'
+import { For, Show, createEffect, createMemo, createSignal } from 'solid-js'
 import { extractBudgetCategoriesData } from '@api/helpers/extractBudgetCategoriesData'
 import { convertToTree } from '@api/helpers/convertToTree'
 import useBudgetCategories from '@api/hooks/budgetCategories/useBudgetCategories'
@@ -67,6 +67,16 @@ export default function BudgetCategoriesTreeSelect(props: {
     return rows
   })
 
+  // When options load or the filter changes, <For> can remove the selected <option>
+  // (the synthetic "(current)" one is rebuilt each time), and the `value` binding won't
+  // re-run because props.value is unchanged — so re-apply it whenever the options change.
+  let selectRef: HTMLSelectElement | undefined
+  createEffect(() => {
+    selectOptions()
+    const v = props.value ?? ''
+    if (selectRef) selectRef.value = v
+  })
+
   // Not on isFetching: disabling the filter on a background refetch drops its focus.
   const isDisabled = () => Boolean(props.disabled) || q.isLoading
 
@@ -103,6 +113,7 @@ export default function BudgetCategoriesTreeSelect(props: {
       </Show>
 
       <select
+        ref={(el) => (selectRef = el)}
         data-testid={tid()}
         value={props.value ?? ''}
         disabled={isDisabled()}
