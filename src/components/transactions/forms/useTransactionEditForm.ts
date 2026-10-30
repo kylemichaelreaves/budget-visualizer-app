@@ -2,7 +2,7 @@ import { batch, createEffect, createMemo, untrack } from 'solid-js'
 import { createStore, unwrap } from 'solid-js/store'
 import { useQueryClient } from '@tanstack/solid-query'
 import { invalidateAfterTransactionUpdate } from '@api/queryInvalidation'
-import type { BudgetCategoryState, PendingTransaction, Transaction, TransactionPatch } from '@types'
+import type { BudgetCategoryState, Transaction, TransactionPatch } from '@types'
 import mutateTransaction from '@api/hooks/transactions/mutateTransaction'
 import mutatePendingTransaction from '@api/hooks/transactions/mutatePendingTransaction'
 import { getBudgetCategory, initBudgetState } from './transactionEditFormUtils'
@@ -42,28 +42,11 @@ export function useTransactionEditForm(props: {
   const saveTransaction = () => {
     const budgetCategory = getBudgetCategory(budgetState)
 
-    const transactionData: Transaction = {
-      ...unwrap(tx),
-      budget_category: budgetCategory,
-      is_split: budgetState.mode === 'split',
-    }
-
     if (props.isPending && props.pendingTransactionId != null) {
-      const pendingTransactionData: PendingTransaction = {
-        id: props.pendingTransactionId,
-        created_at: '',
-        transaction_data: transactionData,
-        amount_debit: tx.amount_debit || '0.00',
-        transaction_date: tx.date,
-        memo_name: tx.memo,
-        assigned_category: budgetCategory,
-        status: 'reviewed',
-      }
+      // The pending endpoint takes a single category name and nothing else.
+      if (typeof budgetCategory !== 'string' || !budgetCategory.trim()) return
       pendMut.mutate(
-        {
-          pendingTransactionId: props.pendingTransactionId,
-          pendingTransaction: pendingTransactionData,
-        },
+        { pendingTransactionId: props.pendingTransactionId, budgetCategory },
         {
           onSuccess: () => {
             props.onClose()
@@ -93,6 +76,9 @@ export function useTransactionEditForm(props: {
 
   const isPendingMutation = () => Boolean(props.isPending && props.pendingTransactionId != null)
   const activeMut = () => (isPendingMutation() ? pendMut : regMut)
+  /** Approving a pending row requires a single category; the regular PATCH accepts anything. */
+  const canSave = () =>
+    !isPendingMutation() || (budgetState.mode === 'single' && Boolean(budgetState.categoryId?.trim()))
 
   const activeMutationError = createMemo(() => {
     const m = activeMut()
@@ -109,6 +95,7 @@ export function useTransactionEditForm(props: {
     saveTransaction,
     activeMut,
     activeMutationError,
+    canSave,
     tid,
   }
 }

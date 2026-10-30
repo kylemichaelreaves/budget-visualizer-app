@@ -2,7 +2,6 @@ import { useMutation, useQueryClient } from '@tanstack/solid-query'
 import { mutationKeys, queryKeys } from '@api/queryKeys'
 import { invalidateAfterTransactionCreate } from '@api/queryInvalidation'
 import { updatePendingTransaction } from '@api/transactions/updatePendingTransaction'
-import type { PendingTransaction } from '@types'
 import { devConsole } from '@utils/devConsole'
 
 export default function mutatePendingTransaction() {
@@ -12,20 +11,19 @@ export default function mutatePendingTransaction() {
     mutationKey: mutationKeys.mutatePendingTransaction,
     mutationFn: async ({
       pendingTransactionId,
-      pendingTransaction,
+      budgetCategory,
     }: {
       pendingTransactionId: number
-      pendingTransaction: PendingTransaction
-    }) => updatePendingTransaction(pendingTransactionId, pendingTransaction),
-    onSuccess: async (_data, variables) => {
+      budgetCategory: string
+    }) => updatePendingTransaction(pendingTransactionId, budgetCategory),
+    onSuccess: async () => {
       devConsole('log', '[mutatePendingTransaction] success, invalidate pending queries')
       await queryClient.invalidateQueries({
         queryKey: queryKeys.pendingTransactions.all,
         refetchType: 'active',
       })
-      if (variables.pendingTransaction.status === 'reviewed') {
-        await invalidateAfterTransactionCreate(queryClient)
-      }
+      // Assigning a category approves the row, which writes a transaction.
+      await invalidateAfterTransactionCreate(queryClient)
     },
   }))
 }

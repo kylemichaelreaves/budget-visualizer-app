@@ -1,6 +1,7 @@
 import type { JSX } from 'solid-js'
 import { createSignal } from 'solid-js'
 import mutateCreateTransaction from '@api/hooks/transactions/mutateCreateTransaction'
+import type { NewTransaction } from '@api/transactions/createTransaction'
 import type { Transaction } from '@types'
 import AlertComponent from '@components/shared/AlertComponent'
 import { Button } from '@components/ui/button'
@@ -21,15 +22,25 @@ export default function TransactionCreateForm(props: { onClose?: () => void }): 
 
   const createMut = mutateCreateTransaction()
 
+  const activeAmount = () => (isDebit() ? form().amount_debit : form().amount_credit)
+  /** The backend rejects a create without memo, amountDebit or date. */
+  const canSubmit = () => Boolean(form().date && form().memo.trim() && activeAmount().trim())
+
+  const toggleDebit = () => {
+    // Clear both amounts so a stale value on the inactive side can never be sent.
+    setForm({ ...form(), amount_debit: '', amount_credit: '' })
+    setIsDebit(!isDebit())
+  }
+
   const saveTransaction = () => {
+    if (!canSubmit()) return
     const f = form()
-    if (!f.date || (!f.amount_debit && !f.amount_credit)) {
-      return
-    }
-    const transaction: Transaction = {
-      ...f,
-      amount_debit: f.amount_debit,
-      amount_credit: f.amount_credit,
+    const amount = activeAmount().trim()
+    const transaction: NewTransaction = {
+      date: f.date,
+      description: f.description,
+      memo: f.memo.trim(),
+      ...(isDebit() ? { amount_debit: amount } : { amount_debit: '0', amount_credit: amount }),
     }
     createMut.mutate(transaction, {
       onSuccess: () => {
@@ -59,7 +70,7 @@ export default function TransactionCreateForm(props: { onClose?: () => void }): 
         <input
           type="checkbox"
           checked={isDebit()}
-          onChange={() => setIsDebit(!isDebit())}
+          onChange={toggleDebit}
           data-testid="transaction-type-switch"
         />
         Debit (off = credit)
@@ -126,7 +137,7 @@ export default function TransactionCreateForm(props: { onClose?: () => void }): 
         type="button"
         data-testid="transaction-submit-button"
         onClick={saveTransaction}
-        disabled={createMut.isPending}
+        disabled={createMut.isPending || !canSubmit()}
       >
         {createMut.isPending ? 'Creating\u2026' : 'Create Transaction'}
       </Button>
