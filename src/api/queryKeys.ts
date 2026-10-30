@@ -22,6 +22,8 @@ export const queryKeys = {
       ['transactions-count', st, tf, date, memoKey, budgetCategory] as const,
   },
   transaction: {
+    // Not under `transactions.all`: a create or a single-row update must not stale every detail page.
+    all: ['transaction'] as const,
     detail: (id: number | undefined) => ['transaction', id] as const,
   },
   memo: {

@@ -1,6 +1,7 @@
 import { createMemo, createSignal } from 'solid-js'
 import { useQueryClient } from '@tanstack/solid-query'
 import { queryKeys } from '@api/queryKeys'
+import { invalidateAfterBudgetCategoryMutation } from '@api/queryInvalidation'
 import { extractBudgetCategoriesData } from '@api/helpers/extractBudgetCategoriesData'
 import { BUDGET_CATEGORY_PATH_DELIMITER, convertToTree } from '@api/helpers/convertToTree'
 import useBudgetCategories from '@api/hooks/budgetCategories/useBudgetCategories'
@@ -47,7 +48,10 @@ export function useBudgetCategoriesPage() {
 
     try {
       await mutateBudgetCategory(op)
-      await queryClient.invalidateQueries({ queryKey: queryKeys.budgetCategories.all })
+      // Only an add leaves existing memos and transactions untouched.
+      await (op.operation === 'add'
+        ? queryClient.invalidateQueries({ queryKey: queryKeys.budgetCategories.all })
+        : invalidateAfterBudgetCategoryMutation(queryClient))
     } catch (err) {
       setError(mutationErrorMessage(op, err))
     } finally {

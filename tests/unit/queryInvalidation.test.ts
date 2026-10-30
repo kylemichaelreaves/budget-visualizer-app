@@ -1,7 +1,9 @@
 import { QueryClient, type QueryKey } from '@tanstack/solid-query'
 import { describe, expect, it, vi } from 'vitest'
 import {
+  invalidateAfterBudgetCategoryMutation,
   invalidateAfterMemoMutation,
+  invalidateAfterPendingTransactionApprove,
   invalidateAfterTransactionCreate,
   invalidateAfterTransactionUpdate,
 } from '@api/queryInvalidation'
@@ -65,21 +67,43 @@ describe('invalidateAfterTransactionUpdate', () => {
   })
 })
 
+// A memo write cascades into its transactions on the backend (`UPDATE transactions SET
+// budget_category = $1 WHERE memo_id = $2`), so it stales everything a transaction write
+// does, plus the memo itself, every transaction detail page, and the recurring page.
+const MEMO_KEYS: QueryKey[] = [
+  ...TRANSACTION_DERIVED_KEYS,
+  queryKeys.memo.all,
+  queryKeys.memosCount,
+  queryKeys.recurring.all,
+  queryKeys.transaction.all,
+]
+
 describe('invalidateAfterMemoMutation', () => {
-  it('invalidates memo queries, the transactions that display memo fields, and the recurring page', async () => {
+  it('invalidates every transaction-derived query, memo queries, transaction details and the recurring page', async () => {
     const keys = await invalidatedKeys((qc) => invalidateAfterMemoMutation(qc))
-    const expected: QueryKey[] = [
-      queryKeys.memo.all,
-      queryKeys.memoSummary.all,
-      queryKeys.memos.all,
-      queryKeys.memoTransactions.all,
-      queryKeys.memosCount,
-      queryKeys.transactions.all,
-      queryKeys.transactionsCount.all,
-      queryKeys.recurring.all,
-    ]
-    expect(keys).toEqual(expect.arrayContaining(expected))
-    expect(keys).toHaveLength(expected.length)
+    expect(keys).toEqual(expect.arrayContaining(MEMO_KEYS))
+    expect(keys).toHaveLength(MEMO_KEYS.length)
+  })
+})
+
+describe('invalidateAfterPendingTransactionApprove', () => {
+  it('invalidates the transaction-derived queries and the approved pending row', async () => {
+    const keys = await invalidatedKeys((qc) =>
+      invalidateAfterPendingTransactionApprove(qc, { pendingTransactionId: 9 }),
+    )
+    expect(keys).toEqual(
+      expect.arrayContaining([...TRANSACTION_DERIVED_KEYS, queryKeys.pendingTransaction.detail(9)]),
+    )
+    expect(keys).toHaveLength(TRANSACTION_DERIVED_KEYS.length + 1)
+  })
+})
+
+describe('invalidateAfterBudgetCategoryMutation', () => {
+  // Rename, move and delete cascade into memos and transactions on the backend.
+  it('invalidates the category list and everything a memo write does', async () => {
+    const keys = await invalidatedKeys((qc) => invalidateAfterBudgetCategoryMutation(qc))
+    expect(keys).toEqual(expect.arrayContaining([...MEMO_KEYS, queryKeys.budgetCategories.all]))
+    expect(keys).toHaveLength(MEMO_KEYS.length + 1)
   })
 })
 
@@ -91,6 +115,24 @@ describe('prefix invalidation reaches concrete queries', () => {
     qc.setQueryData(key, { pages: [[]], pageParams: [0] })
 
     await invalidateAfterTransactionCreate(qc)
+    expect(qc.getQueryState(key)?.isInvalidated).toBe(true)
+  })
+
+  it('marks every cached transaction detail stale after a memo write', async () => {
+    const qc = new QueryClient()
+    const key = queryKeys.transaction.detail(5)
+    qc.setQueryData(key, { id: 5 })
+
+    await invalidateAfterMemoMutation(qc)
+    expect(qc.getQueryState(key)?.isInvalidated).toBe(true)
+  })
+
+  it('marks the approved pending row stale', async () => {
+    const qc = new QueryClient()
+    const key = queryKeys.pendingTransaction.detail(9)
+    qc.setQueryData(key, { id: 9 })
+
+    await invalidateAfterPendingTransactionApprove(qc, { pendingTransactionId: 9 })
     expect(qc.getQueryState(key)?.isInvalidated).toBe(true)
   })
 })

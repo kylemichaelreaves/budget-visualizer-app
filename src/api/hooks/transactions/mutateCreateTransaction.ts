@@ -8,8 +8,9 @@ export default function mutateCreateTransaction() {
   return useMutation(() => ({
     mutationKey: mutationKeys.createTransaction,
     mutationFn: (transaction: NewTransaction) => createTransaction(transaction),
-    onSuccess: async () => {
-      await invalidateAfterTransactionCreate(queryClient)
+    // Not awaited: TanStack holds the `mutate()` callbacks (closing the dialog) until this settles.
+    onSuccess: () => {
+      void invalidateAfterTransactionCreate(queryClient)
     },
   }))
 }

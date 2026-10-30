@@ -9,8 +9,9 @@ export default function mutateMemo() {
   return useMutation(() => ({
     mutationKey: mutationKeys.mutateMemo,
     mutationFn: (memo: MemoUpdateInput) => updateMemo(memo),
-    onSuccess: async () => {
-      await invalidateAfterMemoMutation(queryClient)
+    // Not awaited: TanStack holds the `mutate()` callbacks (the edit form's navigate) until this settles.
+    onSuccess: () => {
+      void invalidateAfterMemoMutation(queryClient)
     },
   }))
 }
