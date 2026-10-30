@@ -1,6 +1,7 @@
 import type { JSX } from 'solid-js'
 import { For, Show } from 'solid-js'
 import type { CategoryNode } from '@types'
+import BudgetCategoryDeleteDialog from './BudgetCategoryDeleteDialog'
 import BudgetCategoryInlineAddForm from './BudgetCategoryInlineAddForm'
 import BudgetCategoryTreeExpandToggle from './BudgetCategoryTreeExpandToggle'
 import BudgetCategoryTreeRenameEditor from './BudgetCategoryTreeRenameEditor'
@@ -59,10 +60,18 @@ export default function BudgetCategoryTreeNode(props: {
             nodeLabel={props.node.label}
             onAddChild={() => s.setAddingChild(true)}
             onRename={s.startRename}
-            onDelete={s.handleDelete}
+            onDelete={s.requestDelete}
           />
         </Show>
       </div>
+
+      <BudgetCategoryDeleteDialog
+        open={s.confirmingDelete()}
+        nodeLabel={props.node.label}
+        descendantCount={s.descendantCount()}
+        onConfirm={() => void s.confirmDelete()}
+        onCancel={s.cancelDelete}
+      />
 
       <Show when={s.addingChild()}>
         <div style={{ 'padding-left': `${s.pad() + 26}px` }}>
