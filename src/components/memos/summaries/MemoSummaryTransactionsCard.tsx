@@ -43,17 +43,21 @@ export default function MemoSummaryTransactionsCard(props: {
           }}
         </Show>
 
-        <Show when={props.txIsLoading() || props.txIsFetching()}>
+        <Show when={props.txIsLoading()}>
           <p class="text-muted-foreground">Loading transactions...</p>
         </Show>
 
-        <Show when={!props.txIsLoading() && !props.txIsFetching() && (props.txRows()?.length ?? 0) > 0}>
-          <div class="divide-y divide-border" data-testid="memo-summary-transactions-table">
+        <Show when={!props.txIsLoading() && (props.txRows()?.length ?? 0) > 0}>
+          <div
+            class="divide-y divide-border"
+            data-testid="memo-summary-transactions-table"
+            aria-busy={props.txIsFetching() ? 'true' : undefined}
+          >
             <For each={props.txRows() ?? []}>{(row) => <MemoSummaryTransactionRow row={row} />}</For>
           </div>
         </Show>
 
-        <Show when={!props.txIsLoading() && !props.txIsFetching() && (props.txRows()?.length ?? 0) === 0}>
+        <Show when={!props.txIsLoading() && (props.txRows()?.length ?? 0) === 0}>
           <p class="text-muted-foreground">No transactions for this memo.</p>
         </Show>
 

@@ -102,7 +102,7 @@ export default function TimeframeSummaryTable(props: {
             }}
           </Show>
 
-          <Show when={props.isLoading() || props.isFetching()}>
+          <Show when={props.isLoading()}>
             <p class="text-muted-foreground text-xs px-4 py-3">{props.loadingMessage}</p>
           </Show>
 
@@ -115,7 +115,7 @@ export default function TimeframeSummaryTable(props: {
                 </p>
               }
             >
-              <div class="max-h-56 overflow-y-auto">
+              <div class="max-h-56 overflow-y-auto" aria-busy={props.isFetching() ? 'true' : undefined}>
                 <table class="w-full text-sm border-collapse">
                   <thead class="sticky top-0 bg-card z-10 border-b border-border">
                     <tr>
