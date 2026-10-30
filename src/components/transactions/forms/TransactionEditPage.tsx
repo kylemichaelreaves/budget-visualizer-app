@@ -40,8 +40,9 @@ export default function TransactionEditPage(): JSX.Element {
   const pendingQ = usePendingTransaction(pendingId)
   const txnQ = useTransaction(normalId)
 
-  const loading = () =>
-    isPending() ? pendingQ.isLoading || pendingQ.isFetching : txnQ.isLoading || txnQ.isFetching
+  // Initial load only. A background refetch (focus, reconnect, invalidation) must not
+  // unmount the form — that discarded whatever the user had typed.
+  const loading = () => (isPending() ? pendingQ.isLoading : txnQ.isLoading)
   const error = () => (isPending() ? pendingQ.error : txnQ.error)
   const isError = () => (isPending() ? pendingQ.isError : txnQ.isError)
 

@@ -56,11 +56,12 @@ export default function MemoEditPage(): JSX.Element {
         )}
       </Show>
 
-      <Show when={memoId() != null && (q.isLoading || q.isFetching)}>
+      <Show when={memoId() != null && q.isLoading}>
         <p data-testid="memo-edit-loading">Loading…</p>
       </Show>
 
-      <Show when={memoId() != null && !q.isLoading && !q.isFetching && q.data}>
+      {/* Gated on data, not isFetching: a focus refetch must not remount the form and discard edits. */}
+      <Show when={memoId() != null && q.data}>
         {(m) => (
           <Card>
             <CardHeader>
@@ -73,7 +74,7 @@ export default function MemoEditPage(): JSX.Element {
         )}
       </Show>
 
-      <Show when={memoId() != null && !q.isLoading && !q.isFetching && !q.data && !q.isError}>
+      <Show when={memoId() != null && !q.isLoading && !q.data && !q.isError}>
         <AlertComponent
           type="warning"
           title="Not found"

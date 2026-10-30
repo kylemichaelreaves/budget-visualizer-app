@@ -1,4 +1,4 @@
-import { batch, createEffect, createMemo, untrack } from 'solid-js'
+import { batch, createEffect, createMemo, on, untrack } from 'solid-js'
 import { createStore, unwrap } from 'solid-js/store'
 import { useQueryClient } from '@tanstack/solid-query'
 import { invalidateAfterTransactionUpdate } from '@api/queryInvalidation'
@@ -22,13 +22,24 @@ export function useTransactionEditForm(props: {
     untrack(() => initBudgetState(props.transaction)),
   )
 
-  createEffect(() => {
-    const p = props.transaction
-    batch(() => {
-      setTx(p)
-      setBudgetState(initBudgetState(p))
-    })
-  })
+  // Re-seed only when the form is pointed at a different transaction. A refetch of
+  // the same one hands down a new object, and re-seeding on that discarded edits.
+  // Pending rows key on the pending id: their parsed transaction_data may have no id.
+  // The key is a memo because `on` re-runs whenever its source recomputes, equal or not.
+  const entityKey = createMemo(() => `${props.pendingTransactionId ?? ''}:${props.transaction.id ?? ''}`)
+  createEffect(
+    on(
+      entityKey,
+      () => {
+        const p = props.transaction
+        batch(() => {
+          setTx(p)
+          setBudgetState(initBudgetState(p))
+        })
+      },
+      { defer: true },
+    ),
+  )
 
   const transactionAmount = createMemo(() => {
     const debit = Number.parseFloat(tx.amount_debit || '0')
