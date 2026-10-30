@@ -8,6 +8,7 @@ import { Button } from '@components/ui/button'
 import { Label } from '@components/ui/label'
 import { generateId } from '@components/transactions/helpers/generateId'
 import { formatUsd } from '@utils/formatUsd'
+import { cloneBudgetState } from './transactionEditFormUtils'
 
 export default function BudgetCategoryFormField(props: {
   modelValue: BudgetCategoryState
@@ -20,6 +21,19 @@ export default function BudgetCategoryFormField(props: {
   const id = () => props.dataTestId ?? 'budget-category-form-field'
   const [drawerOpen, setDrawerOpen] = createSignal(false)
   const { timeFrame, selectedValue } = useTimeframeTypeAndValue()
+  /** The value before the drawer opened; Cancel and Escape put it back. */
+  let beforeDrawer: BudgetCategoryState | null = null
+
+  function openDrawer(before = cloneBudgetState(props.modelValue)) {
+    beforeDrawer = before
+    setDrawerOpen(true)
+  }
+
+  function closeDrawer(next: BudgetCategoryState) {
+    beforeDrawer = null
+    props.onChange(next)
+    setDrawerOpen(false)
+  }
 
   const isSplit = () => props.modelValue.mode === 'split'
   const splits = () => (props.modelValue.mode === 'split' ? props.modelValue.splits : [])
@@ -39,6 +53,7 @@ export default function BudgetCategoryFormField(props: {
 
   function toggleSplit(enable: boolean) {
     if (enable) {
+      const before = cloneBudgetState(props.modelValue)
       const initial: SplitBudgetCategory[] = []
       const cid = categoryId()
       if (cid) {
@@ -49,7 +64,8 @@ export default function BudgetCategoryFormField(props: {
         })
       }
       props.onChange({ mode: 'split', splits: initial })
-      setDrawerOpen(true)
+      // After onChange, so the drawer seeds from the new splits on its open edge.
+      openDrawer(before)
     } else {
       props.onChange({ mode: 'single', categoryId: null })
     }
@@ -77,7 +93,7 @@ export default function BudgetCategoryFormField(props: {
           size="sm"
           type="button"
           data-testid={`${id()}-edit-splits-button`}
-          onClick={() => setDrawerOpen(true)}
+          onClick={() => openDrawer()}
         >
           {splits().length ? 'Edit splits' : 'Configure splits'}
         </Button>
@@ -99,14 +115,9 @@ export default function BudgetCategoryFormField(props: {
         transactionAmount={absAmount()}
         timeframe={() => timeFrame()}
         date={() => selectedValue()}
-        onSubmit={(next) => {
-          props.onChange({ mode: 'split', splits: next })
-          setDrawerOpen(false)
-        }}
-        onCancel={() => {
-          props.onChange({ mode: 'single', categoryId: null })
-          setDrawerOpen(false)
-        }}
+        onSubmit={(next) => closeDrawer({ mode: 'split', splits: next })}
+        onCancel={() => closeDrawer(beforeDrawer ?? cloneBudgetState(props.modelValue))}
+        onClear={() => closeDrawer({ mode: 'single', categoryId: null })}
       />
     </div>
   )
