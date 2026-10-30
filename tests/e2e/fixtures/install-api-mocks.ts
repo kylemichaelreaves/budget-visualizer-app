@@ -220,6 +220,12 @@ export async function installApiMocks(page: Page): Promise<void> {
         return
       }
       if (method === 'PATCH') {
+        // Mirrors resourceQuerier's validatePendingTransactionRequest: a top-level string only.
+        const { budgetCategory } = req.postDataJSON() ?? {}
+        if (typeof budgetCategory !== 'string' || !budgetCategory.trim()) {
+          await json(route, { error: ['budgetCategory is required'] }, 400)
+          return
+        }
         await json(route, { ok: true })
         return
       }
@@ -287,7 +293,17 @@ export async function installApiMocks(page: Page): Promise<void> {
         return
       }
       if (method === 'POST') {
-        await json(route, { id: 1 })
+        // Mirrors resourceQuerier's createTransaction guard, which reads camelCase only.
+        const body = req.postDataJSON() ?? {}
+        if (!body.memo || body.amountDebit == null || !body.date) {
+          await json(
+            route,
+            { error: 'Missing required fields: memo, amountDebit, and date are required' },
+            400,
+          )
+          return
+        }
+        await json(route, { id: 1 }, 201)
         return
       }
       if (method === 'GET') {

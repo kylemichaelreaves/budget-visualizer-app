@@ -123,4 +123,40 @@ describe('SplitBudgetCategoryDrawer', () => {
     fireEvent.click(screen.getByRole('button', { name: /cancel/i }))
     expect(onCancel).toHaveBeenCalledOnce()
   })
+
+  // #70: rows used to be replaced on every input, so <For> recreated the row's
+  // inputs and focus was lost after the first character.
+  it('keeps the same amount input focused while typing several characters', () => {
+    renderDrawer({ splits: [{ id: '1', budget_category_id: 'Food', amount_debit: 0 }] })
+    const input = screen.getByTestId('split-amount-0') as HTMLInputElement
+    input.focus()
+
+    for (const value of ['3', '37', '37.', '37.3', '37.31']) {
+      input.value = value
+      fireEvent.input(input)
+    }
+
+    expect(screen.getByTestId('split-amount-0')).toBe(input)
+    expect(document.activeElement).toBe(input)
+    expect(screen.getByText('$37.31', { selector: 'span' })).toBeInTheDocument()
+  })
+
+  it('keeps the category input when its amount changes', () => {
+    renderDrawer({ splits: [{ id: '1', budget_category_id: 'Food', amount_debit: 0 }] })
+    const category = screen.getByTestId('split-category-0')
+    const amount = screen.getByTestId('split-amount-0') as HTMLInputElement
+    amount.value = '5'
+    fireEvent.input(amount)
+    expect(screen.getByTestId('split-category-0')).toBe(category)
+  })
+
+  it('submits plain copies, not the draft store rows', () => {
+    const onSubmit = vi.fn()
+    const splits = [{ id: '1', budget_category_id: 'Food', amount_debit: 100 }]
+    renderDrawer({ splits, onSubmit })
+    fireEvent.click(screen.getByRole('button', { name: /save splits/i }))
+    const submitted = onSubmit.mock.calls[0]![0] as typeof splits
+    expect(submitted).toEqual(splits)
+    expect(submitted[0]).not.toBe(splits[0])
+  })
 })

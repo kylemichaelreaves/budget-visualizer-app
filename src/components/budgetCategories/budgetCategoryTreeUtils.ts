@@ -16,6 +16,11 @@ export function budgetCategorySegmentValidationError(trimmed: string): string | 
   return `Category names cannot contain "${BUDGET_CATEGORY_PATH_DELIMITER}" (that sequence is reserved between path levels).`
 }
 
+/** Every node below `node`, at any depth — what a delete of `node` also removes. */
+export function countDescendants(node: CategoryNode): number {
+  return (node.children ?? []).reduce((n, child) => n + 1 + countDescendants(child), 0)
+}
+
 export function filterTree(nodes: CategoryNode[], q: string): CategoryNode[] {
   const needle = q.trim().toLowerCase()
   if (!needle) return nodes

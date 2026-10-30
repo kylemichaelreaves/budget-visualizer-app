@@ -24,7 +24,7 @@ export default function BudgetCategoriesPage(): JSX.Element {
   const spendRows = () => (categorySpendQuery.data ?? []) as BudgetCategorySummary[]
   const hasSpendForSunburst = () =>
     spendRows().some((r) => r.parent_id === null && Math.abs(r.total_amount_debit) > 0)
-  const isChartPending = () => categorySpendQuery.isLoading || categorySpendQuery.isFetching
+  const isChartPending = () => categorySpendQuery.isLoading
   // TanStack keeps stale data on error — gate on !isError so the error banner
   // doesn't render alongside a chart built from the previous successful fetch.
   const showChart = () => !categorySpendQuery.isError && (isChartPending() || hasSpendForSunburst())

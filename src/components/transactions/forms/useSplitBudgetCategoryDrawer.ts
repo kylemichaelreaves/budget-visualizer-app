@@ -1,4 +1,5 @@
-import { createEffect, createSignal, on } from 'solid-js'
+import { createEffect, on } from 'solid-js'
+import { createStore, reconcile } from 'solid-js/store'
 import type { SplitBudgetCategory } from '@types'
 import { generateId } from '@components/transactions/helpers/generateId'
 import {
@@ -26,7 +27,16 @@ export type UseSplitBudgetCategoryDrawerProps = {
 }
 
 export function useSplitBudgetCategoryDrawer(props: UseSplitBudgetCategoryDrawerProps) {
-  const [local, setLocal] = createSignal<SplitBudgetCategory[]>([])
+  /**
+   * The draft lives in a store, and every write is reconciled by `id`, so editing a
+   * row updates that row's proxy in place. `<For>` keys rows by identity: with a
+   * signal of plain objects, each keystroke replaced the row object, which
+   * recreated its inputs and dropped focus after the first character.
+   */
+  const [rows, setRows] = createStore<SplitBudgetCategory[]>([])
+  const local = () => rows
+  const setLocal = (update: (current: SplitBudgetCategory[]) => SplitBudgetCategory[]) =>
+    setRows(reconcile(update(rows), { key: 'id' }))
 
   /**
    * Seed the local draft on the closed -> open edge only.
@@ -45,12 +55,17 @@ export function useSplitBudgetCategoryDrawer(props: UseSplitBudgetCategoryDrawer
       () => props.open,
       (isOpen, wasOpen) => {
         if (!isOpen || wasOpen) return
-        setLocal(
-          initialLocalSplits(props.splits, () => ({
-            id: generateId(),
-            budget_category_id: '',
-            amount_debit: 0,
-          })),
+        // Copy the rows: store writes mutate the underlying objects, and these
+        // belong to the parent's form state until the user saves.
+        setLocal(() =>
+          initialLocalSplits(
+            props.splits.map((split) => ({ ...split })),
+            () => ({
+              id: generateId(),
+              budget_category_id: '',
+              amount_debit: 0,
+            }),
+          ),
         )
       },
     ),
@@ -77,8 +92,12 @@ export function useSplitBudgetCategoryDrawer(props: UseSplitBudgetCategoryDrawer
     setLocal((rows) => removeSplitRowAt(rows, index))
   }
 
+  /** Plain copies for `onSubmit`, detached from the draft store. */
+  const snapshot = () => rows.map((row) => ({ ...row }))
+
   return {
     local,
+    snapshot,
     totalAllocated,
     remaining,
     isBalanced,

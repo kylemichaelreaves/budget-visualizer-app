@@ -27,7 +27,7 @@ export default function MonthSummaryTable(props: { dataTestId?: string }): JSX.E
       error={() => q.error}
       isLoading={() => q.isLoading}
       isFetching={() => q.isFetching}
-      showTable={() => !q.isLoading && !q.isFetching && q.data != null}
+      showTable={() => q.data != null}
       getCategoryColor={(name) => categoryColors().getColorByName(name)}
     />
   )
