@@ -35,6 +35,8 @@ gh api -X DELETE repos/kylemichaelreaves/budget-visualizer-app/branches/main/pro
 gh api -X POST   repos/kylemichaelreaves/budget-visualizer-app/branches/main/protection/enforce_admins
 ```
 
+**SonarQube** is deliberately **not** a required context. Fork and Dependabot PRs get no `SONAR_TOKEN`, so the job skips its scan there, and an outage at SonarCloud shouldn't block merges. Its quality gate is advisory. It also only works while SonarCloud's Automatic Analysis is **off** for the project, because the two modes are mutually exclusive.
+
 Linear history is deliberately **not** required, so merge commits are allowed — stacked PRs depend on them.
 
 ## Git hooks (optional, no extra npm deps)

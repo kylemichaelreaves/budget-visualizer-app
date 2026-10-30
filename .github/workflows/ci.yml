@@ -56,35 +56,48 @@ jobs:
         with:
           node-version-file: .nvmrc
       - run: bun install --frozen-lockfile
-      - run: bun run test
+      # The same suite as `bun run test`, plus the lcov report the SonarQube job scans.
+      # Running it once here instead of again in that job keeps a single source of truth
+      # for pass/fail and halves the test minutes.
+      - run: bun run test:coverage
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: coverage
+          path: coverage/lcov.info
+          retention-days: 1
 
   # SonarCloud analysis. Runs from CI rather than as SonarCloud's "Automatic Analysis" so
   # the vitest coverage report is included — Automatic Analysis inspects the repository
   # directly and never sees CI output. The two modes are mutually exclusive: Automatic
-  # Analysis must be OFF in the SonarCloud project settings.
+  # Analysis must be OFF in the SonarCloud project settings, or this scan fails.
   #
-  # Runs the suite with coverage itself, because the lcov report has to exist on the same
-  # filesystem as the scanner.
+  # Deliberately NOT a required status check (see CLAUDE.md): fork and Dependabot PRs get
+  # no secrets, and an outage at an external service shouldn't block merges.
   sonarqube:
     name: SonarQube
-    needs: [lint, typecheck]
+    needs: unit-tests
     runs-on: ubuntu-latest
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
         with:
           # Sonar attributes issues and decides what is new code from history; a shallow
           # clone makes every line look new.
           fetch-depth: 0
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2
-      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+      # lcov paths are relative to the repository root (SF:src/...), which is where the
+      # scanner runs, so the report from Unit Tests resolves against this checkout.
+      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
         with:
-          node-version-file: .nvmrc
-      - run: bun install --frozen-lockfile
-      - run: bun run test:coverage
+          name: coverage
+          path: coverage
+      - name: Skip without a token
+        if: env.SONAR_TOKEN == ''
+        run: echo "::notice::SONAR_TOKEN is not available to this run (fork or Dependabot PR); skipping the scan."
       - name: SonarQube Scan
+        if: env.SONAR_TOKEN != ''
         uses: SonarSource/sonarqube-scan-action@fd88b7d7ccbaefd23d8f36f73b59db7a3d246602 # v6
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
 
   e2e-tests:

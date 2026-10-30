@@ -21,8 +21,9 @@ export default defineConfig({
       // include lcov, so `--coverage` would produce nothing Sonar can consume.
       reporter: ['text', 'lcov'],
       reportsDirectory: './coverage',
-      include: ['src/**/*.{ts,tsx,vue}'],
-      exclude: ['src/**/*.d.ts', 'src/main.ts', 'src/**/__mocks__/**'],
+      include: ['src/**/*.{ts,tsx}'],
+      // Mirrors sonar.coverage.exclusions in sonar-project.properties.
+      exclude: ['src/**/*.d.ts', 'src/index.tsx', 'src/**/*.stories.tsx', 'src/mocks/**'],
     },
   },
 })
