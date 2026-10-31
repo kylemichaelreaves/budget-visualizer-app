@@ -105,8 +105,10 @@ Convention, not a lint gate — there is no clean Solid-native rule to enforce i
 - Centralized invalidation helpers in `@api/queryInvalidation.ts`:
   - `invalidateAfterTransactionCreate(queryClient)` — broad (transactions + memos + budget summaries)
   - `invalidateAfterTransactionUpdate(queryClient, { transactionId })` — same scope + single transaction
-  - `invalidateAfterMemoMutation(queryClient)` — memos + transactions
-- **Do not** `await` invalidation inside hook-level `onSuccess` for `mutateTransaction` — TanStack Query v5 blocks `mutate()`-level callbacks, which prevents `history.back()` navigation. Call `invalidateAfterTransactionUpdate` at the call site instead.
+  - `invalidateAfterPendingTransactionApprove(queryClient, { pendingTransactionId })` — create scope + that pending row
+  - `invalidateAfterMemoMutation(queryClient)` — create scope + memo, every transaction detail, recurring. The backend cascades a memo's category into its transactions.
+  - `invalidateAfterBudgetCategoryMutation(queryClient)` — memo scope + category list. Use it for rename, move and delete, which cascade into memos and transactions. An add only needs `budgetCategories.all`.
+- **Do not** `await` or return invalidation from a hook-level `onSuccess` — TanStack Query v5 waits for it before running `mutate()`-level callbacks, which blocks closing a dialog or navigating (`history.back()`, `navigate`). Either `void` it inside the hook (`mutateCreateTransaction`, `mutateMemo`, `mutatePendingTransaction`) or call the helper at the call site without awaiting (`mutateTransaction`).
 - Don't use store-level caches that short-circuit `queryFn` — let TanStack manage caching
 
 ## Retry policy

@@ -1,8 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/solid-query'
-import { mutationKeys, queryKeys } from '@api/queryKeys'
-import { invalidateAfterTransactionCreate } from '@api/queryInvalidation'
+import { mutationKeys } from '@api/queryKeys'
+import { invalidateAfterPendingTransactionApprove } from '@api/queryInvalidation'
 import { updatePendingTransaction } from '@api/transactions/updatePendingTransaction'
-import { devConsole } from '@utils/devConsole'
 
 export default function mutatePendingTransaction() {
   const queryClient = useQueryClient()
@@ -16,14 +15,10 @@ export default function mutatePendingTransaction() {
       pendingTransactionId: number
       budgetCategory: string
     }) => updatePendingTransaction(pendingTransactionId, budgetCategory),
-    onSuccess: async () => {
-      devConsole('log', '[mutatePendingTransaction] success, invalidate pending queries')
-      await queryClient.invalidateQueries({
-        queryKey: queryKeys.pendingTransactions.all,
-        refetchType: 'active',
-      })
-      // Assigning a category approves the row, which writes a transaction.
-      await invalidateAfterTransactionCreate(queryClient)
+    // Assigning a category approves the row, which writes a transaction. Not awaited:
+    // TanStack holds the `mutate()` callbacks (the edit form's `history.back()`) until this settles.
+    onSuccess: (_data, { pendingTransactionId }) => {
+      void invalidateAfterPendingTransactionApprove(queryClient, { pendingTransactionId })
     },
   }))
 }

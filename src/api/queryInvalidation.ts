@@ -41,17 +41,51 @@ export async function invalidateAfterTransactionUpdate(
   await Promise.all(tasks)
 }
 
-/** After memo metadata changes (category, flags, name) — keeps transactions in sync. */
-export async function invalidateAfterMemoMutation(queryClient: QueryClient): Promise<void> {
+/**
+ * After approving a pending transaction. Approval writes a real transaction and
+ * changes the pending row's status, which its detail key (outside
+ * `pendingTransactions.all`) would otherwise keep showing.
+ */
+export async function invalidateAfterPendingTransactionApprove(
+  queryClient: QueryClient,
+  opts: { pendingTransactionId: number },
+): Promise<void> {
   await Promise.all([
+    ...invalidateTransactionDerivedQueries(queryClient),
+    queryClient.invalidateQueries({
+      queryKey: queryKeys.pendingTransaction.detail(opts.pendingTransactionId),
+    }),
+  ])
+}
+
+/**
+ * A memo's category cascades to every transaction under it on the backend, so a
+ * memo write stales all transaction-derived views and every transaction detail
+ * page, not just the memo queries.
+ */
+function invalidateMemoDerivedQueries(queryClient: QueryClient): Promise<unknown>[] {
+  return [
+    ...invalidateTransactionDerivedQueries(queryClient),
     queryClient.invalidateQueries({ queryKey: queryKeys.memo.all }),
-    queryClient.invalidateQueries({ queryKey: queryKeys.memoSummary.all }),
-    queryClient.invalidateQueries({ queryKey: queryKeys.memos.all }),
-    queryClient.invalidateQueries({ queryKey: queryKeys.memoTransactions.all }),
     queryClient.invalidateQueries({ queryKey: queryKeys.memosCount }),
-    queryClient.invalidateQueries({ queryKey: queryKeys.transactions.all }),
-    queryClient.invalidateQueries({ queryKey: queryKeys.transactionsCount.all }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.transaction.all }),
     // A memo's manual `recurring` / `frequency` feed the conflict state on the recurring page.
     queryClient.invalidateQueries({ queryKey: queryKeys.recurring.all }),
+  ]
+}
+
+/** After memo metadata changes (category, flags, name) — keeps transactions in sync. */
+export async function invalidateAfterMemoMutation(queryClient: QueryClient): Promise<void> {
+  await Promise.all(invalidateMemoDerivedQueries(queryClient))
+}
+
+/**
+ * After a budget category rename, move or delete. The backend cascades the new
+ * path into memos and transactions, so this covers everything a memo write does.
+ */
+export async function invalidateAfterBudgetCategoryMutation(queryClient: QueryClient): Promise<void> {
+  await Promise.all([
+    ...invalidateMemoDerivedQueries(queryClient),
+    queryClient.invalidateQueries({ queryKey: queryKeys.budgetCategories.all }),
   ])
 }
