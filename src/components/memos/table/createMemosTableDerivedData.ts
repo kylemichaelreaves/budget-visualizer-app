@@ -10,14 +10,14 @@ import {
 import { transactionsState } from '@stores/transactionsStore'
 
 export function createMemosTableDerivedData() {
-  const query = useMemos()
-  const countQuery = useMemosCount()
-
-  const LIMIT = () => transactionsState.memosTableLimit
-
   const [searchQuery, setSearchQuery] = createSignal('')
   const [sortKey, setSortKey] = createSignal<MemosTableSortKey | null>(null)
   const [sortDir, setSortDir] = createSignal<MemosTableSortDir>('asc')
+
+  const query = useMemos(() => ({ key: sortKey(), dir: sortDir() }))
+  const countQuery = useMemosCount()
+
+  const LIMIT = () => transactionsState.memosTableLimit
 
   const flattenedData = createMemo(() => query.data?.pages.flat() ?? [])
 
@@ -31,6 +31,9 @@ export function createMemosTableDerivedData() {
           (m.budget_category && m.budget_category.toLowerCase().includes(q)),
       )
     }
+    // The server already sorted every memo. Re-sorting the loaded prefix by the same
+    // key keeps that order, and still sorts the loaded pages for a backend that
+    // ignores the sort params.
     const sk = sortKey()
     if (sk) {
       const dir = sortDir()

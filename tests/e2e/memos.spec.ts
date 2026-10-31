@@ -42,4 +42,31 @@ test.describe('Memos list', () => {
     expect(firstAfter).toBeTruthy()
     expect(firstBefore).not.toBe(firstAfter)
   })
+
+  // #83: the sort must cover every memo, not just the pages already loaded, so it
+  // goes to the server; the first page is the API's top rows.
+  test('sorting asks the API to order every memo before paging', async ({ memosPage }) => {
+    await memosPage.goto()
+    await expect(memosPage.table).toBeVisible({ timeout: 30_000 })
+    const sortButton = memosPage.page.getByRole('button', { name: 'Sort by Total Debit' })
+
+    const ascending = memosPage.page.waitForRequest(
+      (r) =>
+        r.url().includes('/memos?') && new URL(r.url()).searchParams.get('sortKey') === 'total_amount_debit',
+    )
+    await sortButton.click()
+    const asc = new URL((await ascending).url()).searchParams
+    expect(asc.get('sortDir')).toBe('asc')
+    expect(asc.get('offset')).toBe('0')
+
+    const descending = memosPage.page.waitForRequest(
+      (r) => r.url().includes('/memos?') && new URL(r.url()).searchParams.get('sortDir') === 'desc',
+    )
+    await sortButton.click()
+    await descending
+    await expect(memosPage.table.locator('[data-testid^="memo-name-link-"]').first()).toHaveAttribute(
+      'data-testid',
+      'memo-name-link-200',
+    )
+  })
 })

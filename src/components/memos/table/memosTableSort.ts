@@ -17,15 +17,17 @@ export const MEMOS_TABLE_SORTABLE_COLUMNS: { key: MemosTableSortKey; label: stri
   { key: 'total_amount_debit', label: 'Total Debit' },
 ]
 
+/** Missing values sort last in both directions, matching the API's `NULLS LAST`. */
 export function compareMemos(a: Memo, b: Memo, key: MemosTableSortKey, dir: MemosTableSortDir): number {
   const av = a[key]
   const bv = b[key]
 
+  if (av == null && bv == null) return 0
+  if (av == null) return 1
+  if (bv == null) return -1
+
   let result: number
-  if (av == null && bv == null) result = 0
-  else if (av == null) result = 1
-  else if (bv == null) result = -1
-  else if (typeof av === 'string' && typeof bv === 'string') result = av.localeCompare(bv)
+  if (typeof av === 'string' && typeof bv === 'string') result = av.localeCompare(bv)
   else if (typeof av === 'boolean' && typeof bv === 'boolean') result = Number(av) - Number(bv)
   else if (typeof av === 'number' && typeof bv === 'number') result = av - bv
   else result = String(av).localeCompare(String(bv))

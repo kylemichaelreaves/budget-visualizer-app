@@ -14,6 +14,30 @@ function json(route: Route, body: unknown, status = 200) {
  * Stubs /api/v1/* so the app runs against `vite preview` without a backend.
  * Maintains in-memory state so PATCHes are reflected in subsequent GETs.
  */
+/**
+ * Mirrors resourceQuerier's memo ORDER BY: the requested column with NULLS LAST in
+ * both directions, then id; by name when no sort is given.
+ */
+function sortMemosLikeApi(
+  rows: Record<string, unknown>[],
+  sortKey: string | null,
+  sortDir: string | null,
+): Record<string, unknown>[] {
+  const key = sortKey || 'name'
+  const sign = sortDir?.toLowerCase() === 'desc' ? -1 : 1
+  return [...rows].sort((a, b) => {
+    const av = a[key]
+    const bv = b[key]
+    if (av == null || bv == null) {
+      if (av != null) return -1
+      if (bv != null) return 1
+    } else if (av !== bv) {
+      return sign * (typeof av === 'string' ? av.localeCompare(String(bv)) : Number(av) - Number(bv))
+    }
+    return Number(a.id) - Number(b.id)
+  })
+}
+
 export async function installApiMocks(page: Page): Promise<void> {
   const transactions: Record<number, Record<string, unknown>> = {
     100: {
@@ -276,11 +300,22 @@ export async function installApiMocks(page: Page): Promise<void> {
         return
       }
       if (sp.get('totalAmountDebit') === 'true') {
-        const total = memoFilteredRows().reduce((sum, t) => {
-          const n = Number(t.amount_debit)
-          return sum + (Number.isFinite(n) ? Math.abs(n) : 0)
-        }, 0)
-        await json(route, [{ total_amount_debit: total }])
+        // Mirrors resourceQuerier's totals row: signed sums, int counts. Like the rest
+        // of this mock it ignores the date range, so a period view gets totals while
+        // its list comes back empty, which tells server figures from page ones.
+        const rows = memoFilteredRows()
+        const debits = rows.filter(
+          (t) => Number(t.amount_debit) !== 0 && Number.isFinite(Number(t.amount_debit)),
+        )
+        const credits = rows.filter((t) => Number(t.amount_credit) > 0)
+        await json(route, [
+          {
+            total_amount_debit: debits.reduce((sum, t) => sum + Number(t.amount_debit), 0),
+            total_amount_credit: credits.reduce((sum, t) => sum + Number(t.amount_credit), 0),
+            debit_count: debits.length,
+            credit_count: credits.length,
+          },
+        ])
         return
       }
       if (
@@ -338,7 +373,7 @@ export async function installApiMocks(page: Page): Promise<void> {
           await json(route, [{ count: Object.values(memos).length }])
           return
         }
-        const rows = Object.values(memos)
+        const rows = sortMemosLikeApi(Object.values(memos), sp.get('sortKey'), sp.get('sortDir'))
         const offsetParam = Number(sp.get('offset'))
         const limitParam = Number(sp.get('limit'))
         const offset = Number.isInteger(offsetParam) && offsetParam >= 0 ? offsetParam : 0

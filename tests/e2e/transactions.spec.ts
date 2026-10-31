@@ -78,6 +78,20 @@ test.describe('View mode filtering', () => {
     await expect(transactionsPage.yearClearButton).toBeVisible()
   })
 
+  // #82: the mock answers the totals query for the whole filter but returns no list
+  // rows for a period, so these figures can only have come from the server totals.
+  test('summary cards show server totals for the whole filter, not the loaded rows', async ({
+    transactionsPage,
+  }) => {
+    await transactionsPage.goto()
+    await expect(transactionsPage.filtersSection).toBeVisible({ timeout: 30_000 })
+    await transactionsPage.selectYear('2025')
+    await expect(transactionsPage.summaryDebitsCard).toContainText('$49.81')
+    await expect(transactionsPage.summaryDebitsCard).toContainText('2 expense transactions')
+    await expect(transactionsPage.summaryCreditsCard).toContainText('$2,000.00')
+    await expect(transactionsPage.summaryCreditsCard).toContainText('1 income transaction')
+  })
+
   test('selecting a month activates month view and shows inline clear', async ({ transactionsPage }) => {
     await transactionsPage.goto()
     await expect(transactionsPage.filtersSection).toBeVisible({ timeout: 30_000 })

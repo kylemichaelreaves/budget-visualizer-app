@@ -14,7 +14,8 @@ function invalidateTransactionDerivedQueries(queryClient: QueryClient): Promise<
     queryClient.invalidateQueries({ queryKey: queryKeys.weekSummary.all }),
     queryClient.invalidateQueries({ queryKey: queryKeys.monthSummary.all }),
     queryClient.invalidateQueries({ queryKey: queryKeys.timeUnits.all }),
-    queryClient.invalidateQueries({ queryKey: queryKeys.sumAmountDebitByDate.all }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.transactionTotals.all }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.transactionCategoryTotals.all }),
     queryClient.invalidateQueries({ queryKey: queryKeys.dailyTotalAmountDebitForInterval.all }),
   ]
 }

@@ -31,7 +31,8 @@ const TRANSACTION_DERIVED_KEYS: QueryKey[] = [
   queryKeys.weekSummary.all,
   queryKeys.monthSummary.all,
   queryKeys.timeUnits.all,
-  queryKeys.sumAmountDebitByDate.all,
+  queryKeys.transactionTotals.all,
+  queryKeys.transactionCategoryTotals.all,
   queryKeys.dailyTotalAmountDebitForInterval.all,
 ]
 

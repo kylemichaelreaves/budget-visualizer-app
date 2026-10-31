@@ -36,7 +36,8 @@ export const queryKeys = {
   },
   memos: {
     all: ['memos'] as const,
-    infinite: (limit: number) => ['memos', limit] as const,
+    infinite: (limit: number, sortKey: string | null = null, sortDir: 'asc' | 'desc' = 'asc') =>
+      ['memos', limit, sortKey, sortDir] as const,
     search: (searchQuery: string) => ['memos', 'search', searchQuery] as const,
   },
   memoTransactions: {
@@ -88,9 +89,25 @@ export const queryKeys = {
     detail: (interval: string, startDate: string, memoKey: string) =>
       ['daily-total-amount-debit-for-interval', interval, startDate, memoKey] as const,
   },
-  sumAmountDebitByDate: {
-    all: ['sum-amount-debit-by-date'] as const,
-    detail: (timeFrame: string, date: string) => ['sum-amount-debit-by-date', timeFrame, date] as const,
+  /** Debit/credit totals and counts for the transactions table's current filter (summary cards). */
+  transactionTotals: {
+    all: ['transaction-totals'] as const,
+    detail: (
+      memoKey: string,
+      tf: string | undefined,
+      date: string | undefined,
+      budgetCategory: string | null,
+    ) => ['transaction-totals', memoKey, tf, date, budgetCategory] as const,
+  },
+  /** Per-category debit totals for the transactions table's current filter (summary cards). */
+  transactionCategoryTotals: {
+    all: ['transaction-category-totals'] as const,
+    detail: (
+      memoKey: string,
+      tf: string | undefined,
+      date: string | undefined,
+      budgetCategory: string | null,
+    ) => ['transaction-category-totals', memoKey, tf, date, budgetCategory] as const,
   },
   recurring: {
     all: ['recurring'] as const,
