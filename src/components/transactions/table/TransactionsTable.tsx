@@ -17,7 +17,8 @@ import type { SplitBudgetCategory } from '@types'
 export default function TransactionsTable() {
   const data = createTransactionsTableDerivedData()
   const cat = createTransactionsTableCategoryAssignment()
-  const split = createTransactionsTableSplitDrawer()
+  // Shares the row's saving indicator with category assignment.
+  const split = createTransactionsTableSplitDrawer({ setMutatingTransactionId: cat.setMutatingTransactionId })
 
   const splitTarget = () => split.target()
   const targetBudgetCategory = () => {
@@ -49,6 +50,8 @@ export default function TransactionsTable() {
         queryError={() => data.query.error}
         categoryAssignError={cat.categoryAssignError}
         onDismissCategoryError={() => cat.setCategoryAssignError(null)}
+        splitSaveError={split.strayError}
+        onDismissSplitSaveError={() => split.setStrayError(null)}
       />
 
       <PeriodHeader />
@@ -104,6 +107,8 @@ export default function TransactionsTable() {
         onSubmit={split.handleSubmit}
         onCancel={split.closeSplitDrawer}
         onClear={split.handleClear}
+        saving={split.saving()}
+        error={split.error()}
       />
     </div>
   )

@@ -159,4 +159,15 @@ describe('SplitBudgetCategoryDrawer', () => {
     expect(submitted).toEqual(splits)
     expect(submitted[0]).not.toBe(splits[0])
   })
+
+  // #78: a failed save used to vanish silently.
+  it('shows why the last save failed', () => {
+    renderDrawer({ error: 'Request failed with status code 500' })
+    expect(screen.getByTestId('split-save-error')).toHaveTextContent('Request failed with status code 500')
+  })
+
+  it('disables saving while a save is in flight', () => {
+    renderDrawer({ saving: true })
+    expect(screen.getByRole('button', { name: 'Saving…' })).toBeDisabled()
+  })
 })

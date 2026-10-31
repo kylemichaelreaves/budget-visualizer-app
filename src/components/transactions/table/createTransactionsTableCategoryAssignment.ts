@@ -47,6 +47,7 @@ export function createTransactionsTableCategoryAssignment() {
     setCategoryDialogOpen,
     categoryDialogTarget,
     mutatingTransactionId,
+    setMutatingTransactionId,
     categoryAssignError,
     setCategoryAssignError,
     openCategoryDialog,

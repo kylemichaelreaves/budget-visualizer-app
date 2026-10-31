@@ -7,6 +7,8 @@ export default function TransactionsTableAlerts(props: {
   queryIsError: Accessor<boolean>
   categoryAssignError: Accessor<string | null>
   onDismissCategoryError: () => void
+  splitSaveError: Accessor<string | null>
+  onDismissSplitSaveError: () => void
 }) {
   return (
     <>
@@ -21,6 +23,13 @@ export default function TransactionsTableAlerts(props: {
         title="Could not assign category"
         dataTestId="transactions-table-category-assign-error"
         onDismiss={props.onDismissCategoryError}
+      />
+
+      <DismissibleErrorAlert
+        message={props.splitSaveError}
+        title="Could not save splits"
+        dataTestId="transactions-table-split-save-error"
+        onDismiss={props.onDismissSplitSaveError}
       />
     </>
   )

@@ -23,6 +23,10 @@ export default function SplitBudgetCategoryDrawer(props: {
   onSubmit: (splits: SplitBudgetCategory[]) => void
   onCancel: () => void
   onClear?: () => void
+  /** A save is in flight: the draft stays put and the actions are disabled. */
+  saving?: boolean
+  /** Why the last save failed; the draft is kept so the user can retry. */
+  error?: string | null
 }): JSX.Element {
   const state = useSplitBudgetCategoryDrawer(props)
 
@@ -142,17 +146,34 @@ export default function SplitBudgetCategoryDrawer(props: {
           </Show>
         </div>
 
+        <Show when={props.error}>
+          {(msg) => (
+            <p class="text-destructive text-sm" role="alert" data-testid="split-save-error">
+              Could not save splits: {msg()}
+            </p>
+          )}
+        </Show>
+
         <div class="flex gap-2 border-t pt-4">
           <Button variant="outline" class="flex-1" onClick={() => props.onCancel()}>
             Cancel
           </Button>
           <Show when={props.onClear && props.splits.length > 0}>
-            <Button variant="outline" class="flex-1" onClick={() => props.onClear?.()}>
+            <Button
+              variant="outline"
+              class="flex-1"
+              onClick={() => props.onClear?.()}
+              disabled={props.saving}
+            >
               Clear splits
             </Button>
           </Show>
-          <Button class="flex-1" onClick={() => props.onSubmit(state.snapshot())} disabled={!state.isValid()}>
-            Save splits
+          <Button
+            class="flex-1"
+            onClick={() => props.onSubmit(state.snapshot())}
+            disabled={!state.isValid() || props.saving}
+          >
+            {props.saving ? 'Saving…' : 'Save splits'}
           </Button>
         </div>
       </DialogContent>
