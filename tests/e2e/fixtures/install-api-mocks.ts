@@ -271,8 +271,8 @@ export async function installApiMocks(page: Page): Promise<void> {
         await json(route, [{ count: memoFilteredRows().length }])
         return
       }
-      if (sp.has('interval') && sp.get('dailyTotals') === 'true' && !sp.has('date')) {
-        await json(route, false)
+      if (sp.has('interval') && sp.get('oldestDate') === 'true') {
+        await json(route, [{ is_out_of_range: false }])
         return
       }
       if (sp.get('totalAmountDebit') === 'true') {
