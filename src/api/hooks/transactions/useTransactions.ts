@@ -1,8 +1,7 @@
 import { useInfiniteQuery } from '@tanstack/solid-query'
 import { queryKeys } from '@api/queryKeys'
 import { fetchTransactions } from '@api/transactions/fetchTransactions'
-import { memoQuerySliceFromStore } from '@composables/memoQueryFromTransactionsStore'
-import { transactionQueryScopeFromStore } from '@composables/transactionQueryScopeFromStore'
+import { transactionTableScopeFromStore } from '@composables/transactionTableScopeFromStore'
 import { transactionsState } from '@stores/transactionsStore'
 import type { Transaction } from '@types'
 import { devConsole } from '@utils/devConsole'
@@ -10,25 +9,23 @@ import { devConsole } from '@utils/devConsole'
 export default function useTransactions() {
   return useInfiniteQuery(() => {
     const limit = transactionsState.transactionsTableLimit
-    const { key: memoKey, params: memoParams } = memoQuerySliceFromStore()
-    const { timeFrame: tf, date } = transactionQueryScopeFromStore()
-    const budgetCategory = transactionsState.selectedBudgetCategory
+    const scope = transactionTableScopeFromStore()
 
-    devConsole('log', '[useTransactions] memo query key:', memoKey)
+    devConsole('log', '[useTransactions] memo query key:', scope.memoKey)
 
     return {
-      queryKey: queryKeys.transactions.infinite(limit, memoKey, tf, date, budgetCategory),
+      queryKey: queryKeys.transactions.infinite(
+        limit,
+        scope.memoKey,
+        scope.timeFrame,
+        scope.date,
+        scope.budgetCategory,
+      ),
       initialPageParam: 0,
       queryFn: async ({ pageParam }) => {
         const page = Number(pageParam)
 
-        return (await fetchTransactions({
-          limit,
-          offset: page,
-          ...memoParams,
-          ...(tf && date ? { timeFrame: tf, date } : {}),
-          budgetCategory: budgetCategory ?? undefined,
-        })) as Transaction[]
+        return (await fetchTransactions({ limit, offset: page, ...scope.params })) as Transaction[]
       },
       getNextPageParam: (lastPage, allPages) => {
         if (lastPage.length < limit) {

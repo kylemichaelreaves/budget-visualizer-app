@@ -1,6 +1,7 @@
 import { createEffect, createMemo, createRenderEffect, on } from 'solid-js'
 import { getPeriodLabel } from '@api/helpers/formatPeriodLabels'
-import useSumAmountDebitByDate from '@api/hooks/transactions/useSumAmountDebitByDate'
+import useTransactionCategoryTotals from '@api/hooks/transactions/useTransactionCategoryTotals'
+import useTransactionTotals from '@api/hooks/transactions/useTransactionTotals'
 import useTransactions from '@api/hooks/transactions/useTransactions'
 import { fetchInfinitePagesUntilCount } from '@composables/infiniteQueryPagePrefetch'
 import {
@@ -45,19 +46,21 @@ export function createTransactionsTableDerivedData() {
   const paginatedData = createMemo(() => rowsForPage(loadedPages(), currentPage()))
 
   /**
-   * Every loaded row. The summary cards and chart slice describe the whole fetched
-   * window rather than a single page, so they keep using this.
+   * Every loaded row. The chart slice reads it, and the summary cards fall back to
+   * it while their server aggregates are unavailable.
    */
   const flattenedData = createMemo(() => loadedPages().flat())
 
   // eslint-disable-next-line solid/reactivity -- flattenedData is read inside createTransactionsTableChartSlice memos
   const chart = createTransactionsTableChartSlice(flattenedData)
 
-  // Server-side debit total for the selected period, so the Total Debits card reflects the
-  // whole result set rather than only the rows on the current page. Falls back (undefined)
-  // to the client-side sum in SummaryStatsCards until the aggregate resolves.
-  const sumDebitQuery = useSumAmountDebitByDate(chart.chartTimeFrame, chart.chartDate)
-  const debitTotal = () => sumDebitQuery.data?.[0]?.total_amount_debit
+  // Server aggregates over the table's whole filter for the summary cards, which only
+  // render while a filter is active.
+  const cardsVisible = () => transactionsState.viewMode !== null
+  const totalsQuery = useTransactionTotals(cardsVisible)
+  const categoryTotalsQuery = useTransactionCategoryTotals(cardsVisible)
+  const totals = () => totalsQuery.data
+  const categoryTotals = () => categoryTotalsQuery.data
 
   const isInitialLoading = () => query.isLoading || (query.isFetching && !query.data?.pages?.length)
 
@@ -128,7 +131,8 @@ export function createTransactionsTableDerivedData() {
     chartTimeFrame: chart.chartTimeFrame,
     chartDate: chart.chartDate,
     categoryColors: chart.categoryColors,
-    debitTotal,
+    totals,
+    categoryTotals,
     isLoadingCondition,
     cardTitle,
   }

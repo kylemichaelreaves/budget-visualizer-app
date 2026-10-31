@@ -121,6 +121,9 @@ export interface MemoQueryParams extends MemoFilters {
   offset?: number
   count?: boolean
   search?: boolean
+  /** Server-side sort; the API whitelists the column names the memos table uses. */
+  sortKey?: string
+  sortDir?: 'asc' | 'desc'
 }
 
 export interface MonthSummary {
