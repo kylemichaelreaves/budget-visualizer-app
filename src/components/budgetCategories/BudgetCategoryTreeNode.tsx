@@ -7,13 +7,13 @@ import BudgetCategoryTreeExpandToggle from './BudgetCategoryTreeExpandToggle'
 import BudgetCategoryTreeRenameEditor from './BudgetCategoryTreeRenameEditor'
 import BudgetCategoryTreeRowActions from './BudgetCategoryTreeRowActions'
 import { createBudgetCategoryTreeNodeState } from './createBudgetCategoryTreeNodeState'
-import type { BudgetCategoryOperation } from './mutateBudgetCategory'
+import type { BudgetCategoryMutationResult, BudgetCategoryOperation } from './mutateBudgetCategory'
 import { categoryTreeTestId } from './budgetCategoryTreeUtils'
 
 export default function BudgetCategoryTreeNode(props: {
   node: CategoryNode
   depth: number
-  onMutate: (op: BudgetCategoryOperation) => Promise<void>
+  onMutate: (op: BudgetCategoryOperation) => Promise<BudgetCategoryMutationResult>
   mutatingPaths: Set<string>
 }): JSX.Element {
   const s = createBudgetCategoryTreeNodeState(props)

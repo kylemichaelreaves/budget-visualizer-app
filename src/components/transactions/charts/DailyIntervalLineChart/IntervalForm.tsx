@@ -4,13 +4,21 @@ import AlertComponent from '@components/shared/AlertComponent'
 import { Label } from '@components/ui/label'
 import { Input } from '@components/ui/input'
 import { useIsIntervalGreaterThanOldestDate } from '@api/hooks/transactions/useIsIntervalGreaterThanOldestDate'
+import {
+  clampIntervalCount,
+  MAX_INTERVAL_COUNT,
+  MIN_INTERVAL_COUNT,
+} from '@components/transactions/helpers/clampIntervalCount'
+
+// Must be one of the <option> values below; a value with no matching option leaves the select blank.
+const DEFAULT_UNIT = 'months'
 
 export default function IntervalForm(props: {
   dataTestId?: string
   onIntervalValueChange: (v: string) => void
 }): JSX.Element {
-  const [intervalSelect, setIntervalSelect] = createSignal('month')
-  const [numberInput, setNumberInput] = createSignal(1)
+  const [intervalSelect, setIntervalSelect] = createSignal(DEFAULT_UNIT)
+  const [numberInput, setNumberInput] = createSignal(MIN_INTERVAL_COUNT)
 
   const computedInterval = () => `${numberInput()} ${intervalSelect()}`
 
@@ -20,15 +28,11 @@ export default function IntervalForm(props: {
 
   const intervalQuery = useIsIntervalGreaterThanOldestDate(computedInterval)
 
-  const isOutOfRange = () => {
-    const d = intervalQuery.data
-    if (Array.isArray(d)) return d[0]?.is_out_of_range === true
-    return d === true
-  }
+  const isOutOfRange = () => intervalQuery.data?.[0]?.is_out_of_range === true
 
   const onClose = () => {
-    setIntervalSelect('month')
-    setNumberInput(1)
+    setIntervalSelect(DEFAULT_UNIT)
+    setNumberInput(MIN_INTERVAL_COUNT)
   }
 
   return (
@@ -56,12 +60,12 @@ export default function IntervalForm(props: {
           Count
           <Input
             type="number"
-            min={1}
-            max={100}
+            min={MIN_INTERVAL_COUNT}
+            max={MAX_INTERVAL_COUNT}
             step={1}
             value={numberInput()}
             data-testid="interval-input-number"
-            onInput={(e) => setNumberInput(Number(e.currentTarget.value) || 1)}
+            onInput={(e) => setNumberInput(clampIntervalCount(e.currentTarget.value))}
             class="w-14 h-7 px-2 text-xs"
           />
         </Label>
@@ -70,10 +74,7 @@ export default function IntervalForm(props: {
           <select
             data-testid="interval-select"
             value={intervalSelect()}
-            onChange={(e) => {
-              setIntervalSelect(e.currentTarget.value)
-              void intervalQuery.refetch()
-            }}
+            onChange={(e) => setIntervalSelect(e.currentTarget.value)}
             class="h-7 rounded-md border border-input bg-input-background px-2 text-xs text-foreground outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
           >
             <option value="days">{numberInput() === 1 ? 'Day' : 'Days'}</option>

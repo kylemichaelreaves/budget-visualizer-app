@@ -6,7 +6,11 @@ import { extractBudgetCategoriesData } from '@api/helpers/extractBudgetCategorie
 import { BUDGET_CATEGORY_PATH_DELIMITER, convertToTree } from '@api/helpers/convertToTree'
 import useBudgetCategories from '@api/hooks/budgetCategories/useBudgetCategories'
 import type { CategoryNode } from '@types'
-import { mutateBudgetCategory, type BudgetCategoryOperation } from './mutateBudgetCategory'
+import {
+  mutateBudgetCategory,
+  type BudgetCategoryMutationResult,
+  type BudgetCategoryOperation,
+} from './mutateBudgetCategory'
 import { filterTree } from './budgetCategoryTreeUtils'
 import { mutationErrorMessage } from './budgetCategoriesPageUtils'
 
@@ -36,7 +40,7 @@ export function useBudgetCategoriesPage() {
     void queryClient.invalidateQueries({ queryKey: queryKeys.budgetCategories.all })
   }
 
-  const handleMutate = async (op: BudgetCategoryOperation) => {
+  const handleMutate = async (op: BudgetCategoryOperation): Promise<BudgetCategoryMutationResult> => {
     const pathKey = op.path.join(BUDGET_CATEGORY_PATH_DELIMITER)
 
     setError(null)
@@ -52,8 +56,11 @@ export function useBudgetCategoriesPage() {
       await (op.operation === 'add'
         ? queryClient.invalidateQueries({ queryKey: queryKeys.budgetCategories.all })
         : invalidateAfterBudgetCategoryMutation(queryClient))
+      return { ok: true }
     } catch (err) {
-      setError(mutationErrorMessage(op, err))
+      const message = mutationErrorMessage(op, err)
+      setError(message)
+      return { ok: false, message }
     } finally {
       setMutatingPaths((prev) => {
         const next = new Set(prev)
@@ -63,9 +70,10 @@ export function useBudgetCategoriesPage() {
     }
   }
 
-  const handleAddRoot = async (name: string) => {
-    await handleMutate({ operation: 'add', path: [], name })
-    setAddingRoot(false)
+  const handleAddRoot = async (name: string): Promise<BudgetCategoryMutationResult> => {
+    const result = await handleMutate({ operation: 'add', path: [], name })
+    if (result.ok) setAddingRoot(false)
+    return result
   }
 
   return {

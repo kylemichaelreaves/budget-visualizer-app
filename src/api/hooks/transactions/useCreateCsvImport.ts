@@ -3,7 +3,8 @@ import axios from 'axios'
 import { type Accessor, createSignal, onCleanup } from 'solid-js'
 import { createCsvImport } from '@api/transactions/createCsvImport'
 import { invalidateAfterTransactionCreate } from '@api/queryInvalidation'
-import { mutationKeys, queryKeys } from '@api/queryKeys'
+import { mutationKeys } from '@api/queryKeys'
+import { scheduleCsvImportFollowUpRefresh } from '@api/transactions/scheduleCsvImportFollowUpRefresh'
 
 export type CreateCsvImportVariables = {
   file: File
@@ -17,7 +18,8 @@ export type CreateCsvImportVariables = {
  * transactions-bucket-to-db lambda, which parses, dedupes, and upserts. We
  * invalidate transactions broadly on success — the lambda's write usually
  * lands within a few seconds, so a delayed invalidation also fires at 30s
- * to catch the eventual rows without forcing the user to refresh.
+ * to catch the eventual rows without forcing the user to refresh. That one
+ * outlives this hook; see `scheduleCsvImportFollowUpRefresh`.
  */
 export function useCreateCsvImport(): {
   mutation: ReturnType<typeof useMutation<unknown, Error, CreateCsvImportVariables>>
@@ -28,14 +30,6 @@ export function useCreateCsvImport(): {
   const queryClient = useQueryClient()
   const [progress, setProgress] = createSignal(0)
   let controller: AbortController | null = null
-  let delayedInvalidation: ReturnType<typeof setTimeout> | null = null
-
-  const clearDelayedInvalidation = () => {
-    if (delayedInvalidation != null) {
-      clearTimeout(delayedInvalidation)
-      delayedInvalidation = null
-    }
-  }
 
   const mutation = useMutation<unknown, Error, CreateCsvImportVariables>(() => ({
     mutationKey: mutationKeys.createCsvImport,
@@ -58,13 +52,9 @@ export function useCreateCsvImport(): {
       return null
     },
     onSuccess: () => {
+      // Covers transactions.csv (the recent-imports list) along with everything else.
       void invalidateAfterTransactionCreate(queryClient)
-      void queryClient.invalidateQueries({ queryKey: queryKeys.transactions.csv })
-      clearDelayedInvalidation()
-      delayedInvalidation = setTimeout(() => {
-        delayedInvalidation = null
-        void invalidateAfterTransactionCreate(queryClient)
-      }, 30_000)
+      scheduleCsvImportFollowUpRefresh(queryClient)
     },
     onSettled: () => {
       controller = null
@@ -72,7 +62,6 @@ export function useCreateCsvImport(): {
   }))
 
   const cancel = () => {
-    clearDelayedInvalidation()
     controller?.abort()
     controller = null
     setProgress(0)
@@ -80,13 +69,11 @@ export function useCreateCsvImport(): {
   }
 
   const reset = () => {
-    clearDelayedInvalidation()
     setProgress(0)
     mutation.reset()
   }
 
   onCleanup(() => {
-    clearDelayedInvalidation()
     controller?.abort()
     controller = null
   })

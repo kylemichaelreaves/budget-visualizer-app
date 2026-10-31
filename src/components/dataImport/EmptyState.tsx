@@ -1,16 +1,7 @@
-import { createSignal, For, type JSX } from 'solid-js'
+import { createSignal, type JSX } from 'solid-js'
 import { Button } from '@components/ui/button'
-import BankGlyph, { inferBankId } from '@components/dataImport/BankGlyph'
 import Icon from '@components/dataImport/Icon'
 import RecentImportsList from '@components/dataImport/RecentImportsList'
-
-const SUPPORTED_BANKS = [
-  { file: 'chase_2026_04.csv', label: 'Chase' },
-  { file: 'amex_2026_04.csv', label: 'Amex' },
-  { file: 'bofa_2026_04.csv', label: 'Bank of America' },
-  { file: 'wells_2026_04.csv', label: 'Wells Fargo' },
-  { file: 'export.csv', label: 'Generic CSV' },
-]
 
 function RulePill(props: { children: JSX.Element }): JSX.Element {
   return (
@@ -67,7 +58,8 @@ export default function EmptyState(props: { onFileChosen: (file: File) => void }
         </div>
         <div class="text-[19px] font-semibold tracking-tight">Drop your CSV file here</div>
         <div class="mt-1.5 max-w-[420px] text-sm text-muted-foreground">
-          We&rsquo;ll detect your bank and map the columns automatically.
+          Name it for the statement month, for example <span class="font-mono tabular-nums">2026_04.csv</span>
+          .
         </div>
 
         <div class="my-5 flex flex-wrap justify-center gap-2">
@@ -110,23 +102,6 @@ export default function EmptyState(props: { onFileChosen: (file: File) => void }
             e.currentTarget.value = ''
           }}
         />
-
-        {/* Supported banks strip — sets the expectation that bank/columns are inferred. */}
-        <div class="mt-6 flex w-full flex-col items-center gap-3 border-t border-border pt-5">
-          <div class="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-            Detected automatically
-          </div>
-          <div class="flex flex-wrap justify-center gap-2">
-            <For each={SUPPORTED_BANKS}>
-              {(bank) => (
-                <span class="inline-flex items-center gap-2 rounded-full border border-border bg-muted py-[5px] pr-3 pl-[5px] text-xs font-medium">
-                  <BankGlyph id={inferBankId(bank.file)} size={22} />
-                  {bank.label}
-                </span>
-              )}
-            </For>
-          </div>
-        </div>
       </div>
 
       <RecentImportsList />

@@ -14,7 +14,7 @@ export default function DailyIntervalLineChart(props: {
   dataTestId?: string
   firstDay?: string
 }): JSX.Element {
-  const [intervalValue, setIntervalValue] = createSignal('1 month')
+  const [intervalValue, setIntervalValue] = createSignal('1 months')
 
   const [everHadFilter, setEverHadFilter] = createSignal(false)
 

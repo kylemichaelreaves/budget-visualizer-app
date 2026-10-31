@@ -4,6 +4,11 @@ import mutateTransaction from '@api/hooks/transactions/mutateTransaction'
 import { invalidateAfterTransactionUpdate } from '@api/queryInvalidation'
 import type { SplitBudgetCategory, Transaction } from '@types'
 
+/**
+ * The drawer stays open while a save is in flight and closes only on success.
+ * Closing first and reopening on error was a closed -> open edge, which re-seeds
+ * the drawer from the row's saved splits and threw away the user's allocations.
+ */
 export function createTransactionsTableSplitDrawer(args?: {
   setMutatingTransactionId?: (id: number | null) => void
 }) {
@@ -12,7 +17,13 @@ export function createTransactionsTableSplitDrawer(args?: {
 
   const [open, setOpen] = createSignal(false)
   const [target, setTarget] = createSignal<Transaction | null>(null)
+  const [savingFor, setSavingFor] = createSignal<Transaction | null>(null)
   const [error, setError] = createSignal<string | null>(null)
+  // A failed save whose drawer was cancelled (or replaced) before the response came back.
+  const [strayError, setStrayError] = createSignal<string | null>(null)
+
+  const saving = () => savingFor() !== null && savingFor() === target()
+  const isShowing = (t: Transaction) => open() && target() === t
 
   function openSplitDrawer(row: Transaction) {
     setError(null)
@@ -25,60 +36,51 @@ export function createTransactionsTableSplitDrawer(args?: {
     setTarget(null)
   }
 
-  function handleSubmit(splits: SplitBudgetCategory[]) {
+  function save(change: { budget_category: SplitBudgetCategory[] | null; is_split: boolean }) {
     const t = target()
-    if (!t || t.id == null) return
+    const id = t?.id
+    if (!t || id == null) return
     setError(null)
-    args?.setMutatingTransactionId?.(t.id)
-    setOpen(false)
+    setStrayError(null)
+    setSavingFor(t)
+    args?.setMutatingTransactionId?.(id)
     mutation.mutate(
-      { transaction: { id: t.id, budget_category: splits, is_split: true } },
+      { transaction: { id, ...change } },
       {
-        onSuccess: async () => {
-          await invalidateAfterTransactionUpdate(queryClient, { transactionId: t.id })
-          args?.setMutatingTransactionId?.(null)
-          setTarget(null)
+        onSuccess: () => {
+          if (savingFor() === t) setSavingFor(null)
+          // The user may have cancelled and opened another row while this was in flight.
+          if (isShowing(t)) closeSplitDrawer()
+          void invalidateAfterTransactionUpdate(queryClient, { transactionId: id }).finally(() =>
+            args?.setMutatingTransactionId?.(null),
+          )
         },
         onError: (err) => {
+          if (savingFor() === t) setSavingFor(null)
           args?.setMutatingTransactionId?.(null)
           const msg = err instanceof Error ? err.message : String(err)
-          setError(msg)
-          setOpen(true)
+          if (isShowing(t)) setError(msg)
+          else setStrayError(msg)
         },
       },
     )
   }
 
+  function handleSubmit(splits: SplitBudgetCategory[]) {
+    save({ budget_category: splits, is_split: true })
+  }
+
   function handleClear() {
-    const t = target()
-    if (!t || t.id == null) return
-    setError(null)
-    args?.setMutatingTransactionId?.(t.id)
-    setOpen(false)
-    mutation.mutate(
-      { transaction: { id: t.id, budget_category: null, is_split: false } },
-      {
-        onSuccess: async () => {
-          await invalidateAfterTransactionUpdate(queryClient, { transactionId: t.id })
-          args?.setMutatingTransactionId?.(null)
-          setTarget(null)
-        },
-        onError: (err) => {
-          args?.setMutatingTransactionId?.(null)
-          const msg = err instanceof Error ? err.message : String(err)
-          setError(msg)
-          setOpen(true)
-        },
-      },
-    )
+    save({ budget_category: null, is_split: false })
   }
 
   return {
     open,
-    setOpen,
     target,
+    saving,
     error,
-    setError,
+    strayError,
+    setStrayError,
     openSplitDrawer,
     closeSplitDrawer,
     handleSubmit,
