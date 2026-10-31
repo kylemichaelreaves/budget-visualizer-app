@@ -1,7 +1,6 @@
 import type { Accessor } from 'solid-js'
 import { For, Show } from 'solid-js'
 import type { Transaction } from '@types'
-import { useMemoById } from '@api/hooks/memos/useMemoById'
 import { budgetCategoryColorsFromData } from '@composables/budgetCategoryColors'
 import { AssignBudgetCategoryButton, BudgetCategoryPill } from '@components/shared/BudgetCategoryPill'
 import { Skeleton } from '@components/ui/skeleton'
@@ -16,6 +15,7 @@ const PILL_TITLE = 'Click to filter by this category; double-click to change cat
 export default function TransactionsTableRowCategoryColumn(props: {
   row: Transaction
   isCredit: Accessor<boolean>
+  isMemoAmbiguous: Accessor<boolean>
   categoryColors: Accessor<CategoryColorHelpers>
   mutatingTransactionId: Accessor<number | null>
   openCategoryDialog: (row: Transaction) => void
@@ -33,12 +33,9 @@ export default function TransactionsTableRowCategoryColumn(props: {
     return (typeof bc === 'string' && bc.length > 0) || (Array.isArray(bc) && bc.length > 0)
   }
 
-  const memoQuery = useMemoById({ memoId: () => row().memo_id ?? null })
-  const isAmbiguous = () => !!memoQuery.data?.ambiguous
-
   /** Show the split button only when a category is already assigned AND the memo is ambiguous
    *  (or the transaction is already split, to allow editing). */
-  const shouldShowSplitButton = () => hasAssignedCategory() && (isAmbiguous() || hasSplits())
+  const shouldShowSplitButton = () => hasAssignedCategory() && (props.isMemoAmbiguous() || hasSplits())
 
   const { onCategoryPillClick, onCategoryPillDblClick } = useCategoryPillFilterClick({
     row,

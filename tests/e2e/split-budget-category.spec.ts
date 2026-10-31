@@ -139,6 +139,21 @@ test.describe('Split Budget Category', () => {
       await expect(transactionsPage.memoAmbiguityIndicator(100)).toBeVisible({ timeout: 10_000 })
     })
 
+    // #88: the flag comes on the list rows, so the table fetches no memo per row.
+    test('reads the flag from the list rows without requesting any memo', async ({
+      page,
+      transactionsPage,
+    }) => {
+      const memoRequests: string[] = []
+      page.on('request', (req) => {
+        if (/\/api\/v1\/memos\/\d+$/.test(new URL(req.url()).pathname)) memoRequests.push(req.url())
+      })
+      await transactionsPage.goto()
+      await expect(transactionsPage.memoAmbiguityIndicator(100)).toBeVisible({ timeout: 10_000 })
+      await expect(transactionsPage.splitButton(102)).toBeVisible()
+      expect(memoRequests).toEqual([])
+    })
+
     test('does not show warning for rows with non-ambiguous memo', async ({ transactionsPage }) => {
       await transactionsPage.goto()
       // Transaction 101 has no memo_id — no indicator should render
