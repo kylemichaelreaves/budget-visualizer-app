@@ -75,6 +75,101 @@ describe('createLineChart', () => {
     expect(onDateSelected.mock.calls).toEqual([['2026-03-01'], ['2026-04-01']])
   })
 
+  // Debits arrive signed; the chart plots and labels their magnitude.
+  it('plots debit magnitude and reads total_amount_debit when present', () => {
+    const svg = mountSvg()
+    createLineChart(
+      svg,
+      [row({ date: '2026-03-01', total_debit: -50 }), row({ date: '2026-03-02', total_amount_debit: -100 })],
+      vi.fn(),
+    )
+    const [a, b] = dots(svg)
+    // y is inverted: the larger magnitude sits higher (smaller cy), and both sit above the baseline.
+    expect(Number(b!.getAttribute('cy'))).toBeLessThan(Number(a!.getAttribute('cy')))
+    expect(Number(a!.getAttribute('cy'))).toBeLessThan(240)
+  })
+
+  describe('tooltip', () => {
+    const tooltip = (svg: SVGSVGElement) =>
+      svg.parentElement!.querySelector<HTMLElement>('[data-slot="chart-tooltip"]')!
+
+    // A local-zone formatter would label the 2026-03-01 point "Feb 28" in this suite.
+    it('shows the UTC day and the full debit amount on hover, and hides on leave', () => {
+      const svg = mountSvg()
+      createLineChart(
+        svg,
+        [row({ date: '2026-03-01', total_debit: -1234.5 }), row({ date: '2026-03-02' })],
+        vi.fn(),
+      )
+      const dot = dots(svg)[0]!
+
+      dot.dispatchEvent(new MouseEvent('mouseenter'))
+      expect(tooltip(svg).style.opacity).toBe('1')
+      expect(tooltip(svg).querySelector('strong')!.textContent).toBe('Mar 01')
+      expect(tooltip(svg).textContent).toBe('Mar 01$1,234.50')
+
+      dot.dispatchEvent(new MouseEvent('mouseleave'))
+      expect(tooltip(svg).style.opacity).toBe('0')
+    })
+
+    // The tooltip is built with text nodes, never innerHTML.
+    it('renders its content as text, not markup', () => {
+      const svg = mountSvg()
+      createLineChart(svg, [row({ date: '2026-03-01' }), row({ date: '2026-03-02' })], vi.fn())
+      dots(svg)[0]!.dispatchEvent(new MouseEvent('mouseenter'))
+      expect(tooltip(svg).children).toHaveLength(2)
+      expect([...tooltip(svg).children].map((c) => c.tagName)).toEqual(['STRONG', 'BR'])
+    })
+  })
+
+  describe('stackedDateLabels', () => {
+    const tickLabels = (svg: SVGSVGElement) =>
+      [...svg.querySelectorAll('.x-axis .tick text')].map((t) =>
+        [...t.querySelectorAll('tspan')].map((s) => s.textContent),
+      )
+
+    it('splits each x tick into a month line and a two-digit year line, in UTC', () => {
+      const svg = mountSvg()
+      createLineChart(
+        svg,
+        [
+          row({ period_start: '2026-01-01T00:00:00.000Z' }),
+          row({ period_start: '2026-02-01T00:00:00.000Z' }),
+          row({ period_start: '2026-03-01T00:00:00.000Z' }),
+        ],
+        vi.fn(),
+        { stackedDateLabels: true },
+      )
+      const labels = tickLabels(svg)
+      expect(labels.length).toBeGreaterThan(0)
+      expect(labels).toContainEqual(['Jan', '26'])
+      expect(labels).toContainEqual(['Mar', '26'])
+      for (const l of labels) expect(l).toHaveLength(2)
+    })
+
+    it('labels the tooltip by month and year', () => {
+      const svg = mountSvg()
+      createLineChart(
+        svg,
+        [
+          row({ period_start: '2026-03-01T00:00:00.000Z' }),
+          row({ period_start: '2026-04-01T00:00:00.000Z' }),
+        ],
+        vi.fn(),
+        { stackedDateLabels: true },
+      )
+      dots(svg)[0]!.dispatchEvent(new MouseEvent('mouseenter'))
+      const tip = svg.parentElement!.querySelector('[data-slot="chart-tooltip"] strong')!
+      expect(tip.textContent).toBe('Mar 26')
+    })
+
+    it('keeps single-line ticks by default', () => {
+      const svg = mountSvg()
+      createLineChart(svg, [row({ date: '2026-03-01' }), row({ date: '2026-03-08' })], vi.fn())
+      expect(svg.querySelectorAll('.x-axis .tick tspan')).toHaveLength(0)
+    })
+  })
+
   it('replaces the previous render instead of stacking on it', () => {
     const svg = mountSvg()
     createLineChart(svg, [row({ date: '2026-03-01' }), row({ date: '2026-03-02' })], vi.fn())
