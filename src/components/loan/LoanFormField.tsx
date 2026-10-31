@@ -3,6 +3,7 @@ import { Show, createMemo } from 'solid-js'
 import type { LoanFormType } from '@types'
 import { Input } from '@components/ui/input'
 import { Label } from '@components/ui/label'
+import { formatLoanDateInput, parseLoanDateInput } from './helpers/loanDateInput'
 
 export type LoanFieldDef = {
   label: string
@@ -16,6 +17,8 @@ export default function LoanFormField(props: {
   field: LoanFieldDef
   model: LoanFormType
   onChange: (next: LoanFormType) => void
+  /** Shown under the input; the caller decides when (e.g. only once the field is touched). */
+  error?: string
 }): JSX.Element {
   const value = () => props.model[props.field.prop]
 
@@ -27,6 +30,7 @@ export default function LoanFormField(props: {
   })
 
   const fieldId = () => `loan-${props.field.prop}`
+  const errorId = () => `${fieldId()}-error`
 
   const wrap = (inner: JSX.Element) => (
     <div class="flex flex-col gap-1.5 my-2.5">
@@ -39,13 +43,17 @@ export default function LoanFormField(props: {
         </span>
       ) : null}
       {inner}
+      <Show when={props.error}>
+        <p id={errorId()} class="text-xs text-destructive" data-testid={`${fieldId()}-error`}>
+          {props.error}
+        </p>
+      </Show>
     </div>
   )
 
   const iso = () => {
-    const d = value() as Date
-    if (!(d instanceof Date) || Number.isNaN(d.getTime())) return ''
-    return d.toISOString().slice(0, 10)
+    const d = value()
+    return d instanceof Date ? formatLoanDateInput(d) : ''
   }
 
   return (
@@ -58,6 +66,8 @@ export default function LoanFormField(props: {
           placeholder={props.field.placeholder}
           value={Number(value()) || ''}
           {...numProps()}
+          aria-invalid={props.error ? true : undefined}
+          aria-describedby={props.error ? errorId() : undefined}
           onInput={(e) => {
             const n = Number(e.currentTarget.value)
             const next = { ...props.model, [props.field.prop]: Number.isFinite(n) ? n : 0 }
@@ -72,9 +82,10 @@ export default function LoanFormField(props: {
           type="date"
           placeholder={props.field.placeholder}
           value={iso()}
+          aria-invalid={props.error ? true : undefined}
+          aria-describedby={props.error ? errorId() : undefined}
           onInput={(e) => {
-            const v = e.currentTarget.value
-            const next = { ...props.model, [props.field.prop]: v ? new Date(v + 'T12:00:00') : new Date() }
+            const next = { ...props.model, [props.field.prop]: parseLoanDateInput(e.currentTarget.value) }
             props.onChange(next as LoanFormType)
           }}
         />,

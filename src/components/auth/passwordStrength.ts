@@ -12,22 +12,28 @@ export interface Strength {
   }
 }
 
+/** Mirrors resourceQuerier's `validateRequest` bounds; the server rejects anything outside them. */
+export const MIN_PASSWORD_LENGTH = 8
+export const MAX_PASSWORD_LENGTH = 128
+
 export function analyzePassword(pw: string): Strength {
   const checks = {
-    length: pw.length >= 8,
+    length: pw.length >= MIN_PASSWORD_LENGTH && pw.length <= MAX_PASSWORD_LENGTH,
     upper: /[A-Z]/.test(pw),
     number: /[0-9]/.test(pw),
     symbol: /[^A-Za-z0-9]/.test(pw),
   }
   if (!pw) return { score: 0, level: 'none', label: '', checks }
   const n = Object.values(checks).filter(Boolean).length
-  if (n <= 2) return { score: 1, level: 'weak', label: 'Weak', checks }
+  // Length is required, not one requirement among four: the server rejects a
+  // password outside the bounds however strong it otherwise looks.
+  if (!checks.length || n <= 2) return { score: 1, level: 'weak', label: 'Weak', checks }
   if (n <= 3) return { score: 2, level: 'fair', label: 'Fair', checks }
   return { score: 3, level: 'strong', label: 'Strong', checks }
 }
 
 export const REQUIREMENTS: { key: keyof Strength['checks']; label: string }[] = [
-  { key: 'length', label: '8+ characters' },
+  { key: 'length', label: `${MIN_PASSWORD_LENGTH}\u2013${MAX_PASSWORD_LENGTH} characters` },
   { key: 'upper', label: 'Uppercase (A\u2013Z)' },
   { key: 'number', label: 'Number (0\u20139)' },
   { key: 'symbol', label: 'Symbol (!@#\u2026)' },
