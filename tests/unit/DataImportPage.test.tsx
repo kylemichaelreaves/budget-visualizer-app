@@ -84,6 +84,20 @@ describe('DataImportPage', () => {
       expect(mutateAsyncMock).not.toHaveBeenCalled()
     })
 
+    // #85: the empty state used to suggest names like chase_2026_04.csv, which this rejects.
+    it.each(['chase_2026_04.csv', '2026_13.csv', '2026_00.csv'])('shows bad-name error for %s', (name) => {
+      render(() => <DataImportPage />)
+      dropFile(makeFile(name, 1024))
+      expect(screen.getByText(/expected pattern/i)).toBeInTheDocument()
+      expect(mutateAsyncMock).not.toHaveBeenCalled()
+    })
+
+    it('does not advertise bank detection the ingestion does not do', () => {
+      render(() => <DataImportPage />)
+      expect(screen.queryByText(/detect your bank/i)).not.toBeInTheDocument()
+      expect(screen.queryByText(/detected automatically/i)).not.toBeInTheDocument()
+    })
+
     it('accepts uppercase .CSV extension (case-insensitive pattern)', async () => {
       mutateAsyncMock.mockImplementation(() => new Promise(() => {})) // never resolves
       render(() => <DataImportPage />)

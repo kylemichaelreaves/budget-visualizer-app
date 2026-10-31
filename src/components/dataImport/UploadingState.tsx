@@ -1,5 +1,5 @@
 import type { Accessor, JSX } from 'solid-js'
-import BankGlyph, { inferBankId } from '@components/dataImport/BankGlyph'
+import CsvGlyph from '@components/dataImport/CsvGlyph'
 import Icon from '@components/dataImport/Icon'
 import { Button } from '@components/ui/button'
 import { Progress } from '@components/ui/progress'
@@ -21,7 +21,7 @@ export default function UploadingState(props: {
       data-testid="data-import-uploading-card"
     >
       <div class="mb-5 flex items-center gap-3.5">
-        <BankGlyph id={inferBankId(props.file.name)} size={42} />
+        <CsvGlyph size={42} />
         <div class="min-w-0 flex-1">
           <div class="truncate text-sm font-semibold tracking-tight">{props.file.name}</div>
           <div class="mt-0.5 font-mono text-xs tabular-nums text-muted-foreground">

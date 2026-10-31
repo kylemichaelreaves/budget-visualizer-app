@@ -4,8 +4,8 @@ import EmptyState from '@components/dataImport/EmptyState'
 import ErrorState from '@components/dataImport/ErrorState'
 import SuccessState from '@components/dataImport/SuccessState'
 import UploadingState from '@components/dataImport/UploadingState'
+import { isValidImportFilename } from '@components/dataImport/helpers/isValidImportFilename'
 
-const FILENAME_PATTERN = /^\d{4}_\d{2}\.csv$/i
 const MAX_FILE_BYTES = 10 * 1_000 * 1_000
 
 type ViewState =
@@ -35,7 +35,7 @@ export default function DataImportPage(): JSX.Element {
       setView({ kind: 'error-too-large', file })
       return
     }
-    if (!FILENAME_PATTERN.test(file.name)) {
+    if (!isValidImportFilename(file.name)) {
       setView({ kind: 'error-bad-name', file })
       return
     }

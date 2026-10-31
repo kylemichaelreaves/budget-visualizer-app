@@ -1,5 +1,5 @@
 import { Show, type JSX } from 'solid-js'
-import BankGlyph, { inferBankId } from '@components/dataImport/BankGlyph'
+import CsvGlyph from '@components/dataImport/CsvGlyph'
 import Icon from '@components/dataImport/Icon'
 import { Button } from '@components/ui/button'
 import { formatBytes } from '@utils/formatBytes'
@@ -27,7 +27,7 @@ export default function ErrorState(props: {
         {(file) => (
           <div class="mt-5 flex justify-center">
             <div class="inline-flex max-w-full items-center gap-3 rounded-[10px] border border-border bg-muted py-2 pr-3.5 pl-2 text-left">
-              <BankGlyph id={inferBankId(file().name)} size={32} />
+              <CsvGlyph size={32} />
               <div class="min-w-0">
                 <div class="truncate text-[13px] font-semibold">{file().name}</div>
                 <div class="mt-px font-mono text-[11.5px] tabular-nums text-muted-foreground">
