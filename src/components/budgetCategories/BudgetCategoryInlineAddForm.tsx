@@ -4,29 +4,32 @@ import { CheckIcon, XIcon } from '@shared/icons'
 import { budgetCategorySegmentValidationError } from './budgetCategoryTreeUtils'
 import { Button } from '@components/ui/button'
 import { Input } from '@components/ui/input'
+import type { BudgetCategoryMutationResult } from './mutateBudgetCategory'
 
 export default function BudgetCategoryInlineAddForm(props: {
   placeholder: string
-  onSubmit: (name: string) => void | Promise<void>
+  onSubmit: (name: string) => Promise<BudgetCategoryMutationResult>
   onCancel: () => void
   'data-testid'?: string
 }): JSX.Element {
   const [name, setName] = createSignal('')
   const [submitting, setSubmitting] = createSignal(false)
-  const [segmentError, setSegmentError] = createSignal<string | null>(null)
+  // A validation message before submit, or the server's reason after a failed one.
+  const [fieldError, setFieldError] = createSignal<string | null>(null)
 
   const handleSubmit = async () => {
     const trimmed = name().trim()
     if (!trimmed || submitting()) return
     const err = budgetCategorySegmentValidationError(trimmed)
     if (err) {
-      setSegmentError(err)
+      setFieldError(err)
       return
     }
-    setSegmentError(null)
+    setFieldError(null)
     setSubmitting(true)
     try {
-      await props.onSubmit(trimmed)
+      const result = await props.onSubmit(trimmed)
+      if (!result.ok) setFieldError(result.message)
     } finally {
       setSubmitting(false)
     }
@@ -54,7 +57,7 @@ export default function BudgetCategoryInlineAddForm(props: {
           value={name()}
           onInput={(e) => {
             setName(e.currentTarget.value)
-            setSegmentError(null)
+            setFieldError(null)
           }}
           onKeyDown={handleKeyDown}
           disabled={submitting()}
@@ -84,7 +87,7 @@ export default function BudgetCategoryInlineAddForm(props: {
           <XIcon class="size-3.5" />
         </Button>
       </div>
-      <Show when={segmentError()}>
+      <Show when={fieldError()}>
         {(msg) => (
           <p class="text-destructive text-xs m-0" role="alert" data-testid={fieldTestId('validation-error')}>
             {msg()}

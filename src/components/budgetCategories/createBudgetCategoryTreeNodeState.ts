@@ -1,13 +1,13 @@
 import { BUDGET_CATEGORY_PATH_DELIMITER } from '@api/helpers/convertToTree'
 import type { CategoryNode } from '@types'
 import { createSignal } from 'solid-js'
-import type { BudgetCategoryOperation } from './mutateBudgetCategory'
+import type { BudgetCategoryMutationResult, BudgetCategoryOperation } from './mutateBudgetCategory'
 import { budgetCategorySegmentValidationError, countDescendants } from './budgetCategoryTreeUtils'
 
 type TreeNodeProps = {
   node: CategoryNode
   depth: number
-  onMutate: (op: BudgetCategoryOperation) => Promise<void>
+  onMutate: (op: BudgetCategoryOperation) => Promise<BudgetCategoryMutationResult>
   mutatingPaths: Set<string>
 }
 
@@ -44,8 +44,10 @@ export function createBudgetCategoryTreeNodeState(props: TreeNodeProps) {
       return
     }
     setRenameError(null)
-    await props.onMutate({ operation: 'rename', path: pathSegments(), newName })
-    setRenaming(false)
+    const result = await props.onMutate({ operation: 'rename', path: pathSegments(), newName })
+    // On failure keep the editor open with the typed name, and say why next to it.
+    if (result.ok) setRenaming(false)
+    else setRenameError(result.message)
   }
 
   const handleRenameKeyDown = (e: KeyboardEvent) => {
@@ -57,10 +59,13 @@ export function createBudgetCategoryTreeNodeState(props: TreeNodeProps) {
     }
   }
 
-  const handleAddChild = async (name: string) => {
-    await props.onMutate({ operation: 'add', path: pathSegments(), name })
-    setAddingChild(false)
-    setExpanded(true)
+  const handleAddChild = async (name: string): Promise<BudgetCategoryMutationResult> => {
+    const result = await props.onMutate({ operation: 'add', path: pathSegments(), name })
+    if (result.ok) {
+      setAddingChild(false)
+      setExpanded(true)
+    }
+    return result
   }
 
   const descendantCount = () => countDescendants(props.node)
