@@ -9,6 +9,7 @@ import { persistSession } from '@stores/authStore'
 import { safeRedirectPath } from '@utils/safeRedirectPath'
 import { isValidEmail } from '@utils/validateEmail'
 import { analyzePassword } from './passwordStrength'
+import { newPasswordError } from './newPasswordError'
 
 const DEFAULT_AUTHENTICATED_ROUTE = '/budget-visualizer/transactions'
 
@@ -49,12 +50,7 @@ export function useCreateUserRegistration() {
     return null
   })
 
-  const pwError = createMemo(() => {
-    if (!submitted()) return null
-    if (strength().score < 2)
-      return 'Password is too weak \u2014 meet at least 3 of the 4 requirements below.'
-    return null
-  })
+  const pwError = createMemo(() => (submitted() ? newPasswordError(password()) : null))
 
   const cfError = createMemo(() => {
     if (!submitted()) return null
@@ -104,7 +100,7 @@ export function useCreateUserRegistration() {
     isValidEmail(email().trim()) &&
     password().length > 0 &&
     confirm().length > 0 &&
-    strength().score >= 2 &&
+    newPasswordError(password()) === null &&
     password() === confirm()
 
   const isDisabled = () => createMut.isPending

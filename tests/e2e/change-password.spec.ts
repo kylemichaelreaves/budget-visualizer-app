@@ -41,8 +41,24 @@ test.describe('Change password (account → security)', () => {
 
   test('submitting with a weak new password shows the strength error', async ({ accountSettingsPage }) => {
     await accountSettingsPage.gotoSecurity()
-    await accountSettingsPage.submit('current-pw', 'short', 'short')
+    await accountSettingsPage.submit('current-pw', 'password', 'password')
     await expect(accountSettingsPage.page.getByText(/too weak/i)).toBeVisible()
+  })
+
+  // #86: 'A1!' meets three of the four strength checks but is shorter than the
+  // server's 8-character minimum, so it must be stopped before the request.
+  test('a short password is rejected on length, however strong, without calling the API', async ({
+    accountSettingsPage,
+  }) => {
+    let called = false
+    await mockChangePasswordEndpoint(accountSettingsPage.page, async (route) => {
+      called = true
+      await okHandler(route)
+    })
+    await accountSettingsPage.gotoSecurity()
+    await accountSettingsPage.submit('current-pw', 'A1!', 'A1!')
+    await expect(accountSettingsPage.page.getByText(/at least 8 characters/i)).toBeVisible()
+    expect(called).toBe(false)
   })
 
   test('submitting with mismatched confirm shows the mismatch error', async ({ accountSettingsPage }) => {
