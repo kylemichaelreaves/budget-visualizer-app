@@ -114,9 +114,15 @@ test.describe('Password reset flow', () => {
       await resetPasswordPage.goto('opaque-token-123')
       await expect(resetPasswordPage.submitButton).toBeEnabled()
 
-      // Submit with weak password shows error
-      await resetPasswordPage.newPasswordInput.fill('short')
-      await resetPasswordPage.confirmPasswordInput.fill('short')
+      // Submit with a short password shows the length error
+      await resetPasswordPage.newPasswordInput.fill('A1!')
+      await resetPasswordPage.confirmPasswordInput.fill('A1!')
+      await resetPasswordPage.submitButton.click()
+      await expect(page.getByText(/at least 8 characters/i)).toBeVisible({ timeout: 5_000 })
+
+      // Submit with a long but weak password shows the strength error
+      await resetPasswordPage.newPasswordInput.fill('password')
+      await resetPasswordPage.confirmPasswordInput.fill('password')
       await resetPasswordPage.submitButton.click()
       await expect(page.getByText(/too weak/i)).toBeVisible({ timeout: 5_000 })
 

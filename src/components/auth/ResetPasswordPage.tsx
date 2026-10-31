@@ -16,6 +16,7 @@ import { NewPasswordWithStrength } from './NewPasswordWithStrength'
 import { ConfirmPasswordWithMatch } from './ConfirmPasswordWithMatch'
 import { ErrorCallout } from '@components/shared/ErrorCallout'
 import { analyzePassword } from './passwordStrength'
+import { newPasswordError } from './newPasswordError'
 
 export default function ResetPasswordPage() {
   const navigate = useNavigate()
@@ -35,12 +36,7 @@ export default function ResetPasswordPage() {
 
   const strength = createMemo(() => analyzePassword(password()))
 
-  const pwError = createMemo(() => {
-    if (!submitted()) return null
-    if (strength().score < 2)
-      return 'Password is too weak \u2014 meet at least 3 of the 4 requirements below.'
-    return null
-  })
+  const pwError = createMemo(() => (submitted() ? newPasswordError(password()) : null))
 
   const cfError = createMemo(() => {
     if (!submitted()) return null
@@ -67,7 +63,7 @@ export default function ResetPasswordPage() {
   function handleSubmit(e: SubmitEvent) {
     e.preventDefault()
     setSubmitted(true)
-    if (strength().score < 2 || password() !== confirm() || !confirm()) return
+    if (newPasswordError(password()) !== null || password() !== confirm() || !confirm()) return
     resetMut.mutate()
   }
 

@@ -57,7 +57,7 @@ export const WithError = {
     ...defaultArgs,
     id: 'pw-error',
     value: 'short',
-    error: 'Password is too weak \u2014 use 8+ characters with uppercase and a number.',
+    error: 'Password must be at least 8 characters.',
   },
 }
 

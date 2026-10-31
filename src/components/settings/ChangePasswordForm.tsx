@@ -8,6 +8,7 @@ import { PasswordField } from '@components/auth/PasswordField'
 import { NewPasswordWithStrength } from '@components/auth/NewPasswordWithStrength'
 import { ConfirmPasswordWithMatch } from '@components/auth/ConfirmPasswordWithMatch'
 import { analyzePassword } from '@components/auth/passwordStrength'
+import { newPasswordError } from '@components/auth/newPasswordError'
 import { ErrorCallout } from '@components/shared/ErrorCallout'
 import { Button } from '@components/ui/button'
 import { Loader2, ShieldCheck } from 'lucide-solid'
@@ -27,12 +28,7 @@ export function ChangePasswordForm() {
 
   const strength = createMemo(() => analyzePassword(newPassword()))
 
-  const newPwError = createMemo(() => {
-    if (!submitted()) return null
-    if (strength().score < 2)
-      return 'Password is too weak \u2014 meet at least 3 of the 4 requirements below.'
-    return null
-  })
+  const newPwError = createMemo(() => (submitted() ? newPasswordError(newPassword()) : null))
 
   const confirmError = createMemo(() => {
     if (!submitted()) return null
@@ -73,7 +69,12 @@ export function ChangePasswordForm() {
   function handleSubmit(e: SubmitEvent) {
     e.preventDefault()
     setSubmitted(true)
-    if (!currentPassword().trim() || strength().score < 2 || newPassword() !== confirm() || !confirm()) {
+    if (
+      !currentPassword().trim() ||
+      newPasswordError(newPassword()) !== null ||
+      newPassword() !== confirm() ||
+      !confirm()
+    ) {
       return
     }
     changeMut.mutate()
