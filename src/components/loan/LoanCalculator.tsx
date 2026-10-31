@@ -1,27 +1,16 @@
-import { batch, createMemo, For } from 'solid-js'
+import { createMemo, createSignal, For, Show } from 'solid-js'
 import { createStore } from 'solid-js/store'
 import type { LoanFormType } from '@types'
-import { devConsole } from '@utils/devConsole'
 import LoanFormField, { type LoanFieldDef } from './LoanFormField'
 import { Button } from '@components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 import { formatUsd } from '@utils/formatUsd'
+import { calculateLoanEstimate, type LoanEstimate } from './helpers/calculateLoanEstimate'
+import { validateLoanForm, type LoanFormErrors } from './helpers/validateLoanForm'
 
-type LoanEstimate = {
-  monthlyPayment: number
-  totalInterest: number
-  totalCost: number
-  payoffDate: number
-}
+type LoanFieldKey = keyof LoanFormErrors
 
-const initialLoanForm: LoanFormType = {
-  loanAmount: 0,
-  interestRate: 0,
-  loanTerm: 0,
-  startDate: new Date(),
-}
-
-const loanFormFields: LoanFieldDef[] = [
+const loanFormFields: (LoanFieldDef & { prop: LoanFieldKey })[] = [
   { label: 'Loan Amount', prop: 'loanAmount', placeholder: 'Enter loan amount', type: 'number' },
   {
     label: 'Interest Rate',
@@ -40,78 +29,73 @@ const loanFormFields: LoanFieldDef[] = [
   { label: 'Start Date', prop: 'startDate', placeholder: 'Select start date', type: 'date' },
 ]
 
+const freshLoanForm = (): LoanFormType => ({
+  loanAmount: 0,
+  interestRate: 0,
+  loanTerm: 0,
+  startDate: new Date(),
+})
+
 export default function LoanCalculator() {
-  const [loanForm, setLoanForm] = createStore<LoanFormType>({ ...initialLoanForm })
-  const [loanEstimate, setLoanEstimate] = createStore<LoanEstimate>({
-    monthlyPayment: 0,
-    totalInterest: 0,
-    totalCost: 0,
-    payoffDate: Date.now(),
-  })
+  const initial = freshLoanForm()
+  const [loanForm, setLoanForm] = createStore<LoanFormType>({ ...initial })
+  const [touched, setTouched] = createStore<Partial<Record<LoanFieldKey, boolean>>>({})
+  // Cleared on every input change, so the header never shows an estimate for other inputs.
+  const [estimate, setEstimate] = createSignal<LoanEstimate | null>(null)
+
+  const errors = createMemo(() => validateLoanForm(loanForm))
+  const isValid = () => Object.keys(errors()).length === 0
+  const visibleError = (prop: LoanFieldKey) => (touched[prop] ? errors()[prop] : undefined)
+  const hasVisibleErrors = () => loanFormFields.some((f) => visibleError(f.prop))
 
   const isFormInitial = createMemo(
     () =>
-      loanForm.loanAmount === initialLoanForm.loanAmount &&
-      loanForm.interestRate === initialLoanForm.interestRate &&
-      loanForm.loanTerm === initialLoanForm.loanTerm &&
-      loanForm.startDate.getTime() === initialLoanForm.startDate.getTime(),
+      loanForm.loanAmount === initial.loanAmount &&
+      loanForm.interestRate === initial.interestRate &&
+      loanForm.loanTerm === initial.loanTerm &&
+      loanForm.startDate.getTime() === initial.startDate.getTime(),
   )
 
-  function calculateLoanEstimate() {
-    const monthlyInterestRate = loanForm.interestRate / 100 / 12
-    const numberOfPayments = loanForm.loanTerm
-    // Zero or negative term is meaningless and would produce Infinity/NaN via either branch below.
-    if (numberOfPayments <= 0 || loanForm.loanAmount <= 0) {
-      setLoanEstimate({ monthlyPayment: 0, totalInterest: 0, totalCost: 0, payoffDate: Date.now() })
-      return
-    }
-    // 0% interest collapses the amortization formula's denominator to zero; split loanAmount evenly instead.
-    const monthlyPayment =
-      monthlyInterestRate === 0
-        ? loanForm.loanAmount / numberOfPayments
-        : (monthlyInterestRate * loanForm.loanAmount) /
-          (1 - Math.pow(1 + monthlyInterestRate, -numberOfPayments))
+  function updateField(prop: LoanFieldKey, next: LoanFormType) {
+    setLoanForm(prop, next[prop])
+    setTouched(prop, true)
+    setEstimate(null)
+  }
 
-    setLoanEstimate('monthlyPayment', monthlyPayment)
-    setLoanEstimate('totalInterest', monthlyPayment * numberOfPayments - loanForm.loanAmount)
-    setLoanEstimate(
-      'totalCost',
-      loanForm.loanAmount + (monthlyPayment * numberOfPayments - loanForm.loanAmount),
-    )
-
-    const startDate = new Date(loanForm.startDate)
-    startDate.setMonth(startDate.getMonth() + numberOfPayments)
-    setLoanEstimate('payoffDate', startDate.getTime())
-    devConsole('log', 'loanEstimate', loanEstimate)
+  function calculate() {
+    // Submitting reveals every remaining error, including fields never edited.
+    setTouched({ loanAmount: true, interestRate: true, loanTerm: true, startDate: true })
+    if (!isValid()) return
+    setEstimate(calculateLoanEstimate(loanForm))
   }
 
   function resetForm() {
-    setLoanForm({ ...initialLoanForm, startDate: new Date(initialLoanForm.startDate) })
-    setLoanEstimate({
-      monthlyPayment: 0,
-      totalInterest: 0,
-      totalCost: 0,
-      payoffDate: Date.now(),
-    })
+    setLoanForm({ ...initial })
+    setTouched({ loanAmount: false, interestRate: false, loanTerm: false, startDate: false })
+    setEstimate(null)
   }
-
-  const payoffLabel = () => new Date(loanEstimate.payoffDate).toLocaleDateString()
 
   return (
     <Card class="w-full max-w-[520px]">
       <CardHeader>
         <CardTitle>Loan Calculator</CardTitle>
-        <p class="text-sm text-muted-foreground">
-          Monthly: {formatUsd(loanEstimate.monthlyPayment)} · Interest:{' '}
-          {formatUsd(loanEstimate.totalInterest)} · Total cost: {formatUsd(loanEstimate.totalCost)} · Payoff:{' '}
-          {payoffLabel()}
+        <p class="text-sm text-muted-foreground" aria-live="polite" data-testid="loan-estimate">
+          <Show when={estimate()} fallback="Enter the loan details, then calculate.">
+            {(e) => (
+              <>
+                Monthly: {formatUsd(e().monthlyPayment)} · Interest: {formatUsd(e().totalInterest)} · Total
+                cost: {formatUsd(e().totalCost)} · Payoff: {e().payoffDate.toLocaleDateString()}
+              </>
+            )}
+          </Show>
         </p>
       </CardHeader>
       <CardContent>
         <form
+          noValidate
           onSubmit={(e) => {
             e.preventDefault()
-            calculateLoanEstimate()
+            calculate()
           }}
         >
           <For each={loanFormFields}>
@@ -119,19 +103,13 @@ export default function LoanCalculator() {
               <LoanFormField
                 field={field}
                 model={loanForm}
-                onChange={(m) =>
-                  batch(() => {
-                    setLoanForm('loanAmount', m.loanAmount)
-                    setLoanForm('interestRate', m.interestRate)
-                    setLoanForm('loanTerm', m.loanTerm)
-                    setLoanForm('startDate', m.startDate)
-                  })
-                }
+                error={visibleError(field.prop)}
+                onChange={(m) => updateField(field.prop, m)}
               />
             )}
           </For>
           <div class="flex gap-2.5 mt-4">
-            <Button type="submit" disabled={isFormInitial()}>
+            <Button type="submit" disabled={isFormInitial() || hasVisibleErrors()}>
               Calculate
             </Button>
             <Button variant="outline" type="button" onClick={resetForm} disabled={isFormInitial()}>
