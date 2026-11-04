@@ -27,7 +27,7 @@ The goal is one admin-only page inside the app that answers "is anything broken,
 
 - **Leaking the session token or financial data.** Captured errors and breadcrumbs must never include the bearer token, `localStorage` contents, request or response bodies, or transaction/memo text. Query strings are recorded only with values stripped or allowlisted (see Privacy).
 - **Loosening the CSP.** `connect-src` stays exactly as it is: errors go to our own API, not a third-party host.
-- **Non-admins seeing the page or its data**, in the UI *or* via the API.
+- **Non-admins seeing the page or its data**, in the UI _or_ via the API.
 - **Error reporting that causes errors**: capture must never throw, must not retry-storm (mutations never auto-retry here), and must not block the UI.
 
 ## Constraints
@@ -46,13 +46,13 @@ The goal is one admin-only page inside the app that answers "is anything broken,
 
 ### Where data comes from
 
-| Data | Source |
-|---|---|
-| Browser errors | SPA captures and `POST`s to a new resourceQuerier endpoint; stored in Postgres |
-| API errors | A shared error-reporting helper in resourceQuerier, called wherever a 5xx response is built (the ~22 route-level catch blocks and the top-level safety net), so the original exception and stack are kept. Covers ResourceQuerierFunction and UserManagerFunction. The Authorizer is excluded: its rejections are 401s, not errors. *(Claude's call.)* |
-| Ingestion errors | transactions-bucket-to-db's handler writes to the same table on failure |
-| Infra health | A **new metrics Lambda outside the VPC**, in the resourceQuerier stack, behind the same API Gateway and token authorizer (so it's under `/api/v1/...` and the CSP is unchanged). It reads CloudWatch `GetMetricData` for API Gateway, the existing four Lambdas, the DLQ (`ApproximateNumberOfMessagesVisible`), and RDS. It never touches Postgres. Chosen over a `monitoring` VPC endpoint (~$7.30/month) because it costs nothing. *(Owner's decision.)* |
-| Recent CSV runs | A new ingestion-runs table, written by the ingestion Lambda on every run (file, user, status, rows inserted, duration, error group if failed). Ships in phase 2. *(Claude's call.)* |
+| Data             | Source                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ---------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Browser errors   | SPA captures and `POST`s to a new resourceQuerier endpoint; stored in Postgres                                                                                                                                                                                                                                                                                                                                                                              |
+| API errors       | A shared error-reporting helper in resourceQuerier, called wherever a 5xx response is built (the ~22 route-level catch blocks and the top-level safety net), so the original exception and stack are kept. Covers ResourceQuerierFunction and UserManagerFunction. The Authorizer is excluded: its rejections are 401s, not errors. _(Claude's call.)_                                                                                                      |
+| Ingestion errors | transactions-bucket-to-db's handler writes to the same table on failure                                                                                                                                                                                                                                                                                                                                                                                     |
+| Infra health     | A **new metrics Lambda outside the VPC**, in the resourceQuerier stack, behind the same API Gateway and token authorizer (so it's under `/api/v1/...` and the CSP is unchanged). It reads CloudWatch `GetMetricData` for API Gateway, the existing four Lambdas, the DLQ (`ApproximateNumberOfMessagesVisible`), and RDS. It never touches Postgres. Chosen over a `monitoring` VPC endpoint (~$7.30/month) because it costs nothing. _(Owner's decision.)_ |
+| Recent CSV runs  | A new ingestion-runs table, written by the ingestion Lambda on every run (file, user, status, rows inserted, duration, error group if failed). Ships in phase 2. _(Claude's call.)_                                                                                                                                                                                                                                                                         |
 
 Errors live in **one table** so the overview list, chart and detail page treat all three sources the same way.
 
@@ -70,7 +70,7 @@ Errors live in **one table** so the overview list, chart and detail page treat a
 - Breadcrumbs: a ring buffer of the last ~20 events — route changes, API requests (method, path template, status, duration), and clicks identified by `data-testid` only (never element text).
 - Release: commit SHA injected at build time.
 - Sending: batched, sent with `fetch(..., { keepalive: true })` or `sendBeacon`, fire-and-forget, deduplicated client-side so a render loop can't flood the endpoint. Only authenticated sessions report (errors on the login/register pages before sign-in are not captured in v1).
-- **The SPA is not deployed. The owner runs it locally** with the Vite dev server against the production API. So browser stacks already point at real source files and lines, and no source-map upload or symbolication is needed. *(Owner's information.)* If the app is ever deployed, minified stacks become a problem; see Future.
+- **The SPA is not deployed. The owner runs it locally** with the Vite dev server against the production API. So browser stacks already point at real source files and lines, and no source-map upload or symbolication is needed. _(Owner's information.)_ If the app is ever deployed, minified stacks become a problem; see Future.
 - Exclude errors that come only from Vite's own client or HMR (frames under `/@vite/` or `/@react-refresh`-style client paths, HMR update failures), so editing code doesn't flood the error list.
 - Release: the git commit SHA, plus a `-dirty` marker when the working tree has uncommitted changes, injected when the dev server starts (or at build time for `vite preview`).
 
@@ -80,10 +80,10 @@ API Gateway's request id and the X-Ray trace id are returned on responses; the S
 
 ### Admin-only access
 
-- **The role travels in the JWT.** Because the metrics Lambda can't reach the database, the role is added as a claim when the token is issued at login, and the token authorizer passes it on in its context next to `principalId`. Every observability endpoint, both the metrics Lambda and the error endpoints in resourceQuerier, checks that claim and returns 403 unless it's `admin`. This is the real gate. One mechanism everywhere, no per-request DB lookup *(Claude's call)*.
+- **The role travels in the JWT.** Because the metrics Lambda can't reach the database, the role is added as a claim when the token is issued at login, and the token authorizer passes it on in its context next to `principalId`. Every observability endpoint, both the metrics Lambda and the error endpoints in resourceQuerier, checks that claim and returns 403 unless it's `admin`. This is the real gate. One mechanism everywhere, no per-request DB lookup _(Claude's call)_.
 - Trade-off, accepted: a role change takes effect only at the next sign-in, up to 24 h later, since that's the token lifetime.
 - The login and session responses must also start including the role for the SPA. Today they don't, so `normalizeUserFromApi` defaults everyone to `'user'`.
-- Admin is granted to the owner's account only, by hand, with a one-off SQL statement documented in resourceQuerier. No migration touches `roles`, because that table is owned by the Rails app. *(Claude's call.)*
+- Admin is granted to the owner's account only, by hand, with a one-off SQL statement documented in resourceQuerier. No migration touches `roles`, because that table is owned by the Rails app. _(Claude's call.)_
 - SPA: an "Admin" section in the sidebar with an "Observability" link, shown only when `authState.user.role === 'admin'`; the route is wrapped in a reactive guard per CLAUDE.md (a `<Show>` on the same condition, not `onMount`).
 
 ### Page (matches the mockups)
