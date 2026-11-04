@@ -6,21 +6,28 @@ const FAILING_RATE = 0.05
 const DEGRADED_5XX_RATE = 0.01
 const DEGRADED_P95_MS = 800
 
+/**
+ * Checks run on the signals that are present. A null signal is never read as 0:
+ * if traffic exists but an error count is missing, and nothing else flagged a
+ * problem, the result is unknown. Zero traffic is deliberately healthy (idle).
+ */
 export function apiHealth(api: ObservabilityMetrics['api']): Health {
   if (api.requests === null) return 'unknown'
-  const rate5xx = api.requests > 0 && api.errors5xx !== null ? api.errors5xx / api.requests : 0
-  if (rate5xx >= FAILING_RATE) return 'failing'
-  if (rate5xx >= DEGRADED_5XX_RATE || (api.p95LatencyMs !== null && api.p95LatencyMs > DEGRADED_P95_MS)) {
-    return 'degraded'
+  if (api.requests > 0 && api.errors5xx !== null) {
+    const rate5xx = api.errors5xx / api.requests
+    if (rate5xx >= FAILING_RATE) return 'failing'
+    if (rate5xx >= DEGRADED_5XX_RATE) return 'degraded'
   }
+  if (api.p95LatencyMs !== null && api.p95LatencyMs > DEGRADED_P95_MS) return 'degraded'
+  if (api.requests > 0 && api.errors5xx === null) return 'unknown'
   return 'healthy'
 }
 
 export function lambdaHealth(l: LambdaMetrics): Health {
   if (l.invocations === null) return 'unknown'
-  const errors = l.errors ?? 0
-  if (l.invocations > 0 && errors / l.invocations >= FAILING_RATE) return 'failing'
-  if (errors > 0 || (l.throttles ?? 0) > 0) return 'degraded'
+  if (l.invocations > 0 && l.errors !== null && l.errors / l.invocations >= FAILING_RATE) return 'failing'
+  if ((l.errors !== null && l.errors > 0) || (l.throttles !== null && l.throttles > 0)) return 'degraded'
+  if (l.invocations > 0 && (l.errors === null || l.throttles === null)) return 'unknown'
   return 'healthy'
 }
 

@@ -33,8 +33,12 @@ const lambda = (over: Partial<LambdaMetrics> = {}): LambdaMetrics => ({
 describe('apiHealth', () => {
   it('is unknown when requests is null', () => expect(apiHealth(api({ requests: null }))).toBe('unknown'))
   it('is healthy with no errors', () => expect(apiHealth(api())).toBe('healthy'))
-  it('is healthy when 5xx is null but requests exist', () =>
-    expect(apiHealth(api({ errors5xx: null }))).toBe('healthy'))
+  it('is unknown when 5xx is null but requests exist', () =>
+    expect(apiHealth(api({ errors5xx: null }))).toBe('unknown'))
+  it('is degraded on high p95 even when 5xx is null', () =>
+    expect(apiHealth(api({ errors5xx: null, p95LatencyMs: 900 }))).toBe('degraded'))
+  it('is healthy with zero requests and null 5xx', () =>
+    expect(apiHealth(api({ requests: 0, errors5xx: null }))).toBe('healthy'))
   it('is degraded at exactly 1% 5xx', () => expect(apiHealth(api({ errors5xx: 10 }))).toBe('degraded'))
   it('is healthy just under 1% 5xx', () => expect(apiHealth(api({ errors5xx: 9 }))).toBe('healthy'))
   it('is failing at exactly 5% 5xx', () => expect(apiHealth(api({ errors5xx: 50 }))).toBe('failing'))
@@ -54,8 +58,12 @@ describe('lambdaHealth', () => {
   it('is failing at exactly 5% errors', () => expect(lambdaHealth(lambda({ errors: 5 }))).toBe('failing'))
   it('is degraded just under 5% errors', () =>
     expect(lambdaHealth(lambda({ errors: 4, invocations: 100 }))).toBe('degraded'))
-  it('is healthy when errors and throttles are null', () =>
-    expect(lambdaHealth(lambda({ errors: null, throttles: null }))).toBe('healthy'))
+  it('is unknown when errors is null but invocations exist', () =>
+    expect(lambdaHealth(lambda({ errors: null }))).toBe('unknown'))
+  it('is unknown when throttles is null but invocations exist', () =>
+    expect(lambdaHealth(lambda({ throttles: null }))).toBe('unknown'))
+  it('is healthy with zero invocations and null errors', () =>
+    expect(lambdaHealth(lambda({ invocations: 0, errors: null, throttles: null }))).toBe('healthy'))
   it('is healthy with zero invocations', () =>
     expect(lambdaHealth(lambda({ invocations: 0 }))).toBe('healthy'))
 })
