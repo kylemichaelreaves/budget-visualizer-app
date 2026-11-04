@@ -74,4 +74,13 @@ describe('/budget-visualizer/observability route', () => {
     expect(screen.getByTestId('observability-range-7d')).toHaveAttribute('aria-pressed', 'true')
     await waitFor(() => expect(fetchMock).toHaveBeenCalledWith('7d'))
   })
+
+  it('replaces the history entry when the range changes', async () => {
+    renderApp()
+    const button = await screen.findByTestId('observability-range-7d')
+    const before = window.history.length
+    fireEvent.click(button)
+    await waitFor(() => expect(window.location.search).toBe('?range=7d'))
+    expect(window.history.length).toBe(before)
+  })
 })

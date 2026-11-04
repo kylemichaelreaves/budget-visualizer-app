@@ -29,7 +29,10 @@ export default function ObservabilityPage() {
           <p class="text-muted-foreground text-sm">Health of the budget-visualizer backend.</p>
         </div>
         <div class="flex flex-wrap items-center gap-3">
-          <RangeToggle value={range()} onChange={(next) => setSearchParams({ range: next })} />
+          <RangeToggle
+            value={range()}
+            onChange={(next) => setSearchParams({ range: next }, { replace: true })}
+          />
           <span data-testid="observability-updated" class="text-muted-foreground text-sm">
             {formatUpdatedAgo(query.dataUpdatedAt, now())}
           </span>
