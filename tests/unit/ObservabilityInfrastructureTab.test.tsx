@@ -67,6 +67,30 @@ describe('InfrastructureTab', () => {
     }
   })
 
+  it('renders a real 0 as 0, not —', async () => {
+    fetchMock.mockResolvedValue({
+      ...fullMetrics,
+      lambdas: fullMetrics.lambdas.map((l) => ({ ...l, errors: 0, throttles: 0 })),
+      ingestion: { dlqVisible: 0 },
+      rds: { ...fullMetrics.rds, cpuPercent: 0 },
+    })
+    renderTab()
+    await screen.findByTestId('observability-api-card')
+    const rows = within(screen.getByTestId('observability-lambda-table')).getAllByTestId(
+      'observability-lambda-row',
+    )
+    for (const row of rows) {
+      const cells = row.querySelectorAll('td')
+      expect(cells[3].textContent).toBe('0')
+      expect(cells[5].textContent).toBe('0')
+    }
+    const ingestion = screen.getByTestId('observability-ingestion-card')
+    expect(within(ingestion).getByText('Dead-letter queue depth').nextElementSibling?.textContent).toBe('0')
+    const rds = screen.getByTestId('observability-rds-card')
+    expect(within(rds).getByText('CPU').nextElementSibling?.textContent).toBe('0%')
+    expect(within(rds).getByRole('progressbar')).toBeTruthy()
+  })
+
   it('shows skeletons only on first load', () => {
     fetchMock.mockReturnValue(new Promise(() => {}))
     renderTab()

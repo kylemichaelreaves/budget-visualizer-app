@@ -23,8 +23,13 @@ export default function RdsCard(props: { rds: ObservabilityMetrics['rds'] }) {
         <div class="flex flex-col gap-1.5">
           <Row label="CPU" value={formatPercent(props.rds.cpuPercent)} />
           {/* No bar when CPU is unknown: an empty bar would read as 0%. */}
-          <Show when={props.rds.cpuPercent}>
-            {(cpu) => <Progress value={cpu()} minValue={0} maxValue={100} aria-label="CPU utilisation" />}
+          <Show when={props.rds.cpuPercent !== null}>
+            <Progress
+              value={props.rds.cpuPercent ?? 0}
+              minValue={0}
+              maxValue={100}
+              aria-label="CPU utilisation"
+            />
           </Show>
         </div>
         <Row label="Connections" value={formatCount(props.rds.connections)} />
