@@ -3,6 +3,7 @@ import { healthLabel, type Health } from '@components/observability/helpers/heal
 
 const TONE: Record<Health, string> = {
   healthy: 'bg-success-muted text-success-on-muted',
+  idle: 'bg-success-muted text-success-on-muted',
   degraded: 'bg-caution-muted text-caution-on-muted',
   failing: 'bg-negative-muted text-negative-emphasis',
   unknown: 'bg-muted text-muted-foreground',

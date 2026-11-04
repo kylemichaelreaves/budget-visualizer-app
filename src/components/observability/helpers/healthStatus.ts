@@ -1,6 +1,6 @@
 import type { LambdaMetrics, ObservabilityMetrics } from '@types'
 
-export type Health = 'healthy' | 'degraded' | 'failing' | 'unknown'
+export type Health = 'healthy' | 'idle' | 'degraded' | 'failing' | 'unknown'
 
 const FAILING_RATE = 0.05
 const DEGRADED_5XX_RATE = 0.01
@@ -31,13 +31,18 @@ export function lambdaHealth(l: LambdaMetrics): Health {
   return 'healthy'
 }
 
+/**
+ * SQS stops publishing metrics for an empty, idle queue, so a null DLQ depth is the
+ * normal "nothing waiting" state, not missing data: it reads as idle.
+ */
 export function ingestionHealth(dlqVisible: number | null): Health {
-  if (dlqVisible === null) return 'unknown'
+  if (dlqVisible === null) return 'idle'
   return dlqVisible > 0 ? 'failing' : 'healthy'
 }
 
 const LABELS: Record<Health, string> = {
   healthy: 'Healthy',
+  idle: 'Idle',
   degraded: 'Errors',
   failing: 'Failing',
   unknown: 'No data',

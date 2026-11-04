@@ -13,6 +13,7 @@ import {
 } from '@components/ui'
 import HealthBadge from '@components/observability/HealthBadge'
 import { lambdaHealth } from '@components/observability/helpers/healthStatus'
+import { lambdaLabel } from '@components/observability/helpers/lambdaLabel'
 import { formatCount, formatMs } from '@components/observability/helpers/formatMetric'
 import type { LambdaMetrics } from '@types'
 
@@ -39,7 +40,18 @@ export default function LambdaTable(props: { lambdas: LambdaMetrics[] }) {
             <For each={props.lambdas}>
               {(l) => (
                 <TableRow data-testid="observability-lambda-row">
-                  <TableCell class="font-medium">{l.functionName}</TableCell>
+                  <TableCell class="max-w-56">
+                    <div data-testid="observability-lambda-label" class="font-medium">
+                      {lambdaLabel(l.key)}
+                    </div>
+                    <div
+                      data-testid="observability-lambda-function-name"
+                      class="text-muted-foreground truncate text-xs"
+                      title={l.functionName}
+                    >
+                      {l.functionName}
+                    </div>
+                  </TableCell>
                   <TableCell class="text-muted-foreground">{l.stack}</TableCell>
                   <TableCell class="text-right tabular-nums">{formatCount(l.invocations)}</TableCell>
                   <TableCell class="text-right tabular-nums">{formatCount(l.errors)}</TableCell>

@@ -60,6 +60,9 @@ test.describe('Observability (admin)', () => {
     )
     await observabilityPage.goto()
     await expect(observabilityPage.forbidden).toBeVisible()
+    await expect(observabilityPage.forbidden).toContainText(
+      "You don't have access to observability. If your role changed recently, sign out and back in.",
+    )
   })
 
   test('renders in dark mode with the dark background', async ({ page, observabilityPage }) => {

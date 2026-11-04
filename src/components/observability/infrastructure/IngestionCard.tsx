@@ -1,3 +1,4 @@
+import { Show } from 'solid-js'
 import { Card, CardAction, CardContent, CardHeader, CardTitle } from '@components/ui'
 import HealthBadge from '@components/observability/HealthBadge'
 import { ingestionHealth } from '@components/observability/helpers/healthStatus'
@@ -28,6 +29,11 @@ export default function IngestionCard(props: {
       </CardHeader>
       <CardContent class="flex flex-col gap-2">
         <Row label="Dead-letter queue depth" value={formatCount(props.dlqVisible)} />
+        <Show when={ingestionHealth(props.dlqVisible) === 'idle'}>
+          <p data-testid="observability-dlq-idle" class="text-muted-foreground text-xs">
+            No messages in the last 6 hours
+          </p>
+        </Show>
         <Row label="Invocations" value={formatCount(props.lambda?.invocations ?? null)} />
         <Row label="Errors" value={formatCount(props.lambda?.errors ?? null)} />
       </CardContent>

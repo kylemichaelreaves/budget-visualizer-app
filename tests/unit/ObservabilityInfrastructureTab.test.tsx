@@ -21,11 +21,12 @@ function TabHarness() {
 
 function renderTab() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  return render(() => (
+  render(() => (
     <QueryClientProvider client={queryClient}>
       <TabHarness />
     </QueryClientProvider>
   ))
+  return queryClient
 }
 
 function httpError(status: number) {
@@ -45,15 +46,15 @@ describe('InfrastructureTab', () => {
     expect(within(api).getByText('96 ms / 412 ms')).toBeTruthy()
     const table = screen.getByTestId('observability-lambda-table')
     const rows = within(table).getAllByTestId('observability-lambda-row')
-    expect(rows.map((r) => r.querySelector('td')?.textContent)).toEqual([
-      'resourceQuerier',
-      'userManager',
-      'authorizer',
-      'transactions-bucket-to-db',
-    ])
+    expect(
+      rows.map((r) => r.querySelector('[data-testid="observability-lambda-label"]')?.textContent),
+    ).toEqual(['resourceQuerier', 'UserManager', 'Authorizer', 'CSV ingestion'])
+    const physical = within(rows[3]).getByTestId('observability-lambda-function-name')
+    expect(physical.textContent).toBe('transactions-bucket-to-db')
+    expect(physical.getAttribute('title')).toBe('transactions-bucket-to-db')
     expect(screen.getByTestId('observability-ingestion-card')).toBeTruthy()
     const rds = screen.getByTestId('observability-rds-card')
-    expect(within(rds).getByText('14200.0 MB')).toBeTruthy()
+    expect(within(rds).getByText('14.2 GB')).toBeTruthy()
   })
 
   it('shows — for null metrics instead of 0', async () => {
@@ -71,6 +72,39 @@ describe('InfrastructureTab', () => {
       expect(text).not.toMatch(/\b0\b/)
       expect(text).not.toContain('NaN')
     }
+  })
+
+  it('treats a null DLQ depth as idle with a hint, not as missing data', async () => {
+    fetchMock.mockResolvedValue(nullMetrics)
+    renderTab()
+    const ingestion = await screen.findByTestId('observability-ingestion-card')
+    expect(within(ingestion).getByTestId('observability-health-badge').textContent).toBe('Idle')
+    expect(within(ingestion).getByText('Dead-letter queue depth').nextElementSibling?.textContent).toBe('—')
+    expect(within(ingestion).getByTestId('observability-dlq-idle').textContent).toBe(
+      'No messages in the last 6 hours',
+    )
+  })
+
+  it('shows no idle hint when the DLQ depth is a real 0', async () => {
+    fetchMock.mockResolvedValue(fullMetrics)
+    renderTab()
+    const ingestion = await screen.findByTestId('observability-ingestion-card')
+    expect(within(ingestion).queryByTestId('observability-dlq-idle')).toBeNull()
+    expect(within(ingestion).getByTestId('observability-health-badge').textContent).toBe('Healthy')
+  })
+
+  it('keeps the cards and shows a stale notice when a refresh fails', async () => {
+    fetchMock.mockResolvedValueOnce(fullMetrics)
+    const queryClient = renderTab()
+    await screen.findByTestId('observability-api-card')
+    expect(screen.queryByTestId('observability-stale')).toBeNull()
+
+    fetchMock.mockRejectedValue(httpError(502))
+    void queryClient.invalidateQueries()
+    const notice = await screen.findByTestId('observability-stale')
+    expect(notice.textContent).toMatch(/^Couldn't refresh — showing data from .+\.$/)
+    expect(screen.getByTestId('observability-api-card')).toBeTruthy()
+    expect(screen.queryByTestId('observability-error')).toBeNull()
   })
 
   it('renders a real 0 as 0, not —', async () => {
@@ -108,7 +142,9 @@ describe('InfrastructureTab', () => {
     fetchMock.mockRejectedValue(httpError(403))
     renderTab()
     const el = await screen.findByTestId('observability-forbidden')
-    expect(el.textContent).toContain("You don't have access to observability.")
+    expect(el.textContent).toContain(
+      "You don't have access to observability. If your role changed recently, sign out and back in.",
+    )
     expect(screen.queryByTestId('observability-retry')).toBeNull()
   })
 

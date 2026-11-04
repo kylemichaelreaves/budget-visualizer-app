@@ -69,7 +69,8 @@ describe('lambdaHealth', () => {
 })
 
 describe('ingestionHealth', () => {
-  it('is unknown for null', () => expect(ingestionHealth(null)).toBe('unknown'))
+  it('is idle for null (SQS publishes nothing for an empty, idle queue)', () =>
+    expect(ingestionHealth(null)).toBe('idle'))
   it('is healthy for an empty queue', () => expect(ingestionHealth(0)).toBe('healthy'))
   it('is failing when messages are waiting', () => expect(ingestionHealth(1)).toBe('failing'))
 })
@@ -77,6 +78,7 @@ describe('ingestionHealth', () => {
 describe('healthLabel', () => {
   it('maps every state to its badge label', () => {
     expect(healthLabel('healthy')).toBe('Healthy')
+    expect(healthLabel('idle')).toBe('Idle')
     expect(healthLabel('degraded')).toBe('Errors')
     expect(healthLabel('failing')).toBe('Failing')
     expect(healthLabel('unknown')).toBe('No data')
