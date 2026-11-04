@@ -1,6 +1,7 @@
 import type { Page, Route } from '@playwright/test'
 import { E2E_AUTH_TOKEN, E2E_AUTH_USER } from './auth-storage'
 import { mapCamelToSnake } from '../../../src/api/helpers/fieldMappings'
+import { fullMetrics } from '../../../src/components/observability/infrastructure/observabilityStoryFixtures'
 
 function json(route: Route, body: unknown, status = 200) {
   return route.fulfill({
@@ -142,6 +143,16 @@ export async function installApiMocks(page: Page): Promise<void> {
         status: 204,
         headers: { 'Access-Control-Allow-Origin': '*' },
       })
+      return
+    }
+
+    if (path.endsWith('/observability/metrics') && method === 'GET') {
+      const range = sp.get('range')
+      if (range !== '1h' && range !== '24h' && range !== '7d' && range !== '30d') {
+        await json(route, { message: 'Invalid range' }, 400)
+        return
+      }
+      await json(route, { ...fullMetrics, range })
       return
     }
 

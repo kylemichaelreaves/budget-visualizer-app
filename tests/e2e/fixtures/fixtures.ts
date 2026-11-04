@@ -28,6 +28,7 @@ import { SplitBudgetCategoryDrawer } from '../pages/SplitBudgetCategoryDrawer'
 import { CategoryTreeSelectDialog } from '../pages/CategoryTreeSelectDialog'
 import { MonthSummaryTablePage } from '../pages/MonthSummaryTablePage'
 import { WeekSummaryTablePage } from '../pages/WeekSummaryTablePage'
+import { ObservabilityPage } from '../pages/ObservabilityPage'
 
 type Fixtures = {
   loginPage: LoginPage
@@ -50,6 +51,7 @@ type Fixtures = {
   categoryTreeSelectDialog: CategoryTreeSelectDialog
   monthSummaryTablePage: MonthSummaryTablePage
   weekSummaryTablePage: WeekSummaryTablePage
+  observabilityPage: ObservabilityPage
 }
 
 /**
@@ -124,6 +126,9 @@ const pageObjectFixtures: PlaywrightFixtures<
   },
   weekSummaryTablePage: async ({ page }, use) => {
     await use(new WeekSummaryTablePage(page))
+  },
+  observabilityPage: async ({ page }, use) => {
+    await use(new ObservabilityPage(page))
   },
 }
 
