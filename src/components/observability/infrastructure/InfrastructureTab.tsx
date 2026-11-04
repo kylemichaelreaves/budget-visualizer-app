@@ -1,21 +1,19 @@
 import { Match, Switch } from 'solid-js'
 import axios from 'axios'
 import { Button, Skeleton } from '@components/ui'
-import useObservabilityMetrics from '@api/hooks/observability/useObservabilityMetrics'
+import type useObservabilityMetrics from '@api/hooks/observability/useObservabilityMetrics'
 import ApiGatewayCard from './ApiGatewayCard'
 import LambdaTable from './LambdaTable'
 import IngestionCard from './IngestionCard'
 import RdsCard from './RdsCard'
-import type { ObservabilityRange } from '@types'
 
 const isForbidden = (error: unknown) => axios.isAxiosError(error) && error.response?.status === 403
 
-export default function InfrastructureTab(props: { range: () => ObservabilityRange }) {
-  const query = useObservabilityMetrics(() => props.range())
-
+/** The page owns the query (Refresh and "Updated" live there); this tab only renders it. */
+export default function InfrastructureTab(props: { query: ReturnType<typeof useObservabilityMetrics> }) {
   return (
     <Switch>
-      <Match when={query.data}>
+      <Match when={props.query.data}>
         {(data) => (
           <div class="flex flex-col gap-4">
             <ApiGatewayCard api={data().api} />
@@ -30,19 +28,19 @@ export default function InfrastructureTab(props: { range: () => ObservabilityRan
           </div>
         )}
       </Match>
-      <Match when={query.isError && isForbidden(query.error)}>
+      <Match when={props.query.isError && isForbidden(props.query.error)}>
         <p data-testid="observability-forbidden" class="text-muted-foreground">
           You don't have access to observability.
         </p>
       </Match>
-      <Match when={query.isError}>
+      <Match when={props.query.isError}>
         <div data-testid="observability-error" class="flex items-center gap-3">
           <p class="text-muted-foreground">Metrics are unavailable right now.</p>
           <Button
             variant="outline"
             size="sm"
             data-testid="observability-retry"
-            onClick={() => query.refetch()}
+            onClick={() => props.query.refetch()}
           >
             Retry
           </Button>

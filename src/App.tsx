@@ -17,6 +17,7 @@ import PendingTransactionsTable from '@components/transactions/pending/PendingTr
 import TransactionEditPage from '@components/transactions/forms/TransactionEditPage'
 import TransactionsTable from '@components/transactions/table/TransactionsTable'
 import TransactionsWithTimeframeSummaryRoute from '@components/transactions/summaries/TransactionsWithTimeframeSummaryRoute'
+import ObservabilityRoute from '@components/observability/ObservabilityRoute'
 import { type JSX } from 'solid-js'
 
 function AppLayout(props: { children?: JSX.Element }) {
@@ -52,6 +53,7 @@ export default function App() {
         <Route path="/transactions/csv" component={DataImportPage} />
         <Route path="/loan-calculator" component={LoanCalculator} />
         <Route path="/account" component={AccountSettingsPage} />
+        <Route path="/observability" component={ObservabilityRoute} />
       </Route>
     </Router>
   )

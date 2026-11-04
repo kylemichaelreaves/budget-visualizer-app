@@ -1,6 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/solid-query'
 import { delay, http, HttpResponse } from 'msw'
 import type { Meta, StoryObj } from 'storybook-solidjs-vite'
+import useObservabilityMetrics from '@api/hooks/observability/useObservabilityMetrics'
 import InfrastructureTab from './InfrastructureTab'
 import { fullMetrics, nullMetrics } from './observabilityStoryFixtures'
 
@@ -12,12 +13,17 @@ const handlersFor = (respond: () => Response | Promise<Response>) => [
   ...PATHS.map((path) => http.get(path, respond)),
 ]
 
+/** The page owns the query in the app; the story runs it so the tab has one to render. */
+function InfrastructureTabHarness() {
+  const query = useObservabilityMetrics(() => '24h')
+  return <InfrastructureTab query={query} />
+}
+
 const meta = {
   title: 'Observability/InfrastructureTab',
-  component: InfrastructureTab,
+  component: InfrastructureTabHarness,
   tags: ['autodocs'],
   parameters: { layout: 'padded' },
-  args: { range: () => '24h' },
   // A fresh client per story render, so a cached response never leaks between stories.
   decorators: [
     (Story) => (
@@ -28,7 +34,7 @@ const meta = {
       </QueryClientProvider>
     ),
   ],
-} satisfies Meta<typeof InfrastructureTab>
+} satisfies Meta<typeof InfrastructureTabHarness>
 
 export default meta
 type Story = StoryObj<typeof meta>

@@ -1,15 +1,15 @@
-import { splitProps } from 'solid-js'
+import { type JSX, splitProps } from 'solid-js'
 import * as TabsPrimitive from '@kobalte/core/tabs'
 import { cn } from '@utils/cn'
 
-type TabsProps = TabsPrimitive.TabsRootProps & { class?: string }
+type TabsProps = TabsPrimitive.TabsRootProps & { class?: string; children?: JSX.Element }
 
 function Tabs(props: TabsProps) {
   const [local, rest] = splitProps(props, ['class'])
   return <TabsPrimitive.Root data-slot="tabs" class={cn('flex flex-col gap-2', local.class)} {...rest} />
 }
 
-type TabsListProps = TabsPrimitive.TabsListProps & { class?: string }
+type TabsListProps = TabsPrimitive.TabsListProps & { class?: string; children?: JSX.Element }
 
 function TabsList(props: TabsListProps) {
   const [local, rest] = splitProps(props, ['class'])
@@ -25,7 +25,7 @@ function TabsList(props: TabsListProps) {
   )
 }
 
-type TabsTriggerProps = TabsPrimitive.TabsTriggerProps & { class?: string }
+type TabsTriggerProps = TabsPrimitive.TabsTriggerProps & { class?: string; children?: JSX.Element }
 
 function TabsTrigger(props: TabsTriggerProps) {
   const [local, rest] = splitProps(props, ['class'])
@@ -41,7 +41,7 @@ function TabsTrigger(props: TabsTriggerProps) {
   )
 }
 
-type TabsContentProps = TabsPrimitive.TabsContentProps & { class?: string }
+type TabsContentProps = TabsPrimitive.TabsContentProps & { class?: string; children?: JSX.Element }
 
 function TabsContent(props: TabsContentProps) {
   const [local, rest] = splitProps(props, ['class'])

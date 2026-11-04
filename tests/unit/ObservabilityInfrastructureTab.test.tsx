@@ -10,14 +10,20 @@ vi.mock('@api/observability/fetchObservabilityMetrics', () => ({
   fetchObservabilityMetrics: (range: string) => fetchMock(range),
 }))
 
+const { default: useObservabilityMetrics } = await import('@api/hooks/observability/useObservabilityMetrics')
 const { default: InfrastructureTab } =
   await import('@components/observability/infrastructure/InfrastructureTab')
+
+function TabHarness() {
+  const query = useObservabilityMetrics(() => '24h')
+  return <InfrastructureTab query={query} />
+}
 
 function renderTab() {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   return render(() => (
     <QueryClientProvider client={queryClient}>
-      <InfrastructureTab range={() => '24h'} />
+      <TabHarness />
     </QueryClientProvider>
   ))
 }
