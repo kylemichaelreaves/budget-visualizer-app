@@ -10,7 +10,7 @@ export class CategoryTreeSelectDialog {
   constructor(page: Page) {
     this.page = page
     this.dialog = page.getByRole('dialog', { name: /assign budget category/i })
-    this.title = this.dialog.locator('[data-slot="dialog-title"]')
+    this.title = this.dialog.getByTestId('category-tree-select-dialog-title')
     this.searchInput = this.dialog.getByPlaceholder('Search categories...')
     this.closeButton = this.dialog.getByRole('button', { name: 'Close' })
   }

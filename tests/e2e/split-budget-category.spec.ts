@@ -38,14 +38,10 @@ test.describe('Split Budget Category', () => {
     await transactionEditPage.page.getByLabel(/split into multiple categories/i).click()
     await expect(splitBudgetCategoryDrawer.drawer).toBeVisible({ timeout: 5_000 })
 
-    const initialCount = await splitBudgetCategoryDrawer.rows.count()
-    // Reduce the first split amount so Add split is enabled
-    if (initialCount > 0) {
-      await splitBudgetCategoryDrawer.setSplitAmount(0, '10')
-    }
+    // An unsplit transaction opens with a single row holding the whole amount.
+    await expect(splitBudgetCategoryDrawer.rows).toHaveCount(1)
     await splitBudgetCategoryDrawer.addSplit()
-    const newCount = await splitBudgetCategoryDrawer.rows.count()
-    expect(newCount).toBeGreaterThan(initialCount)
+    await expect(splitBudgetCategoryDrawer.rows).toHaveCount(2)
   })
 
   test('cancel button closes the drawer', async ({ transactionEditPage, splitBudgetCategoryDrawer }) => {

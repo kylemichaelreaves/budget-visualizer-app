@@ -24,7 +24,7 @@ export class MemosPage {
     this.heading = page.getByRole('heading', { name: 'Memos', exact: true })
     this.table = page.getByTestId('memos-table')
     this.skeleton = page.getByTestId('memos-table-skeleton')
-    this.emptyMessage = page.getByText('No memos found.')
+    this.emptyMessage = page.getByTestId('memos-table-empty')
     this.errorAlert = page.getByTestId('memos-table-error-alert')
     this.searchInput = page.getByTestId('memos-search-input')
     this.cardTitle = page.getByRole('heading', { name: 'All Memos' })

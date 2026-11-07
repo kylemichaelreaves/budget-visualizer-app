@@ -1,6 +1,6 @@
 import { test, expect } from './fixtures/fixtures'
 import { authenticatedTest } from './fixtures/fixtures'
-import { installApiMocks } from './fixtures/install-api-mocks'
+import { E2E_ADMIN_USER } from './fixtures/auth-storage'
 
 test.describe('NavBar (unauthenticated)', () => {
   test('shows navbar with brand link on login page', async ({ page, navbar }) => {
@@ -17,7 +17,7 @@ test.describe('NavBar (unauthenticated)', () => {
 
   test('clicking login button navigates to login page', async ({ page, navbar }) => {
     await page.goto('/login')
-    await navbar.clickLoginLogout()
+    await navbar.clickLogin()
     await expect(page).toHaveURL(/\/login/)
   })
 
@@ -43,33 +43,13 @@ authenticatedTest.describe('NavBar (authenticated)', () => {
   authenticatedTest('clicking user menu logs out and redirects', async ({ page, navbar }) => {
     await page.goto('/budget-visualizer/transactions')
     await expect(navbar.userMenuButton).toBeVisible()
-    await navbar.clickLoginLogout()
+    await navbar.logout()
     await expect(page).toHaveURL(/\/login/)
   })
 })
 
 authenticatedTest.describe('NavBar admin badge', () => {
-  authenticatedTest.use({
-    page: async ({ page }, use) => {
-      const adminUser = JSON.stringify({
-        id: 1,
-        username: 'admin-user',
-        firstName: 'Admin',
-        lastName: 'User',
-        email: 'admin@example.test',
-        role: 'admin',
-      })
-      await page.addInitScript(
-        ({ user, token }: { user: string; token: string }) => {
-          localStorage.setItem('user', user)
-          localStorage.setItem('token', token)
-        },
-        { user: adminUser, token: 'admin-token' },
-      )
-      await installApiMocks(page)
-      await use(page)
-    },
-  })
+  authenticatedTest.use({ authUser: E2E_ADMIN_USER })
 
   authenticatedTest('shows admin badge for admin users', async ({ page, navbar }) => {
     await page.goto('/budget-visualizer/transactions')

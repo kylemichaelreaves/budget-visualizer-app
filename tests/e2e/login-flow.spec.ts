@@ -5,14 +5,14 @@ import { installApiMocks } from './fixtures/install-api-mocks'
 
 test.describe('Login flow (unauthenticated)', () => {
   test('successful login redirects to transactions', async ({ page, loginPage }) => {
-    await installApiMocks(page)
+    await installApiMocks(page.context())
     await loginPage.goto()
     await loginPage.login(E2E_LOGIN_EMAIL, 'testpass')
     await expect(page).toHaveURL(/\/budget-visualizer\/transactions/, { timeout: 10_000 })
   })
 
   test('login with redirect param lands on correct page', async ({ page, loginPage }) => {
-    await installApiMocks(page)
+    await installApiMocks(page.context())
     await page.goto('/login?redirect=%2Fbudget-visualizer%2Fmemos')
     await loginPage.login(E2E_LOGIN_EMAIL, 'testpass')
     await expect(page).toHaveURL(/\/budget-visualizer\/memos/, { timeout: 10_000 })
