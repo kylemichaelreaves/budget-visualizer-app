@@ -344,7 +344,12 @@ export async function installApiMocks(page: Page): Promise<void> {
       if (method === 'GET') {
         // Timeframe-filtered list requests return [] (mock doesn't do date-range matching).
         const hasTimeframeFilter = sp.has('timeFrame') && sp.has('date')
-        await json(route, hasTimeframeFilter ? [] : memoFilteredRows())
+        // Mirrors resourceQuerier: each listed row carries its memo's flag, NULL without one.
+        const rows = memoFilteredRows().map((t) => ({
+          ...t,
+          memo_ambiguous: t.memo_id == null ? null : (memos[Number(t.memo_id)]?.ambiguous ?? null),
+        }))
+        await json(route, hasTimeframeFilter ? [] : rows)
         return
       }
     }
