@@ -8,6 +8,7 @@ export class SidebarNav {
   readonly memosLink: Locator
   readonly budgetCategoriesLink: Locator
   readonly loanCalculatorLink: Locator
+  readonly observabilityLink: Locator
   readonly budgetSectionHeading: Locator
   readonly addTransactionButton: Locator
 
@@ -19,6 +20,7 @@ export class SidebarNav {
     this.memosLink = this.nav.getByRole('link', { name: 'Memos' })
     this.budgetCategoriesLink = this.nav.getByRole('link', { name: 'Budget Categories' })
     this.loanCalculatorLink = this.nav.getByRole('link', { name: 'Loan Calculator' })
+    this.observabilityLink = page.getByTestId('sidebar-admin-observability')
     this.budgetSectionHeading = this.nav.getByRole('heading', { name: /budget/i, level: 3 })
     this.addTransactionButton = page.getByRole('button', { name: 'Add New Transaction' })
   }

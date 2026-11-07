@@ -11,4 +11,10 @@ export const E2E_AUTH_USER = JSON.stringify({
   role: 'user',
 })
 
+/** Same as `E2E_AUTH_USER` but with the admin role, for admin-only routes. */
+export const E2E_ADMIN_USER = JSON.stringify({
+  ...JSON.parse(E2E_AUTH_USER),
+  role: 'admin',
+})
+
 export const E2E_AUTH_TOKEN = 'e2e-playwright-token'
