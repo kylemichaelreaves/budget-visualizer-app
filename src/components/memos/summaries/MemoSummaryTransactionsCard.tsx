@@ -58,7 +58,9 @@ export default function MemoSummaryTransactionsCard(props: {
         </Show>
 
         <Show when={!props.txIsLoading() && (props.txRows()?.length ?? 0) === 0}>
-          <p class="text-muted-foreground">No transactions for this memo.</p>
+          <p class="text-muted-foreground" data-testid="memo-summary-no-transactions">
+            No transactions for this memo.
+          </p>
         </Show>
 
         <div class="flex items-center gap-3 flex-wrap mt-4 pt-3 border-t border-border">

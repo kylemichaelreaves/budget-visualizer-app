@@ -1,7 +1,29 @@
-import type { Page, Route } from '@playwright/test'
+import type { BrowserContext, Route } from '@playwright/test'
 import { E2E_AUTH_TOKEN, E2E_AUTH_USER } from './auth-storage'
 import { mapCamelToSnake } from '../../../src/api/helpers/fieldMappings'
 import { fullMetrics } from '../../../src/components/observability/infrastructure/observabilityStoryFixtures'
+import {
+  validateCsvImportCreate,
+  validateMemoPatch,
+  validatePendingTransactionPatch,
+  validateTransactionCreate,
+  validateTransactionPatch,
+} from './apiContracts'
+
+/** The presigned-PUT host resourceQuerier signs against; must match `CSV_UPLOAD_ORIGINS`. */
+export const CSV_UPLOAD_ORIGIN = 'https://transactions-bucket.s3.us-east-1.amazonaws.com'
+
+export type ApiMocks = {
+  /**
+   * Requests the mocks answered 400 because they broke a resourceQuerier contract.
+   * `authenticatedTest` fails any test that leaves this non-empty.
+   */
+  readonly contractViolations: string[]
+  /** Origin of the `uploadUrl` returned by POST /transactions/csv. */
+  csvUploadOrigin: string
+  /** Filenames returned by GET /transactions/csv. */
+  csvImports: string[]
+}
 
 function json(route: Route, body: unknown, status = 200) {
   return route.fulfill({
@@ -11,10 +33,6 @@ function json(route: Route, body: unknown, status = 200) {
   })
 }
 
-/**
- * Stubs /api/v1/* so the app runs against `vite preview` without a backend.
- * Maintains in-memory state so PATCHes are reflected in subsequent GETs.
- */
 /**
  * Mirrors resourceQuerier's memo ORDER BY: the requested column with NULLS LAST in
  * both directions, then id; by name when no sort is given.
@@ -39,7 +57,28 @@ function sortMemosLikeApi(
   })
 }
 
-export async function installApiMocks(page: Page): Promise<void> {
+/**
+ * Stubs /api/v1/* so the app runs against `vite preview` without a backend.
+ * Maintains in-memory state so PATCHes are reflected in subsequent GETs, and
+ * answers a mutation that breaks a resourceQuerier contract (see `apiContracts`)
+ * with the 400 the real API would send.
+ */
+export async function installApiMocks(context: BrowserContext): Promise<ApiMocks> {
+  const mocks: ApiMocks = {
+    contractViolations: [],
+    csvUploadOrigin: CSV_UPLOAD_ORIGIN,
+    csvImports: ['2025_01.csv', '2024_12.csv'],
+  }
+
+  /** Answers 400 and records the violation; returns true when the body was rejected. */
+  async function rejectIfInvalid(route: Route, error: string | null): Promise<boolean> {
+    if (error === null) return false
+    const req = route.request()
+    mocks.contractViolations.push(`${req.method()} ${new URL(req.url()).pathname}: ${error}`)
+    await json(route, { error }, 400)
+    return true
+  }
+
   const transactions: Record<number, Record<string, unknown>> = {
     100: {
       id: 100,
@@ -131,7 +170,7 @@ export async function installApiMocks(page: Page): Promise<void> {
     },
   }
 
-  await page.route(/\/api\/v1\//, async (route: Route) => {
+  await context.route(/\/api\/v1\//, async (route: Route) => {
     const req = route.request()
     const method = req.method()
     const url = new URL(req.url())
@@ -180,6 +219,24 @@ export async function installApiMocks(page: Page): Promise<void> {
         token: E2E_AUTH_TOKEN,
       })
       return
+    }
+
+    if (path.endsWith('/transactions/csv')) {
+      if (method === 'GET') {
+        await json(route, mocks.csvImports)
+        return
+      }
+      if (method === 'POST') {
+        const body: unknown = req.postDataJSON()
+        if (await rejectIfInvalid(route, validateCsvImportCreate(body))) return
+        const key = `imports/e2e-user/${(body as { filename: string }).filename}`
+        await json(route, {
+          uploadUrl: `${mocks.csvUploadOrigin}/${key}?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Signature=e2e`,
+          key,
+          expiresIn: 300,
+        })
+        return
+      }
     }
 
     if (path.includes('/budget-categories')) {
@@ -255,12 +312,7 @@ export async function installApiMocks(page: Page): Promise<void> {
         return
       }
       if (method === 'PATCH') {
-        // Mirrors resourceQuerier's validatePendingTransactionRequest: a top-level string only.
-        const { budgetCategory } = req.postDataJSON() ?? {}
-        if (typeof budgetCategory !== 'string' || !budgetCategory.trim()) {
-          await json(route, { error: ['budgetCategory is required'] }, 400)
-          return
-        }
+        if (await rejectIfInvalid(route, validatePendingTransactionPatch(req.postDataJSON()))) return
         await json(route, { ok: true })
         return
       }
@@ -284,6 +336,7 @@ export async function installApiMocks(page: Page): Promise<void> {
       }
       if (method === 'PATCH' || method === 'PUT') {
         const body = req.postDataJSON()
+        if (await rejectIfInvalid(route, validateTransactionPatch(body, id))) return
         const updates = mapCamelToSnake(body)
         if (transactions[id]) {
           Object.assign(transactions[id], updates)
@@ -339,16 +392,7 @@ export async function installApiMocks(page: Page): Promise<void> {
         return
       }
       if (method === 'POST') {
-        // Mirrors resourceQuerier's createTransaction guard, which reads camelCase only.
-        const body = req.postDataJSON() ?? {}
-        if (!body.memo || body.amountDebit == null || !body.date) {
-          await json(
-            route,
-            { error: 'Missing required fields: memo, amountDebit, and date are required' },
-            400,
-          )
-          return
-        }
+        if (await rejectIfInvalid(route, validateTransactionCreate(req.postDataJSON()))) return
         await json(route, { id: 1 }, 201)
         return
       }
@@ -365,6 +409,17 @@ export async function installApiMocks(page: Page): Promise<void> {
       }
     }
 
+    if (path.match(/\/memos\/(\d+)$/) && method === 'PATCH') {
+      const id = Number(path.match(/\/memos\/(\d+)$/)![1])
+      const body = req.postDataJSON()
+      if (await rejectIfInvalid(route, validateMemoPatch(body))) return
+      const updates = mapCamelToSnake(body)
+      if (memos[id]) {
+        Object.assign(memos[id], updates)
+      }
+      await json(route, { memo: memos[id] ?? { ...updates, id } })
+      return
+    }
     if (path.match(/\/memos\/[^/]+\/summary$/)) {
       await json(route, { sum_amount_debit: 0, transactions_count: 0 })
       return
@@ -397,18 +452,10 @@ export async function installApiMocks(page: Page): Promise<void> {
         await json(route, limit === null ? rows.slice(offset) : rows.slice(offset, offset + limit))
         return
       }
-      if (method === 'PATCH') {
-        const body = req.postDataJSON()
-        const updates = mapCamelToSnake(body)
-        const id = Number(updates.id ?? body.id)
-        if (memos[id]) {
-          Object.assign(memos[id], updates)
-        }
-        await json(route, { memo: memos[id] ?? { ...updates, id } })
-        return
-      }
     }
 
     await json(route, { e2eMock: 'unhandled', path, method }, 404)
   })
+
+  return mocks
 }

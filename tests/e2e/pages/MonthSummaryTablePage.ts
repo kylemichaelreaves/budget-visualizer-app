@@ -11,7 +11,7 @@ export class MonthSummaryTablePage {
     this.page = page
     this.root = page.getByTestId('month-summary-table')
     this.errorAlert = page.getByTestId('month-summary-table-error')
-    this.loadingMessage = page.getByText('Loading month summary...')
+    this.loadingMessage = page.getByTestId('month-summary-table-loading')
   }
 
   async gotoForMonth(month: string) {
@@ -20,7 +20,7 @@ export class MonthSummaryTablePage {
   }
 
   dataTable(): Locator {
-    return this.root.locator('table')
+    return this.root.getByTestId('month-summary-table-data')
   }
 
   memoLinkForNumericMemo(memoId: number): Locator {

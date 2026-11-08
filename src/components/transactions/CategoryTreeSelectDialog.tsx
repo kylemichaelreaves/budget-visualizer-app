@@ -31,7 +31,12 @@ export default function CategoryTreeSelectDialog(props: {
     >
       <DialogContent class="max-w-xs p-0 overflow-hidden" data-testid="category-tree-select-dialog">
         <DialogHeader class="px-4 pt-4 pb-0">
-          <DialogTitle>{props.title ?? 'Assign Budget Category'}</DialogTitle>
+          <DialogTitle>
+            {/* Kobalte's polymorphic Title props don't accept data-* attributes. */}
+            <span data-testid="category-tree-select-dialog-title">
+              {props.title ?? 'Assign Budget Category'}
+            </span>
+          </DialogTitle>
           <Show when={props.subtitle}>
             <p class="text-sm text-muted-foreground truncate m-0">{props.subtitle}</p>
           </Show>

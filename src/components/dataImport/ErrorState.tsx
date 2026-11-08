@@ -20,8 +20,15 @@ export default function ErrorState(props: {
       <div class="mb-4 inline-flex h-[52px] w-[52px] items-center justify-center rounded-full bg-caution-muted text-caution">
         <Icon name="alert" size={26} stroke={2} />
       </div>
-      <div class="text-xl font-semibold tracking-tight">{props.title}</div>
-      <div class="mx-auto mt-1.5 max-w-[460px] text-sm text-muted-foreground">{props.body}</div>
+      <div class="text-xl font-semibold tracking-tight" data-testid="data-import-error-title">
+        {props.title}
+      </div>
+      <div
+        class="mx-auto mt-1.5 max-w-[460px] text-sm text-muted-foreground"
+        data-testid="data-import-error-body"
+      >
+        {props.body}
+      </div>
 
       <Show when={props.file}>
         {(file) => (

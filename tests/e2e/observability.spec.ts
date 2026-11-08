@@ -1,23 +1,10 @@
 import { authenticatedTest as test, expect } from './fixtures/fixtures'
-import { E2E_ADMIN_USER, E2E_AUTH_TOKEN } from './fixtures/auth-storage'
-import { installApiMocks } from './fixtures/install-api-mocks'
+import { E2E_ADMIN_USER } from './fixtures/auth-storage'
 
 const OBSERVABILITY_URL = '/budget-visualizer/observability'
 
 test.describe('Observability (admin)', () => {
-  test.use({
-    page: async ({ page }, use) => {
-      await page.addInitScript(
-        ({ user, token }: { user: string; token: string }) => {
-          localStorage.setItem('user', user)
-          localStorage.setItem('token', token)
-        },
-        { user: E2E_ADMIN_USER, token: E2E_AUTH_TOKEN },
-      )
-      await installApiMocks(page)
-      await use(page)
-    },
-  })
+  test.use({ authUser: E2E_ADMIN_USER })
 
   test('shows the sidebar link and opens the page with all four cards', async ({
     page,

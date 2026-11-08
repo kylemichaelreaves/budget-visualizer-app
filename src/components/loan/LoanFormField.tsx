@@ -62,6 +62,7 @@ export default function LoanFormField(props: {
       fallback={wrap(
         <Input
           id={fieldId()}
+          data-testid={fieldId()}
           type="number"
           placeholder={props.field.placeholder}
           value={Number(value()) || ''}
@@ -79,6 +80,7 @@ export default function LoanFormField(props: {
       {wrap(
         <Input
           id={fieldId()}
+          data-testid={fieldId()}
           type="date"
           placeholder={props.field.placeholder}
           value={iso()}

@@ -6,7 +6,7 @@ test.describe('Register', () => {
     page,
     registerPage,
   }) => {
-    await installApiMocks(page)
+    await installApiMocks(page.context())
     await registerPage.goto()
     await registerPage.submitRegistration({
       username: 'newuser',

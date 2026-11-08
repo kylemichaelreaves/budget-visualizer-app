@@ -76,7 +76,7 @@ export default function LoanCalculator() {
   }
 
   return (
-    <Card class="w-full max-w-[520px]">
+    <Card class="w-full max-w-[520px]" data-testid="loan-calculator">
       <CardHeader>
         <CardTitle>Loan Calculator</CardTitle>
         <p class="text-sm text-muted-foreground" aria-live="polite" data-testid="loan-estimate">
@@ -109,10 +109,20 @@ export default function LoanCalculator() {
             )}
           </For>
           <div class="flex gap-2.5 mt-4">
-            <Button type="submit" disabled={isFormInitial() || hasVisibleErrors()}>
+            <Button
+              type="submit"
+              disabled={isFormInitial() || hasVisibleErrors()}
+              data-testid="loan-calculate"
+            >
               Calculate
             </Button>
-            <Button variant="outline" type="button" onClick={resetForm} disabled={isFormInitial()}>
+            <Button
+              variant="outline"
+              type="button"
+              onClick={resetForm}
+              disabled={isFormInitial()}
+              data-testid="loan-reset"
+            >
               Reset
             </Button>
           </div>
