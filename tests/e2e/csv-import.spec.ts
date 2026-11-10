@@ -48,6 +48,27 @@ test.describe('CSV import', () => {
     expect(puts[0].postData()).toBe(CSV)
   })
 
+  test('uploads as text/csv when the browser reports text/plain', async ({ page, dataImportPage }) => {
+    // resourceQuerier allows only text/csv and application/vnd.ms-excel; the
+    // contract-checked mock 400s anything else, as the real handler would.
+    const puts: Request[] = []
+    await page.route(`${CSV_UPLOAD_ORIGIN}/**`, async (route) => {
+      if (route.request().method() === 'PUT') puts.push(route.request())
+      await fulfillPresignedPut(route)
+    })
+    const createImport = page.waitForRequest(
+      (req) => req.method() === 'POST' && req.url().endsWith('/api/v1/transactions/csv'),
+    )
+
+    await dataImportPage.goto()
+    await dataImportPage.chooseFile('2025_03.csv', CSV, 'text/plain')
+
+    expect((await createImport).postDataJSON()).toEqual({ filename: '2025_03.csv', contentType: 'text/csv' })
+    await expect(dataImportPage.successCard).toBeVisible()
+    expect(puts).toHaveLength(1)
+    expect(await puts[0].headerValue('content-type')).toBe('text/csv')
+  })
+
   test('the CSP blocks an upload host missing from connect-src', async ({
     page,
     apiMocks,
@@ -86,6 +107,22 @@ test.describe('CSV import', () => {
 
     await dataImportPage.goto()
     await dataImportPage.chooseFile('bank-export.csv', CSV)
+
+    await expect(dataImportPage.errorTitle).toHaveText("Filename doesn't match the expected pattern")
+    expect(created).toBe(false)
+  })
+
+  test('rejects an uppercase .CSV extension, which resourceQuerier would 400', async ({
+    page,
+    dataImportPage,
+  }) => {
+    let created = false
+    page.on('request', (req) => {
+      if (req.method() === 'POST' && req.url().endsWith('/api/v1/transactions/csv')) created = true
+    })
+
+    await dataImportPage.goto()
+    await dataImportPage.chooseFile('2025_02.CSV', CSV)
 
     await expect(dataImportPage.errorTitle).toHaveText("Filename doesn't match the expected pattern")
     expect(created).toBe(false)

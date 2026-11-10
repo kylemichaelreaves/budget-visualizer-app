@@ -8,6 +8,11 @@ import { isValidImportFilename } from '@components/dataImport/helpers/isValidImp
 
 const MAX_FILE_BYTES = 10 * 1_000 * 1_000
 
+// resourceQuerier accepts only text/csv and application/vnd.ms-excel, and signs
+// the presigned PUT with whatever we send, so `file.type` (often text/plain,
+// application/octet-stream or '') can't be passed through.
+const UPLOAD_CONTENT_TYPE = 'text/csv'
+
 type ViewState =
   | { kind: 'empty' }
   | { kind: 'uploading'; file: File }
@@ -27,6 +32,8 @@ export default function DataImportPage(): JSX.Element {
     // Validate on filename only — browsers report inconsistent MIME types for CSVs
     // (text/csv, application/vnd.ms-excel, application/octet-stream, text/plain, ''),
     // so requiring a specific type rejects valid files.
+    // The extension check stays case-insensitive: `2026_05.CSV` is a CSV, so it
+    // belongs under the bad-name error (rename to `.csv`), not wrong-type.
     if (!file.name.toLowerCase().endsWith('.csv')) {
       setView({ kind: 'error-wrong-type', file })
       return
@@ -43,7 +50,7 @@ export default function DataImportPage(): JSX.Element {
     const uploadId = ++activeUploadId
     setView({ kind: 'uploading', file })
     try {
-      await mutation.mutateAsync({ file, contentType: file.type || 'text/csv' })
+      await mutation.mutateAsync({ file, contentType: UPLOAD_CONTENT_TYPE })
       if (uploadId !== activeUploadId) return
       setView({ kind: 'success', filename: file.name })
     } catch (err) {
