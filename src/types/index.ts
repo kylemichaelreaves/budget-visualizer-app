@@ -177,6 +177,8 @@ export type Transaction = {
   /** `null` in a PATCH clears a single-category assignment (see `updateTransaction`). */
   budget_category?: string | SplitBudgetCategory[] | null
   is_split?: boolean
+  /** The row's memo `ambiguous` flag, from the list endpoint; `null` with no (owned) memo. Read-only. */
+  memo_ambiguous?: boolean | null
 }
 
 /** PATCH `/transactions/:id` — `id` required; other fields optional. */
@@ -322,3 +324,5 @@ export interface RecurringRefreshResult {
   upserted: number
   deleted: number
 }
+
+export * from './observability'

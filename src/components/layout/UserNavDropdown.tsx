@@ -44,7 +44,11 @@ export function UserNavDropdown() {
           {userDisplayInitials(authState.user)}
         </div>
         <Show when={authState.user.role === 'admin'}>
-          <Badge variant="destructive" class="uppercase tracking-wide text-[0.65rem] shrink-0">
+          <Badge
+            variant="destructive"
+            class="uppercase tracking-wide text-[0.65rem] shrink-0"
+            data-testid="navbar-admin-badge"
+          >
             admin
           </Badge>
         </Show>

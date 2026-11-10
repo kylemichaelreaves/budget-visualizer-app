@@ -52,6 +52,7 @@ export default function RecentImportsList(): JSX.Element {
                           <div
                             class="min-w-0 flex-1 truncate font-mono text-[13.5px] font-medium"
                             title={filename}
+                            data-testid="data-import-recent-file"
                           >
                             {filename}
                           </div>

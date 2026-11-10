@@ -1,4 +1,4 @@
-import type { RecurringFilters } from '@types'
+import type { ObservabilityRange, RecurringFilters } from '@types'
 
 /**
  * Central TanStack Query keys. Use builders for `useQuery` / `useInfiniteQuery`;
@@ -112,6 +112,10 @@ export const queryKeys = {
   recurring: {
     all: ['recurring'] as const,
     list: (f: RecurringFilters) => ['recurring', f] as const,
+  },
+  observability: {
+    all: ['observability'] as const,
+    metrics: (range: ObservabilityRange) => ['observability', 'metrics', range] as const,
   },
   isIntervalGreaterThanOldestDate: (interval: string) =>
     ['is-interval-greater-than-oldest-date', interval] as const,

@@ -11,7 +11,7 @@ export class WeekSummaryTablePage {
     this.page = page
     this.root = page.getByTestId('week-summary-table')
     this.errorAlert = page.getByTestId('week-summary-table-error')
-    this.loadingMessage = page.getByText('Loading week summary...')
+    this.loadingMessage = page.getByTestId('week-summary-table-loading')
   }
 
   async gotoForWeek(week: string) {
@@ -20,7 +20,7 @@ export class WeekSummaryTablePage {
   }
 
   dataTable(): Locator {
-    return this.root.locator('table')
+    return this.root.getByTestId('week-summary-table-data')
   }
 
   memoLinkForNumericMemo(memoId: number): Locator {

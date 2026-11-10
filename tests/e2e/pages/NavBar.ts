@@ -14,19 +14,24 @@ export class NavBar {
     this.brandLink = this.nav.getByRole('link', { name: 'Budget Visualizer' })
     this.loginButton = this.nav.getByRole('button', { name: /log in/i })
     this.userMenuButton = this.nav.getByRole('button', { name: /account menu/i })
-    this.adminBadge = this.nav.getByText('admin', { exact: true })
+    this.adminBadge = this.nav.getByTestId('navbar-admin-badge')
   }
 
   loginLabel() {
     return this.nav.getByTestId('navbar-login-label')
   }
 
-  /** Log In when unauthenticated; opens user menu and chooses Log out when authenticated. */
-  async clickLoginLogout() {
-    if (await this.loginButton.isVisible()) {
-      await this.loginButton.click()
-      return
-    }
+  /**
+   * Separate methods rather than one that branches on `isVisible()`: that check
+   * is a snapshot that doesn't wait, so it reads `false` if the navbar hasn't
+   * rendered yet and goes down the logout branch. Each caller knows which state
+   * it expects.
+   */
+  async clickLogin() {
+    await this.loginButton.click()
+  }
+
+  async logout() {
     await this.userMenuButton.click()
     await this.page.getByTestId('navbar-menu-logout').click()
   }

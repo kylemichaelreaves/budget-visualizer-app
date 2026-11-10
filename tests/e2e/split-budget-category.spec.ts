@@ -38,14 +38,10 @@ test.describe('Split Budget Category', () => {
     await transactionEditPage.page.getByLabel(/split into multiple categories/i).click()
     await expect(splitBudgetCategoryDrawer.drawer).toBeVisible({ timeout: 5_000 })
 
-    const initialCount = await splitBudgetCategoryDrawer.rows.count()
-    // Reduce the first split amount so Add split is enabled
-    if (initialCount > 0) {
-      await splitBudgetCategoryDrawer.setSplitAmount(0, '10')
-    }
+    // An unsplit transaction opens with a single row holding the whole amount.
+    await expect(splitBudgetCategoryDrawer.rows).toHaveCount(1)
     await splitBudgetCategoryDrawer.addSplit()
-    const newCount = await splitBudgetCategoryDrawer.rows.count()
-    expect(newCount).toBeGreaterThan(initialCount)
+    await expect(splitBudgetCategoryDrawer.rows).toHaveCount(2)
   })
 
   test('cancel button closes the drawer', async ({ transactionEditPage, splitBudgetCategoryDrawer }) => {
@@ -137,6 +133,21 @@ test.describe('Split Budget Category', () => {
       await transactionsPage.goto()
       // Transaction 100 links to memo 200 which is ambiguous
       await expect(transactionsPage.memoAmbiguityIndicator(100)).toBeVisible({ timeout: 10_000 })
+    })
+
+    // #88: the flag comes on the list rows, so the table fetches no memo per row.
+    test('reads the flag from the list rows without requesting any memo', async ({
+      page,
+      transactionsPage,
+    }) => {
+      const memoRequests: string[] = []
+      page.on('request', (req) => {
+        if (/\/api\/v1\/memos\/\d+$/.test(new URL(req.url()).pathname)) memoRequests.push(req.url())
+      })
+      await transactionsPage.goto()
+      await expect(transactionsPage.memoAmbiguityIndicator(100)).toBeVisible({ timeout: 10_000 })
+      await expect(transactionsPage.splitButton(102)).toBeVisible()
+      expect(memoRequests).toEqual([])
     })
 
     test('does not show warning for rows with non-ambiguous memo', async ({ transactionsPage }) => {

@@ -72,7 +72,9 @@ export default function MemosTableListCard(props: {
         </Show>
 
         <Show when={!props.isLoadingCondition() && props.paginatedData().length === 0}>
-          <p class="text-muted-foreground py-8 text-center">No memos found.</p>
+          <p class="text-muted-foreground py-8 text-center" data-testid="memos-table-empty">
+            No memos found.
+          </p>
         </Show>
       </CardContent>
     </Card>

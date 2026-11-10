@@ -103,7 +103,9 @@ export default function TimeframeSummaryTable(props: {
           </Show>
 
           <Show when={props.isLoading()}>
-            <p class="text-muted-foreground text-xs px-4 py-3">{props.loadingMessage}</p>
+            <p class="text-muted-foreground text-xs px-4 py-3" data-testid={`${id()}-loading`}>
+              {props.loadingMessage}
+            </p>
           </Show>
 
           <Show when={props.showTable()}>
@@ -116,7 +118,7 @@ export default function TimeframeSummaryTable(props: {
               }
             >
               <div class="max-h-56 overflow-y-auto" aria-busy={props.isFetching() ? 'true' : undefined}>
-                <table class="w-full text-sm border-collapse">
+                <table class="w-full text-sm border-collapse" data-testid={`${id()}-data`}>
                   <thead class="sticky top-0 bg-card z-10 border-b border-border">
                     <tr>
                       <th class={thClass} onClick={() => handleSort('memo')}>

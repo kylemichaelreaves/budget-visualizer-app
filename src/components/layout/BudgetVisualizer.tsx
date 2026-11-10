@@ -25,10 +25,17 @@ const menuSections: MenuSection[] = [
   },
 ]
 
+const adminSection: MenuSection = {
+  label: 'Admin',
+  items: [{ path: '/budget-visualizer/observability', title: 'Observability' }],
+}
+
 export default function BudgetVisualizer(props: { children?: JSX.Element }) {
   const loc = useLocation()
   const navigate = useNavigate()
   const [showCreate, setShowCreate] = createSignal(false)
+  // UX only: the backend enforces admin access with a 403.
+  const sections = () => (authState.user.role === 'admin' ? [...menuSections, adminSection] : menuSections)
 
   /**
    * Reactive, not `onMount`: a one-shot check only fires on the initial mount,
@@ -67,6 +74,7 @@ export default function BudgetVisualizer(props: { children?: JSX.Element }) {
             !loc.pathname.includes('/budget-categories') &&
             !loc.pathname.includes('/loan-calculator') &&
             !loc.pathname.includes('/account') &&
+            !loc.pathname.includes('/observability') &&
             !loc.pathname.includes('/transactions/csv')
           }
         >
@@ -79,7 +87,7 @@ export default function BudgetVisualizer(props: { children?: JSX.Element }) {
 
         <div class="flex gap-6 items-start">
           <nav class="flex flex-col gap-1 w-48 shrink-0" aria-label="Sidebar navigation">
-            <For each={menuSections}>
+            <For each={sections()}>
               {(section, sectionIdx) => (
                 <>
                   <h3
@@ -92,6 +100,11 @@ export default function BudgetVisualizer(props: { children?: JSX.Element }) {
                     {(item) => (
                       <A
                         href={item.path}
+                        data-testid={
+                          item.path === '/budget-visualizer/observability'
+                            ? 'sidebar-admin-observability'
+                            : undefined
+                        }
                         class={
                           loc.pathname === item.path
                             ? 'px-3 py-2.5 rounded-md no-underline bg-brand text-brand-foreground'

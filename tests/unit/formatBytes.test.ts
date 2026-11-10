@@ -24,4 +24,10 @@ describe('formatBytes', () => {
     expect(formatBytes(2_500_000)).toBe('2.5 MB')
     expect(formatBytes(10_000_000)).toBe('10.0 MB')
   })
+
+  it('formats values at and over 1 GB with 1 decimal GB', () => {
+    expect(formatBytes(999_900_000)).toBe('999.9 MB')
+    expect(formatBytes(1_000_000_000)).toBe('1.0 GB')
+    expect(formatBytes(14_200_000_000)).toBe('14.2 GB')
+  })
 })

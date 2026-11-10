@@ -1,4 +1,4 @@
-import { test as base } from '@playwright/test'
+import { test as base, expect } from '@playwright/test'
 import type {
   Fixtures as PlaywrightFixtures,
   PlaywrightTestArgs,
@@ -7,7 +7,7 @@ import type {
   PlaywrightWorkerOptions,
 } from '@playwright/test'
 import { E2E_AUTH_TOKEN, E2E_AUTH_USER } from './auth-storage'
-import { installApiMocks } from './install-api-mocks'
+import { installApiMocks, type ApiMocks } from './install-api-mocks'
 import { ForgotPasswordPage } from '../pages/ForgotPasswordPage'
 import { LoginPage } from '../pages/LoginPage'
 import { RegisterPage } from '../pages/RegisterPage'
@@ -23,11 +23,13 @@ import { MemoEditPage } from '../pages/MemoEditPage'
 import { MemoSummaryPage } from '../pages/MemoSummaryPage'
 import { BudgetCategoriesPage } from '../pages/BudgetCategoriesPage'
 import { LoanCalculatorPage } from '../pages/LoanCalculatorPage'
+import { DataImportPage } from '../pages/DataImportPage'
 import { NavBar } from '../pages/NavBar'
 import { SplitBudgetCategoryDrawer } from '../pages/SplitBudgetCategoryDrawer'
 import { CategoryTreeSelectDialog } from '../pages/CategoryTreeSelectDialog'
 import { MonthSummaryTablePage } from '../pages/MonthSummaryTablePage'
 import { WeekSummaryTablePage } from '../pages/WeekSummaryTablePage'
+import { ObservabilityPage } from '../pages/ObservabilityPage'
 
 type Fixtures = {
   loginPage: LoginPage
@@ -46,10 +48,12 @@ type Fixtures = {
   memoSummaryPage: MemoSummaryPage
   budgetCategoriesPage: BudgetCategoriesPage
   loanCalculatorPage: LoanCalculatorPage
+  dataImportPage: DataImportPage
   splitBudgetCategoryDrawer: SplitBudgetCategoryDrawer
   categoryTreeSelectDialog: CategoryTreeSelectDialog
   monthSummaryTablePage: MonthSummaryTablePage
   weekSummaryTablePage: WeekSummaryTablePage
+  observabilityPage: ObservabilityPage
 }
 
 /**
@@ -113,6 +117,9 @@ const pageObjectFixtures: PlaywrightFixtures<
   loanCalculatorPage: async ({ page }, use) => {
     await use(new LoanCalculatorPage(page))
   },
+  dataImportPage: async ({ page }, use) => {
+    await use(new DataImportPage(page))
+  },
   splitBudgetCategoryDrawer: async ({ page }, use) => {
     await use(new SplitBudgetCategoryDrawer(page))
   },
@@ -124,6 +131,9 @@ const pageObjectFixtures: PlaywrightFixtures<
   },
   weekSummaryTablePage: async ({ page }, use) => {
     await use(new WeekSummaryTablePage(page))
+  },
+  observabilityPage: async ({ page }, use) => {
+    await use(new ObservabilityPage(page))
   },
 }
 
@@ -138,17 +148,31 @@ export const test = base.extend<Fixtures>({
 /**
  * Authenticated fixture — injects auth into localStorage and installs
  * API mocks before each test. Use for all pages behind login.
+ *
+ * A test fails if any request it made broke a resourceQuerier body contract,
+ * even when the spec never looks at that response: the real API would have
+ * rejected or silently dropped the write.
  */
-export const authenticatedTest = base.extend<Fixtures>({
-  page: async ({ page }, use) => {
-    await page.addInitScript(
+export const authenticatedTest = base.extend<Fixtures & { authUser: string; apiMocks: ApiMocks }>({
+  /** Serialized `User` written to localStorage; override with `test.use({ authUser: E2E_ADMIN_USER })`. */
+  authUser: [E2E_AUTH_USER, { option: true }],
+  // Installed on the context, not the page, so `page` can depend on this; a spec's
+  // own `page.route` still takes precedence over these handlers.
+  apiMocks: async ({ context, authUser }, use) => {
+    await context.addInitScript(
       ({ user, token }: { user: string; token: string }) => {
         localStorage.setItem('user', user)
         localStorage.setItem('token', token)
       },
-      { user: E2E_AUTH_USER, token: E2E_AUTH_TOKEN },
+      { user: authUser, token: E2E_AUTH_TOKEN },
     )
-    await installApiMocks(page)
+    const mocks = await installApiMocks(context)
+    await use(mocks)
+    expect(mocks.contractViolations, 'requests that break a resourceQuerier contract').toEqual([])
+  },
+  // Depends on apiMocks so every authenticated test gets auth and mocks, used or not.
+  page: async ({ page, apiMocks }, use) => {
+    void apiMocks
     await use(page)
   },
   ...pageObjectFixtures,

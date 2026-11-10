@@ -1,0 +1,162 @@
+import { render, screen, fireEvent, waitFor, within } from '@solidjs/testing-library'
+import { QueryClient, QueryClientProvider } from '@tanstack/solid-query'
+import { AxiosError, type AxiosResponse } from 'axios'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import type { ObservabilityMetrics } from '@types'
+import { fullMetrics, nullMetrics } from '@components/observability/infrastructure/observabilityStoryFixtures'
+
+const fetchMock = vi.fn<(range: string) => Promise<ObservabilityMetrics>>()
+vi.mock('@api/observability/fetchObservabilityMetrics', () => ({
+  fetchObservabilityMetrics: (range: string) => fetchMock(range),
+}))
+
+const { default: useObservabilityMetrics } = await import('@api/hooks/observability/useObservabilityMetrics')
+const { default: InfrastructureTab } =
+  await import('@components/observability/infrastructure/InfrastructureTab')
+
+function TabHarness() {
+  const query = useObservabilityMetrics(() => '24h')
+  return <InfrastructureTab query={query} />
+}
+
+function renderTab() {
+  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
+  render(() => (
+    <QueryClientProvider client={queryClient}>
+      <TabHarness />
+    </QueryClientProvider>
+  ))
+  return queryClient
+}
+
+function httpError(status: number) {
+  return new AxiosError('failed', 'ERR_BAD_RESPONSE', undefined, undefined, { status } as AxiosResponse)
+}
+
+describe('InfrastructureTab', () => {
+  beforeEach(() => {
+    fetchMock.mockReset()
+  })
+
+  it('renders every card from a full response', async () => {
+    fetchMock.mockResolvedValue(fullMetrics)
+    renderTab()
+    const api = await screen.findByTestId('observability-api-card')
+    expect(within(api).getByText('2,184')).toBeTruthy()
+    expect(within(api).getByText('96 ms / 412 ms')).toBeTruthy()
+    const table = screen.getByTestId('observability-lambda-table')
+    const rows = within(table).getAllByTestId('observability-lambda-row')
+    expect(
+      rows.map((r) => r.querySelector('[data-testid="observability-lambda-label"]')?.textContent),
+    ).toEqual(['resourceQuerier', 'UserManager', 'Authorizer', 'CSV ingestion'])
+    const physical = within(rows[3]).getByTestId('observability-lambda-function-name')
+    expect(physical.textContent).toBe('transactions-bucket-to-db')
+    expect(physical.getAttribute('title')).toBe('transactions-bucket-to-db')
+    expect(screen.getByTestId('observability-ingestion-card')).toBeTruthy()
+    const rds = screen.getByTestId('observability-rds-card')
+    expect(within(rds).getByText('14.2 GB')).toBeTruthy()
+  })
+
+  it('shows — for null metrics instead of 0', async () => {
+    fetchMock.mockResolvedValue(nullMetrics)
+    renderTab()
+    await screen.findByTestId('observability-api-card')
+    for (const id of [
+      'observability-api-card',
+      'observability-lambda-table',
+      'observability-ingestion-card',
+      'observability-rds-card',
+    ]) {
+      const text = screen.getByTestId(id).textContent ?? ''
+      expect(text).toContain('—')
+      expect(text).not.toMatch(/\b0\b/)
+      expect(text).not.toContain('NaN')
+    }
+  })
+
+  it('treats a null DLQ depth as idle with a hint, not as missing data', async () => {
+    fetchMock.mockResolvedValue(nullMetrics)
+    renderTab()
+    const ingestion = await screen.findByTestId('observability-ingestion-card')
+    expect(within(ingestion).getByTestId('observability-health-badge').textContent).toBe('Idle')
+    expect(within(ingestion).getByText('Dead-letter queue depth').nextElementSibling?.textContent).toBe('—')
+    expect(within(ingestion).getByTestId('observability-dlq-idle').textContent).toBe(
+      'No messages in the last 6 hours',
+    )
+  })
+
+  it('shows no idle hint when the DLQ depth is a real 0', async () => {
+    fetchMock.mockResolvedValue(fullMetrics)
+    renderTab()
+    const ingestion = await screen.findByTestId('observability-ingestion-card')
+    expect(within(ingestion).queryByTestId('observability-dlq-idle')).toBeNull()
+    expect(within(ingestion).getByTestId('observability-health-badge').textContent).toBe('Healthy')
+  })
+
+  it('keeps the cards and shows a stale notice when a refresh fails', async () => {
+    fetchMock.mockResolvedValueOnce(fullMetrics)
+    const queryClient = renderTab()
+    await screen.findByTestId('observability-api-card')
+    expect(screen.queryByTestId('observability-stale')).toBeNull()
+
+    fetchMock.mockRejectedValue(httpError(502))
+    void queryClient.invalidateQueries()
+    const notice = await screen.findByTestId('observability-stale')
+    expect(notice.textContent).toMatch(/^Couldn't refresh — showing data from .+\.$/)
+    expect(screen.getByTestId('observability-api-card')).toBeTruthy()
+    expect(screen.queryByTestId('observability-error')).toBeNull()
+  })
+
+  it('renders a real 0 as 0, not —', async () => {
+    fetchMock.mockResolvedValue({
+      ...fullMetrics,
+      lambdas: fullMetrics.lambdas.map((l) => ({ ...l, errors: 0, throttles: 0 })),
+      ingestion: { dlqVisible: 0 },
+      rds: { ...fullMetrics.rds, cpuPercent: 0 },
+    })
+    renderTab()
+    await screen.findByTestId('observability-api-card')
+    const rows = within(screen.getByTestId('observability-lambda-table')).getAllByTestId(
+      'observability-lambda-row',
+    )
+    for (const row of rows) {
+      const cells = row.querySelectorAll('td')
+      expect(cells[3].textContent).toBe('0')
+      expect(cells[5].textContent).toBe('0')
+    }
+    const ingestion = screen.getByTestId('observability-ingestion-card')
+    expect(within(ingestion).getByText('Dead-letter queue depth').nextElementSibling?.textContent).toBe('0')
+    const rds = screen.getByTestId('observability-rds-card')
+    expect(within(rds).getByText('CPU').nextElementSibling?.textContent).toBe('0%')
+    expect(within(rds).getByRole('progressbar')).toBeTruthy()
+  })
+
+  it('shows skeletons only on first load', () => {
+    fetchMock.mockReturnValue(new Promise(() => {}))
+    renderTab()
+    expect(screen.getByTestId('observability-loading')).toBeTruthy()
+    expect(screen.queryByTestId('observability-api-card')).toBeNull()
+  })
+
+  it('shows the forbidden state on 403', async () => {
+    fetchMock.mockRejectedValue(httpError(403))
+    renderTab()
+    const el = await screen.findByTestId('observability-forbidden')
+    expect(el.textContent).toContain(
+      "You don't have access to observability. If your role changed recently, sign out and back in.",
+    )
+    expect(screen.queryByTestId('observability-retry')).toBeNull()
+  })
+
+  it('shows an error with Retry on 502 and refetches on click', async () => {
+    fetchMock.mockRejectedValue(httpError(502))
+    renderTab()
+    const err = await screen.findByTestId('observability-error')
+    expect(err.textContent).toContain('Metrics are unavailable right now.')
+    fetchMock.mockClear()
+    fetchMock.mockResolvedValue(fullMetrics)
+    fireEvent.click(screen.getByTestId('observability-retry'))
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1))
+    await screen.findByTestId('observability-api-card')
+  })
+})
