@@ -33,7 +33,7 @@ export function useCategoryPillFilterClick(opts: {
       cancelPendingCategoryFilter()
       return
     }
-    if (e.detail === 1) {
+    if (e.detail <= 1) {
       cancelPendingCategoryFilter()
       filterClickTimer = setTimeout(() => {
         filterClickTimer = undefined
