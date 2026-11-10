@@ -98,14 +98,13 @@ describe('DataImportPage', () => {
       expect(screen.queryByText(/detected automatically/i)).not.toBeInTheDocument()
     })
 
-    it('accepts uppercase .CSV extension (case-insensitive pattern)', async () => {
-      mutateAsyncMock.mockImplementation(() => new Promise(() => {})) // never resolves
+    // resourceQuerier's filename pattern is case-sensitive, so this would 400.
+    it('shows bad-name error, not wrong-type, for an uppercase .CSV extension', () => {
       render(() => <DataImportPage />)
       dropFile(makeFile('2026_05.CSV', 1024))
-      await waitFor(() => {
-        expect(screen.getByTestId('data-import-uploading-card')).toBeInTheDocument()
-      })
-      expect(mutateAsyncMock).toHaveBeenCalledOnce()
+      expect(screen.getByText(/expected pattern/i)).toBeInTheDocument()
+      expect(screen.queryByText(/doesn't look like a CSV/i)).not.toBeInTheDocument()
+      expect(mutateAsyncMock).not.toHaveBeenCalled()
     })
 
     /**
@@ -131,16 +130,21 @@ describe('DataImportPage', () => {
       expect(screen.getByTestId('data-import-progress-pct')).toHaveTextContent('42%')
     })
 
-    it('accepts a valid .csv even when the browser reports an unexpected MIME type', async () => {
-      // Browsers/OSes sometimes report application/octet-stream or text/plain for CSVs.
-      mutateAsyncMock.mockImplementation(() => new Promise(() => {}))
-      render(() => <DataImportPage />)
-      dropFile(makeFile('2026_05.csv', 1024, 'application/octet-stream'))
-      await waitFor(() => {
-        expect(screen.getByTestId('data-import-uploading-card')).toBeInTheDocument()
-      })
-      expect(mutateAsyncMock).toHaveBeenCalledOnce()
-    })
+    // Browsers/OSes report text/plain, application/octet-stream or '' for CSVs,
+    // none of which resourceQuerier accepts — the page must send text/csv.
+    it.each(['application/octet-stream', 'text/plain', '', 'application/vnd.ms-excel'])(
+      'uploads a valid .csv as text/csv when the browser reports %j',
+      async (type) => {
+        mutateAsyncMock.mockImplementation(() => new Promise(() => {}))
+        render(() => <DataImportPage />)
+        const file = makeFile('2026_05.csv', 1024, type)
+        dropFile(file)
+        await waitFor(() => {
+          expect(screen.getByTestId('data-import-uploading-card')).toBeInTheDocument()
+        })
+        expect(mutateAsyncMock).toHaveBeenCalledExactlyOnceWith({ file, contentType: 'text/csv' })
+      },
+    )
   })
 
   describe('state transitions', () => {
