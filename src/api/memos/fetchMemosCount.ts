@@ -1,26 +1,8 @@
-import { httpClient } from '@api/httpClient.ts'
-import { devConsole } from '@utils/devConsole'
+import { httpClient } from '@api/httpClient'
 
-export async function fetchMemosCount(
-  timeFrame?: string,
-  date?: Date,
-  distinct?: boolean,
-): Promise<
-  {
-    count: number
-  }[]
-> {
-  try {
-    const res = await httpClient.get(`/memos?count=true`, {
-      params: {
-        timeFrame: timeFrame,
-        date: date,
-        distinct: distinct,
-      },
-    })
-    return res.data
-  } catch (err) {
-    devConsole('error', 'Error fetching memos count:', { timeFrame, date, distinct }, err)
-    throw err
-  }
+/** `GET /memos?count=true` — total number of memos. */
+export async function fetchMemosCount(): Promise<number> {
+  const res = await httpClient.get<{ count: number | string }[]>('/memos', { params: { count: true } })
+  // pg `COUNT(*)` without `::int` arrives as a string; coerce at the boundary.
+  return Number(res.data[0]?.count ?? 0)
 }

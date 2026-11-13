@@ -1,6 +1,6 @@
 import { batch } from 'solid-js'
 import { createStore } from 'solid-js/store'
-import type { ViewMode } from '@types'
+import type { PendingTransactionStatus, ViewMode } from '@types'
 
 export type TransactionsState = {
   selectedDay: string
@@ -9,10 +9,8 @@ export type TransactionsState = {
   selectedMemo: string
   selectedMemoId: number | null
   selectedWeek: string
-  selectedType: string
   selectedBudgetCategory: string | null
-  selectedDescription: string
-  selectedStatus: 'pending' | 'reviewed'
+  selectedStatus: PendingTransactionStatus
   viewMode: ViewMode
   memosTableLimit: number
   memosTableOffset: number
@@ -27,9 +25,7 @@ const initial: TransactionsState = {
   selectedMemo: '',
   selectedMemoId: null,
   selectedWeek: '',
-  selectedType: 'Amount Debit',
   selectedBudgetCategory: null,
-  selectedDescription: '',
   selectedStatus: 'pending',
   viewMode: null,
   memosTableLimit: 100,
@@ -205,6 +201,6 @@ export function setSelectedBudgetCategory(
   })
 }
 
-export function setSelectedStatus(status: 'pending' | 'reviewed'): void {
+export function setSelectedStatus(status: PendingTransactionStatus): void {
   setTransactionsState('selectedStatus', status)
 }

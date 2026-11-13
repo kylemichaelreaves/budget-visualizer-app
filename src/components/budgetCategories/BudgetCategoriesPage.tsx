@@ -88,7 +88,6 @@ export default function BudgetCategoriesPage(): JSX.Element {
                 timeFrame={chartTimeFrame()}
                 date={chartDate()}
                 dataTestId="budget-categories-sunburst"
-                showLegend={false}
                 onSliceClick={(cat) => {
                   const n = cat.full_path || cat.budget_category || cat.category_name
                   if (n) setSelectedBudgetCategory(n)

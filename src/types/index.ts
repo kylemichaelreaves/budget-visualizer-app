@@ -58,12 +58,6 @@ export interface DayYear {
 
 export type Frequency = 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'quarterly' | 'yearly'
 
-export type JsonObjectType = {
-  total_debit: number
-  month_number: string
-  year: string
-}
-
 export interface LineChartDataPoint {
   date: Date
   total_debit: number
@@ -145,7 +139,6 @@ export interface MonthYear {
 export type SummaryTypeBase = {
   total_debit: number
   total_amount_debit?: number
-  json?: JsonObjectType
   date?: string
   period_start?: string
 }

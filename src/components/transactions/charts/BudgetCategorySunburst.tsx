@@ -17,7 +17,6 @@ export default function BudgetCategorySunburst(props: {
   isLoading?: boolean
   dataTestId?: string
   onSliceClick?: (row: BudgetCategorySummary) => void
-  showLegend?: boolean
   timeFrame?: Timeframe
   date?: string
 }): JSX.Element {
