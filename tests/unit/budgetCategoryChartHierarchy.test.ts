@@ -1,6 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import type { BudgetCategorySummary } from '@types'
-import { buildBudgetCategoryChartHierarchy } from '@components/transactions/charts/budgetCategoryChartHierarchy'
+import {
+  buildBudgetCategoryChartHierarchy,
+  buildBudgetCategoryRoot,
+  hasChartableBudgetCategoryData,
+} from '@components/transactions/charts/budgetCategoryChartHierarchy'
 
 function makeRow(overrides: Partial<BudgetCategorySummary>): BudgetCategorySummary {
   return {
@@ -113,5 +117,32 @@ describe('buildBudgetCategoryChartHierarchy', () => {
     const root = buildBudgetCategoryChartHierarchy(data)
     const food = root.children?.find((c) => c.category_name === 'Food')
     expect(food?.children?.some((c) => c.name === 'Other')).toBe(false)
+  })
+})
+
+describe('hasChartableBudgetCategoryData', () => {
+  it('is false with no top-level spend', () => {
+    expect(hasChartableBudgetCategoryData([])).toBe(false)
+    expect(
+      hasChartableBudgetCategoryData([
+        makeRow({ category_id: 1, total_amount_debit: 0 }),
+        makeRow({ category_id: 2, parent_id: 1, total_amount_debit: -5 }),
+      ]),
+    ).toBe(false)
+  })
+
+  it('is true once a top-level category has spend, whatever its sign', () => {
+    expect(hasChartableBudgetCategoryData([makeRow({ category_id: 1, total_amount_debit: -5 })])).toBe(true)
+  })
+})
+
+describe('buildBudgetCategoryRoot', () => {
+  it('sums leaf spend as magnitudes and sorts larger categories first', () => {
+    const root = buildBudgetCategoryRoot([
+      makeRow({ category_id: 1, category_name: 'Rent', total_amount_debit: -100 }),
+      makeRow({ category_id: 2, category_name: 'Food', total_amount_debit: -300 }),
+    ])
+    expect(root.value).toBe(400)
+    expect(root.children?.map((c) => c.data.name)).toEqual(['Food', 'Rent'])
   })
 })

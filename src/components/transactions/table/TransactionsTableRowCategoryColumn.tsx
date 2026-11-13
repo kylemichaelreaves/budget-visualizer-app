@@ -1,14 +1,12 @@
 import type { Accessor } from 'solid-js'
 import { For, Show } from 'solid-js'
 import type { Transaction } from '@types'
-import { budgetCategoryColorsFromData } from '@composables/budgetCategoryColors'
+import type { BudgetCategoryColorHelpers } from '@composables/budgetCategoryColors'
 import { AssignBudgetCategoryButton, BudgetCategoryPill } from '@components/shared/BudgetCategoryPill'
 import { Skeleton } from '@components/ui/skeleton'
 import { SplitIcon } from '@shared/icons'
 import { useCategoryPillFilterClick } from '@components/transactions/table/useCategoryPillFilterClick'
 import { formatUsd } from '@utils/formatUsd'
-
-type CategoryColorHelpers = ReturnType<typeof budgetCategoryColorsFromData>
 
 const PILL_TITLE = 'Click to filter by this category; double-click to change category'
 
@@ -16,7 +14,7 @@ export default function TransactionsTableRowCategoryColumn(props: {
   row: Transaction
   isCredit: Accessor<boolean>
   isMemoAmbiguous: Accessor<boolean>
-  categoryColors: Accessor<CategoryColorHelpers>
+  categoryColors: Accessor<BudgetCategoryColorHelpers>
   mutatingTransactionId: Accessor<number | null>
   openCategoryDialog: (row: Transaction) => void
   openSplitDrawer?: (row: Transaction) => void

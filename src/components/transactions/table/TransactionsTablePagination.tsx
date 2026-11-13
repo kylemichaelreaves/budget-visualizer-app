@@ -4,33 +4,42 @@ import TablePaginationBar from '@components/shared/TablePaginationBar'
 import {
   setTransactionsTableLimit,
   transactionsState,
+  updatePendingTableOffset,
   updateTransactionsTableOffset,
 } from '@stores/transactionsStore'
 import type { PendingTransactionStatus } from '@types'
 
+/**
+ * Pager for the transactions table, or — given `status` — the pending table,
+ * which keeps its own offset so paging one table doesn't move the other.
+ */
 export default function TransactionsTablePagination(props: { status?: PendingTransactionStatus }) {
   const countQuery = useTransactionsCount(() => props.status)
 
+  const offset = () =>
+    props.status ? transactionsState.pendingTableOffset : transactionsState.transactionsTableOffset
+  const setOffset = (value: number) =>
+    props.status ? updatePendingTableOffset(value) : updateTransactionsTableOffset(value)
+
   onMount(() => {
     void countQuery.refetch()
-    updateTransactionsTableOffset(0)
+    setOffset(0)
   })
 
-  const currentPage = () =>
-    Math.floor(transactionsState.transactionsTableOffset / transactionsState.transactionsTableLimit) + 1
+  const currentPage = () => Math.floor(offset() / transactionsState.transactionsTableLimit) + 1
 
   const totalPages = () =>
     Math.max(1, Math.ceil(Number(countQuery.data ?? 0) / transactionsState.transactionsTableLimit))
 
   function goPrev() {
     if (currentPage() > 1) {
-      updateTransactionsTableOffset((currentPage() - 2) * transactionsState.transactionsTableLimit)
+      setOffset((currentPage() - 2) * transactionsState.transactionsTableLimit)
     }
   }
 
   function goNext() {
     if (currentPage() < totalPages()) {
-      updateTransactionsTableOffset(currentPage() * transactionsState.transactionsTableLimit)
+      setOffset(currentPage() * transactionsState.transactionsTableLimit)
     }
   }
 
@@ -43,7 +52,7 @@ export default function TransactionsTablePagination(props: { status?: PendingTra
       pageSize={transactionsState.transactionsTableLimit}
       onPageSizeChange={(v) => {
         setTransactionsTableLimit(v)
-        updateTransactionsTableOffset(0)
+        setOffset(0)
       }}
       currentPage={currentPage()}
       totalPages={totalPages()}

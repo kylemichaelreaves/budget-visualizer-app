@@ -1,6 +1,6 @@
 import { batch } from 'solid-js'
 import { createStore } from 'solid-js/store'
-import type { ViewMode } from '@types'
+import type { PendingTransactionStatus, ViewMode } from '@types'
 
 export type TransactionsState = {
   selectedDay: string
@@ -9,15 +9,15 @@ export type TransactionsState = {
   selectedMemo: string
   selectedMemoId: number | null
   selectedWeek: string
-  selectedType: string
   selectedBudgetCategory: string | null
-  selectedDescription: string
-  selectedStatus: 'pending' | 'reviewed'
+  selectedStatus: PendingTransactionStatus
   viewMode: ViewMode
   memosTableLimit: number
   memosTableOffset: number
   transactionsTableLimit: number
   transactionsTableOffset: number
+  /** The pending table's own page; it shares the page size but not the offset. */
+  pendingTableOffset: number
 }
 
 const initial: TransactionsState = {
@@ -27,15 +27,14 @@ const initial: TransactionsState = {
   selectedMemo: '',
   selectedMemoId: null,
   selectedWeek: '',
-  selectedType: 'Amount Debit',
   selectedBudgetCategory: null,
-  selectedDescription: '',
   selectedStatus: 'pending',
   viewMode: null,
   memosTableLimit: 100,
   memosTableOffset: 0,
   transactionsTableLimit: 100,
   transactionsTableOffset: 0,
+  pendingTableOffset: 0,
 }
 
 export const [transactionsState, setTransactionsState] = createStore<TransactionsState>({ ...initial })
@@ -157,6 +156,10 @@ export function updateTransactionsTableOffset(offset: number): void {
   setTransactionsState('transactionsTableOffset', offset)
 }
 
+export function updatePendingTableOffset(offset: number): void {
+  setTransactionsState('pendingTableOffset', offset)
+}
+
 type PendingTransactionsScrollRestore = {
   scrollY: number
   anchorTransactionId?: number
@@ -205,6 +208,6 @@ export function setSelectedBudgetCategory(
   })
 }
 
-export function setSelectedStatus(status: 'pending' | 'reviewed'): void {
+export function setSelectedStatus(status: PendingTransactionStatus): void {
   setTransactionsState('selectedStatus', status)
 }

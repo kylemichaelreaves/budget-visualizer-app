@@ -3,6 +3,7 @@ import type { JSX } from 'solid-js'
 export function ChevronLeftIcon(props: { class?: string }): JSX.Element {
   return (
     <svg
+      aria-hidden="true"
       class={props.class ?? 'size-5'}
       viewBox="0 0 24 24"
       fill="none"

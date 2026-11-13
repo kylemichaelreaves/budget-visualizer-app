@@ -3,7 +3,6 @@ import { type Accessor, createMemo } from 'solid-js'
 import { queryKeys } from '@api/queryKeys'
 import { fetchMemos } from '@api/memos/fetchMemos'
 import { transactionsState } from '@stores/transactionsStore'
-import type { Memo } from '@types'
 export type MemosSort = { key: string | null; dir: 'asc' | 'desc' }
 
 /**
@@ -19,17 +18,15 @@ export default function useMemos(sort: Accessor<MemosSort> = () => ({ key: null,
   return useInfiniteQuery(() => ({
     queryKey: queryKey(),
     initialPageParam: 0,
-    queryFn: async ({ pageParam }) => {
+    queryFn: ({ pageParam }) => {
       const page = Number(pageParam)
 
       const { key, dir } = sort()
-      const rows = (await fetchMemos({
+      return fetchMemos({
         limit: transactionsState.memosTableLimit,
         offset: page,
         ...(key ? { sortKey: key, sortDir: dir } : {}),
-      })) as Memo[]
-
-      return rows
+      })
     },
     getNextPageParam: (lastPage, allPages) => {
       if (lastPage.length < transactionsState.memosTableLimit) return undefined

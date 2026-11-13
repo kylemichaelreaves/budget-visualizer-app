@@ -9,10 +9,16 @@ import { Timeframe } from '@types'
 
 type QueryOptions = { queryKey: readonly unknown[]; queryFn: () => Promise<unknown>; enabled: boolean }
 
-const fetchTransactions = vi.fn<(params: Record<string, unknown>) => Promise<unknown>>(async () => [])
+// Mock the HTTP layer, not the fetchers, so each hook's real per-mode fetcher
+// decides what goes on the wire.
+const get = vi.fn<(url: string, config: { params: Record<string, unknown> }) => Promise<unknown>>(
+  async () => ({ data: [] }),
+)
 let lastOptions!: QueryOptions
 
-vi.mock('@api/transactions/fetchTransactions', () => ({ fetchTransactions }))
+vi.mock('@api/httpClient', () => ({ httpClient: { get } }))
+const sentParams = (call: number) => get.mock.calls[call]![1].params
+const lastSentParams = () => sentParams(get.mock.calls.length - 1)
 vi.mock('@tanstack/solid-query', () => ({
   useQuery: (opts: () => QueryOptions) => {
     lastOptions = opts()
@@ -34,13 +40,11 @@ const { default: useTransactionCategoryTotals } =
 
 /** The filter params a hook's queryFn sends, minus the mode flag and paging. */
 async function sentFilter(hook: () => void): Promise<Record<string, unknown>> {
-  fetchTransactions.mockClear()
+  get.mockClear()
   hook()
   await (lastOptions.queryFn as (ctx: { pageParam: number }) => Promise<unknown>)({ pageParam: 0 })
   const notFilter = new Set(['totalAmountDebit', 'budgetCategorySummary', 'limit', 'offset'])
-  return Object.fromEntries(
-    Object.entries(fetchTransactions.mock.calls[0]![0]).filter(([k]) => !notFilter.has(k)),
-  )
+  return Object.fromEntries(Object.entries(sentParams(0)).filter(([k]) => !notFilter.has(k)))
 }
 
 describe('transactionTableScopeFromStore', () => {
@@ -80,12 +84,10 @@ describe('transactionTableScopeFromStore', () => {
       selectMonthView('03-2026')
       useTransactionTotals(() => true)
       await lastOptions.queryFn()
-      expect(fetchTransactions).toHaveBeenLastCalledWith(expect.objectContaining({ totalAmountDebit: true }))
+      expect(lastSentParams()).toEqual(expect.objectContaining({ totalAmountDebit: true }))
       useTransactionCategoryTotals(() => true)
       await lastOptions.queryFn()
-      expect(fetchTransactions).toHaveBeenLastCalledWith(
-        expect.objectContaining({ budgetCategorySummary: true }),
-      )
+      expect(lastSentParams()).toEqual(expect.objectContaining({ budgetCategorySummary: true }))
     })
 
     it('keys the totals by the same filter, so a filter change refetches them', () => {

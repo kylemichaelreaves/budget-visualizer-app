@@ -47,7 +47,8 @@ export interface Categories {
 
 /** Row from `GET /transactions?totalAmountDebit` — one per day in the interval. */
 export interface DailyInterval {
-  date: Date
+  /** `DATE(date)` — arrives as a JSON string, not a `Date`. */
+  date: string
   total_amount_debit: number
   total_debit?: number
 }
@@ -57,12 +58,6 @@ export interface DayYear {
 }
 
 export type Frequency = 'daily' | 'weekly' | 'biweekly' | 'monthly' | 'quarterly' | 'yearly'
-
-export type JsonObjectType = {
-  total_debit: number
-  month_number: string
-  year: string
-}
 
 export interface LineChartDataPoint {
   date: Date
@@ -145,7 +140,6 @@ export interface MonthYear {
 export type SummaryTypeBase = {
   total_debit: number
   total_amount_debit?: number
-  json?: JsonObjectType
   date?: string
   period_start?: string
 }

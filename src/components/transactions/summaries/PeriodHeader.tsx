@@ -15,17 +15,8 @@ import {
 import { getPeriodLabel } from '@api/helpers/formatPeriodLabels'
 import { Button } from '@components/ui/button'
 import ClearFilterButton from '@components/shared/ClearFilterButton'
+import { getTransactionsTableSelectedValue } from '@components/transactions/table/transactionsTableSelectedValue'
 import PeriodNavigationGroup from './PeriodNavigationGroup'
-
-function getSelectedValue(): string {
-  const s = transactionsState
-  if (s.viewMode === 'day') return s.selectedDay
-  if (s.viewMode === 'week') return s.selectedWeek
-  if (s.viewMode === 'month') return s.selectedMonth
-  if (s.viewMode === 'year') return s.selectedYear
-  if (s.viewMode === 'memo') return s.selectedMemo
-  return ''
-}
 
 export default function PeriodHeader(props: { onAddTransaction?: () => void }): JSX.Element {
   const yearsQ = useYears()
@@ -51,9 +42,11 @@ export default function PeriodHeader(props: { onAddTransaction?: () => void }): 
     return []
   })
 
-  const label = createMemo(() => getPeriodLabel(transactionsState.viewMode, getSelectedValue()))
+  const label = createMemo(() =>
+    getPeriodLabel(transactionsState.viewMode, getTransactionsTableSelectedValue()),
+  )
 
-  const currentIndex = createMemo(() => periodList().indexOf(getSelectedValue()))
+  const currentIndex = createMemo(() => periodList().indexOf(getTransactionsTableSelectedValue()))
 
   const canGoNewer = createMemo(() => currentIndex() > 0)
   const canGoOlder = createMemo(() => {

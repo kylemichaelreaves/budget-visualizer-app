@@ -9,13 +9,8 @@ export async function updatePendingTransaction(
   pendingTransactionId: number,
   budgetCategory: string,
 ): Promise<void> {
-  try {
-    const response = await httpClient.patch(`/transactions/pending/${pendingTransactionId}`, {
-      budgetCategory,
-    })
-    devConsole('log', '[updatePendingTransaction] API response:', response.data)
-  } catch (error) {
-    devConsole('error', '[updatePendingTransaction] Error updating pending transaction:', error)
-    throw error
-  }
+  const response = await httpClient.patch(`/transactions/pending/${pendingTransactionId}`, {
+    budgetCategory,
+  })
+  devConsole('log', '[updatePendingTransaction] API response:', response.data)
 }

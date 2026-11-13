@@ -1,17 +1,15 @@
 import type { Accessor } from 'solid-js'
 import type { Transaction } from '@types'
-import { budgetCategoryColorsFromData } from '@composables/budgetCategoryColors'
+import type { BudgetCategoryColorHelpers } from '@composables/budgetCategoryColors'
 import { createTransactionsTableRowMoney } from '@components/transactions/table/createTransactionsTableRowMoney'
 import TransactionsTableRowAmounts from '@components/transactions/table/TransactionsTableRowAmounts'
 import TransactionsTableRowCategoryColumn from '@components/transactions/table/TransactionsTableRowCategoryColumn'
 import TransactionsTableRowPrimaryColumn from '@components/transactions/table/TransactionsTableRowPrimaryColumn'
 import { createRowMemoAmbiguity } from '@components/transactions/table/createRowMemoAmbiguity'
 
-type CategoryColorHelpers = ReturnType<typeof budgetCategoryColorsFromData>
-
 export default function TransactionsTableRow(props: {
   row: Transaction
-  categoryColors: Accessor<CategoryColorHelpers>
+  categoryColors: Accessor<BudgetCategoryColorHelpers>
   mutatingTransactionId: Accessor<number | null>
   openCategoryDialog: (row: Transaction) => void
   openSplitDrawer?: (row: Transaction) => void

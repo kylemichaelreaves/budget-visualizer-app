@@ -26,7 +26,6 @@ const semanticTokens = [
   'success',
   'success-muted',
   'info',
-  'info-muted',
   'warning',
   'caution',
   'caution-muted',
@@ -39,7 +38,7 @@ const semanticTokens = [
 
 const chartTokens = ['chart-1', 'chart-2', 'chart-3', 'chart-4', 'chart-5', 'chart-fallback'] as const
 
-/** Sample spacing steps (see `--space-*` and `--spacing-*` in theme.css). */
+/** Sample steps of Tailwind v4's spacing scale (multiples of `--spacing`). */
 const spacingShowcase = ['1', '2', '3', '4', '6', '8', '12', '16'] as const
 
 function swatchStyle(cssName: string): { 'background-color': string } {
@@ -48,8 +47,8 @@ function swatchStyle(cssName: string): { 'background-color': string } {
 
 function spacingBarStyle(step: string): { width: string; height: string; 'background-color': string } {
   return {
-    width: `var(--space-${step})`,
-    height: 'var(--space-2)',
+    width: `calc(var(--spacing) * ${step})`,
+    height: 'calc(var(--spacing) * 2)',
     'background-color': 'var(--foreground)',
   }
 }
@@ -83,11 +82,10 @@ function TokenGrid() {
       <div>
         <h2 class="text-lg font-semibold text-foreground m-0 mb-2">Spacing scale</h2>
         <p class="text-sm text-muted-foreground m-0 mb-3">
-          Primitives <code class="text-foreground">--space-*</code> in{' '}
-          <code class="text-foreground">:root</code> map to Tailwind{' '}
-          <code class="text-foreground">--spacing-*</code> so utilities like{' '}
-          <code class="text-foreground">p-4</code> and <code class="text-foreground">gap-6</code> stay the
-          same; change the variables to retune density globally.
+          Tailwind v4&apos;s default scale: utilities like <code class="text-foreground">p-4</code> and{' '}
+          <code class="text-foreground">gap-6</code> are multiples of{' '}
+          <code class="text-foreground">--spacing</code> (0.25rem). Override that one variable in{' '}
+          <code class="text-foreground">@theme</code> to retune density globally.
         </p>
         <div class="flex flex-col gap-2 rounded-lg border border-border p-4 bg-card">
           <For each={[...spacingShowcase]}>
@@ -97,7 +95,7 @@ function TokenGrid() {
                 <div
                   class="rounded-sm opacity-80"
                   style={spacingBarStyle(step)}
-                  title={`var(--space-${step})`}
+                  title={`calc(var(--spacing) * ${step})`}
                 />
               </div>
             )}

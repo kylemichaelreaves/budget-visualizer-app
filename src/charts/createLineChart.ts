@@ -1,19 +1,13 @@
 import type { DailyInterval, LineChartDataPoint, SummaryTypeBase } from '@types'
 import * as d3 from 'd3'
+import { formatUsd, formatUsdCompact } from '@utils/formatUsd'
+import {
+  CHART_TOOLTIP_CLASS,
+  hideChartTooltip,
+  setChartTooltipContent,
+  showChartTooltipAt,
+} from './chartTooltip'
 import { summaryPointDate } from './summaryPointDate'
-
-const moneyFormatter = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-  notation: 'compact',
-  minimumFractionDigits: 0,
-  maximumFractionDigits: 1,
-})
-
-const moneyFormatterFull = new Intl.NumberFormat('en-US', {
-  style: 'currency',
-  currency: 'USD',
-})
 
 export function createLineChart(
   el: SVGSVGElement,
@@ -30,16 +24,15 @@ export function createLineChart(
 
   const chartData = summaries
     .flat()
-    .map((item: SummaryTypeBase | DailyInterval) => {
-      const total_debit = item.total_amount_debit ?? item.total_debit
-      return {
-        date: summaryPointDate(item),
-        total_debit: total_debit as number,
-      }
-    })
-    // Rows with no parseable date are dropped rather than plotted at a guessed
-    // position — see summaryPointDate.
-    .filter((d): d is LineChartDataPoint => d.date !== null)
+    .map((item: SummaryTypeBase | DailyInterval) => ({
+      date: summaryPointDate(item),
+      // pg `numeric` sums can arrive as strings; coerce, and let a missing total
+      // become NaN so the filter below drops it instead of drawing a NaN path.
+      total_debit: Number(item.total_amount_debit ?? item.total_debit),
+    }))
+    // Rows with no parseable date or total are dropped rather than plotted at a
+    // guessed position — see summaryPointDate.
+    .filter((d): d is LineChartDataPoint => d.date !== null && Number.isFinite(d.total_debit))
 
   if (chartData.length === 0) return
 
@@ -52,8 +45,7 @@ export function createLineChart(
     styles.getPropertyValue('--destructive').trim() ||
     '#ef4444'
   const dotColor = lineColor
-  const tooltipBg = styles.getPropertyValue('--popover').trim() || '#1c1c1c'
-  const tooltipFg = styles.getPropertyValue('--popover-foreground').trim() || '#fafafa'
+  const dotStroke = styles.getPropertyValue('--popover').trim() || '#1c1c1c'
 
   // --- Dimensions ---
   const stacked = options?.stackedDateLabels ?? false
@@ -82,8 +74,6 @@ export function createLineChart(
   const fmtYear = d3.utcFormat('%y')
   const fmtDayMonth = d3.utcFormat('%b %d')
   const fmtShortDate = stacked ? (d: Date) => `${fmtMonth(d)} ${fmtYear(d)}` : (d: Date) => fmtDayMonth(d)
-  const fmtMoney = (n: number) => moneyFormatter.format(n)
-  const fmtMoneyFull = (n: number) => moneyFormatterFull.format(n)
 
   const xAxis = d3
     .axisBottom(x)
@@ -105,7 +95,7 @@ export function createLineChart(
   const yAxis = d3
     .axisLeft(y)
     .ticks(5)
-    .tickFormat((d) => fmtMoney(d as number))
+    .tickFormat((d) => formatUsdCompact(d as number))
     .tickSizeOuter(0)
 
   // --- Root ---
@@ -180,27 +170,16 @@ export function createLineChart(
     .attr('fill', 'none')
     .attr('stroke', lineColor)
     .attr('stroke-width', 2)
-    .attr('d', line as unknown as string)
+    .attr('d', line)
 
   // --- Tooltip (reuse existing or create) ---
   const parent = d3.select(parentElement)
   parent.selectAll('[data-slot="chart-tooltip"]').remove()
-  const tooltip = parent
+  const tooltipNode = parent
     .append('div')
     .attr('data-slot', 'chart-tooltip')
-    .style('position', 'absolute')
-    .style('pointer-events', 'none')
-    .style('background', tooltipBg)
-    .style('color', tooltipFg)
-    .style('border', `1px solid ${gridColor}`)
-    .style('border-radius', '6px')
-    .style('padding', '6px 10px')
-    .style('font-size', '12px')
-    .style('box-shadow', '0 4px 12px rgba(0,0,0,.3)')
-    .style('opacity', '0')
-    .style('z-index', '50')
-    .style('white-space', 'nowrap')
-    .style('transition', 'opacity 0.15s')
+    .attr('class', CHART_TOOLTIP_CLASS)
+    .node()!
 
   const formatDate = d3.utcFormat('%Y-%m-%d')
 
@@ -216,28 +195,24 @@ export function createLineChart(
     .attr('cy', (d) => y(Math.abs(d.total_debit)))
     .attr('r', 4)
     .attr('fill', dotColor)
-    .attr('stroke', tooltipBg)
+    .attr('stroke', dotStroke)
     .attr('stroke-width', 2)
     .style('cursor', 'pointer')
     .on('mouseenter', function (_event, d) {
       d3.select(this).transition().duration(150).attr('r', 6)
       const svgRect = svgElement.getBoundingClientRect()
       const parentRect = parentElement.getBoundingClientRect()
-      const tooltipNode = tooltip.node()!
-      tooltipNode.textContent = ''
-      const strong = document.createElement('strong')
-      strong.textContent = fmtShortDate(d.date)
-      tooltipNode.appendChild(strong)
-      tooltipNode.appendChild(document.createElement('br'))
-      tooltipNode.appendChild(document.createTextNode(fmtMoneyFull(Math.abs(d.total_debit))))
-      tooltip
-        .style('opacity', '1')
-        .style('left', `${x(d.date) + margin.left + svgRect.left - parentRect.left - 40}px`)
-        .style('top', `${y(Math.abs(d.total_debit)) + margin.top + svgRect.top - parentRect.top - 48}px`)
+      setChartTooltipContent(tooltipNode, fmtShortDate(d.date), formatUsd(Math.abs(d.total_debit)))
+      // Centered above the dot (the -40 / -48 nudge clears the dot and the tooltip's own height).
+      showChartTooltipAt(
+        tooltipNode,
+        x(d.date) + margin.left + svgRect.left - parentRect.left - 40,
+        y(Math.abs(d.total_debit)) + margin.top + svgRect.top - parentRect.top - 48,
+      )
     })
     .on('mouseleave', function () {
       d3.select(this).transition().duration(150).attr('r', 4)
-      tooltip.style('opacity', '0')
+      hideChartTooltip(tooltipNode)
     })
     .on('click', (_event, d) => {
       onDateSelected(formatDate(d.date))

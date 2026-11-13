@@ -5,8 +5,8 @@ import { parseDateIWIYYY } from '@api/helpers/parseDateIWIYYY'
 import { parseDateMMYYYY } from '@api/helpers/parseDateMMYYYY'
 import { useDailyTotalAmountDebit } from '@api/hooks/timeUnits/days/useDailyTotalAmountDebit'
 import LineChart from '@charts/LineChart'
+import LineChartSkeleton from '@charts/LineChartSkeleton'
 import ApiErrorAlert from '@components/shared/ApiErrorAlert'
-import { Skeleton } from '@components/ui/skeleton'
 import { selectDayView, transactionsState } from '@stores/transactionsStore'
 import IntervalForm from './IntervalForm'
 
@@ -92,15 +92,7 @@ export default function DailyIntervalLineChart(props: {
         when={chartQuery.data && chartQuery.data.length > 0}
         fallback={
           <Show when={chartQuery.isLoading || (chartQuery.isFetching && !chartQuery.data?.length)}>
-            <div class="flex flex-col gap-2 p-4" data-testid={`${id()}-skeleton`}>
-              <Skeleton class="h-[240px] w-full rounded-lg" />
-              <div class="flex justify-between px-2">
-                <Skeleton class="h-3 w-12" />
-                <Skeleton class="h-3 w-12" />
-                <Skeleton class="h-3 w-12" />
-                <Skeleton class="h-3 w-12" />
-              </div>
-            </div>
+            <LineChartSkeleton class="p-4" dataTestId={`${id()}-skeleton`} />
           </Show>
         }
       >
@@ -109,7 +101,6 @@ export default function DailyIntervalLineChart(props: {
             summaries={chartQuery.data!}
             handleOnClickSelection={handleOnDayClicked}
             dataTestId={`${id()}-line-chart`}
-            loading={false}
           />
         </div>
       </Show>

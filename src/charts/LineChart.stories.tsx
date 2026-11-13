@@ -12,7 +12,7 @@ function generateDailyData(days: number): DailyInterval[] {
     const date = new Date(base)
     date.setUTCDate(base.getUTCDate() + i)
     data.push({
-      date,
+      date: date.toISOString().slice(0, 10),
       total_amount_debit: Math.round((Math.random() * 200 + 20) * 100) / 100,
     })
   }
@@ -77,15 +77,6 @@ export const HistoricalMonthly: Story = {
     handleOnClickSelection: () => undefined,
     stackedDateLabels: true,
     dataTestId: 'story-line-chart-monthly',
-  },
-}
-
-export const Loading: Story = {
-  args: {
-    summaries: [],
-    handleOnClickSelection: () => undefined,
-    loading: true,
-    dataTestId: 'story-line-chart-loading',
   },
 }
 

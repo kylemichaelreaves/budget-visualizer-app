@@ -3,7 +3,6 @@ import { queryKeys } from '@api/queryKeys'
 import { fetchTransactions } from '@api/transactions/fetchTransactions'
 import { transactionTableScopeFromStore } from '@composables/transactionTableScopeFromStore'
 import { transactionsState } from '@stores/transactionsStore'
-import type { Transaction } from '@types'
 import { devConsole } from '@utils/devConsole'
 
 export default function useTransactions() {
@@ -22,10 +21,10 @@ export default function useTransactions() {
         scope.budgetCategory,
       ),
       initialPageParam: 0,
-      queryFn: async ({ pageParam }) => {
+      queryFn: ({ pageParam }) => {
         const page = Number(pageParam)
 
-        return (await fetchTransactions({ limit, offset: page, ...scope.params })) as Transaction[]
+        return fetchTransactions({ limit, offset: page, ...scope.params })
       },
       getNextPageParam: (lastPage, allPages) => {
         if (lastPage.length < limit) {

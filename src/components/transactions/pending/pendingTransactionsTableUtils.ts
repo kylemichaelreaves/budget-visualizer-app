@@ -1,4 +1,5 @@
 import type { PendingTransaction, Transaction } from '@types'
+import { parsePendingTransactionData } from '../helpers/parsePendingTransactionData'
 
 export const transactionColumns = [
   { prop: 'id', label: 'ID' },
@@ -18,17 +19,7 @@ export function getCell(row: PendingTransaction, prop: string): unknown {
 }
 
 export function parseRow(row: PendingTransaction): Transaction {
-  const raw = row.transaction_data
-  let transactionData: Transaction | null
-  if (typeof raw === 'string') {
-    try {
-      transactionData = JSON.parse(raw) as Transaction
-    } catch {
-      transactionData = null
-    }
-  } else {
-    transactionData = raw as Transaction
-  }
+  const transactionData = parsePendingTransactionData(row)
   return {
     id: row.id,
     transaction_number: transactionData?.transaction_number?.toString() || `PENDING-${row.id}`,

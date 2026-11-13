@@ -4,9 +4,9 @@ import type { BudgetCategoryColorHelpers } from '@composables/budgetCategoryColo
 import useBudgetCategorySummary from '@api/hooks/budgetCategories/useBudgetCategorySummary'
 import useHistoricalSummaryForBudgetCategory from '@api/hooks/budgetCategories/useHistoricalSummaryForBudgetCategory'
 import LineChart from '@charts/LineChart'
-import type { BudgetCategorySummary, Timeframe } from '@types'
+import LineChartSkeleton from '@charts/LineChartSkeleton'
+import type { Timeframe } from '@types'
 import ApiErrorAlert from '@components/shared/ApiErrorAlert'
-import { Skeleton } from '@components/ui/skeleton'
 import { setSelectedBudgetCategory } from '@stores/transactionsStore'
 import BudgetCategoryTreemap from './BudgetCategoryTreemap'
 
@@ -24,7 +24,7 @@ export default function BudgetCategorySummaries(props: {
   )
   const [selectedCategory, setSelectedCategory] = createSignal('')
 
-  const rows = () => (summaryQuery.data ?? []) as BudgetCategorySummary[]
+  const rows = () => summaryQuery.data ?? []
 
   createEffect(() => {
     const list = rows()
@@ -91,15 +91,7 @@ export default function BudgetCategorySummaries(props: {
                   historicalQuery.isLoading || (historicalQuery.isFetching && !historicalQuery.data?.length)
                 }
               >
-                <div class="flex flex-col gap-2 pt-2" data-testid={`${id()}-historical-skeleton`}>
-                  <Skeleton class="h-[240px] w-full rounded-lg" />
-                  <div class="flex justify-between px-2">
-                    <Skeleton class="h-3 w-12" />
-                    <Skeleton class="h-3 w-12" />
-                    <Skeleton class="h-3 w-12" />
-                    <Skeleton class="h-3 w-12" />
-                  </div>
-                </div>
+                <LineChartSkeleton class="pt-2" dataTestId={`${id()}-historical-skeleton`} />
               </Show>
             }
           >
@@ -108,7 +100,6 @@ export default function BudgetCategorySummaries(props: {
                 summaries={historicalQuery.data ?? []}
                 handleOnClickSelection={() => undefined}
                 dataTestId={`${id()}-historical-line`}
-                loading={false}
                 stackedDateLabels
               />
             </div>

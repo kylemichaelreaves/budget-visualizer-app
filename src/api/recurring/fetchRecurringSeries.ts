@@ -1,6 +1,5 @@
 import type { RecurringFilters, RecurringSeries } from '@types'
-import { httpClient } from '@api/httpClient.ts'
-import { devConsole } from '@utils/devConsole'
+import { httpClient } from '@api/httpClient'
 
 /**
  * The backend parses `includeDismissed` strictly (only the literal strings `true` / `false`)
@@ -22,13 +21,8 @@ function toQueryParams(filters: RecurringFilters): Record<string, string | numbe
 }
 
 export async function fetchRecurringSeries(filters: RecurringFilters): Promise<Array<RecurringSeries>> {
-  try {
-    const res = await httpClient.get(`/recurring`, {
-      params: toQueryParams(filters),
-    })
-    return res.data
-  } catch (err) {
-    devConsole('error', 'Error fetching recurring series:', { filters }, err)
-    throw err
-  }
+  const res = await httpClient.get(`/recurring`, {
+    params: toQueryParams(filters),
+  })
+  return res.data
 }
