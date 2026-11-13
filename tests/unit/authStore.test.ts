@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-vi.mock('@api/httpClient', () => ({ httpClient: { post: vi.fn() } }))
+const rearmUnauthorizedHandler = vi.fn()
+vi.mock('@api/httpClient', () => ({ httpClient: { post: vi.fn() }, rearmUnauthorizedHandler }))
 
 const { authState, hydrateAuthFromStorage, logout, persistSession } = await import('@stores/authStore')
 
@@ -77,11 +78,21 @@ describe('persistSession', () => {
     expect(authState.isUserAuthenticated).toBe(true)
   })
 
+  // A new session must let the next 401 log out again, or a user who signs back
+  // in without a reload could never be signed out by an expired token.
+  it('re-arms the 401 handler for the new session', () => {
+    rearmUnauthorizedHandler.mockClear()
+    persistSession(storedUser, 'tok')
+    expect(rearmUnauthorizedHandler).toHaveBeenCalledOnce()
+  })
+
   it.each([
     ['an unusable user', { email: 'k@example.com' }, 'tok'],
     ['an empty token', storedUser, ''],
   ])('returns false and stores nothing for %s', (_label, user, token) => {
+    rearmUnauthorizedHandler.mockClear()
     expect(persistSession(user, token)).toBe(false)
+    expect(rearmUnauthorizedHandler).not.toHaveBeenCalled()
 
     expect(localStorage.getItem('user')).toBeNull()
     expect(localStorage.getItem('token')).toBeNull()

@@ -10,14 +10,12 @@ import { syncMemoFromSummaryData } from '@stores/transactionsStore'
 import type { MemoPatchFields } from '@types'
 import { parseFrequencySelection, recurrenceFields } from '@components/memos/memoRecurrence'
 import { computeTotalCredits, computeTotalDebits } from './memoSummaryTableUtils'
+import { parsePositiveIntId } from '@utils/parsePositiveIntId'
 
 export function useMemoSummaryTable() {
   const params = useParams<{ memoId: string }>()
 
-  const memoIdNum = createMemo(() => {
-    const n = Number(params.memoId)
-    return Number.isFinite(n) && n > 0 ? n : undefined
-  })
+  const memoIdNum = createMemo(() => parsePositiveIntId(params.memoId) ?? undefined)
 
   const memoQ = useMemoById({ memoId: () => memoIdNum() ?? null })
   const summaryQ = useMemoSummary(() => memoIdNum())

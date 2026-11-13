@@ -1,6 +1,6 @@
 import type { JSX } from 'solid-js'
 import { createMemo, createSignal, Show } from 'solid-js'
-import useTimeframeTypeAndValue from '@api/hooks/timeUnits/useTimeframeTypeAndValue'
+import useTimeframeTypeAndValue from '@composables/useTimeframeTypeAndValue'
 import type { BudgetCategoryState, SplitBudgetCategory } from '@types'
 import BudgetCategoriesTreeSelect from '@components/transactions/selects/BudgetCategoriesTreeSelect'
 import SplitBudgetCategoryDrawer from './SplitBudgetCategoryDrawer'

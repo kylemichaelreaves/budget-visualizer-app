@@ -1,6 +1,8 @@
 import { batch, createEffect, on } from 'solid-js'
 import { useLocation, useNavigate } from '@solidjs/router'
 import { useMemoById } from '@api/hooks/memos/useMemoById'
+import { PERIOD_URL_PARAMS, activePeriodFromStore, urlHasTimeframe } from '@composables/activePeriodFromStore'
+import { parsePositiveIntId } from '@utils/parsePositiveIntId'
 import {
   TRANSACTION_TABLE_FILTER_URL_PARAMS,
   applyLegacyMemoParamMigration,
@@ -67,7 +69,7 @@ export function useTransactionTableFilterUrlSync(): void {
     const memoIdRaw = sp.get('memoId')
     if (memoIdQueryParamInvalid(memoIdRaw)) {
       sp.delete('memoId')
-      const hasTimeframe = !!(sp.get('day') || sp.get('week') || sp.get('month') || sp.get('year'))
+      const hasTimeframe = urlHasTimeframe(sp)
       const memoNameLeft = (sp.get('memoName') ?? '').trim()
       if (!hasTimeframe && !memoNameLeft && isBareTransactionsRoute(loc.pathname)) {
         hydratingFromUrl = true
@@ -129,19 +131,11 @@ export function useTransactionTableFilterUrlSync(): void {
     ),
   )
 
-  function urlHasTimeframeParam(): boolean {
-    const sp = new URLSearchParams(loc.search)
-    return !!(sp.get('day') || sp.get('week') || sp.get('month') || sp.get('year'))
-  }
+  const urlHasTimeframeParam = () => urlHasTimeframe(new URLSearchParams(loc.search))
 
-  const memoIdFromUrl = () => {
-    const sp = new URLSearchParams(loc.search)
-    const raw = sp.get('memoId')
-    if (!raw) return null
-    const n = Number(raw)
-    if (!Number.isFinite(n) || n <= 0) return null
-    return n
-  }
+  // Same rule as `memoIdQueryParamInvalid`, so an id the URL pass strips is
+  // never selected (and fetched) here first.
+  const memoIdFromUrl = () => parsePositiveIntId(new URLSearchParams(loc.search).get('memoId'))
 
   const budgetCategoryFromUrl = () =>
     (new URLSearchParams(loc.search).get('budgetCategory') ?? '').trim() || null
@@ -202,10 +196,8 @@ export function useTransactionTableFilterUrlSync(): void {
     const sp = new URLSearchParams(loc.search)
     for (const key of TRANSACTION_TABLE_FILTER_URL_PARAMS) sp.delete(key)
 
-    if (transactionsState.selectedDay) sp.set('day', transactionsState.selectedDay)
-    else if (transactionsState.selectedWeek) sp.set('week', transactionsState.selectedWeek)
-    else if (transactionsState.selectedMonth) sp.set('month', transactionsState.selectedMonth)
-    else if (transactionsState.selectedYear) sp.set('year', transactionsState.selectedYear)
+    const period = activePeriodFromStore()
+    if (period) sp.set(PERIOD_URL_PARAMS[period.timeframe], period.value)
     else if (transactionsState.selectedMemoId != null && transactionsState.selectedMemoId > 0)
       sp.set('memoId', String(transactionsState.selectedMemoId))
     else if (transactionsState.viewMode === 'memo') {

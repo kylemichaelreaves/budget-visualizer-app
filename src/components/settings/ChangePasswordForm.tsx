@@ -7,35 +7,21 @@ import { mutationKeys } from '@api/queryKeys'
 import { PasswordField } from '@components/auth/PasswordField'
 import { NewPasswordWithStrength } from '@components/auth/NewPasswordWithStrength'
 import { ConfirmPasswordWithMatch } from '@components/auth/ConfirmPasswordWithMatch'
-import { analyzePassword } from '@components/auth/passwordStrength'
-import { newPasswordError } from '@components/auth/newPasswordError'
+import { createNewPasswordFields } from '@components/auth/createNewPasswordFields'
 import { ErrorCallout } from '@components/shared/ErrorCallout'
 import { Button } from '@components/ui/button'
 import { Loader2, ShieldCheck } from 'lucide-solid'
+import { DEFAULT_AUTHENTICATED_ROUTE } from '@utils/authRoutes'
 
 type FocusField = 'current' | 'new' | 'confirm' | null
 
 export function ChangePasswordForm() {
   const navigate = useNavigate()
   const [currentPassword, setCurrentPassword] = createSignal('')
-  const [newPassword, setNewPassword] = createSignal('')
-  const [confirm, setConfirm] = createSignal('')
   const [showCurrent, setShowCurrent] = createSignal(false)
-  const [showNew, setShowNew] = createSignal(false)
-  const [showConfirm, setShowConfirm] = createSignal(false)
   const [focusedField, setFocusedField] = createSignal<FocusField>(null)
   const [submitted, setSubmitted] = createSignal(false)
-
-  const strength = createMemo(() => analyzePassword(newPassword()))
-
-  const newPwError = createMemo(() => (submitted() ? newPasswordError(newPassword()) : null))
-
-  const confirmError = createMemo(() => {
-    if (!submitted()) return null
-    if (!confirm()) return 'Please confirm your password.'
-    if (newPassword() !== confirm()) return 'Passwords don\u2019t match. Please try again.'
-    return null
-  })
+  const pw = createNewPasswordFields(submitted)
 
   const currentError = createMemo(() => {
     if (!submitted()) return null
@@ -43,11 +29,9 @@ export function ChangePasswordForm() {
     return null
   })
 
-  const confirmSuccess = () => !confirmError() && confirm().length > 0 && confirm() === newPassword()
-
   const changeMut = useMutation(() => ({
     mutationKey: mutationKeys.passwordChange,
-    mutationFn: async () => changePassword(currentPassword(), newPassword()),
+    mutationFn: async () => changePassword(currentPassword(), pw.password()),
   }))
 
   const apiError = createMemo(() => {
@@ -60,8 +44,8 @@ export function ChangePasswordForm() {
   function resetFormAfterSuccess() {
     changeMut.reset()
     setCurrentPassword('')
-    setNewPassword('')
-    setConfirm('')
+    setShowCurrent(false)
+    pw.reset()
     setSubmitted(false)
     setFocusedField(null)
   }
@@ -69,14 +53,7 @@ export function ChangePasswordForm() {
   function handleSubmit(e: SubmitEvent) {
     e.preventDefault()
     setSubmitted(true)
-    if (
-      !currentPassword().trim() ||
-      newPasswordError(newPassword()) !== null ||
-      newPassword() !== confirm() ||
-      !confirm()
-    ) {
-      return
-    }
+    if (!currentPassword().trim() || !pw.isValid()) return
     changeMut.mutate()
   }
 
@@ -128,39 +105,39 @@ export function ChangePasswordForm() {
             id="change-pw-new"
             label="New password"
             placeholder="Create a new password"
-            value={newPassword()}
+            value={pw.password()}
             onInput={(v) => {
-              setNewPassword(v)
+              pw.setPassword(v)
               if (changeMut.isError) changeMut.reset()
             }}
             onFocus={() => setFocusedField('new')}
             onBlur={() => setFocusedField(null)}
-            show={showNew()}
-            onToggleShow={() => setShowNew((p) => !p)}
-            error={newPwError()}
+            show={pw.showPw()}
+            onToggleShow={pw.toggleShowPw}
+            error={pw.pwError()}
             focused={focusedField() === 'new'}
             disabled={changeMut.isPending}
             testid="change-password-new-input"
-            strength={strength()}
-            showRequirements={focusedField() === 'new' || newPassword().length > 0}
+            strength={pw.strength()}
+            showRequirements={focusedField() === 'new' || pw.password().length > 0}
           />
 
           <ConfirmPasswordWithMatch
             id="change-pw-confirm"
             label="Confirm new password"
             placeholder="Re-enter your new password"
-            value={confirm()}
-            onInput={setConfirm}
+            value={pw.confirm()}
+            onInput={pw.setConfirm}
             onFocus={() => setFocusedField('confirm')}
             onBlur={() => setFocusedField(null)}
-            show={showConfirm()}
-            onToggleShow={() => setShowConfirm((p) => !p)}
-            error={confirmError()}
-            success={confirmSuccess()}
+            show={pw.showCf()}
+            onToggleShow={pw.toggleShowCf}
+            error={pw.cfError()}
+            success={pw.cfSuccess()}
             focused={focusedField() === 'confirm'}
             disabled={changeMut.isPending}
             testid="change-password-confirm-input"
-            showMatchSuccess={confirmSuccess() && !confirmError()}
+            showMatchSuccess={pw.cfSuccess()}
           />
 
           <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3 pt-1">
@@ -204,7 +181,7 @@ export function ChangePasswordForm() {
           type="button"
           variant="secondary"
           class="w-full max-w-xs rounded-xl py-3 text-[15px] font-semibold"
-          onClick={() => navigate('/budget-visualizer/transactions', { replace: true })}
+          onClick={() => navigate(DEFAULT_AUTHENTICATED_ROUTE, { replace: true })}
           data-testid="change-password-done"
         >
           Back to app

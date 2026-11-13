@@ -14,11 +14,13 @@ vi.mock('@utils/devConsole', () => ({
 }))
 
 // Dynamic import so the mocks above are in place first.
-const { httpClient, setUnauthorizedHandler } = await import('@api/httpClient')
+const { httpClient, setUnauthorizedHandler, rearmUnauthorizedHandler } = await import('@api/httpClient')
 
 describe('httpClient', () => {
   beforeEach(() => {
     localStorage.clear()
+    // The guard is module state that only a new session clears.
+    rearmUnauthorizedHandler()
   })
 
   afterEach(() => {
@@ -212,25 +214,27 @@ describe('httpClient', () => {
       }
     })
 
-    it('deduplicates concurrent 401s into a single handler call', async () => {
+    // Each 401 settles in its own task, as parallel XHRs do in a browser. The
+    // old microtask re-arm ran between them, so this called the handler 3 times.
+    it('collapses 401s that settle in separate tasks into one handler call', async () => {
       const handler = vi.fn()
       setUnauthorizedHandler(handler)
 
       const originalAdapter = httpClient.defaults.adapter
+      let delay = 0
 
       httpClient.defaults.adapter = async (config) => {
-        const error = Object.assign(new Error('Unauthorized'), {
+        await new Promise((resolve) => setTimeout(resolve, (delay += 5)))
+        throw Object.assign(new Error('Unauthorized'), {
           config,
           response: { status: 401, data: {}, headers: {}, statusText: 'Unauthorized', config },
           isAxiosError: true,
           toJSON: () => ({}),
         })
-        throw error
       }
 
       try {
-        // Fire two concurrent 401 requests
-        await Promise.allSettled([httpClient.get('/a'), httpClient.get('/b')])
+        await Promise.allSettled([httpClient.get('/a'), httpClient.get('/b'), httpClient.get('/c')])
         expect(handler).toHaveBeenCalledOnce()
       } finally {
         httpClient.defaults.adapter = originalAdapter
@@ -238,7 +242,7 @@ describe('httpClient', () => {
       }
     })
 
-    it('re-arms handler after microtask so future 401s trigger again', async () => {
+    it('stays disarmed until a new session re-arms it', async () => {
       const handler = vi.fn()
       setUnauthorizedHandler(handler)
 
@@ -254,14 +258,16 @@ describe('httpClient', () => {
       }
 
       try {
-        // First 401
         await httpClient.get('/first').catch(() => {})
         expect(handler).toHaveBeenCalledOnce()
 
-        // Flush microtask queue so handlingUnauthorized resets
-        await new Promise<void>((resolve) => queueMicrotask(() => resolve()))
+        // A later 401 in the same (already ended) session is not a new logout.
+        await new Promise((resolve) => setTimeout(resolve, 0))
+        await httpClient.get('/late').catch(() => {})
+        expect(handler).toHaveBeenCalledOnce()
 
-        // Second 401 should trigger again
+        // Signing in again (persistSession) re-arms it.
+        rearmUnauthorizedHandler()
         await httpClient.get('/second').catch(() => {})
         expect(handler).toHaveBeenCalledTimes(2)
       } finally {

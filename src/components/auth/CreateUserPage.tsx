@@ -84,7 +84,7 @@ export default function CreateUserPage() {
           onFocus={() => r.setFocusedField('password')}
           onBlur={() => r.setFocusedField(null)}
           show={r.showPw()}
-          onToggleShow={() => r.setShowPw((p) => !p)}
+          onToggleShow={() => r.toggleShowPw()}
           error={r.pwError()}
           focused={r.focusedField() === 'password'}
           disabled={r.createMut.isPending}
@@ -105,7 +105,7 @@ export default function CreateUserPage() {
           onFocus={() => r.setFocusedField('confirm')}
           onBlur={() => r.setFocusedField(null)}
           show={r.showCf()}
-          onToggleShow={() => r.setShowCf((p) => !p)}
+          onToggleShow={() => r.toggleShowCf()}
           error={r.cfError()}
           success={r.cfSuccess()}
           focused={r.focusedField() === 'confirm'}

@@ -8,6 +8,7 @@ import {
   selectMonthView,
   selectWeekView,
   selectYearView,
+  setTransactionsState,
 } from '@stores/transactionsStore'
 import { Timeframe } from '@types'
 
@@ -91,6 +92,16 @@ describe('createBudgetCategorySummaryTimeframeFromStore', () => {
     const r = mount()
     selectMemoView('Coffee', 7)
     expect(scope(r)).toEqual({ timeFrame: Timeframe.Month, date: '10-2026' })
+  })
+
+  // With month and year both set and no viewMode, the timeframe used to resolve
+  // to Year (year before month) while the date resolved to the month value.
+  it('never pairs a timeframe with another period’s value', () => {
+    const r = mount()
+    setTransactionsState({ selectedMonth: '03-2026', selectedYear: '2026', viewMode: null })
+    expect(scope(r)).toEqual({ timeFrame: Timeframe.Month, date: '03-2026' })
+    setTransactionsState({ viewMode: 'year' })
+    expect(scope(r)).toEqual({ timeFrame: Timeframe.Year, date: '2026' })
   })
 
   it('prefers a selected month over firstDay for the default month', () => {

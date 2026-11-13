@@ -9,6 +9,7 @@ import ApiErrorAlert from '@components/shared/ApiErrorAlert'
 import TransactionEditForm from './TransactionEditForm'
 import { Button } from '@components/ui/button'
 import { Card, CardContent } from '@components/ui/card'
+import { parsePositiveIntId } from '@utils/parsePositiveIntId'
 
 function isPendingRow(obj: unknown): obj is PendingTransaction {
   return typeof obj === 'object' && obj !== null && 'transaction_data' in obj && 'status' in obj
@@ -33,10 +34,10 @@ export default function TransactionEditPage(): JSX.Element {
   }>()
 
   const isPending = () => !!params.pendingTransactionId
-  const entityId = () => Number(params.pendingTransactionId ?? params.transactionId)
+  const entityId = () => parsePositiveIntId(params.pendingTransactionId ?? params.transactionId) ?? undefined
 
-  const pendingId = () => (isPending() && !Number.isNaN(entityId()) ? entityId() : undefined)
-  const normalId = () => (!isPending() && !Number.isNaN(entityId()) ? entityId() : undefined)
+  const pendingId = () => (isPending() ? entityId() : undefined)
+  const normalId = () => (!isPending() ? entityId() : undefined)
 
   const pendingQ = usePendingTransaction(pendingId)
   const txnQ = useTransaction(normalId)
@@ -89,7 +90,7 @@ export default function TransactionEditPage(): JSX.Element {
               transaction={transaction()!}
               dataTestId="transaction-edit-page-form"
               isPending={isPending()}
-              pendingTransactionId={isPending() ? Number(params.pendingTransactionId) : undefined}
+              pendingTransactionId={pendingId()}
               onClose={() => window.history.back()}
             />
           </CardContent>

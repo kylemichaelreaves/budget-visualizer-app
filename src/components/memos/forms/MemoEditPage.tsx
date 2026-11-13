@@ -7,15 +7,13 @@ import ApiErrorAlert from '@components/shared/ApiErrorAlert'
 import MemoEditForm from './MemoEditForm'
 import { Button } from '@components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
+import { parsePositiveIntId } from '@utils/parsePositiveIntId'
 
 export default function MemoEditPage(): JSX.Element {
   const params = useParams<{ memoId: string }>()
   const navigate = useNavigate()
 
-  const memoId = createMemo(() => {
-    const n = Number(params.memoId)
-    return Number.isFinite(n) && !Number.isNaN(n) ? n : null
-  })
+  const memoId = createMemo(() => parsePositiveIntId(params.memoId))
 
   const q = useMemoById({ memoId: () => memoId() })
 

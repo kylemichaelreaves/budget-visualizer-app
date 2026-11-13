@@ -5,32 +5,29 @@ import { mutationKeys } from '@api/queryKeys'
 import { extractApiErrorMessage } from '@api/extractApiErrorMessage'
 import { loginRequest, persistSession } from '@stores/authStore'
 import { safeRedirectPath } from '@utils/safeRedirectPath'
+import { DEFAULT_AUTHENTICATED_ROUTE, buildAuthHref } from '@utils/authRoutes'
 import { isValidEmail } from '@utils/validateEmail'
 import { devConsole } from '@utils/devConsole'
 import { Alert, AlertDescription, AlertTitle } from '@components/ui/alert'
 import { Button } from '@components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
-import { Input } from '@components/ui/input'
-import { Label } from '@components/ui/label'
-
-const DEFAULT_AUTHENTICATED_ROUTE = '/budget-visualizer/transactions'
+import { ErrorCallout } from '@components/shared/ErrorCallout'
+import { EmailField } from './EmailField'
+import { PasswordField } from './PasswordField'
 
 export default function Login() {
   const [searchParams] = useSearchParams()
 
   const [email, setEmail] = createSignal('')
   const [password, setPassword] = createSignal('')
+  const [showPw, setShowPw] = createSignal(false)
+  const [focusedField, setFocusedField] = createSignal<'email' | 'password' | null>(null)
 
   const redirectTarget = createMemo(
     () => safeRedirectPath(searchParams.redirect) ?? DEFAULT_AUTHENTICATED_ROUTE,
   )
 
-  const registerHref = createMemo(() => {
-    const safe = safeRedirectPath(searchParams.redirect)
-    if (!safe) return '/register'
-    const qs = new URLSearchParams({ redirect: safe })
-    return `/register?${qs.toString()}`
-  })
+  const registerHref = createMemo(() => buildAuthHref('/register', searchParams.redirect))
 
   const resetSuccess = createMemo(() => searchParams.resetSuccess === '1')
   const registered = createMemo(() => searchParams.registered === '1')
@@ -92,17 +89,19 @@ export default function Login() {
               <AlertDescription>Sign in with the email and password you just set up.</AlertDescription>
             </Alert>
           </Show>
-          {loginMut.isError ? (
-            <Alert variant="destructive" class="mb-4">
-              <AlertTitle>Login failed</AlertTitle>
-              <AlertDescription>{errorDescription()}</AlertDescription>
-            </Alert>
-          ) : null}
+          <Show when={loginMut.isError}>
+            <div class="mb-4">
+              <ErrorCallout title="Login failed" description={errorDescription()} data-testid="login-error" />
+            </div>
+          </Show>
           <Show when={sessionError()}>
-            <Alert variant="destructive" class="mb-4" data-testid="login-session-error">
-              <AlertTitle>Could not start your session</AlertTitle>
-              <AlertDescription>{sessionError()}</AlertDescription>
-            </Alert>
+            <div class="mb-4">
+              <ErrorCallout
+                title="Could not start your session"
+                description={sessionError()}
+                data-testid="login-session-error"
+              />
+            </div>
           </Show>
           <form
             class="flex flex-col gap-4"
@@ -112,35 +111,44 @@ export default function Login() {
               loginMut.mutate()
             }}
           >
-            <div class="flex flex-col gap-2">
-              <Label for="login-email">Email</Label>
-              <Input
-                id="login-email"
-                type="email"
-                autocomplete="username"
-                inputmode="email"
-                placeholder="name@example.com"
-                value={email()}
-                onInput={(e) => setEmail(e.currentTarget.value)}
-                aria-invalid={emailFormatError() ? 'true' : undefined}
-                aria-describedby={emailFormatError() ? 'login-email-error' : undefined}
-              />
-              <Show when={emailFormatError()}>
-                <p id="login-email-error" class="text-sm text-destructive" role="alert">
-                  {emailFormatError()}
-                </p>
-              </Show>
-            </div>
-            <div class="flex flex-col gap-2">
-              <Label for="login-password">Password</Label>
-              <Input
-                id="login-password"
-                type="password"
-                autocomplete="current-password"
-                value={password()}
-                onInput={(e) => setPassword(e.currentTarget.value)}
-              />
-            </div>
+            <EmailField
+              id="login-email"
+              label="Email"
+              helperText="The address you registered with."
+              errorTestId="login-email-error"
+              autocomplete="username"
+              value={email()}
+              onInput={(v) => {
+                setEmail(v)
+                if (loginMut.isError) loginMut.reset()
+              }}
+              onFocus={() => setFocusedField('email')}
+              onBlur={() => setFocusedField(null)}
+              focused={focusedField() === 'email'}
+              disabled={loginMut.isPending}
+              hasError={!!emailFormatError()}
+              errorMessage={emailFormatError()}
+              testid="login-email-input"
+            />
+            <PasswordField
+              id="login-password"
+              label="Password"
+              placeholder="Enter your password"
+              value={password()}
+              onInput={(v) => {
+                setPassword(v)
+                if (loginMut.isError) loginMut.reset()
+              }}
+              onFocus={() => setFocusedField('password')}
+              onBlur={() => setFocusedField(null)}
+              show={showPw()}
+              onToggleShow={() => setShowPw((p) => !p)}
+              error={null}
+              focused={focusedField() === 'password'}
+              disabled={loginMut.isPending}
+              testid="login-password-input"
+              autocomplete="current-password"
+            />
             <Button type="submit" disabled={isDisabled()}>
               {loginMut.isPending ? 'Signing in…' : 'Login'}
             </Button>
