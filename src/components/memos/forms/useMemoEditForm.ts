@@ -1,6 +1,6 @@
 import { createMemo, createRenderEffect, on } from 'solid-js'
 import { createStore } from 'solid-js/store'
-import useTimeframeTypeAndValue from '@api/hooks/timeUnits/useTimeframeTypeAndValue'
+import useTimeframeTypeAndValue from '@composables/useTimeframeTypeAndValue'
 import mutateMemo from '@api/hooks/memos/mutateMemo'
 import type { Memo } from '@types'
 import { buildMemoUpdateInput, memoToFormState, type MemoEditFormState } from './memoEditFormUtils'

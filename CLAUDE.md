@@ -158,6 +158,8 @@ Still **no `default-src`**: it would inherit into directives this app hasn't bee
 - Filter URL sync lives in `composables/transactionTableFilterUrlSync.ts` (used from `components/transactions/table/TransactionsTableSelects.tsx`) — all filters persist as query params
 - URL helper functions (param validation, legacy migration) are in `composables/transactionFilterUrlHelpers.ts`
 - `viewMode` determines which filter is active; `null` means no filter
+- Read the active period through **`activePeriodFromStore()`** (`composables/activePeriodFromStore.ts`), never by checking `selectedDay`/`selectedWeek`/… in your own order — the table query, the charts and the URL must resolve the same timeframe. `urlHasTimeframe(sp)` is the URL-side check.
+- Parse entity ids (route params, query params, hook `enabled` gates) with **`parsePositiveIntId`** from `@utils/parsePositiveIntId`. `Number(x) > 0` accepts `"1e3"` and `"1.5"`.
 
 ## Charts
 

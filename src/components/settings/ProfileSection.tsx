@@ -1,9 +1,9 @@
 import { authState } from '@stores/authStore'
 import { SettingsSectionCard } from '@components/settings/SettingsSectionCard'
+import { userDisplayName } from '@utils/userDisplayName'
 
 export function ProfileSection() {
-  const displayName = () =>
-    `${authState.user.firstName} ${authState.user.lastName}`.trim() || authState.user.username
+  const displayName = () => userDisplayName(authState.user)
 
   return (
     <div class="flex flex-col gap-4">

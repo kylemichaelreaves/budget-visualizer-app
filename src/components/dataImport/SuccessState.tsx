@@ -2,6 +2,7 @@ import type { JSX } from 'solid-js'
 import { useNavigate } from '@solidjs/router'
 import { Button } from '@components/ui/button'
 import Icon from '@components/dataImport/Icon'
+import { DEFAULT_AUTHENTICATED_ROUTE } from '@utils/authRoutes'
 
 export default function SuccessState(props: { filename: string; onImportAnother: () => void }): JSX.Element {
   const navigate = useNavigate()
@@ -26,7 +27,7 @@ export default function SuccessState(props: { filename: string; onImportAnother:
       </div>
 
       <div class="mt-7 flex justify-center gap-2.5">
-        <Button type="button" onClick={() => navigate('/budget-visualizer/transactions')}>
+        <Button type="button" onClick={() => navigate(DEFAULT_AUTHENTICATED_ROUTE)}>
           <Icon name="list" size={16} stroke={1.9} />
           View transactions
         </Button>

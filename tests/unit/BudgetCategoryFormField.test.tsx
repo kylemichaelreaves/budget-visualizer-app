@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { createSignal } from 'solid-js'
 import type { BudgetCategoryState } from '@types'
 
-vi.mock('@api/hooks/timeUnits/useTimeframeTypeAndValue', () => ({
+vi.mock('@composables/useTimeframeTypeAndValue', () => ({
   default: () => ({
     timeFrame: () => 'month',
     selectedValue: () => '03-2024',

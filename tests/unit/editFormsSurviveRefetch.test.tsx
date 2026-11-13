@@ -15,7 +15,7 @@ vi.mock('@tanstack/solid-query', () => ({ useQueryClient: () => ({}) }))
 vi.mock('@api/hooks/memos/mutateMemo', () => ({ default: () => idleMutation }))
 vi.mock('@api/hooks/transactions/mutateTransaction', () => ({ default: () => idleMutation }))
 vi.mock('@api/hooks/transactions/mutatePendingTransaction', () => ({ default: () => idleMutation }))
-vi.mock('@api/hooks/timeUnits/useTimeframeTypeAndValue', () => ({
+vi.mock('@composables/useTimeframeTypeAndValue', () => ({
   default: () => ({ timeFrame: () => 'month', selectedValue: () => '03-2026' }),
 }))
 vi.mock('@components/transactions/selects/BudgetCategoriesTreeSelect', () => ({ default: () => null }))

@@ -1,5 +1,6 @@
 import { createStore } from 'solid-js/store'
-import { httpClient } from '@api/httpClient'
+import { httpClient, rearmUnauthorizedHandler } from '@api/httpClient'
+import { SESSION_TOKEN_KEY, SESSION_USER_KEY } from '@api/sessionStorageKeys'
 import { normalizeUserFromApi } from '@api/users/normalizeUserFromApi'
 import type { User } from '@types'
 
@@ -25,8 +26,8 @@ export const [authState, setAuthState] = createStore<AuthState>({
 })
 
 function clearStoredSession(): void {
-  localStorage.removeItem('user')
-  localStorage.removeItem('token')
+  localStorage.removeItem(SESSION_USER_KEY)
+  localStorage.removeItem(SESSION_TOKEN_KEY)
 }
 
 /**
@@ -40,8 +41,8 @@ function clearStoredSession(): void {
  * token may not match the claimed identity.
  */
 export function hydrateAuthFromStorage(): void {
-  const userRaw = localStorage.getItem('user')
-  const token = localStorage.getItem('token')
+  const userRaw = localStorage.getItem(SESSION_USER_KEY)
+  const token = localStorage.getItem(SESSION_TOKEN_KEY)
   if (!userRaw || !token || userRaw === 'undefined') return
 
   let parsed: unknown
@@ -85,11 +86,12 @@ export function persistSession(rawUser: unknown, token: string): boolean {
   const user = normalizeUserFromApi(rawUser)
   if (!user || !token) return false
 
-  localStorage.setItem('user', JSON.stringify(user))
-  localStorage.setItem('token', token)
+  localStorage.setItem(SESSION_USER_KEY, JSON.stringify(user))
+  localStorage.setItem(SESSION_TOKEN_KEY, token)
   setAuthState('user', user)
   setAuthState('token', token)
   setAuthState('isUserAuthenticated', true)
+  rearmUnauthorizedHandler()
   return true
 }
 

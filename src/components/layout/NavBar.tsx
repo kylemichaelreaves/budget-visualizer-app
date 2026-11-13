@@ -2,6 +2,7 @@ import { Show } from 'solid-js'
 import { A } from '@solidjs/router'
 import { authState } from '@stores/authStore'
 import { UserNavDropdown } from '@components/layout/UserNavDropdown'
+import { DEFAULT_AUTHENTICATED_ROUTE } from '@utils/authRoutes'
 
 /** Total block height of the app chrome bar — keep in sync with `BudgetVisualizer` fill height. */
 export const NAVBAR_APP_HEIGHT_PX = 52
@@ -18,7 +19,7 @@ export default function NavBar() {
       aria-label="Main navigation"
     >
       <A
-        href="/budget-visualizer/transactions"
+        href={DEFAULT_AUTHENTICATED_ROUTE}
         class="text-lg font-semibold text-foreground no-underline hover:text-brand transition-colors"
       >
         Budget Visualizer

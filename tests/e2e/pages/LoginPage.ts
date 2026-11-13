@@ -12,10 +12,10 @@ export class LoginPage {
   constructor(page: Page) {
     this.page = page
     this.heading = page.getByRole('heading', { name: /sign in/i })
-    this.emailInput = page.getByLabel('Email')
-    this.passwordInput = page.getByLabel('Password')
+    this.emailInput = page.getByTestId('login-email-input')
+    this.passwordInput = page.getByTestId('login-password-input')
     this.submitButton = page.getByRole('button', { name: /login|signing in/i })
-    this.errorAlert = page.getByRole('alert')
+    this.errorAlert = page.getByTestId('login-error')
     this.registerLink = page.getByTestId('login-register-link')
   }
 

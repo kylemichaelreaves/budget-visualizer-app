@@ -11,6 +11,7 @@ import { ProfileSection } from '@components/settings/ProfileSection'
 import { SecuritySection } from '@components/settings/SecuritySection'
 import { cn } from '@utils/cn'
 import { ChevronLeft } from 'lucide-solid'
+import { DEFAULT_AUTHENTICATED_ROUTE } from '@utils/authRoutes'
 
 const SECTION_LABEL: Record<AccountSettingsSection, string> = {
   profile: 'Profile',
@@ -25,7 +26,7 @@ export default function AccountSettingsPage() {
     <div class="max-w-5xl w-full">
       <div class="flex flex-col gap-2 mb-6">
         <A
-          href="/budget-visualizer/transactions"
+          href={DEFAULT_AUTHENTICATED_ROUTE}
           class="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors text-sm no-underline w-fit group"
         >
           <ChevronLeft class="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />

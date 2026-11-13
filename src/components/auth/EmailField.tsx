@@ -18,6 +18,8 @@ interface EmailFieldProps {
   hasError: boolean
   errorMessage: string | null
   testid?: string
+  /** Defaults to `email`. Use `username` on a sign-in form so password managers pair it with the password. */
+  autocomplete?: string
 }
 
 export function EmailField(props: EmailFieldProps) {
@@ -54,7 +56,7 @@ export function EmailField(props: EmailFieldProps) {
         <input
           id={inputId()}
           type="email"
-          autocomplete="email"
+          autocomplete={props.autocomplete ?? 'email'}
           placeholder="name@example.com"
           value={props.value}
           onInput={(e) => props.onInput(e.currentTarget.value)}

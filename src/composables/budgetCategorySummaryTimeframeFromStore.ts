@@ -2,6 +2,7 @@ import { DateTime } from 'luxon'
 import type { Accessor } from 'solid-js'
 import { createMemo } from 'solid-js'
 import { transactionsState } from '@stores/transactionsStore'
+import { activePeriodFromStore } from '@composables/activePeriodFromStore'
 import { Timeframe } from '@types'
 
 /**
@@ -21,22 +22,14 @@ export function createBudgetCategorySummaryTimeframeFromStore(firstDay: Accessor
     return DateTime.now().toFormat('MM-yyyy')
   })
 
-  const chartTimeFrame = createMemo(() => {
-    if (transactionsState.selectedDay) return Timeframe.Day
-    if (transactionsState.selectedWeek) return Timeframe.Week
-    if (transactionsState.selectedYear) return Timeframe.Year
-    return Timeframe.Month
-  })
+  // Timeframe and date go to the same request, so both come from one resolution
+  // of the active period — a Year timeframe paired with an MM-YYYY date would
+  // ask the server for the wrong period.
+  const activePeriod = createMemo(() => activePeriodFromStore())
 
-  const chartDate = createMemo(() => {
-    if (transactionsState.selectedDay) return transactionsState.selectedDay
-    if (transactionsState.selectedWeek) return transactionsState.selectedWeek
-    if (transactionsState.viewMode === 'year' && transactionsState.selectedYear)
-      return transactionsState.selectedYear
-    if (transactionsState.selectedMonth) return transactionsState.selectedMonth
-    if (transactionsState.selectedYear) return transactionsState.selectedYear
-    return defaultMonthForCharts()
-  })
+  const chartTimeFrame = createMemo(() => activePeriod()?.timeframe ?? Timeframe.Month)
+
+  const chartDate = createMemo(() => activePeriod()?.value ?? defaultMonthForCharts())
 
   return { chartTimeFrame, chartDate, defaultMonthForCharts }
 }

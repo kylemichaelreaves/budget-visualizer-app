@@ -1,3 +1,6 @@
+import { urlHasTimeframe } from '@composables/activePeriodFromStore'
+import { parsePositiveIntId } from '@utils/parsePositiveIntId'
+
 /** Query keys written by store→URL sync; keep aligned with filter UI. */
 export const TRANSACTION_TABLE_FILTER_URL_PARAMS = [
   'day',
@@ -28,8 +31,7 @@ export function pathForTransactionFilterSync(pathname: string): string {
 /** Reject empty, NaN, non-positive, or non-integer IDs (`?memoId=` is meaningless; absent param is `null`). */
 export function memoIdQueryParamInvalid(raw: string | null): boolean {
   if (raw == null) return false
-  if (raw === '') return true
-  return !/^\d+$/.test(raw) || Number(raw) <= 0
+  return parsePositiveIntId(raw) == null
 }
 
 /**
@@ -41,15 +43,15 @@ export function applyLegacyMemoParamMigration(sp: URLSearchParams): void {
   if (legacyMemoParam === null) return
 
   sp.delete('memo')
-  const hasTimeframe = !!(sp.get('day') || sp.get('week') || sp.get('month') || sp.get('year'))
+  const hasTimeframe = urlHasTimeframe(sp)
   const existingMemoId = sp.get('memoId')
   const hasMemoId = existingMemoId != null && existingMemoId !== ''
   const existingMemoName = (sp.get('memoName') ?? '').trim()
   if (!hasTimeframe && !hasMemoId && !existingMemoName) {
     const t = legacyMemoParam.trim()
     if (t) {
-      const n = Number(t)
-      if (Number.isFinite(n) && n > 0 && String(n) === t) sp.set('memoId', String(n))
+      const id = parsePositiveIntId(t)
+      if (id != null && String(id) === t) sp.set('memoId', String(id))
       else sp.set('memoName', t)
     }
   }

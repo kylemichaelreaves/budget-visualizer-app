@@ -4,6 +4,7 @@ import { authState } from '@stores/authStore'
 import { userDisplayInitials } from '@utils/userInitials'
 import { cn } from '@utils/cn'
 import { Lock, User } from 'lucide-solid'
+import { userDisplayName } from '@utils/userDisplayName'
 
 export type AccountSettingsSection = 'profile' | 'security'
 
@@ -34,9 +35,7 @@ export function AccountSettingsSidebar() {
           <span class="text-primary text-lg font-bold">{userDisplayInitials(authState.user)}</span>
         </div>
         <div class="flex flex-col gap-0.5 w-full min-w-0">
-          <p class="text-foreground text-sm font-semibold truncate">
-            {`${authState.user.firstName} ${authState.user.lastName}`.trim() || authState.user.username}
-          </p>
+          <p class="text-foreground text-sm font-semibold truncate">{userDisplayName(authState.user)}</p>
           <p class="text-muted-foreground text-xs truncate">{authState.user.email || '—'}</p>
         </div>
       </div>

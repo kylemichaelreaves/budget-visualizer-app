@@ -1,9 +1,5 @@
 import { describe, expect, it, beforeEach } from 'vitest'
-import {
-  transactionQueryScopeFromStore,
-  resolveTransactionDateFromStore,
-  resolveTransactionTimeframeFromStore,
-} from '@composables/transactionQueryScopeFromStore'
+import { transactionQueryScopeFromStore } from '@composables/transactionQueryScopeFromStore'
 import { transactionsState, setTransactionsState, clearAllFilters } from '@stores/transactionsStore'
 import { Timeframe } from '@types'
 
@@ -27,8 +23,7 @@ describe('transactionQueryScopeFromStore', () => {
 
   it('returns week scope when week filter is set', () => {
     setTransactionsState({ selectedWeek: '03-2024', viewMode: 'week' })
-    expect(resolveTransactionTimeframeFromStore()).toBe(Timeframe.Week)
-    expect(resolveTransactionDateFromStore()).toBe('03-2024')
+    expect(transactionQueryScopeFromStore()).toEqual({ timeFrame: Timeframe.Week, date: '03-2024' })
   })
 
   it('returns year scope only when year value is non-empty', () => {

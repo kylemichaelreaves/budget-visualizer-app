@@ -15,38 +15,23 @@ import { SuccessScreen } from '@components/shared/SuccessScreen'
 import { NewPasswordWithStrength } from './NewPasswordWithStrength'
 import { ConfirmPasswordWithMatch } from './ConfirmPasswordWithMatch'
 import { ErrorCallout } from '@components/shared/ErrorCallout'
-import { analyzePassword } from './passwordStrength'
-import { newPasswordError } from './newPasswordError'
+import { createNewPasswordFields } from './createNewPasswordFields'
 
 export default function ResetPasswordPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
 
-  const [password, setPassword] = createSignal('')
-  const [confirm, setConfirm] = createSignal('')
-  const [showPw, setShowPw] = createSignal(false)
-  const [showCf, setShowCf] = createSignal(false)
   const [focusedField, setFocusedField] = createSignal<'password' | 'confirm' | null>(null)
   const [submitted, setSubmitted] = createSignal(false)
+  const { password, setPassword, confirm, setConfirm, pwError, cfError, cfSuccess, ...pw } =
+    createNewPasswordFields(submitted)
 
   const token = createMemo(() => {
     const t = searchParams.token
     return typeof t === 'string' ? t : ''
   })
 
-  const strength = createMemo(() => analyzePassword(password()))
-
-  const pwError = createMemo(() => (submitted() ? newPasswordError(password()) : null))
-
-  const cfError = createMemo(() => {
-    if (!submitted()) return null
-    if (!confirm()) return 'Please confirm your password.'
-    if (password() !== confirm()) return 'Passwords don\u2019t match. Please try again.'
-    return null
-  })
-
   const hasAnyError = () => !!pwError() || !!cfError() || resetMut.isError
-  const cfSuccess = () => !cfError() && confirm().length > 0 && confirm() === password()
 
   const resetMut = useMutation(() => ({
     mutationKey: mutationKeys.passwordResetConfirm,
@@ -63,7 +48,7 @@ export default function ResetPasswordPage() {
   function handleSubmit(e: SubmitEvent) {
     e.preventDefault()
     setSubmitted(true)
-    if (newPasswordError(password()) !== null || password() !== confirm() || !confirm()) return
+    if (!pw.isValid()) return
     resetMut.mutate()
   }
 
@@ -100,13 +85,13 @@ export default function ResetPasswordPage() {
                 }}
                 onFocus={() => setFocusedField('password')}
                 onBlur={() => setFocusedField(null)}
-                show={showPw()}
-                onToggleShow={() => setShowPw((p) => !p)}
+                show={pw.showPw()}
+                onToggleShow={pw.toggleShowPw}
                 error={pwError()}
                 focused={focusedField() === 'password'}
                 disabled={resetMut.isPending}
                 testid="reset-password-new-input"
-                strength={strength()}
+                strength={pw.strength()}
                 showRequirements={focusedField() === 'password' || password().length > 0}
               />
 
@@ -118,8 +103,8 @@ export default function ResetPasswordPage() {
                 onInput={setConfirm}
                 onFocus={() => setFocusedField('confirm')}
                 onBlur={() => setFocusedField(null)}
-                show={showCf()}
-                onToggleShow={() => setShowCf((p) => !p)}
+                show={pw.showCf()}
+                onToggleShow={pw.toggleShowCf}
                 error={cfError()}
                 success={cfSuccess()}
                 focused={focusedField() === 'confirm'}

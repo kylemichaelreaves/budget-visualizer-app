@@ -7,11 +7,9 @@ import { parseCreateUserSession } from '@api/users/createUserResponse'
 import { extractApiErrorMessage } from '@api/extractApiErrorMessage'
 import { persistSession } from '@stores/authStore'
 import { safeRedirectPath } from '@utils/safeRedirectPath'
+import { DEFAULT_AUTHENTICATED_ROUTE, buildAuthHref } from '@utils/authRoutes'
 import { isValidEmail } from '@utils/validateEmail'
-import { analyzePassword } from './passwordStrength'
-import { newPasswordError } from './newPasswordError'
-
-const DEFAULT_AUTHENTICATED_ROUTE = '/budget-visualizer/transactions'
+import { createNewPasswordFields } from './createNewPasswordFields'
 
 export function useCreateUserRegistration() {
   const navigate = useNavigate()
@@ -19,27 +17,17 @@ export function useCreateUserRegistration() {
 
   const [username, setUsername] = createSignal('')
   const [email, setEmail] = createSignal('')
-  const [password, setPassword] = createSignal('')
-  const [confirm, setConfirm] = createSignal('')
-  const [showPw, setShowPw] = createSignal(false)
-  const [showCf, setShowCf] = createSignal(false)
   const [focusedField, setFocusedField] = createSignal<'username' | 'email' | 'password' | 'confirm' | null>(
     null,
   )
   const [submitted, setSubmitted] = createSignal(false)
+  const pw = createNewPasswordFields(submitted)
 
   const redirectTarget = createMemo(
     () => safeRedirectPath(searchParams.redirect) ?? DEFAULT_AUTHENTICATED_ROUTE,
   )
 
-  const signInHref = createMemo(() => {
-    const safe = safeRedirectPath(searchParams.redirect)
-    if (!safe) return '/login'
-    const qs = new URLSearchParams({ redirect: safe })
-    return `/login?${qs.toString()}`
-  })
-
-  const strength = createMemo(() => analyzePassword(password()))
+  const signInHref = createMemo(() => buildAuthHref('/login', searchParams.redirect))
 
   const usernameError = createMemo(() => (submitted() && !username().trim() ? 'Username is required.' : null))
   const emailError = createMemo(() => {
@@ -50,18 +38,7 @@ export function useCreateUserRegistration() {
     return null
   })
 
-  const pwError = createMemo(() => (submitted() ? newPasswordError(password()) : null))
-
-  const cfError = createMemo(() => {
-    if (!submitted()) return null
-    if (!confirm()) return 'Please confirm your password.'
-    if (password() !== confirm()) return 'Passwords don\u2019t match. Please try again.'
-    return null
-  })
-
-  const cfSuccess = () => !cfError() && confirm().length > 0 && confirm() === password()
-
-  const hasFieldErrors = () => !!(usernameError() || emailError() || pwError() || cfError())
+  const hasFieldErrors = () => !!(usernameError() || emailError() || pw.pwError() || pw.cfError())
 
   const createMut = useMutation(() => ({
     mutationKey: mutationKeys.createUser,
@@ -69,7 +46,7 @@ export function useCreateUserRegistration() {
       createUser({
         username: username().trim(),
         email: email().trim(),
-        password: password(),
+        password: pw.password(),
       }),
     onSuccess: (data: unknown) => {
       const session = parseCreateUserSession(data)
@@ -95,13 +72,7 @@ export function useCreateUserRegistration() {
 
   const hasAnyError = () => hasFieldErrors() || createMut.isError
 
-  const formBasicsOk = () =>
-    username().trim().length > 0 &&
-    isValidEmail(email().trim()) &&
-    password().length > 0 &&
-    confirm().length > 0 &&
-    newPasswordError(password()) === null &&
-    password() === confirm()
+  const formBasicsOk = () => username().trim().length > 0 && isValidEmail(email().trim()) && pw.isValid()
 
   const isDisabled = () => createMut.isPending
 
@@ -121,22 +92,11 @@ export function useCreateUserRegistration() {
     setUsername,
     email,
     setEmail,
-    password,
-    setPassword,
-    confirm,
-    setConfirm,
-    showPw,
-    setShowPw,
-    showCf,
-    setShowCf,
+    ...pw,
     focusedField,
     setFocusedField,
-    strength,
     usernameError,
     emailError,
-    pwError,
-    cfError,
-    cfSuccess,
     createMut,
     apiError,
     hasAnyError,

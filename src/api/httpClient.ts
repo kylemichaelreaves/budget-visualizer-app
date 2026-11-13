@@ -1,14 +1,31 @@
 import axios from 'axios'
 import { getBaseApiUrl, initBaseApiUrl } from '@constants'
 import { devConsole } from '@utils/devConsole'
+import { SESSION_TOKEN_KEY } from '@api/sessionStorageKeys'
 
 // Callback-based handler so main.ts can wire in auth store + router
 // without creating circular imports (auth store → httpClient).
 let onUnauthorized: (() => void) | null = null
+
+/**
+ * Set once the handler has run for this session, and cleared only when a new
+ * session starts (`rearmUnauthorizedHandler`, called from `persistSession`).
+ *
+ * Parallel requests that all fail with 401 settle in separate tasks, so a guard
+ * re-armed on a microtask or timer would let each of them through — running
+ * `logout()`, `queryClient.clear()` and the redirect once per request. Keying
+ * the guard to the session lifecycle collapses them however far apart they
+ * land: after the first 401 there is no session left for a later one to end.
+ */
 let handlingUnauthorized = false
 
 export function setUnauthorizedHandler(handler: () => void) {
   onUnauthorized = handler
+}
+
+/** Let the next 401 run the unauthorized handler again. Call when a session is established. */
+export function rearmUnauthorizedHandler(): void {
+  handlingUnauthorized = false
 }
 
 /**
@@ -42,7 +59,7 @@ httpClient.interceptors.request.use(async (config) => {
   // Only attach our session token to same-origin API calls. Absolute URLs go
   // somewhere else (e.g. an S3 bucket) and shouldn't receive the Bearer token.
   if (!isAbsoluteUrl(config.url)) {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem(SESSION_TOKEN_KEY)
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`
     }
@@ -93,11 +110,6 @@ httpClient.interceptors.response.use(
     ) {
       handlingUnauthorized = true
       onUnauthorized()
-      // Re-arm after the current microtask so concurrent 401s from the same
-      // batch are still collapsed, but future 401s (after re-auth) work again.
-      queueMicrotask(() => {
-        handlingUnauthorized = false
-      })
     }
 
     return Promise.reject(error)
