@@ -1,8 +1,7 @@
 import { useParams } from '@solidjs/router'
 import { createEffect, createMemo, createSignal, on } from 'solid-js'
-import { useQueryClient } from '@tanstack/solid-query'
-import { invalidateAfterMemoMutation } from '@api/queryInvalidation'
-import { updateMemo } from '@api/memos/updateMemo'
+import mutateMemo from '@api/hooks/memos/mutateMemo'
+import { extractApiErrorMessage } from '@api/extractApiErrorMessage'
 import { devConsole } from '@utils/devConsole'
 import { useMemoById } from '@api/hooks/memos/useMemoById'
 import useMemoSummary from '@api/hooks/memos/useMemoSummary'
@@ -14,7 +13,6 @@ import { computeTotalCredits, computeTotalDebits } from './memoSummaryTableUtils
 
 export function useMemoSummaryTable() {
   const params = useParams<{ memoId: string }>()
-  const queryClient = useQueryClient()
 
   const memoIdNum = createMemo(() => {
     const n = Number(params.memoId)
@@ -28,8 +26,11 @@ export function useMemoSummaryTable() {
   const txQ = useMemoTransactionsPage(() => memoIdNum(), txLimit, txOffset)
 
   const [categoryDialogOpen, setCategoryDialogOpen] = createSignal(false)
-  const [saving, setSaving] = createSignal(false)
-  const [patchError, setPatchError] = createSignal<string | null>(null)
+  // Awaits invalidation so the selects stay disabled until they can show the saved value.
+  const mutation = mutateMemo({ awaitInvalidation: true })
+  const saving = () => mutation.isPending
+  const patchError = () => (mutation.error ? extractApiErrorMessage(mutation.error) : null)
+  const dismissPatchError = () => mutation.reset()
 
   createEffect(
     on(
@@ -79,36 +80,25 @@ export function useMemoSummaryTable() {
   const totalCredits = createMemo(() => computeTotalCredits(summaryQ.data, txQ.data ?? []))
   const totalDebits = createMemo(() => computeTotalDebits(summaryQ.data, txQ.data ?? []))
 
-  // Resolves only after handling its own failures: it reports through
-  // `patchError` and never rejects, so the handlers below fire it and move on
-  // rather than awaiting a promise that has nothing left to tell them.
-  async function patchMemo(fields: MemoPatchFields) {
+  function patchMemo(fields: MemoPatchFields) {
     const m = memo()
     if (!m || saving()) return
-    setPatchError(null)
-    setSaving(true)
-    try {
-      await updateMemo({ id: m.id, name: m.name, ...fields })
-      await invalidateAfterMemoMutation(queryClient)
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Update failed'
-      setPatchError(msg)
-      devConsole('error', 'patchMemo failed', e)
-    } finally {
-      setSaving(false)
-    }
+    mutation.mutate(
+      { id: m.id, name: m.name, ...fields },
+      { onError: (e) => devConsole('error', 'patchMemo failed', e) },
+    )
   }
 
   function handleCategorySelect(value: string) {
-    void patchMemo({ budgetCategory: value })
+    patchMemo({ budgetCategory: value })
   }
 
   function handleAmbiguousChange(checked: boolean) {
-    void patchMemo({ ambiguous: checked })
+    patchMemo({ ambiguous: checked })
   }
 
   function handleNecessaryChange(checked: boolean) {
-    void patchMemo({ necessary: checked })
+    patchMemo({ necessary: checked })
   }
 
   function handleFrequencyChange(value: string) {
@@ -116,7 +106,7 @@ export function useMemoSummaryTable() {
     // An unrecognised value is ignored rather than written: `recurring` and
     // `frequency` have to move together, and there is no pair to build from it.
     if (next === undefined) return
-    void patchMemo(recurrenceFields(next))
+    patchMemo(recurrenceFields(next))
   }
 
   return {
@@ -132,7 +122,7 @@ export function useMemoSummaryTable() {
     setCategoryDialogOpen,
     saving,
     patchError,
-    setPatchError,
+    dismissPatchError,
     canPrev,
     canNext,
     goPrevTx,

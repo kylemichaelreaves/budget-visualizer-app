@@ -3,9 +3,9 @@ import { createSignal } from 'solid-js'
 import mutateCreateTransaction from '@api/hooks/transactions/mutateCreateTransaction'
 import type { NewTransaction } from '@api/transactions/createTransaction'
 import type { Transaction } from '@types'
-import AlertComponent from '@components/shared/AlertComponent'
 import { Button } from '@components/ui/button'
 import { Input } from '@components/ui/input'
+import ApiErrorAlert from '@components/shared/ApiErrorAlert'
 import { Label } from '@components/ui/label'
 
 export default function TransactionCreateForm(props: { onClose?: () => void }): JSX.Element {
@@ -58,14 +58,11 @@ export default function TransactionCreateForm(props: { onClose?: () => void }): 
 
   return (
     <div data-testid="transaction-form" class="space-y-3">
-      {createMut.isError && createMut.error ? (
-        <AlertComponent
-          type="error"
-          title={(createMut.error as Error).name}
-          message={(createMut.error as Error).message}
-          dataTestId="transaction-form-error-alert"
-        />
-      ) : null}
+      <ApiErrorAlert
+        error={createMut.isError && createMut.error}
+        title="Could not create transaction"
+        dataTestId="transaction-form-error-alert"
+      />
       <Label class="flex items-center gap-3 my-3 text-foreground">
         <input
           type="checkbox"

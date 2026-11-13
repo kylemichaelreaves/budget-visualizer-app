@@ -1,6 +1,6 @@
 import type { JSX } from 'solid-js'
 import { For } from 'solid-js'
-import AlertComponent from '@components/shared/AlertComponent'
+import ApiErrorAlert from '@components/shared/ApiErrorAlert'
 import {
   Pagination,
   PaginationContent,
@@ -11,8 +11,10 @@ import {
 
 export default function TablePaginationBar(props: {
   dataTestId: string
-  /** Accepts any thrown value; non-Error values are wrapped so `.name`/`.message` always render. */
+  /** Any thrown value; rendered through {@link ApiErrorAlert}. */
   error?: unknown
+  /** Names what failed to load. */
+  errorTitle?: string
   errorTestId?: string
   pageSize: number
   pageSizeOptions?: number[]
@@ -33,23 +35,13 @@ export default function TablePaginationBar(props: {
     return opts.includes(props.pageSize) ? opts : [...opts, props.pageSize].sort((a, b) => a - b)
   }
 
-  const errorAlert = () => {
-    const err = props.error
-    if (err == null) return null
-    const normalized = err instanceof Error ? err : new Error(String(err))
-    return (
-      <AlertComponent
-        type="error"
-        title={normalized.name}
-        message={normalized.message}
-        dataTestId={props.errorTestId ?? `${props.dataTestId}-error`}
-      />
-    )
-  }
-
   return (
     <div data-testid={props.dataTestId}>
-      {errorAlert()}
+      <ApiErrorAlert
+        error={props.error}
+        title={props.errorTitle ?? 'Could not load this page'}
+        dataTestId={props.errorTestId ?? `${props.dataTestId}-error`}
+      />
       <div class="flex items-center gap-3 flex-wrap my-3">
         <label class="flex items-center gap-2">
           <span class="text-muted-foreground text-sm">Rows</span>

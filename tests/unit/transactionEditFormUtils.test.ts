@@ -1,10 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { BudgetCategoryState, Transaction } from '@types'
-import {
-  getBudgetCategory,
-  initBudgetState,
-  mutationAlertFromError,
-} from '@components/transactions/forms/transactionEditFormUtils'
+import { getBudgetCategory, initBudgetState } from '@components/transactions/forms/transactionEditFormUtils'
 
 const baseTxn: Transaction = {
   id: 1,
@@ -68,45 +64,5 @@ describe('getBudgetCategory', () => {
     const splits = [{ id: '1', budget_category_id: 'cat-1', amount_debit: 50 }]
     const state: BudgetCategoryState = { mode: 'split', splits }
     expect(getBudgetCategory(state)).toBe(splits)
-  })
-})
-
-describe('mutationAlertFromError', () => {
-  it('extracts name and message from an Error instance', () => {
-    const err = new TypeError('Invalid input')
-    const result = mutationAlertFromError(err)
-    expect(result).toEqual({ title: 'TypeError', message: 'Invalid input' })
-  })
-
-  it('falls back to default title for Error with empty name', () => {
-    const err = new Error('Something went wrong')
-    err.name = ''
-    expect(mutationAlertFromError(err)).toEqual({
-      title: 'Error',
-      message: 'Something went wrong',
-    })
-  })
-
-  it('extracts message from a plain object with message property', () => {
-    const err = { message: 'Server error' }
-    expect(mutationAlertFromError(err)).toEqual({ title: 'Error', message: 'Server error' })
-  })
-
-  it('uses String coercion for non-object, non-Error values', () => {
-    expect(mutationAlertFromError('raw string')).toEqual({ title: 'Error', message: 'raw string' })
-  })
-
-  it('returns default message for null', () => {
-    expect(mutationAlertFromError(null)).toEqual({
-      title: 'Error',
-      message: 'Failed to save transaction',
-    })
-  })
-
-  it('returns default message for undefined', () => {
-    expect(mutationAlertFromError(undefined)).toEqual({
-      title: 'Error',
-      message: 'Failed to save transaction',
-    })
   })
 })

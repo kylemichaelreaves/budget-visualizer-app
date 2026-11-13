@@ -1,15 +1,14 @@
 import type { JSX } from 'solid-js'
-import { batch, Show } from 'solid-js'
+import { batch } from 'solid-js'
 import { reconcile } from 'solid-js/store'
 import MemoSelect from '@components/transactions/selects/MemoSelect'
 import BudgetCategoryFormField from './BudgetCategoryFormField'
-import AlertComponent from '@components/shared/AlertComponent'
+import ApiErrorAlert from '@components/shared/ApiErrorAlert'
 import { Button } from '@components/ui/button'
 import { Input } from '@components/ui/input'
 import { Label } from '@components/ui/label'
 import type { Transaction } from '@types'
 import { isNonZeroAmount } from '@components/transactions/helpers/isNonZeroAmount'
-import { mutationAlertFromError } from './transactionEditFormUtils'
 import { useTransactionEditForm } from './useTransactionEditForm'
 
 export default function TransactionEditForm(props: {
@@ -23,19 +22,11 @@ export default function TransactionEditForm(props: {
 
   return (
     <form data-testid={state.tid()} aria-label="Transaction Edit Form" class="text-foreground space-y-3">
-      <Show when={state.activeMutationError()}>
-        {(err) => {
-          const { title, message } = mutationAlertFromError(err())
-          return (
-            <AlertComponent
-              type="error"
-              title={title}
-              message={message}
-              dataTestId={`${state.tid()}-error-alert`}
-            />
-          )
-        }}
-      </Show>
+      <ApiErrorAlert
+        error={state.activeMutationError()}
+        title="Could not save transaction"
+        dataTestId={`${state.tid()}-error-alert`}
+      />
       <Field label="Id" test={`${state.tid()}-id`}>
         <Input id={`field-${state.tid()}-id`} value={state.tx.id ?? ''} disabled />
       </Field>

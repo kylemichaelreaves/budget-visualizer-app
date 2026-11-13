@@ -1,6 +1,6 @@
 import type { Accessor } from 'solid-js'
 import DismissibleErrorAlert from '@components/shared/DismissibleErrorAlert'
-import QueryErrorAlert from '@components/shared/QueryErrorAlert'
+import ApiErrorAlert from '@components/shared/ApiErrorAlert'
 
 export default function TransactionsTableAlerts(props: {
   queryError: Accessor<unknown>
@@ -12,9 +12,9 @@ export default function TransactionsTableAlerts(props: {
 }) {
   return (
     <>
-      <QueryErrorAlert
-        isError={props.queryIsError}
-        error={props.queryError}
+      <ApiErrorAlert
+        error={props.queryIsError() && props.queryError()}
+        title="Could not load transactions"
         dataTestId="transactions-table-error-alert"
       />
 

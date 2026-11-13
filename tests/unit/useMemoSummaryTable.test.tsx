@@ -1,10 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createRoot } from 'solid-js'
+import { QueryClient, QueryClientProvider } from '@tanstack/solid-query'
+import { renderHook as renderSolidHook } from '@solidjs/testing-library'
+import type { JSX } from 'solid-js'
 
 const { updateMemo } = vi.hoisted(() => ({ updateMemo: vi.fn() }))
 
 vi.mock('@solidjs/router', () => ({ useParams: () => ({ memoId: '7' }) }))
-vi.mock('@tanstack/solid-query', () => ({ useQueryClient: () => ({}) }))
 vi.mock('@api/queryInvalidation', () => ({
   invalidateAfterMemoMutation: vi.fn().mockResolvedValue(undefined),
 }))
@@ -22,7 +23,12 @@ import { useMemoSummaryTable } from '@components/memos/summaries/useMemoSummaryT
 import { FREQUENCY_VALUES } from '@components/memos/memoRecurrence'
 
 function renderHook() {
-  return createRoot((dispose) => ({ state: useMemoSummaryTable(), dispose }))
+  const client = new QueryClient()
+  const wrapper = (props: { children: JSX.Element }) => (
+    <QueryClientProvider client={client}>{props.children}</QueryClientProvider>
+  )
+  const { result, cleanup } = renderSolidHook(() => useMemoSummaryTable(), { wrapper })
+  return { state: result, dispose: cleanup }
 }
 
 describe('FREQUENCY_VALUES', () => {

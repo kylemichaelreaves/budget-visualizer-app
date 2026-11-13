@@ -2,6 +2,7 @@ import type { JSX } from 'solid-js'
 import { For, Show } from 'solid-js'
 import useBudgetCategorySummary from '@api/hooks/budgetCategories/useBudgetCategorySummary'
 import AlertComponent from '@components/shared/AlertComponent'
+import ApiErrorAlert from '@components/shared/ApiErrorAlert'
 import BudgetCategorySunburst from '@components/transactions/charts/BudgetCategorySunburst'
 import { Button } from '@components/ui/button'
 import { Input } from '@components/ui/input'
@@ -41,16 +42,11 @@ export default function BudgetCategoriesPage(): JSX.Element {
         </p>
       </header>
 
-      <Show when={state.q.isError && state.q.error}>
-        {(err) => (
-          <AlertComponent
-            type="error"
-            title={(err() as Error).name}
-            message={(err() as Error).message}
-            dataTestId="budget-categories-error"
-          />
-        )}
-      </Show>
+      <ApiErrorAlert
+        error={state.q.isError && state.q.error}
+        title="Could not load budget categories"
+        dataTestId="budget-categories-error"
+      />
 
       <Show when={state.error()}>
         {(msg) => (
@@ -71,16 +67,11 @@ export default function BudgetCategoriesPage(): JSX.Element {
           </CardDescription>
         </CardHeader>
         <CardContent class="pb-4">
-          <Show when={categorySpendQuery.isError && categorySpendQuery.error}>
-            {(err) => (
-              <AlertComponent
-                type="error"
-                title={(err() as Error).name}
-                message={(err() as Error).message}
-                dataTestId="budget-categories-spend-chart-error"
-              />
-            )}
-          </Show>
+          <ApiErrorAlert
+            error={categorySpendQuery.isError && categorySpendQuery.error}
+            title="Could not load category spending"
+            dataTestId="budget-categories-spend-chart-error"
+          />
           <Show when={showChartEmpty()}>
             <p
               class="text-muted-foreground py-6 text-center text-sm"

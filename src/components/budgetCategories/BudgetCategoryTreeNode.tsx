@@ -7,7 +7,10 @@ import BudgetCategoryTreeExpandToggle from './BudgetCategoryTreeExpandToggle'
 import BudgetCategoryTreeRenameEditor from './BudgetCategoryTreeRenameEditor'
 import BudgetCategoryTreeRowActions from './BudgetCategoryTreeRowActions'
 import { createBudgetCategoryTreeNodeState } from './createBudgetCategoryTreeNodeState'
-import type { BudgetCategoryMutationResult, BudgetCategoryOperation } from './mutateBudgetCategory'
+import type {
+  BudgetCategoryMutationResult,
+  BudgetCategoryOperation,
+} from '@api/budgetCategories/updateBudgetCategory'
 import { categoryTreeTestId } from './budgetCategoryTreeUtils'
 
 export default function BudgetCategoryTreeNode(props: {
@@ -40,7 +43,7 @@ export default function BudgetCategoryTreeNode(props: {
               renameValue={s.renameValue}
               onRenameValueChange={s.onRenameValueChange}
               renameError={s.renameError}
-              onConfirm={s.confirmRename}
+              onConfirm={() => void s.confirmRename()}
               onCancel={s.cancelRename}
               onKeyDown={s.handleRenameKeyDown}
             />

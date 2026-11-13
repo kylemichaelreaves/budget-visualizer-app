@@ -4,6 +4,7 @@ import AlertComponent from '@components/shared/AlertComponent'
 import { Label } from '@components/ui/label'
 import { Input } from '@components/ui/input'
 import { useIsIntervalGreaterThanOldestDate } from '@api/hooks/transactions/useIsIntervalGreaterThanOldestDate'
+import ApiErrorAlert from '@components/shared/ApiErrorAlert'
 import {
   clampIntervalCount,
   MAX_INTERVAL_COUNT,
@@ -45,13 +46,11 @@ export default function IntervalForm(props: {
           close={onClose}
         />
       ) : null}
-      {intervalQuery.isError && intervalQuery.error ? (
-        <AlertComponent
-          type="error"
-          title={(intervalQuery.error as Error).name}
-          message={(intervalQuery.error as Error).message}
-        />
-      ) : null}
+      <ApiErrorAlert
+        error={intervalQuery.isError && intervalQuery.error}
+        title="Could not check the interval"
+        dataTestId="interval-form-error"
+      />
       <div
         class="flex items-center justify-end gap-2"
         classList={{ 'opacity-50': isOutOfRange(), 'pointer-events-none': isOutOfRange() }}

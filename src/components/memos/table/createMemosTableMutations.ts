@@ -1,36 +1,33 @@
-import { useQueryClient } from '@tanstack/solid-query'
 import { createSignal } from 'solid-js'
-import { invalidateAfterMemoMutation } from '@api/queryInvalidation'
-import { updateMemo } from '@api/memos/updateMemo'
+import mutateMemo from '@api/hooks/memos/mutateMemo'
+import { extractApiErrorMessage } from '@api/extractApiErrorMessage'
 import type { Memo } from '@types'
 import { devConsole } from '@utils/devConsole'
 
 export function createMemosTableMutations() {
-  const queryClient = useQueryClient()
+  // Awaits invalidation so a row's control stays disabled until the refetched
+  // value is on screen, rather than flicking back to the old one in between.
+  const mutation = mutateMemo({ awaitInvalidation: true })
 
-  const [tableMutationError, setTableMutationError] = createSignal<string | null>(null)
-  const [togglingAmbiguousId, setTogglingAmbiguousId] = createSignal<number | null>(null)
   const [categoryDialogOpen, setCategoryDialogOpen] = createSignal(false)
   const [categoryDialogTarget, setCategoryDialogTarget] = createSignal<Memo | null>(null)
-  const [mutatingCategoryId, setMutatingCategoryId] = createSignal<number | null>(null)
 
-  async function toggleAmbiguous(memo: Memo) {
-    setTableMutationError(null)
-    setTogglingAmbiguousId(memo.id)
-    try {
-      await updateMemo({
-        id: memo.id,
-        name: memo.name,
-        ambiguous: !memo.ambiguous,
-      })
-      await invalidateAfterMemoMutation(queryClient)
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Could not update memo'
-      setTableMutationError(msg)
-      devConsole('error', 'toggleAmbiguous failed', e)
-    } finally {
-      setTogglingAmbiguousId(null)
-    }
+  /** The memo id the in-flight write targets, when that write sets `field`. */
+  const pendingIdFor = (field: 'ambiguous' | 'budgetCategory') => () => {
+    const vars = mutation.variables
+    return mutation.isPending && vars?.[field] !== undefined ? vars.id : null
+  }
+  const togglingAmbiguousId = pendingIdFor('ambiguous')
+  const mutatingCategoryId = pendingIdFor('budgetCategory')
+
+  const tableMutationError = () => (mutation.error ? extractApiErrorMessage(mutation.error) : null)
+  const dismissTableMutationError = () => mutation.reset()
+
+  function toggleAmbiguous(memo: Memo) {
+    mutation.mutate(
+      { id: memo.id, name: memo.name, ambiguous: !memo.ambiguous },
+      { onError: (e) => devConsole('error', 'toggleAmbiguous failed', e) },
+    )
   }
 
   function handleAssignCategory(memo: Memo) {
@@ -38,30 +35,18 @@ export function createMemosTableMutations() {
     setCategoryDialogOpen(true)
   }
 
-  async function handleCategorySelect(category: string) {
+  function handleCategorySelect(category: string) {
     const target = categoryDialogTarget()
     if (!target) return
-    setTableMutationError(null)
-    setMutatingCategoryId(target.id)
-    try {
-      await updateMemo({
-        id: target.id,
-        name: target.name,
-        budgetCategory: category,
-      })
-      await invalidateAfterMemoMutation(queryClient)
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : 'Could not assign category'
-      setTableMutationError(msg)
-      devConsole('error', 'Failed to update memo category:', e)
-    } finally {
-      setMutatingCategoryId(null)
-    }
+    mutation.mutate(
+      { id: target.id, name: target.name, budgetCategory: category },
+      { onError: (e) => devConsole('error', 'Failed to update memo category:', e) },
+    )
   }
 
   return {
     tableMutationError,
-    setTableMutationError,
+    dismissTableMutationError,
     togglingAmbiguousId,
     mutatingCategoryId,
     categoryDialogOpen,

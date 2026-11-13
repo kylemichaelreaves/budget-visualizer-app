@@ -3,6 +3,7 @@ import { Show, createMemo } from 'solid-js'
 import { useNavigate, useParams } from '@solidjs/router'
 import { useMemoById } from '@api/hooks/memos/useMemoById'
 import AlertComponent from '@components/shared/AlertComponent'
+import ApiErrorAlert from '@components/shared/ApiErrorAlert'
 import MemoEditForm from './MemoEditForm'
 import { Button } from '@components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
@@ -45,16 +46,11 @@ export default function MemoEditPage(): JSX.Element {
         />
       </Show>
 
-      <Show when={memoId() != null && q.isError && q.error}>
-        {(err) => (
-          <AlertComponent
-            type="error"
-            title={(err() as Error).name}
-            message={(err() as Error).message}
-            dataTestId="memo-edit-load-error"
-          />
-        )}
-      </Show>
+      <ApiErrorAlert
+        error={memoId() != null && q.isError && q.error}
+        title="Could not load memo"
+        dataTestId="memo-edit-load-error"
+      />
 
       <Show when={memoId() != null && q.isLoading}>
         <p data-testid="memo-edit-loading">Loading…</p>

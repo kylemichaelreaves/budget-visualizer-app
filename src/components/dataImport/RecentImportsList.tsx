@@ -1,4 +1,5 @@
 import { createMemo, For, Show, type JSX } from 'solid-js'
+import { extractApiErrorMessage } from '@api/extractApiErrorMessage'
 import CsvGlyph from '@components/dataImport/CsvGlyph'
 import { useCsvImports } from '@api/hooks/transactions/useCsvImports'
 import { groupImportsByPeriod } from '@components/dataImport/helpers/groupImportsByPeriod'
@@ -22,8 +23,7 @@ export default function RecentImportsList(): JSX.Element {
               class="rounded-2xl border border-border bg-card px-6 py-4 text-sm text-destructive shadow-sm"
               data-testid="data-import-recent-error"
             >
-              Couldn&rsquo;t load recent imports
-              {query.error instanceof Error ? `: ${query.error.message}` : '.'}
+              Couldn&rsquo;t load recent imports: {extractApiErrorMessage(query.error)}
             </div>
           }
         >

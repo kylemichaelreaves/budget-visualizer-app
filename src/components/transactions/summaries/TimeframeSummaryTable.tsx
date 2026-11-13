@@ -2,9 +2,9 @@ import { A } from '@solidjs/router'
 import type { JSX } from 'solid-js'
 import { createMemo, createSignal, For, Show } from 'solid-js'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
-import AlertComponent from '@components/shared/AlertComponent'
 import { BudgetCategoryPill, BudgetCategoryPlaceholder } from '@components/shared/BudgetCategoryPill'
 import TableSortIcon from '@components/shared/TableSortIcon'
+import ApiErrorAlert from '@components/shared/ApiErrorAlert'
 import { formatUsd } from '@utils/formatUsd'
 
 export type TimeframeSummaryRow = {
@@ -84,22 +84,14 @@ export default function TimeframeSummaryTable(props: {
         </CardHeader>
 
         <CardContent class="p-0 pb-2">
-          <Show when={props.isError() ? props.error() : undefined}>
-            {(err) => {
-              const value = err()
-              const normalized =
-                value instanceof Error ? value : new Error(typeof value === 'string' ? value : String(value))
-              return (
-                <div class="px-4">
-                  <AlertComponent
-                    type="error"
-                    title={normalized.name}
-                    message={normalized.message}
-                    dataTestId={`${id()}-error`}
-                  />
-                </div>
-              )
-            }}
+          <Show when={props.isError() && props.error()}>
+            <div class="px-4">
+              <ApiErrorAlert
+                error={props.isError() && props.error()}
+                title="Could not load summary"
+                dataTestId={`${id()}-error`}
+              />
+            </div>
           </Show>
 
           <Show when={props.isLoading()}>
