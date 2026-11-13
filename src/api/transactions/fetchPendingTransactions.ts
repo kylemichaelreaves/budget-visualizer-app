@@ -10,13 +10,8 @@ export async function fetchPendingTransactions(queryParams: TransactionQueryPara
 
   devConsole('log', 'Filtered Query Params for Pending Transactions:', filteredQueryParams)
 
-  try {
-    const response = await httpClient.get('/transactions/pending', {
-      params: filteredQueryParams,
-    })
-    return response.data
-  } catch (err) {
-    devConsole('error', 'Error fetching pending transactions:', err)
-    throw err
-  }
+  const response = await httpClient.get('/transactions/pending', {
+    params: filteredQueryParams,
+  })
+  return response.data
 }

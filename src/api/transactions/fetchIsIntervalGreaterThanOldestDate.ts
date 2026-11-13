@@ -1,5 +1,4 @@
 import { httpClient } from '@api/httpClient'
-import { devConsole } from '@utils/devConsole'
 
 export type IntervalOutOfRangeRow = { is_out_of_range: boolean }
 
@@ -11,16 +10,11 @@ export type IntervalOutOfRangeRow = { is_out_of_range: boolean }
 export async function fetchIsIntervalGreaterThanOldestDate(
   interval: string,
 ): Promise<IntervalOutOfRangeRow[]> {
-  try {
-    const res = await httpClient.get<IntervalOutOfRangeRow[]>(`/transactions`, {
-      params: {
-        interval,
-        oldestDate: true,
-      },
-    })
-    return res.data
-  } catch (err) {
-    devConsole('error', 'Error fetching is interval greater than oldest date:', { interval }, err)
-    throw err
-  }
+  const res = await httpClient.get<IntervalOutOfRangeRow[]>(`/transactions`, {
+    params: {
+      interval,
+      oldestDate: true,
+    },
+  })
+  return res.data
 }

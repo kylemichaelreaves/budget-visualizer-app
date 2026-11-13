@@ -10,21 +10,10 @@ import TransactionEditForm from './TransactionEditForm'
 import { Button } from '@components/ui/button'
 import { Card, CardContent } from '@components/ui/card'
 import { parsePositiveIntId } from '@utils/parsePositiveIntId'
+import { parsePendingTransactionData } from '../helpers/parsePendingTransactionData'
 
 function isPendingRow(obj: unknown): obj is PendingTransaction {
   return typeof obj === 'object' && obj !== null && 'transaction_data' in obj && 'status' in obj
-}
-
-function transactionFromPending(data: PendingTransaction): Transaction | null {
-  const td = data.transaction_data
-  if (typeof td === 'string') {
-    try {
-      return JSON.parse(td) as Transaction
-    } catch {
-      return null
-    }
-  }
-  return td as Transaction
 }
 
 export default function TransactionEditPage(): JSX.Element {
@@ -52,12 +41,12 @@ export default function TransactionEditPage(): JSX.Element {
     if (isPending()) {
       const data = pendingQ.data
       if (!data) return null
-      return transactionFromPending(data)
+      return parsePendingTransactionData(data)
     }
     const data = txnQ.data
     if (!data) return null
     if (isPendingRow(data)) {
-      return transactionFromPending(data)
+      return parsePendingTransactionData(data)
     }
     return data as Transaction
   })

@@ -7,6 +7,7 @@ import useWeeks from '@api/hooks/timeUnits/weeks/useWeeks'
 import useYears from '@api/hooks/timeUnits/years/useYears'
 import { Badge } from '@components/ui/badge'
 import ClearFilterButton from '@components/shared/ClearFilterButton'
+import { XIcon } from '@shared/icons'
 import TransactionMemoFilterField from '@components/transactions/selects/TransactionMemoFilterField'
 import TransactionTimeframeSelect, {
   type TimeframeViewMode,
@@ -23,10 +24,10 @@ import {
 } from '@stores/transactionsStore'
 import type { DayYear, MonthYear, WeekYear, Year } from '@types'
 
-type TimeframeSelectDescriptor<T, V extends TimeframeViewMode = TimeframeViewMode> = {
+type TimeframeSelectDescriptor<T> = {
   suffix: string
   label: string
-  viewMode: V
+  viewMode: TimeframeViewMode
   options: Accessor<T[]>
   optionValue: (item: T) => string
   optionLabel: (item: T) => string
@@ -35,20 +36,25 @@ type TimeframeSelectDescriptor<T, V extends TimeframeViewMode = TimeframeViewMod
   selectValue?: Accessor<string>
 }
 
-type SupportedTimeframeSelectDescriptor =
-  | TimeframeSelectDescriptor<Year, 'year'>
-  | TimeframeSelectDescriptor<MonthYear, 'month'>
-  | TimeframeSelectDescriptor<WeekYear, 'week'>
-  | TimeframeSelectDescriptor<DayYear, 'day'>
+/**
+ * A descriptor with its option type erased: `render` closes over `T`, so the four
+ * selects (each with a different option row type) can share one array and one
+ * render path without a per-view-mode switch to narrow them.
+ */
+type TimeframeSelect = {
+  suffix: string
+  render: (dataTestId: string, clearButtonTestId: string) => JSX.Element
+}
 
-function createTimeframeSelectDescriptor<T, V extends TimeframeViewMode>(
-  descriptor: TimeframeSelectDescriptor<T, V>,
-): TimeframeSelectDescriptor<T, V> {
-  return descriptor
+function createTimeframeSelectDescriptor<T>(cfg: TimeframeSelectDescriptor<T>): TimeframeSelect {
+  return {
+    suffix: cfg.suffix,
+    render: (dataTestId, clearButtonTestId) => renderTimeframeSelect(cfg, dataTestId, clearButtonTestId),
+  }
 }
 
 function renderTimeframeSelect<T>(
-  cfg: TimeframeSelectDescriptor<T, TimeframeViewMode>,
+  cfg: TimeframeSelectDescriptor<T>,
   dataTestId: string,
   clearButtonTestId: string,
 ): JSX.Element {
@@ -85,8 +91,8 @@ export default function TransactionsTableSelects(props: Readonly<{ dataTestId?: 
   const dayOptions = createMemo(() => daysQ.data ?? [])
 
   /** Stable per instance; option lists flow through accessors so children track query updates. */
-  const timeframeSelectDescriptors: SupportedTimeframeSelectDescriptor[] = [
-    createTimeframeSelectDescriptor({
+  const timeframeSelectDescriptors: TimeframeSelect[] = [
+    createTimeframeSelectDescriptor<Year>({
       suffix: 'year',
       label: 'Year',
       viewMode: 'year',
@@ -96,7 +102,7 @@ export default function TransactionsTableSelects(props: Readonly<{ dataTestId?: 
       selectedValue: () => transactionsState.selectedYear,
       onPick: selectYearView,
     }),
-    createTimeframeSelectDescriptor({
+    createTimeframeSelectDescriptor<MonthYear>({
       suffix: 'month',
       label: 'Month',
       viewMode: 'month',
@@ -106,7 +112,7 @@ export default function TransactionsTableSelects(props: Readonly<{ dataTestId?: 
       selectedValue: () => transactionsState.selectedMonth,
       onPick: selectMonthView,
     }),
-    createTimeframeSelectDescriptor({
+    createTimeframeSelectDescriptor<WeekYear>({
       suffix: 'week',
       label: 'Week',
       viewMode: 'week',
@@ -116,7 +122,7 @@ export default function TransactionsTableSelects(props: Readonly<{ dataTestId?: 
       selectedValue: () => transactionsState.selectedWeek,
       onPick: selectWeekView,
     }),
-    createTimeframeSelectDescriptor({
+    createTimeframeSelectDescriptor<DayYear>({
       suffix: 'day',
       label: 'Day',
       viewMode: 'day',
@@ -136,16 +142,7 @@ export default function TransactionsTableSelects(props: Readonly<{ dataTestId?: 
           {(cfg) => {
             const dataTestId = `${tid()}-${cfg.suffix}`
             const clearButtonTestId = `${tid()}-${cfg.suffix}-clear`
-            switch (cfg.viewMode) {
-              case 'year':
-                return renderTimeframeSelect(cfg, dataTestId, clearButtonTestId)
-              case 'month':
-                return renderTimeframeSelect(cfg, dataTestId, clearButtonTestId)
-              case 'week':
-                return renderTimeframeSelect(cfg, dataTestId, clearButtonTestId)
-              case 'day':
-                return renderTimeframeSelect(cfg, dataTestId, clearButtonTestId)
-            }
+            return cfg.render(dataTestId, clearButtonTestId)
           }}
         </For>
 
@@ -165,18 +162,7 @@ export default function TransactionsTableSelects(props: Readonly<{ dataTestId?: 
               aria-label="Clear budget category filter"
               data-testid={`${tid()}-budget-category-clear`}
             >
-              <svg
-                class="size-3"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              >
-                <path d="M18 6 6 18" />
-                <path d="m6 6 12 12" />
-              </svg>
+              <XIcon class="size-3" />
             </button>
           </Badge>
         </Show>

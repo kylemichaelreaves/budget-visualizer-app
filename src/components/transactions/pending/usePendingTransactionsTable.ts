@@ -1,12 +1,9 @@
 import { createEffect, createMemo, createSignal, on } from 'solid-js'
 import usePendingTransactions from '@api/hooks/transactions/usePendingTransactions'
-import { useInfiniteQueryPagePrefetch } from '@composables/infiniteQueryPagePrefetch'
-import {
-  setSelectedStatus,
-  transactionsState,
-  updateTransactionsTableOffset,
-} from '@stores/transactionsStore'
-import type { PendingTransaction, Transaction } from '@types'
+import { fetchInfinitePagesUntilCount } from '@composables/infiniteQueryPagePrefetch'
+import { rowsForPage } from '@components/transactions/table/transactionsTablePageWindow'
+import { setSelectedStatus, transactionsState, updatePendingTableOffset } from '@stores/transactionsStore'
+import type { PendingTransaction, PendingTransactionStatus, Transaction } from '@types'
 import { parseRow } from './pendingTransactionsTableUtils'
 
 export function usePendingTransactionsTable() {
@@ -16,7 +13,7 @@ export function usePendingTransactionsTable() {
   const [pendingId, setPendingId] = createSignal<number | undefined>()
 
   const viewMode = () => transactionsState.selectedStatus
-  const setViewMode = (v: 'pending' | 'reviewed') => {
+  const setViewMode = (v: PendingTransactionStatus) => {
     setSelectedStatus(v)
   }
 
@@ -24,7 +21,7 @@ export function usePendingTransactionsTable() {
     on(
       () => transactionsState.selectedStatus,
       () => {
-        updateTransactionsTableOffset(0)
+        updatePendingTableOffset(0)
       },
     ),
   )
@@ -34,19 +31,27 @@ export function usePendingTransactionsTable() {
   const isLoadingCondition = () =>
     isInitialLoading() || query.isFetchingNextPage || query.isFetchingPreviousPage
 
-  const flattenedData = createMemo(() => query.data?.pages.flat() ?? [])
+  /** Pages exactly as the server returned them, in offset order. */
+  const loadedPages = createMemo(() => query.data?.pages ?? [])
 
   const LIMIT = () => transactionsState.transactionsTableLimit
 
-  const currentPage = () =>
-    Math.floor(transactionsState.transactionsTableOffset / transactionsState.transactionsTableLimit) + 1
+  const currentPage = () => Math.floor(transactionsState.pendingTableOffset / LIMIT()) + 1
 
-  const paginatedData = createMemo(() => {
-    const start = (currentPage() - 1) * LIMIT()
-    return flattenedData().slice(start, start + LIMIT())
-  })
+  // Render the page the server returned for this offset — the same rule as the
+  // main table (see `createTransactionsTableDerivedData`), so the rows and the
+  // pager's server count can't drift apart.
+  const paginatedData = createMemo(() => rowsForPage(loadedPages(), currentPage()))
 
-  useInfiniteQueryPagePrefetch(currentPage, LIMIT, () => flattenedData().length, query)
+  // The query only appends, so reaching page N means fetching pages 1..N.
+  createEffect(
+    on(currentPage, () => {
+      void fetchInfinitePagesUntilCount(query, {
+        currentCount: () => loadedPages().length,
+        requiredCount: currentPage(),
+      })
+    }),
+  )
 
   const isPaginationDisabled = () =>
     Boolean(

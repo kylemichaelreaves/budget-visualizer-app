@@ -4,6 +4,7 @@ import type { JSX } from 'solid-js'
 export function TransactionTagIcon(props: { class?: string }): JSX.Element {
   return (
     <svg
+      aria-hidden="true"
       class={props.class ?? 'size-3'}
       viewBox="0 0 24 24"
       fill="none"

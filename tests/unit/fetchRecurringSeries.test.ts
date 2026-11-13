@@ -3,10 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 vi.mock('@api/httpClient', () => ({
   httpClient: { get: vi.fn() },
 }))
-vi.mock('@utils/devConsole', () => ({ devConsole: vi.fn() }))
 
 import { httpClient } from '@api/httpClient'
-import { devConsole } from '@utils/devConsole'
 import { fetchRecurringSeries } from '@api/recurring/fetchRecurringSeries'
 
 const get = vi.mocked(httpClient.get)
@@ -82,15 +80,9 @@ describe('fetchRecurringSeries', () => {
     },
   )
 
-  it('logs and rethrows the original error when the request fails', async () => {
+  it('rethrows the original error when the request fails', async () => {
     const err = new Error('network down')
     get.mockRejectedValue(err)
     await expect(fetchRecurringSeries({ status: 'active' })).rejects.toBe(err)
-    expect(devConsole).toHaveBeenCalledWith(
-      'error',
-      'Error fetching recurring series:',
-      { filters: { status: 'active' } },
-      err,
-    )
   })
 })

@@ -2,6 +2,7 @@ import type { JSX } from 'solid-js'
 import { Show } from 'solid-js'
 import { Button } from '@components/ui/button'
 import ClearFilterButton from '@components/shared/ClearFilterButton'
+import { ChevronLeftIcon, ChevronRightIcon } from '@shared/icons'
 
 /**
  * Prev / Next / Clear button group for navigating periods.
@@ -28,17 +29,7 @@ export default function PeriodNavigationGroup(props: {
         onClick={props.onPrev}
         data-testid="period-header-prev"
       >
-        <svg
-          class="size-4 mr-1"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="m15 18-6-6 6-6" />
-        </svg>
+        <ChevronLeftIcon class="size-4 mr-1" />
         Prev
       </Button>
       <Button
@@ -50,17 +41,7 @@ export default function PeriodNavigationGroup(props: {
         data-testid="period-header-next"
       >
         Next
-        <svg
-          class="size-4 ml-1"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="m9 18 6-6-6-6" />
-        </svg>
+        <ChevronRightIcon class="size-4 ml-1" />
       </Button>
       <Show when={props.onClear}>
         {(clear) => <ClearFilterButton onClick={() => clear()()} dataTestId="period-header-clear" />}

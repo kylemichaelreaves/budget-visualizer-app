@@ -12,13 +12,8 @@ export async function fetchTransactions(queryParams: TransactionQueryParams) {
 
   devConsole('log', '[fetchTransactions] Filtered Query Params:', filteredQueryParams)
 
-  try {
-    const response = await httpClient.get('/transactions', {
-      params: filteredQueryParams,
-    })
-    return response.data
-  } catch (err) {
-    devConsole('error', 'Error fetching transactions:', err)
-    throw err
-  }
+  const response = await httpClient.get('/transactions', {
+    params: filteredQueryParams,
+  })
+  return response.data
 }

@@ -3,10 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 vi.mock('@api/httpClient', () => ({
   httpClient: { patch: vi.fn() },
 }))
-vi.mock('@utils/devConsole', () => ({ devConsole: vi.fn() }))
 
 import { httpClient } from '@api/httpClient'
-import { devConsole } from '@utils/devConsole'
 import { updateRecurringSeries } from '@api/recurring/updateRecurringSeries'
 
 const patch = vi.mocked(httpClient.patch)
@@ -29,15 +27,9 @@ describe('updateRecurringSeries', () => {
     expect(patch).toHaveBeenCalledWith('/recurring/7', { dismissed: false })
   })
 
-  it('logs and rethrows the original error when the request fails', async () => {
+  it('rethrows the original error when the request fails', async () => {
     const err = new Error('boom')
     patch.mockRejectedValue(err)
     await expect(updateRecurringSeries(3, true)).rejects.toBe(err)
-    expect(devConsole).toHaveBeenCalledWith(
-      'error',
-      'Error updating recurring series:',
-      { id: 3, dismissed: true },
-      err,
-    )
   })
 })

@@ -16,6 +16,8 @@ export type TransactionsState = {
   memosTableOffset: number
   transactionsTableLimit: number
   transactionsTableOffset: number
+  /** The pending table's own page; it shares the page size but not the offset. */
+  pendingTableOffset: number
 }
 
 const initial: TransactionsState = {
@@ -32,6 +34,7 @@ const initial: TransactionsState = {
   memosTableOffset: 0,
   transactionsTableLimit: 100,
   transactionsTableOffset: 0,
+  pendingTableOffset: 0,
 }
 
 export const [transactionsState, setTransactionsState] = createStore<TransactionsState>({ ...initial })
@@ -151,6 +154,10 @@ export function setTransactionsTableLimit(limit: number): void {
 }
 export function updateTransactionsTableOffset(offset: number): void {
   setTransactionsState('transactionsTableOffset', offset)
+}
+
+export function updatePendingTableOffset(offset: number): void {
+  setTransactionsState('pendingTableOffset', offset)
 }
 
 type PendingTransactionsScrollRestore = {
