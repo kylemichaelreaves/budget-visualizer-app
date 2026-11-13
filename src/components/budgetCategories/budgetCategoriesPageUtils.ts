@@ -1,6 +1,6 @@
-import type { BudgetCategoryOperation } from './mutateBudgetCategory'
+import type { BudgetCategoryOperation } from '@api/budgetCategories/updateBudgetCategory'
+import { extractApiErrorMessage } from '@api/extractApiErrorMessage'
 
 export function mutationErrorMessage(op: BudgetCategoryOperation, err: unknown): string {
-  const message = err instanceof Error ? err.message : 'An unexpected error occurred'
-  return `Failed to ${op.operation} category: ${message}`
+  return `Failed to ${op.operation} category: ${extractApiErrorMessage(err)}`
 }

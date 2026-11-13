@@ -5,6 +5,7 @@ import usePendingTransaction from '@api/hooks/transactions/usePendingTransaction
 import useTransaction from '@api/hooks/transactions/useTransaction'
 import type { PendingTransaction, Transaction } from '@types'
 import AlertComponent from '@components/shared/AlertComponent'
+import ApiErrorAlert from '@components/shared/ApiErrorAlert'
 import TransactionEditForm from './TransactionEditForm'
 import { Button } from '@components/ui/button'
 import { Card, CardContent } from '@components/ui/card'
@@ -71,16 +72,11 @@ export default function TransactionEditPage(): JSX.Element {
         </h1>
       </header>
 
-      <Show when={isError() && error()}>
-        {(err) => (
-          <AlertComponent
-            type="error"
-            title={(err() as Error).name || 'Error'}
-            message={(err() as Error).message || 'An error occurred while loading the transaction'}
-            dataTestId="transaction-edit-error-alert"
-          />
-        )}
-      </Show>
+      <ApiErrorAlert
+        error={isError() && error()}
+        title="Could not load transaction"
+        dataTestId="transaction-edit-error-alert"
+      />
 
       <Show when={loading()}>
         <p data-testid="transaction-edit-loading">Loading…</p>

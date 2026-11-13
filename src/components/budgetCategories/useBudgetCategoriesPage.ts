@@ -1,16 +1,15 @@
 import { createMemo, createSignal } from 'solid-js'
-import { useQueryClient } from '@tanstack/solid-query'
-import { queryKeys } from '@api/queryKeys'
-import { invalidateAfterBudgetCategoryMutation } from '@api/queryInvalidation'
+import { useMutationState, useQueryClient } from '@tanstack/solid-query'
+import { mutationKeys, queryKeys } from '@api/queryKeys'
 import { extractBudgetCategoriesData } from '@api/helpers/extractBudgetCategoriesData'
 import { BUDGET_CATEGORY_PATH_DELIMITER, convertToTree } from '@api/helpers/convertToTree'
 import useBudgetCategories from '@api/hooks/budgetCategories/useBudgetCategories'
 import type { CategoryNode } from '@types'
-import {
-  mutateBudgetCategory,
-  type BudgetCategoryMutationResult,
-  type BudgetCategoryOperation,
-} from './mutateBudgetCategory'
+import mutateBudgetCategory from '@api/hooks/budgetCategories/mutateBudgetCategory'
+import type {
+  BudgetCategoryMutationResult,
+  BudgetCategoryOperation,
+} from '@api/budgetCategories/updateBudgetCategory'
 import { filterTree } from './budgetCategoryTreeUtils'
 import { mutationErrorMessage } from './budgetCategoriesPageUtils'
 
@@ -24,8 +23,23 @@ export function useBudgetCategoriesPage() {
 
   const [filter, setFilter] = createSignal('')
   const [addingRoot, setAddingRoot] = createSignal(false)
-  const [mutatingPaths, setMutatingPaths] = createSignal<Set<string>>(new Set())
   const [error, setError] = createSignal<string | null>(null)
+
+  const mutation = mutateBudgetCategory()
+  // Read from the mutation cache rather than `mutation.variables`: that holds only
+  // the latest call, and edits on different nodes can be in flight together.
+  const pendingOps = useMutationState(() => ({
+    filters: { mutationKey: mutationKeys.mutateBudgetCategory, status: 'pending' },
+    select: (m) => m.state.variables as BudgetCategoryOperation | undefined,
+  }))
+  const mutatingPaths = createMemo(
+    () =>
+      new Set(
+        pendingOps()
+          .filter((op): op is BudgetCategoryOperation => op != null)
+          .map((op) => op.path.join(BUDGET_CATEGORY_PATH_DELIMITER)),
+      ),
+  )
 
   const tree = createMemo(() => {
     const raw = q.data as unknown
@@ -41,32 +55,14 @@ export function useBudgetCategoriesPage() {
   }
 
   const handleMutate = async (op: BudgetCategoryOperation): Promise<BudgetCategoryMutationResult> => {
-    const pathKey = op.path.join(BUDGET_CATEGORY_PATH_DELIMITER)
-
     setError(null)
-    setMutatingPaths((prev) => {
-      const next = new Set(prev)
-      next.add(pathKey)
-      return next
-    })
-
     try {
-      await mutateBudgetCategory(op)
-      // Only an add leaves existing memos and transactions untouched.
-      await (op.operation === 'add'
-        ? queryClient.invalidateQueries({ queryKey: queryKeys.budgetCategories.all })
-        : invalidateAfterBudgetCategoryMutation(queryClient))
+      await mutation.mutateAsync(op)
       return { ok: true }
     } catch (err) {
       const message = mutationErrorMessage(op, err)
       setError(message)
       return { ok: false, message }
-    } finally {
-      setMutatingPaths((prev) => {
-        const next = new Set(prev)
-        next.delete(pathKey)
-        return next
-      })
     }
   }
 

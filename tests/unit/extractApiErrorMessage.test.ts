@@ -24,8 +24,12 @@ describe('extractApiErrorMessage', () => {
     expect(extractApiErrorMessage(new Error('Something broke'))).toBe('Something broke')
   })
 
-  it('returns fallback for non-Error values', () => {
-    expect(extractApiErrorMessage('string error')).toBe('An unexpected error occurred')
+  it('uses a thrown string as the message', () => {
+    expect(extractApiErrorMessage(' string error ')).toBe('string error')
+  })
+
+  it('returns fallback for other non-Error values', () => {
+    expect(extractApiErrorMessage('  ')).toBe('An unexpected error occurred')
     expect(extractApiErrorMessage(null)).toBe('An unexpected error occurred')
     expect(extractApiErrorMessage(42)).toBe('An unexpected error occurred')
   })

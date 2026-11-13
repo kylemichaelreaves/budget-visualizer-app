@@ -41,7 +41,7 @@ export default function ObservabilityPage() {
             size="sm"
             data-testid="observability-refresh"
             disabled={query.isFetching}
-            onClick={() => query.refetch()}
+            onClick={() => void query.refetch()}
           >
             Refresh
           </Button>

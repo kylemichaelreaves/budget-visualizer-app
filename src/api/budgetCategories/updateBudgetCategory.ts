@@ -9,6 +9,6 @@ export type BudgetCategoryOperation =
 /** Editors close on `ok` and keep their input, with `message` shown inline, otherwise. */
 export type BudgetCategoryMutationResult = { ok: true } | { ok: false; message: string }
 
-export async function mutateBudgetCategory(body: BudgetCategoryOperation): Promise<void> {
+export async function updateBudgetCategory(body: BudgetCategoryOperation): Promise<void> {
   await httpClient.patch('/budget-categories', body)
 }

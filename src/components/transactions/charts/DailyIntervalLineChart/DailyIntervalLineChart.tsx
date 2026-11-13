@@ -5,7 +5,7 @@ import { parseDateIWIYYY } from '@api/helpers/parseDateIWIYYY'
 import { parseDateMMYYYY } from '@api/helpers/parseDateMMYYYY'
 import { useDailyTotalAmountDebit } from '@api/hooks/timeUnits/days/useDailyTotalAmountDebit'
 import LineChart from '@charts/LineChart'
-import AlertComponent from '@components/shared/AlertComponent'
+import ApiErrorAlert from '@components/shared/ApiErrorAlert'
 import { Skeleton } from '@components/ui/skeleton'
 import { selectDayView, transactionsState } from '@stores/transactionsStore'
 import IntervalForm from './IntervalForm'
@@ -80,16 +80,11 @@ export default function DailyIntervalLineChart(props: {
 
   return (
     <div data-testid={id()} class="flex flex-col h-full">
-      <Show when={chartQuery.isError && chartQuery.error}>
-        {(err) => (
-          <AlertComponent
-            type="error"
-            title={(err() as Error).name ?? 'Error'}
-            message={(err() as Error).message ?? String(err())}
-            dataTestId={`${id()}-error`}
-          />
-        )}
-      </Show>
+      <ApiErrorAlert
+        error={chartQuery.isError && chartQuery.error}
+        title="Could not load daily totals"
+        dataTestId={`${id()}-error`}
+      />
       <Show when={showIntervalForm()}>
         <IntervalForm dataTestId={`${id()}-form`} onIntervalValueChange={setIntervalValue} />
       </Show>

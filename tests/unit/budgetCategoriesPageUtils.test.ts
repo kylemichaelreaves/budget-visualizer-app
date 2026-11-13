@@ -14,6 +14,8 @@ describe('mutationErrorMessage', () => {
 
   it('uses fallback for non-Error', () => {
     const op = { operation: 'delete' as const, path: ['X'] }
-    expect(mutationErrorMessage(op, 'oops')).toBe('Failed to delete category: An unexpected error occurred')
+    expect(mutationErrorMessage(op, { status: 500 })).toBe(
+      'Failed to delete category: An unexpected error occurred',
+    )
   })
 })

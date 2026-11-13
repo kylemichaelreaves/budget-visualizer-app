@@ -4,7 +4,7 @@ import { extractBudgetCategoriesData } from '@api/helpers/extractBudgetCategorie
 import { convertToTree } from '@api/helpers/convertToTree'
 import useBudgetCategories from '@api/hooks/budgetCategories/useBudgetCategories'
 import type { CategoryNode, Timeframe } from '@types'
-import AlertComponent from '@components/shared/AlertComponent'
+import ApiErrorAlert from '@components/shared/ApiErrorAlert'
 import { Input } from '@components/ui/input'
 
 function flattenTree(nodes: CategoryNode[], depth = 0): { value: string; label: string }[] {
@@ -82,16 +82,11 @@ export default function BudgetCategoriesTreeSelect(props: {
 
   return (
     <div data-testid={`${tid()}-root`}>
-      <Show when={q.isError && q.error}>
-        {(err) => (
-          <AlertComponent
-            type="error"
-            title={(err() as Error).name}
-            message={(err() as Error).message}
-            dataTestId={`${tid()}-error`}
-          />
-        )}
-      </Show>
+      <ApiErrorAlert
+        error={q.isError && q.error}
+        title="Could not load budget categories"
+        dataTestId={`${tid()}-error`}
+      />
 
       <Show when={props.filterable}>
         <Input

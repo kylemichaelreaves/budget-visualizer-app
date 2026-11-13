@@ -1,6 +1,6 @@
 import type { JSX } from 'solid-js'
 import { For, Show } from 'solid-js'
-import AlertComponent from '@components/shared/AlertComponent'
+import ApiErrorAlert from '@components/shared/ApiErrorAlert'
 import TableSkeleton from '@components/shared/TableSkeleton'
 import TransactionEditForm from '@components/transactions/forms/TransactionEditForm'
 import TransactionsTablePagination from '@components/transactions/table/TransactionsTablePagination'
@@ -15,16 +15,11 @@ export default function PendingTransactionsTable(): JSX.Element {
 
   return (
     <>
-      <Show when={state.query.isError && state.query.error}>
-        {(err) => (
-          <AlertComponent
-            type="error"
-            title={(err() as Error).name || 'Error'}
-            message={(err() as Error).message || 'Failed to load pending transactions'}
-            dataTestId="pending-transactions-table-error-alert"
-          />
-        )}
-      </Show>
+      <ApiErrorAlert
+        error={state.query.isError && state.query.error}
+        title="Could not load pending transactions"
+        dataTestId="pending-transactions-table-error-alert"
+      />
 
       <header class="flex justify-between items-center mb-3">
         <h2 class="m-0 text-foreground">Pending Transactions</h2>

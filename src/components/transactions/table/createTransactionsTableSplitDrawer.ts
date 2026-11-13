@@ -1,4 +1,5 @@
 import { createSignal } from 'solid-js'
+import { extractApiErrorMessage } from '@api/extractApiErrorMessage'
 import { useQueryClient } from '@tanstack/solid-query'
 import mutateTransaction from '@api/hooks/transactions/mutateTransaction'
 import { invalidateAfterTransactionUpdate } from '@api/queryInvalidation'
@@ -58,7 +59,7 @@ export function createTransactionsTableSplitDrawer(args?: {
         onError: (err) => {
           if (savingFor() === t) setSavingFor(null)
           args?.setMutatingTransactionId?.(null)
-          const msg = err instanceof Error ? err.message : String(err)
+          const msg = extractApiErrorMessage(err)
           if (isShowing(t)) setError(msg)
           else setStrayError(msg)
         },

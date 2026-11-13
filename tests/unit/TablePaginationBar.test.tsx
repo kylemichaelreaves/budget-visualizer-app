@@ -90,13 +90,17 @@ describe('TablePaginationBar', () => {
     expect(screen.queryByTestId('bar-err')).not.toBeInTheDocument()
   })
 
-  it('renders Error instances with their name and message', () => {
+  it("titles the alert with errorTitle, not the error's class name (#91)", () => {
     const err = new TypeError('boom')
-    render(() => <TablePaginationBar {...baseProps({ error: err, errorTestId: 'bar-err' })} />)
+    render(() => (
+      <TablePaginationBar
+        {...baseProps({ error: err, errorTitle: 'Could not count rows', errorTestId: 'bar-err' })}
+      />
+    ))
     const alert = screen.getByTestId('bar-err')
-    expect(alert).toBeInTheDocument()
-    expect(alert.textContent).toContain('TypeError')
+    expect(alert.textContent).toContain('Could not count rows')
     expect(alert.textContent).toContain('boom')
+    expect(alert.textContent).not.toContain('TypeError')
   })
 
   it('normalizes non-Error thrown values into a renderable alert', () => {

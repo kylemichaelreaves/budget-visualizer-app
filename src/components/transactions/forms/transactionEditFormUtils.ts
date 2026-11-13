@@ -28,20 +28,3 @@ export function getBudgetCategory(state: BudgetCategoryState): string | SplitBud
   if (state.mode === 'single') return state.categoryId
   return state.splits
 }
-
-export function mutationAlertFromError(err: unknown): { title: string; message: string } {
-  if (err instanceof Error) {
-    return {
-      title: err.name?.trim() || 'Error',
-      message: err.message?.trim() || 'Failed to save transaction',
-    }
-  }
-  if (err != null && typeof err === 'object' && 'message' in err) {
-    const msg = (err as { message?: unknown }).message
-    if (typeof msg === 'string' && msg.trim()) {
-      return { title: 'Error', message: msg.trim() }
-    }
-  }
-  const s = err == null ? '' : String(err)
-  return { title: 'Error', message: s.trim() || 'Failed to save transaction' }
-}

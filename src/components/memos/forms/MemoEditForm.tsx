@@ -1,6 +1,6 @@
 import type { JSX } from 'solid-js'
-import { For, Show } from 'solid-js'
-import AlertComponent from '@components/shared/AlertComponent'
+import { For } from 'solid-js'
+import ApiErrorAlert from '@components/shared/ApiErrorAlert'
 import BudgetCategoriesTreeSelect from '@components/transactions/selects/BudgetCategoriesTreeSelect'
 import type { Memo } from '@types'
 import { Button } from '@components/ui/button'
@@ -25,16 +25,11 @@ export default function MemoEditForm(props: {
       }}
       class="flex flex-col gap-3.5 max-w-[480px]"
     >
-      <Show when={state.mutation.isError && state.mutation.error}>
-        {(err) => (
-          <AlertComponent
-            type="error"
-            title={(err() as Error).name}
-            message={(err() as Error).message}
-            dataTestId={`${state.tid()}-error`}
-          />
-        )}
-      </Show>
+      <ApiErrorAlert
+        error={state.mutation.isError && state.mutation.error}
+        title="Could not save memo"
+        dataTestId={`${state.tid()}-error`}
+      />
 
       <div class="space-y-1">
         <Label for="memo-name" class="text-muted-foreground text-sm">

@@ -1,6 +1,7 @@
 import type { JSX } from 'solid-js'
 import { Show } from 'solid-js'
 import AlertComponent from '@components/shared/AlertComponent'
+import ApiErrorAlert from '@components/shared/ApiErrorAlert'
 import CategoryTreeSelectDialog from '@components/transactions/CategoryTreeSelectDialog'
 import MemoSummaryHeader from './MemoSummaryHeader'
 import MemoSummaryStatCards from './MemoSummaryStatCards'
@@ -29,7 +30,7 @@ export default function MemoSummaryTable(): JSX.Element {
               title="Could not save changes"
               message={msg()}
               dataTestId="memo-summary-patch-error"
-              close={() => state.setPatchError(null)}
+              close={state.dismissPatchError}
             />
           )}
         </Show>
@@ -44,27 +45,17 @@ export default function MemoSummaryTable(): JSX.Element {
           frequency={state.frequency}
         />
 
-        <Show when={state.memoQ.isError && state.memoQ.error}>
-          {(err) => (
-            <AlertComponent
-              type="error"
-              title={(err() as Error).name}
-              message={(err() as Error).message}
-              dataTestId="memo-summary-memo-error"
-            />
-          )}
-        </Show>
+        <ApiErrorAlert
+          error={state.memoQ.isError && state.memoQ.error}
+          title="Could not load memo"
+          dataTestId="memo-summary-memo-error"
+        />
 
-        <Show when={state.summaryQ.isError && state.summaryQ.error}>
-          {(err) => (
-            <AlertComponent
-              type="error"
-              title={(err() as Error).name}
-              message={(err() as Error).message}
-              dataTestId="memo-summary-stats-error"
-            />
-          )}
-        </Show>
+        <ApiErrorAlert
+          error={state.summaryQ.isError && state.summaryQ.error}
+          title="Could not load memo summary"
+          dataTestId="memo-summary-stats-error"
+        />
 
         <MemoSummaryStatCards
           totalCredits={state.totalCredits}

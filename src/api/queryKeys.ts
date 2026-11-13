@@ -132,6 +132,7 @@ export const mutationKeys = {
   mutateTransaction: ['mutate-transaction'] as const,
   mutatePendingTransaction: ['mutate-pending-transaction'] as const,
   mutateMemo: ['mutate-memo'] as const,
+  mutateBudgetCategory: ['mutate-budget-category'] as const,
   refreshRecurring: ['refresh-recurring'] as const,
   createUser: ['create-user'] as const,
 } as const

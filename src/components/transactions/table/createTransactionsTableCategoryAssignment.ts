@@ -1,4 +1,5 @@
 import mutateTransaction from '@api/hooks/transactions/mutateTransaction'
+import { extractApiErrorMessage } from '@api/extractApiErrorMessage'
 import { invalidateAfterTransactionUpdate } from '@api/queryInvalidation'
 import { useQueryClient } from '@tanstack/solid-query'
 import { createSignal } from 'solid-js'
@@ -27,15 +28,17 @@ export function createTransactionsTableCategoryAssignment() {
     mutation.mutate(
       { transaction: { id: target.id, budget_category: category } },
       {
-        onSuccess: async () => {
-          await invalidateAfterTransactionUpdate(queryClient, { transactionId: target.id })
-          setMutatingTransactionId(null)
-          setCategoryAssignError(null)
+        // TanStack does not await a `mutate()` callback, so chain rather than `async`:
+        // the row stays marked until the refetch lands, even if the refetch fails.
+        onSuccess: () => {
+          void invalidateAfterTransactionUpdate(queryClient, { transactionId: target.id }).finally(() => {
+            setMutatingTransactionId(null)
+            setCategoryAssignError(null)
+          })
         },
         onError: (err) => {
           setMutatingTransactionId(null)
-          const msg = err instanceof Error ? err.message : String(err)
-          setCategoryAssignError(msg)
+          setCategoryAssignError(extractApiErrorMessage(err))
           setCategoryDialogOpen(true)
         },
       },

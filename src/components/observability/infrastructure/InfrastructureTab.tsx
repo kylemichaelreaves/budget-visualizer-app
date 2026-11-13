@@ -50,7 +50,7 @@ export default function InfrastructureTab(props: { query: ReturnType<typeof useO
             variant="outline"
             size="sm"
             data-testid="observability-retry"
-            onClick={() => props.query.refetch()}
+            onClick={() => void props.query.refetch()}
           >
             Retry
           </Button>

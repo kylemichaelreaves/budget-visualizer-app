@@ -1,4 +1,5 @@
 import { createSignal, Match, Switch, type JSX } from 'solid-js'
+import { extractApiErrorMessage } from '@api/extractApiErrorMessage'
 import { useCreateCsvImport } from '@api/hooks/transactions/useCreateCsvImport'
 import EmptyState from '@components/dataImport/EmptyState'
 import ErrorState from '@components/dataImport/ErrorState'
@@ -55,7 +56,7 @@ export default function DataImportPage(): JSX.Element {
       setView({ kind: 'success', filename: file.name })
     } catch (err) {
       if (uploadId !== activeUploadId) return
-      const message = err instanceof Error ? err.message : 'Upload failed'
+      const message = extractApiErrorMessage(err)
       setView({ kind: 'error-upload-failed', file, message })
     }
   }

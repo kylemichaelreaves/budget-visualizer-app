@@ -1,9 +1,9 @@
 import type { Accessor } from 'solid-js'
 import { For, Show } from 'solid-js'
 import type { Transaction } from '@types'
-import AlertComponent from '@components/shared/AlertComponent'
 import MemoSummaryTransactionRow from './MemoSummaryTransactionRow'
 import { Button } from '@components/ui/button'
+import ApiErrorAlert from '@components/shared/ApiErrorAlert'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 
 export default function MemoSummaryTransactionsCard(props: {
@@ -28,20 +28,11 @@ export default function MemoSummaryTransactionsCard(props: {
         <CardTitle class="text-lg">Transactions</CardTitle>
       </CardHeader>
       <CardContent>
-        <Show when={props.txIsError() && props.txError()}>
-          {(err) => {
-            const e = err() as unknown
-            const error = e instanceof Error ? e : new Error(String(e))
-            return (
-              <AlertComponent
-                type="error"
-                title={error.name}
-                message={error.message}
-                dataTestId="memo-summary-tx-error"
-              />
-            )
-          }}
-        </Show>
+        <ApiErrorAlert
+          error={props.txIsError() && props.txError()}
+          title="Could not load transactions"
+          dataTestId="memo-summary-tx-error"
+        />
 
         <Show when={props.txIsLoading()}>
           <p class="text-muted-foreground">Loading transactions...</p>

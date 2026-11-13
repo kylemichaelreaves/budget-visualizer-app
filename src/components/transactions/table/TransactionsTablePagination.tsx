@@ -38,6 +38,7 @@ export default function TransactionsTablePagination(props: { status?: PendingTra
     <TablePaginationBar
       dataTestId="transactions-table-pagination"
       error={countQuery.error}
+      errorTitle="Could not count transactions"
       errorTestId="transactions-table-pagination-error"
       pageSize={transactionsState.transactionsTableLimit}
       onPageSizeChange={(v) => {

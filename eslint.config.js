@@ -34,8 +34,28 @@ export default tseslint.config(
   },
   {
     files: ['tests/**/*.{ts,tsx}'],
+    languageOptions: {
+      parserOptions: {
+        projectService: true,
+      },
+    },
     rules: {
       '@typescript-eslint/no-non-null-assertion': 'off',
+    },
+  },
+  // A dropped promise is a lost error. Fire-and-forget is allowed, but it has to be
+  // said with `void` (e.g. a non-awaited invalidation, see CLAUDE.md), and in tests a
+  // missing `await` on a Playwright `expect(locator)` is a silently passing assertion.
+  {
+    files: ['src/**/*.{ts,tsx}', 'tests/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-floating-promises': 'error',
+    },
+  },
+  {
+    files: ['src/**/*.{ts,tsx}'],
+    rules: {
+      '@typescript-eslint/no-misused-promises': 'error',
     },
   },
   {

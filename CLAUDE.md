@@ -109,6 +109,8 @@ Convention, not a lint gate — there is no clean Solid-native rule to enforce i
   - `invalidateAfterMemoMutation(queryClient)` — create scope + memo, every transaction detail, recurring. The backend cascades a memo's category into its transactions.
   - `invalidateAfterBudgetCategoryMutation(queryClient)` — memo scope + category list. Use it for rename, move and delete, which cascade into memos and transactions. An add only needs `budgetCategories.all`.
 - **Do not** `await` or return invalidation from a hook-level `onSuccess` — TanStack Query v5 waits for it before running `mutate()`-level callbacks, which blocks closing a dialog or navigating (`history.back()`, `navigate`). Either `void` it inside the hook (`mutateCreateTransaction`, `mutateMemo`, `mutatePendingTransaction`) or call the helper at the call site without awaiting (`mutateTransaction`).
+  - The opt-in exception is a caller with no dialog or navigation that shows the saved value straight from the query: `mutateMemo({ awaitInvalidation: true })` (memos table, memo summary page) and `mutateBudgetCategory` (categories tree, which closes its editor on `mutateAsync`). There the pending state should cover the refetch, or the control flashes the old value.
+- **Writes go through a `useMutation` hook** with a `mutationKeys` entry, never a raw `httpClient` call plus hand-rolled saving/error signals. Read `isPending` / `error` / `variables` off the mutation; when several writes can be in flight at once (one per tree node), read them with `useMutationState` filtered by the mutation key, since `variables` only holds the latest call.
 - Don't use store-level caches that short-circuit `queryFn` — let TanStack manage caching
 
 ## Retry policy
@@ -121,6 +123,8 @@ Set in `@api/queryClient` defaults; don't override per-call without a stated rea
 
 ## Utilities
 
+- **API errors**: render a failed query or mutation with `ApiErrorAlert` (`error={q.isError && q.error}`, a `title` naming what failed). For a string, use `extractApiErrorMessage`. Never use `(err as Error).name` / `.message`: a 4xx then reads "AxiosError" / "Request failed with status code 409" and drops the server's `message`.
+- **Promises**: `no-floating-promises` (src + tests) and `no-misused-promises` (src) are on. Mark intentional fire-and-forget with `void`, including `onClick={() => void q.refetch()}`. Don't make a `mutate()`-level callback `async`, because TanStack doesn't await it. Chain with `void p.finally(...)` instead.
 - **Currency formatting**: use `formatUsd`, `formatUsdOrDash`, or `formatUsdAbs` from `@utils/formatUsd` — do not create local `Intl.NumberFormat` instances
 - **Budget category path delimiter**: use `BUDGET_CATEGORY_PATH_DELIMITER` from `@api/helpers/convertToTree` (not hardcoded `' - '`)
 

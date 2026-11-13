@@ -33,7 +33,7 @@ export default function MemosTable(): JSX.Element {
         queryIsError={() => data.query.isError}
         queryError={() => data.query.error}
         tableMutationError={mutations.tableMutationError}
-        onDismissMutationError={() => mutations.setTableMutationError(null)}
+        onDismissMutationError={mutations.dismissTableMutationError}
       />
 
       <MemosTablePageIntro

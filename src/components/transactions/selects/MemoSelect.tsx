@@ -1,8 +1,8 @@
 import type { JSX } from 'solid-js'
-import { createEffect, createMemo, createSignal, Show } from 'solid-js'
+import { createEffect, createMemo, createSignal } from 'solid-js'
 import type { Memo } from '@types'
 import { useMemoSearch } from '@api/hooks/memos/useMemoSearch'
-import AlertComponent from '@components/shared/AlertComponent'
+import ApiErrorAlert from '@components/shared/ApiErrorAlert'
 import AutocompleteComponent from '@components/shared/AutocompleteComponent'
 
 const MEMO_OPT_PREFIX = 'm:'
@@ -102,16 +102,11 @@ export default function MemoSelect(props: {
 
   return (
     <div aria-label="Memo Selector">
-      <Show when={memosQuery.isError && memosQuery.error}>
-        {(err) => (
-          <AlertComponent
-            type="error"
-            title={(err() as Error).name}
-            message={(err() as Error).message}
-            dataTestId={props.dataTestId ? `${props.dataTestId}-error` : undefined}
-          />
-        )}
-      </Show>
+      <ApiErrorAlert
+        error={memosQuery.isError && memosQuery.error}
+        title="Could not load memos"
+        dataTestId={props.dataTestId ? `${props.dataTestId}-error` : undefined}
+      />
       <AutocompleteComponent
         value={props.value}
         onChange={(v) => applyChange(v)}

@@ -1,7 +1,10 @@
 import { BUDGET_CATEGORY_PATH_DELIMITER } from '@api/helpers/convertToTree'
 import type { CategoryNode } from '@types'
 import { createSignal } from 'solid-js'
-import type { BudgetCategoryMutationResult, BudgetCategoryOperation } from './mutateBudgetCategory'
+import type {
+  BudgetCategoryMutationResult,
+  BudgetCategoryOperation,
+} from '@api/budgetCategories/updateBudgetCategory'
 import { budgetCategorySegmentValidationError, countDescendants } from './budgetCategoryTreeUtils'
 
 type TreeNodeProps = {
