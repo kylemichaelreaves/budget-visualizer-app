@@ -9,7 +9,10 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: Boolean(process.env.CI),
   retries: process.env.CI ? 2 : 0,
-  workers: process.env.CI ? 1 : undefined,
+  // API mocks are `page.route` / `context.route` handlers scoped to each test's own
+  // browser context, and the preview server is static, so tests share no state and can
+  // run concurrently. Hosted runners have 4 vCPUs.
+  workers: process.env.CI ? 4 : undefined,
   reporter: [['list'], ['html', { open: 'never' }]],
   use: {
     baseURL,
@@ -18,7 +21,9 @@ export default defineConfig({
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
   webServer: {
-    command: `bun run build && bun run preview -- --host ${host} --port ${port}`,
+    // `vite build`, not `bun run build`: that script runs `tsc -b` first, repeating the
+    // full typecheck the Typecheck job already gates.
+    command: `bunx vite build && bun run preview -- --host ${host} --port ${port}`,
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,

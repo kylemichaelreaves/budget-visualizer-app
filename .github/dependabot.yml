@@ -1,0 +1,16 @@
+version: 2
+updates:
+  # Every `uses:` is pinned to a commit SHA, so nothing moves unless this bumps it.
+  # The composite action under .github/actions/ pins its own SHAs and is not covered by
+  # the default `/` directory, hence the glob.
+  - package-ecosystem: github-actions
+    directories:
+      - /
+      - /.github/actions/*
+    schedule:
+      interval: weekly
+    # One PR per week, not one per action: `main` requires branches to be up to date, so
+    # each extra PR is another serial rebase-and-rerun.
+    groups:
+      github-actions:
+        patterns: ['*']
