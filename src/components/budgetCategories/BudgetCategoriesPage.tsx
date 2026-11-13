@@ -9,7 +9,7 @@ import { Input } from '@components/ui/input'
 import { Card, CardAction, CardContent, CardDescription, CardHeader, CardTitle } from '@components/ui/card'
 import { createBudgetCategorySummaryTimeframeFromStore } from '@composables/budgetCategorySummaryTimeframeFromStore'
 import { setSelectedBudgetCategory } from '@stores/transactionsStore'
-import type { BudgetCategorySummary, CategoryNode } from '@types'
+import type { CategoryNode } from '@types'
 import BudgetCategoryInlineAddForm from './BudgetCategoryInlineAddForm'
 import BudgetCategoryTreeNode from './BudgetCategoryTreeNode'
 import { FolderTreeIcon, PlusIcon, RefreshCwIcon } from '@shared/icons'
@@ -22,7 +22,7 @@ export default function BudgetCategoriesPage(): JSX.Element {
     () => chartTimeFrame(),
     () => chartDate(),
   )
-  const spendRows = () => (categorySpendQuery.data ?? []) as BudgetCategorySummary[]
+  const spendRows = () => categorySpendQuery.data ?? []
   const hasSpendForSunburst = () =>
     spendRows().some((r) => r.parent_id === null && Math.abs(r.total_amount_debit) > 0)
   const isChartPending = () => categorySpendQuery.isLoading

@@ -100,16 +100,12 @@ export default function BudgetCategoryTreemap(props: {
       .attr('height', (d) => Math.max(0, d.y1 - d.y0))
       .attr('rx', 2)
       .attr('ry', 2)
-      .attr('fill', (d) =>
-        getBudgetCategoryColorForChartCell(colorHelpers, d.data as unknown as BudgetCategorySummary),
-      )
+      .attr('fill', (d) => getBudgetCategoryColorForChartCell(colorHelpers, d.data))
       // Groups are visible only as a colored header strip + outline so child leaves layered on
       // top read clearly; leaves stay opaque.
       .attr('fill-opacity', (d) => (isGroup(d) ? 0.25 : 0.85))
       .attr('stroke', (d) =>
-        isGroup(d)
-          ? getBudgetCategoryColorForChartCell(colorHelpers, d.data as unknown as BudgetCategorySummary)
-          : 'currentColor',
+        isGroup(d) ? getBudgetCategoryColorForChartCell(colorHelpers, d.data) : 'currentColor',
       )
       .attr('stroke-opacity', (d) => (isGroup(d) ? 0.9 : 0.12))
       .attr('stroke-width', (d) => (isGroup(d) ? 1.5 : 1))
@@ -117,7 +113,7 @@ export default function BudgetCategoryTreemap(props: {
       // eslint-disable-next-line solid/reactivity
       .on('click', (_event, d) => {
         if (isClickable(d)) {
-          props.onCellClick?.(d.data as unknown as BudgetCategorySummary)
+          props.onCellClick?.(d.data)
         }
       })
 

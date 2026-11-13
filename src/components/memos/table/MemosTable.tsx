@@ -10,7 +10,6 @@ import MemosTableAlerts from '@components/memos/table/MemosTableAlerts'
 import MemosTableListCard from '@components/memos/table/MemosTableListCard'
 import MemosTablePageIntro from '@components/memos/table/MemosTablePageIntro'
 import MemosTablePagination from '@components/memos/table/MemosTablePagination'
-import type { BudgetCategorySummary } from '@types'
 
 export default function MemosTable(): JSX.Element {
   const data = createMemosTableDerivedData()
@@ -21,9 +20,7 @@ export default function MemosTable(): JSX.Element {
     () => chartTimeFrame(),
     () => chartDate(),
   )
-  const categoryColors = createMemo(() =>
-    budgetCategoryColorsFromData(categorySummaryQuery.data as BudgetCategorySummary[] | undefined),
-  )
+  const categoryColors = createMemo(() => budgetCategoryColorsFromData(categorySummaryQuery.data))
 
   const searchIsActive = () => !!data.searchQuery().trim()
 

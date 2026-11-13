@@ -1,7 +1,7 @@
 import { useQuery } from '@tanstack/solid-query'
 import { queryKeys } from '@api/queryKeys'
-import { fetchTransactions } from '@api/transactions/fetchTransactions'
-import type { SummaryTypeBase, Timeframe } from '@types'
+import { fetchHistoricalSummary } from '@api/transactions/fetchTransactions'
+import type { Timeframe } from '@types'
 import { memoQuerySliceFromStore } from '@composables/memoQueryFromTransactionsStore'
 
 export default function useHistoricalSummaryForBudgetCategory(
@@ -19,14 +19,12 @@ export default function useHistoricalSummaryForBudgetCategory(
         memoKey,
       ),
       queryFn: () =>
-        fetchTransactions({
+        fetchHistoricalSummary({
           budgetCategory: budgetCategory(),
           timeFrame: timeFrame(),
           date: date(),
-          summary: true,
-          summaryType: 'historical',
           ...memoParams,
-        }) as Promise<SummaryTypeBase[]>,
+        }),
       refetchOnWindowFocus: false,
       enabled: !!budgetCategory() && !!date() && date().trim() !== '',
     }

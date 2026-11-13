@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/solid-query'
 import { queryKeys } from '@api/queryKeys'
-import { fetchTransactions } from '@api/transactions/fetchTransactions'
+import { fetchBudgetCategoryHierarchySum } from '@api/transactions/fetchTransactions'
 import type { Timeframe } from '@types'
 import { memoQuerySliceFromStore } from '@composables/memoQueryFromTransactionsStore'
 import { devConsole } from '@utils/devConsole'
@@ -12,8 +12,7 @@ export default function useBudgetCategorySummary(timeFrame: () => Timeframe, dat
       queryKey: queryKeys.budgetCategorySummary.detail(String(timeFrame()), date(), memoKey),
       queryFn: () => {
         devConsole('log', '[useBudgetCategorySummary]', timeFrame(), date(), memoKey)
-        return fetchTransactions({
-          budgetCategoryHierarchySum: true,
+        return fetchBudgetCategoryHierarchySum({
           timeFrame: timeFrame(),
           date: date(),
           ...memoParams,

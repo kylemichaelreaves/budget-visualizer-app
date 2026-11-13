@@ -47,7 +47,8 @@ export interface Categories {
 
 /** Row from `GET /transactions?totalAmountDebit` — one per day in the interval. */
 export interface DailyInterval {
-  date: Date
+  /** `DATE(date)` — arrives as a JSON string, not a `Date`. */
+  date: string
   total_amount_debit: number
   total_debit?: number
 }

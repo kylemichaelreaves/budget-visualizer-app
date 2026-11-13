@@ -30,16 +30,15 @@ export function createLineChart(
 
   const chartData = summaries
     .flat()
-    .map((item: SummaryTypeBase | DailyInterval) => {
-      const total_debit = item.total_amount_debit ?? item.total_debit
-      return {
-        date: summaryPointDate(item),
-        total_debit: total_debit as number,
-      }
-    })
-    // Rows with no parseable date are dropped rather than plotted at a guessed
-    // position — see summaryPointDate.
-    .filter((d): d is LineChartDataPoint => d.date !== null)
+    .map((item: SummaryTypeBase | DailyInterval) => ({
+      date: summaryPointDate(item),
+      // pg `numeric` sums can arrive as strings; coerce, and let a missing total
+      // become NaN so the filter below drops it instead of drawing a NaN path.
+      total_debit: Number(item.total_amount_debit ?? item.total_debit),
+    }))
+    // Rows with no parseable date or total are dropped rather than plotted at a
+    // guessed position — see summaryPointDate.
+    .filter((d): d is LineChartDataPoint => d.date !== null && Number.isFinite(d.total_debit))
 
   if (chartData.length === 0) return
 
@@ -180,7 +179,7 @@ export function createLineChart(
     .attr('fill', 'none')
     .attr('stroke', lineColor)
     .attr('stroke-width', 2)
-    .attr('d', line as unknown as string)
+    .attr('d', line)
 
   // --- Tooltip (reuse existing or create) ---
   const parent = d3.select(parentElement)

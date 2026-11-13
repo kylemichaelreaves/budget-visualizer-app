@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/solid-query'
 import { queryKeys } from '@api/queryKeys'
-import { fetchTransactionsCount } from '@api/transactions/fetchTransactionsCount'
+import { fetchTransactionsCount } from '@api/transactions/fetchTransactions'
 import { memoQuerySliceFromStore } from '@composables/memoQueryFromTransactionsStore'
 import { transactionQueryScopeFromStore } from '@composables/transactionQueryScopeFromStore'
 import { transactionsState } from '@stores/transactionsStore'
@@ -16,7 +16,7 @@ export default function useTransactionsCount(status?: () => PendingTransactionSt
 
     return {
       queryKey: queryKeys.transactionsCount.detail(st ?? 'regular', tf, date, memoKey, budgetCategory),
-      queryFn: async () => {
+      queryFn: () => {
         const params = st
           ? { status: st, ...memoParam }
           : {
@@ -24,8 +24,7 @@ export default function useTransactionsCount(status?: () => PendingTransactionSt
               ...(tf && date ? { timeFrame: tf, date } : {}),
               ...(budgetCategory ? { budgetCategory } : {}),
             }
-        const data = await fetchTransactionsCount(params)
-        return Number(data[0]?.count ?? 0)
+        return fetchTransactionsCount(params)
       },
       refetchOnWindowFocus: false,
       // Query key already includes timeframe/date/memo/budgetCategory; avoid refetch churn on remount/navigation.

@@ -10,6 +10,7 @@ import type { Timeframe } from '@types'
 import {
   mountBudgetCategorySunburstChart,
   type BudgetCategorySunburstNavigation,
+  type SunburstBreadcrumb,
 } from './mountBudgetCategorySunburst'
 
 export default function BudgetCategorySunburst(props: {
@@ -23,7 +24,7 @@ export default function BudgetCategorySunburst(props: {
   let svgRef: SVGSVGElement | undefined
   let tooltipRef: HTMLDivElement | undefined
 
-  const [breadcrumb, setBreadcrumb] = createSignal<Array<{ name: string; node: unknown }>>([])
+  const [breadcrumb, setBreadcrumb] = createSignal<SunburstBreadcrumb[]>([])
   const [centerName, setCenterName] = createSignal('Total')
   const [centerValue, setCenterValue] = createSignal(0)
 

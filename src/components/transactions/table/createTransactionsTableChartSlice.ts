@@ -3,7 +3,7 @@ import { createMemo } from 'solid-js'
 import useBudgetCategorySummary from '@api/hooks/budgetCategories/useBudgetCategorySummary'
 import { budgetCategoryColorsFromData } from '@composables/budgetCategoryColors'
 import { createBudgetCategorySummaryTimeframeFromStore } from '@composables/budgetCategorySummaryTimeframeFromStore'
-import type { BudgetCategorySummary, Transaction } from '@types'
+import type { Transaction } from '@types'
 
 export function createTransactionsTableChartSlice(flattenedData: Accessor<Transaction[]>) {
   const firstDay = createMemo(() => {
@@ -22,7 +22,7 @@ export function createTransactionsTableChartSlice(flattenedData: Accessor<Transa
   )
 
   const categoryColors = createMemo(() => {
-    const data = categorySummaryQuery.data as BudgetCategorySummary[] | undefined
+    const data = categorySummaryQuery.data
     return budgetCategoryColorsFromData(data)
   })
 

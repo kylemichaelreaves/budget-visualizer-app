@@ -23,13 +23,15 @@ import { formatUsd } from '@utils/formatUsd'
 
 type HierarchyNode = BudgetCategoryChartHierarchyNode
 
-type AugmentedNode = d3.HierarchyRectangularNode<HierarchyNode> & {
+export type AugmentedNode = d3.HierarchyRectangularNode<HierarchyNode> & {
   current: SunburstArcCoords
   target: SunburstArcCoords
 }
 
+export type SunburstBreadcrumb = { name: string; node: AugmentedNode }
+
 export type BudgetCategorySunburstNavigation = {
-  zoomTo: (node: unknown) => void
+  zoomTo: (node: AugmentedNode) => void
   rootNode: AugmentedNode
 }
 
@@ -40,7 +42,7 @@ export function mountBudgetCategorySunburstChart(opts: {
   tooltipEl: HTMLDivElement | undefined
   setCenterName: (v: string) => void
   setCenterValue: (v: number) => void
-  setBreadcrumb: (b: Array<{ name: string; node: unknown }>) => void
+  setBreadcrumb: (b: SunburstBreadcrumb[]) => void
   onSliceClick?: (row: BudgetCategorySummary) => void
   setNavigation: (api: BudgetCategorySunburstNavigation) => void
 }): void {
@@ -54,20 +56,20 @@ export function mountBudgetCategorySunburstChart(opts: {
     setBreadcrumb,
   } = opts
 
-  const hierarchyData = buildBudgetCategoryChartHierarchy(data)
-  const root = d3
-    .hierarchy(hierarchyData)
+  const hierarchy = d3
+    .hierarchy(buildBudgetCategoryChartHierarchy(data))
     .sum((d) => (d.children ? 0 : Math.abs(d.total_amount_debit)))
-    .sort((a, b) => (b.value ?? 0) - (a.value ?? 0)) as unknown as AugmentedNode
+    .sort((a, b) => (b.value ?? 0) - (a.value ?? 0))
 
-  d3.partition<HierarchyNode>().size([2 * Math.PI, root.height + 1])(
-    root as unknown as d3.HierarchyNode<HierarchyNode>,
-  )
+  // `current` / `target` are filled in just below; the partition supplies the rest.
+  const root = d3.partition<HierarchyNode>().size([2 * Math.PI, hierarchy.height + 1])(
+    hierarchy,
+  ) as AugmentedNode
 
   const totalValue = root.value ?? 1
 
-  ;(root as AugmentedNode).each((d: unknown) => {
-    ;(d as AugmentedNode).current = d as SunburstArcCoords
+  root.each((d) => {
+    d.current = d
   })
 
   setCenterName('Total')
@@ -92,16 +94,14 @@ export function mountBudgetCategorySunburstChart(opts: {
     .innerRadius((d) => d.y0 * SUNBURST_RADIUS)
     .outerRadius((d) => Math.max(d.y0 * SUNBURST_RADIUS, d.y1 * SUNBURST_RADIUS - 1))
 
-  const descendants = root.descendants().slice(1) as AugmentedNode[]
+  const descendants = root.descendants().slice(1)
 
   const path = g
     .append('g')
     .selectAll<SVGPathElement, AugmentedNode>('path')
     .data(descendants)
     .join('path')
-    .attr('fill', (d) =>
-      getBudgetCategoryColorForChartCell(helpers, d.data as unknown as BudgetCategorySummary),
-    )
+    .attr('fill', (d) => getBudgetCategoryColorForChartCell(helpers, d.data))
     .attr('fill-opacity', (d) => (sunburstArcVisible(d.current) ? (d.children ? 0.6 : 0.4) : 0))
     .attr('pointer-events', (d) => (sunburstArcVisible(d.current) ? 'auto' : 'none'))
     .attr('d', (d) => arc(d.current))
@@ -124,7 +124,7 @@ export function mountBudgetCategorySunburstChart(opts: {
 
   const parentCircle = g
     .append('circle')
-    .datum(root as AugmentedNode)
+    .datum(root)
     .attr('r', SUNBURST_RADIUS)
     .attr('fill', 'none')
     .attr('pointer-events', 'all')
@@ -144,8 +144,7 @@ export function mountBudgetCategorySunburstChart(opts: {
       path.attr('fill-opacity', (p: AugmentedNode) => {
         if (!sunburstArcVisible(p.current)) return 0
         if (p === d) return 0.9
-        const ancestors = (p as d3.HierarchyNode<HierarchyNode>).ancestors()
-        if (ancestors.includes(d as d3.HierarchyNode<HierarchyNode>)) return d.children ? 0.7 : 0.55
+        if (p.ancestors().includes(d)) return d.children ? 0.7 : 0.55
         return 0.15
       })
 
@@ -184,9 +183,8 @@ export function mountBudgetCategorySunburstChart(opts: {
 
   function clicked(_event: Event, p: AugmentedNode) {
     parentCircle.datum(p.parent || root)
-    parentCircle.style('cursor', p === (root as AugmentedNode) ? 'default' : 'pointer')
-    ;(root as AugmentedNode).each((d: unknown) => {
-      const node = d as AugmentedNode
+    parentCircle.style('cursor', p === root ? 'default' : 'pointer')
+    root.each((node) => {
       node.target = {
         x0: Math.max(0, Math.min(1, (node.x0 - p.x0) / (p.x1 - p.x0))) * 2 * Math.PI,
         x1: Math.max(0, Math.min(1, (node.x1 - p.x0) / (p.x1 - p.x0))) * 2 * Math.PI,
@@ -195,11 +193,13 @@ export function mountBudgetCategorySunburstChart(opts: {
       }
     })
 
-    const t = g.transition().duration(SUNBURST_TRANSITION_MS).ease(d3.easeCubicInOut)
+    // Arcs and labels start in the same tick with the same timing, so they stay in
+    // step without sharing one parent transition (whose element type d3's typings
+    // won't accept for a child selection without an `any` cast).
+    const zoom = <E extends d3.BaseType>(sel: d3.Selection<E, AugmentedNode, SVGGElement, unknown>) =>
+      sel.transition().duration(SUNBURST_TRANSITION_MS).ease(d3.easeCubicInOut)
 
-    path
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .transition(t as any)
+    zoom(path)
       .tween('data', (d: AugmentedNode) => {
         const i = d3.interpolate(d.current, d.target)
         return (t2: number) => {
@@ -215,30 +215,29 @@ export function mountBudgetCategorySunburstChart(opts: {
       .attr('pointer-events', (d: AugmentedNode) => (sunburstArcVisible(d.target) ? 'auto' : 'none'))
       .attrTween('d', (d: AugmentedNode) => () => arc(d.current)!)
 
-    label
-      .filter(function (this: SVGTextElement, d: AugmentedNode) {
+    zoom(
+      label.filter(function (this: SVGTextElement, d: AugmentedNode) {
         return !!(+(this.getAttribute('fill-opacity') ?? 0) || sunburstLabelVisible(d.target))
-      })
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      .transition(t as any)
+      }),
+    )
       .attr('fill-opacity', (d: AugmentedNode) => +sunburstLabelVisible(d.target))
       .attrTween('transform', (d: AugmentedNode) => () => sunburstLabelTransform(d.current))
 
     setCenterName(p.data.category_id === 0 ? 'Total' : p.data.category_name)
     setCenterValue(p.value ?? 0)
 
-    const ancestors: Array<{ name: string; node: unknown }> = []
-    let cur: d3.HierarchyNode<HierarchyNode> | null = p
+    const ancestors: SunburstBreadcrumb[] = []
+    let cur: AugmentedNode | null = p
     while (cur) {
       if (cur.data.category_id !== 0) {
         ancestors.unshift({ name: cur.data.category_name, node: cur })
       }
-      cur = cur.parent
+      cur = cur.parent as AugmentedNode | null
     }
     setBreadcrumb(ancestors)
 
     if (p.data.category_id > 0) {
-      opts.onSliceClick?.(p.data as unknown as BudgetCategorySummary)
+      opts.onSliceClick?.(p.data)
     }
   }
 
@@ -247,7 +246,5 @@ export function mountBudgetCategorySunburstChart(opts: {
     clicked(event, d3.select<SVGCircleElement, AugmentedNode>(this).datum())
   })
 
-  const rootNode = root as AugmentedNode
-  const zoomTo = (node: unknown) => clicked(new MouseEvent('click'), node as AugmentedNode)
-  opts.setNavigation({ zoomTo, rootNode })
+  opts.setNavigation({ zoomTo: (node) => clicked(new MouseEvent('click'), node), rootNode: root })
 }

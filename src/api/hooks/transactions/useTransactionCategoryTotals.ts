@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/solid-query'
 import { queryKeys } from '@api/queryKeys'
-import { fetchTransactions } from '@api/transactions/fetchTransactions'
+import { fetchCategoryTotals } from '@api/transactions/fetchTransactions'
 import { normalizeCategoryTotals } from '@api/transactions/normalizeCategoryTotals'
 import { transactionTableScopeFromStore } from '@composables/transactionTableScopeFromStore'
 
@@ -15,8 +15,7 @@ export default function useTransactionCategoryTotals(enabled: () => boolean) {
         scope.date,
         scope.budgetCategory,
       ),
-      queryFn: async () =>
-        normalizeCategoryTotals(await fetchTransactions({ budgetCategorySummary: true, ...scope.params })),
+      queryFn: async () => normalizeCategoryTotals(await fetchCategoryTotals(scope.params)),
       refetchOnWindowFocus: false,
       enabled: enabled(),
     }

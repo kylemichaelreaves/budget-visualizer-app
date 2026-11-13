@@ -48,6 +48,24 @@ describe('createLineChart', () => {
     expect(dots(svg)).toHaveLength(2)
   })
 
+  it('coerces string totals and drops rows with no usable total', () => {
+    const svg = mountSvg()
+    createLineChart(
+      svg,
+      [
+        // pg numeric sums can arrive as strings
+        row({ period_start: '2026-01-01T00:00:00.000Z', total_debit: '12.50' as unknown as number }),
+        row({ period_start: '2026-02-01T00:00:00.000Z', total_debit: undefined as unknown as number }),
+        row({ period_start: '2026-03-01T00:00:00.000Z', total_debit: 'n/a' as unknown as number }),
+      ],
+      vi.fn(),
+    )
+    expect(dots(svg)).toHaveLength(1)
+    const d = svg.querySelector('path[fill="none"]')?.getAttribute('d')
+    expect(d).toBeTruthy()
+    expect(d).not.toContain('NaN')
+  })
+
   it('draws nothing when no row has a usable date', () => {
     const svg = mountSvg()
     createLineChart(svg, [row({}), row({ date: 'nope' })], vi.fn())

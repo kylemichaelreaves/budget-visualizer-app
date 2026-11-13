@@ -1,16 +1,12 @@
 import type { BudgetCategorySummary } from '@types'
 
-/** Node shape shared by sunburst / treemap hierarchy builders. */
-export interface BudgetCategoryChartHierarchyNode {
+/**
+ * Node shape shared by sunburst / treemap hierarchy builders. It is a
+ * `BudgetCategorySummary`, so a node's `data` can go straight to click
+ * handlers and color lookups without a cast.
+ */
+export interface BudgetCategoryChartHierarchyNode extends BudgetCategorySummary {
   name: string
-  category_id: number
-  full_path: string
-  budget_category: string
-  total_amount_debit: number
-  parent_id: number | null
-  level: number
-  source_id: number
-  category_name: string
   children?: BudgetCategoryChartHierarchyNode[]
 }
 

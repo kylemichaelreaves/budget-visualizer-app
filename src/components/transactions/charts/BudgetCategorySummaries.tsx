@@ -4,7 +4,7 @@ import type { BudgetCategoryColorHelpers } from '@composables/budgetCategoryColo
 import useBudgetCategorySummary from '@api/hooks/budgetCategories/useBudgetCategorySummary'
 import useHistoricalSummaryForBudgetCategory from '@api/hooks/budgetCategories/useHistoricalSummaryForBudgetCategory'
 import LineChart from '@charts/LineChart'
-import type { BudgetCategorySummary, Timeframe } from '@types'
+import type { Timeframe } from '@types'
 import ApiErrorAlert from '@components/shared/ApiErrorAlert'
 import { Skeleton } from '@components/ui/skeleton'
 import { setSelectedBudgetCategory } from '@stores/transactionsStore'
@@ -24,7 +24,7 @@ export default function BudgetCategorySummaries(props: {
   )
   const [selectedCategory, setSelectedCategory] = createSignal('')
 
-  const rows = () => (summaryQuery.data ?? []) as BudgetCategorySummary[]
+  const rows = () => summaryQuery.data ?? []
 
   createEffect(() => {
     const list = rows()

@@ -3,7 +3,6 @@ import { queryKeys } from '@api/queryKeys'
 import { fetchPendingTransactions } from '@api/transactions/fetchPendingTransactions'
 import { memoQuerySliceFromStore } from '@composables/memoQueryFromTransactionsStore'
 import { transactionsState } from '@stores/transactionsStore'
-import type { PendingTransaction } from '@types'
 
 export default function usePendingTransactions() {
   return useInfiniteQuery(() => {
@@ -14,15 +13,15 @@ export default function usePendingTransactions() {
     return {
       queryKey: queryKeys.pendingTransactions.list(limit, memoKey, status),
       initialPageParam: 0,
-      queryFn: async ({ pageParam }) => {
+      queryFn: ({ pageParam }) => {
         const page = Number(pageParam)
 
-        return (await fetchPendingTransactions({
+        return fetchPendingTransactions({
           limit,
           offset: page,
           ...memoParams,
           status: status || undefined,
-        })) as PendingTransaction[]
+        })
       },
       getNextPageParam: (lastPage, allPages) => {
         if (lastPage.length < limit) return undefined
