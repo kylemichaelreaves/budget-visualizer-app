@@ -1,5 +1,5 @@
 import type { JSX } from 'solid-js'
-import { createEffect, createMemo, createSignal, For, Show } from 'solid-js'
+import { createEffect, createMemo, createSignal, For, onCleanup, Show } from 'solid-js'
 import type { BudgetCategorySummary } from '@types'
 import { budgetCategoryColorsFromData } from '@composables/budgetCategoryColors'
 import { Skeleton } from '@components/ui/skeleton'
@@ -12,6 +12,8 @@ import {
   type BudgetCategorySunburstNavigation,
   type SunburstBreadcrumb,
 } from './mountBudgetCategorySunburst'
+import { hasChartableBudgetCategoryData } from './budgetCategoryChartHierarchy'
+import { CHART_TOOLTIP_CLASS, hideChartTooltip } from '@charts/chartTooltip'
 
 export default function BudgetCategorySunburst(props: {
   data: BudgetCategorySummary[]
@@ -42,16 +44,9 @@ export default function BudgetCategorySunburst(props: {
       setCenterValue(0)
     }
 
-    if (!svg || props.isLoading || !data?.length) {
+    if (!svg || props.isLoading || !data?.length || !hasChartableBudgetCategoryData(data)) {
       if (svg) svg.innerHTML = ''
-      navigation = undefined
-      resetOverlayState()
-      return
-    }
-
-    const parents = data.filter((cat) => cat.parent_id === null && Math.abs(cat.total_amount_debit) > 0)
-    if (!parents.length) {
-      svg.innerHTML = ''
+      hideChartTooltip(tooltipRef)
       navigation = undefined
       resetOverlayState()
       return
@@ -71,6 +66,8 @@ export default function BudgetCategorySunburst(props: {
       },
     })
   })
+
+  onCleanup(() => hideChartTooltip(tooltipRef))
 
   const id = () => props.dataTestId ?? 'budget-category-sunburst'
 
@@ -134,10 +131,7 @@ export default function BudgetCategorySunburst(props: {
         </div>
       </div>
 
-      <div
-        ref={(el) => (tooltipRef = el)}
-        class="pointer-events-none absolute z-50 rounded-md border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-lg opacity-0 transition-opacity"
-      />
+      <div ref={(el) => (tooltipRef = el)} class={CHART_TOOLTIP_CLASS} />
     </div>
   )
 }

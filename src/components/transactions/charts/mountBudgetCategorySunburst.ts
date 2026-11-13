@@ -5,7 +5,7 @@ import {
   getBudgetCategoryColorForChartCell,
 } from '@composables/budgetCategoryColors'
 import {
-  buildBudgetCategoryChartHierarchy,
+  buildBudgetCategoryRoot,
   type BudgetCategoryChartHierarchyNode,
 } from './budgetCategoryChartHierarchy'
 import {
@@ -20,6 +20,7 @@ import {
   type SunburstArcCoords,
 } from './budgetCategorySunburstGeometry'
 import { formatUsd } from '@utils/formatUsd'
+import { hideChartTooltip, moveChartTooltipToPointer, setChartTooltipContent } from '@charts/chartTooltip'
 
 type HierarchyNode = BudgetCategoryChartHierarchyNode
 
@@ -56,10 +57,7 @@ export function mountBudgetCategorySunburstChart(opts: {
     setBreadcrumb,
   } = opts
 
-  const hierarchy = d3
-    .hierarchy(buildBudgetCategoryChartHierarchy(data))
-    .sum((d) => (d.children ? 0 : Math.abs(d.total_amount_debit)))
-    .sort((a, b) => (b.value ?? 0) - (a.value ?? 0))
+  const hierarchy = buildBudgetCategoryRoot(data)
 
   // `current` / `target` are filled in just below; the partition supplies the rest.
   const root = d3.partition<HierarchyNode>().size([2 * Math.PI, hierarchy.height + 1])(
@@ -130,14 +128,9 @@ export function mountBudgetCategorySunburstChart(opts: {
     .attr('pointer-events', 'all')
     .style('cursor', 'default')
 
-  /** Tooltip uses `position: absolute` relative to `offsetParent`, not necessarily the SVG wrapper. */
-  function tooltipAnchorRect(): DOMRect | null {
-    if (!tooltip) return null
-    const anchor =
-      (tooltip.offsetParent instanceof HTMLElement ? tooltip.offsetParent : null) ?? svg.parentElement
-    if (!anchor) return null
-    return anchor.getBoundingClientRect()
-  }
+  // The SVG is about to be rebuilt; an arc removed under the cursor never fires
+  // `mouseleave`, so hide the tooltip now rather than leave it stuck.
+  hideChartTooltip(tooltip)
 
   path
     .on('mouseenter', function (event: MouseEvent, d: AugmentedNode) {
@@ -149,36 +142,22 @@ export function mountBudgetCategorySunburstChart(opts: {
       })
 
       if (tooltip) {
-        const anchorRect = tooltipAnchorRect()
-        if (anchorRect) {
-          tooltip.textContent = ''
-          const strong = document.createElement('strong')
-          strong.textContent = d.data.category_name
-          tooltip.appendChild(strong)
-          tooltip.appendChild(document.createElement('br'))
-          tooltip.appendChild(
-            document.createTextNode(formatUsd(Math.abs(d.value ?? d.data.total_amount_debit))),
-          )
-          tooltip.style.left = `${event.clientX - anchorRect.left + 12}px`
-          tooltip.style.top = `${event.clientY - anchorRect.top - 12}px`
-          tooltip.style.opacity = '1'
-        }
+        setChartTooltipContent(
+          tooltip,
+          d.data.category_name,
+          formatUsd(Math.abs(d.value ?? d.data.total_amount_debit)),
+        )
+        moveChartTooltipToPointer(tooltip, event, svg.parentElement)
       }
     })
     .on('mousemove', function (event: MouseEvent) {
-      if (tooltip) {
-        const anchorRect = tooltipAnchorRect()
-        if (anchorRect) {
-          tooltip.style.left = `${event.clientX - anchorRect.left + 12}px`
-          tooltip.style.top = `${event.clientY - anchorRect.top - 12}px`
-        }
-      }
+      if (tooltip) moveChartTooltipToPointer(tooltip, event, svg.parentElement)
     })
     .on('mouseleave', function () {
       path.attr('fill-opacity', (d: AugmentedNode) =>
         sunburstArcVisible(d.current) ? (d.children ? 0.6 : 0.4) : 0,
       )
-      if (tooltip) tooltip.style.opacity = '0'
+      hideChartTooltip(tooltip)
     })
 
   function clicked(_event: Event, p: AugmentedNode) {

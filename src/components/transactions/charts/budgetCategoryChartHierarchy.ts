@@ -1,3 +1,4 @@
+import * as d3 from 'd3'
 import type { BudgetCategorySummary } from '@types'
 
 /**
@@ -97,4 +98,26 @@ export function buildBudgetCategoryChartHierarchy(
     source_id: 0,
     children: topLevel,
   }
+}
+
+/**
+ * Whether there is anything to draw: at least one top-level category with
+ * non-zero spend. Without one the hierarchy has no leaves to size.
+ */
+export function hasChartableBudgetCategoryData(data: readonly BudgetCategorySummary[]): boolean {
+  return data.some((cat) => cat.parent_id === null && Math.abs(cat.total_amount_debit) > 0)
+}
+
+/**
+ * The summed, sorted d3 hierarchy both the treemap and the sunburst lay out.
+ * Only leaves carry value (parents' own totals were moved into "Other" leaves),
+ * and larger categories sort first.
+ */
+export function buildBudgetCategoryRoot(
+  data: BudgetCategorySummary[],
+): d3.HierarchyNode<BudgetCategoryChartHierarchyNode> {
+  return d3
+    .hierarchy(buildBudgetCategoryChartHierarchy(data))
+    .sum((d) => (d.children ? 0 : Math.abs(d.total_amount_debit)))
+    .sort((a, b) => (b.value ?? 0) - (a.value ?? 0))
 }

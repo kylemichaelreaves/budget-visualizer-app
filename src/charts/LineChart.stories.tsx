@@ -80,15 +80,6 @@ export const HistoricalMonthly: Story = {
   },
 }
 
-export const Loading: Story = {
-  args: {
-    summaries: [],
-    handleOnClickSelection: () => undefined,
-    loading: true,
-    dataTestId: 'story-line-chart-loading',
-  },
-}
-
 export const Empty: Story = {
   args: {
     summaries: [],

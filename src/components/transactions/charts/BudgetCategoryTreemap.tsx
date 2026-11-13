@@ -1,5 +1,5 @@
 import type { Accessor, JSX } from 'solid-js'
-import { createEffect, Show } from 'solid-js'
+import { createEffect, onCleanup, Show } from 'solid-js'
 import { useElementSize } from '@composables/useElementSize'
 import * as d3 from 'd3'
 import type { BudgetCategorySummary } from '@types'
@@ -13,9 +13,16 @@ import { formatUsd } from '@utils/formatUsd'
 import { getPeriodLabel } from '@api/helpers/formatPeriodLabels'
 import type { Timeframe } from '@types'
 import {
-  buildBudgetCategoryChartHierarchy,
+  buildBudgetCategoryRoot,
+  hasChartableBudgetCategoryData,
   type BudgetCategoryChartHierarchyNode,
 } from './budgetCategoryChartHierarchy'
+import {
+  CHART_TOOLTIP_CLASS,
+  hideChartTooltip,
+  moveChartTooltipToPointer,
+  setChartTooltipContent,
+} from '@charts/chartTooltip'
 
 type HierarchyNode = BudgetCategoryChartHierarchyNode
 
@@ -39,23 +46,21 @@ export default function BudgetCategoryTreemap(props: {
     const data = props.data
     const svg = svgRef
     const { w, h } = dims()
+    // Every path below rebuilds or clears the SVG; a cell removed under the cursor
+    // never fires `mouseleave`, so hide the tooltip first.
+    hideChartTooltip(tooltipRef)
     if (!svg || props.isLoading || !data?.length || w < 8 || h < 8) {
       if (svg && (props.isLoading || !data?.length)) d3.select(svg).selectAll('*').remove()
       return
     }
 
-    const parents = data.filter((cat) => cat.parent_id === null && Math.abs(cat.total_amount_debit) > 0)
-    if (!parents.length) {
+    if (!hasChartableBudgetCategoryData(data)) {
       d3.select(svg).selectAll('*').remove()
       return
     }
 
     const colorHelpers = chartCategoryColorsWithSummaryFallback(props.categoryColors(), data)
-    const hierarchyData = buildBudgetCategoryChartHierarchy(data)
-    const root = d3
-      .hierarchy(hierarchyData)
-      .sum((d) => (d.children ? 0 : Math.abs((d as HierarchyNode).total_amount_debit)))
-      .sort((a, b) => (b.value ?? 0) - (a.value ?? 0)) as d3.HierarchyNode<HierarchyNode>
+    const root = buildBudgetCategoryRoot(data)
 
     /**
      * `paddingTop` reserves a header strip inside every non-leaf node so we can render a label
@@ -153,34 +158,26 @@ export default function BudgetCategoryTreemap(props: {
       .on('mouseenter', function (event: MouseEvent, d: unknown) {
         const node = d as d3.HierarchyRectangularNode<HierarchyNode>
         d3.select(this).attr('fill-opacity', isGroup(node) ? 0.4 : 1)
-        if (tooltip && container) {
-          tooltip.textContent = ''
-          const strong = document.createElement('strong')
-          strong.textContent = node.data.category_name
-          tooltip.appendChild(strong)
-          tooltip.appendChild(document.createElement('br'))
-          tooltip.appendChild(
-            document.createTextNode(formatUsd(Math.abs(node.value ?? node.data.total_amount_debit))),
+        if (tooltip) {
+          setChartTooltipContent(
+            tooltip,
+            node.data.category_name,
+            formatUsd(Math.abs(node.value ?? node.data.total_amount_debit)),
           )
-          const parentRect = container.getBoundingClientRect()
-          tooltip.style.left = `${event.clientX - parentRect.left + 12}px`
-          tooltip.style.top = `${event.clientY - parentRect.top - 12}px`
-          tooltip.style.opacity = '1'
+          moveChartTooltipToPointer(tooltip, event, container)
         }
       })
       .on('mousemove', function (event: MouseEvent) {
-        if (tooltip && container) {
-          const parentRect = container.getBoundingClientRect()
-          tooltip.style.left = `${event.clientX - parentRect.left + 12}px`
-          tooltip.style.top = `${event.clientY - parentRect.top - 12}px`
-        }
+        if (tooltip) moveChartTooltipToPointer(tooltip, event, container)
       })
       .on('mouseleave', function (_event: MouseEvent, d: unknown) {
         const node = d as d3.HierarchyRectangularNode<HierarchyNode>
         d3.select(this).attr('fill-opacity', isGroup(node) ? 0.25 : 0.85)
-        if (tooltip) tooltip.style.opacity = '0'
+        hideChartTooltip(tooltip)
       })
   })
+
+  onCleanup(() => hideChartTooltip(tooltipRef))
 
   const id = () => props.dataTestId ?? 'budget-category-treemap'
 
@@ -207,10 +204,7 @@ export default function BudgetCategoryTreemap(props: {
         </div>
       </Show>
 
-      <div
-        ref={(el) => (tooltipRef = el)}
-        class="pointer-events-none absolute z-50 rounded-md border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-lg opacity-0 transition-opacity"
-      />
+      <div ref={(el) => (tooltipRef = el)} class={CHART_TOOLTIP_CLASS} />
     </div>
   )
 }
