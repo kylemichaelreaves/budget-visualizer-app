@@ -75,4 +75,11 @@ describe('createMemosTableMutations', () => {
     m.dismissTableMutationError()
     await vi.waitFor(() => expect(m.tableMutationError()).toBeNull())
   })
+
+  it('does nothing on a category pick with no target row', async () => {
+    const m = setup()
+    m.handleCategorySelect('Food')
+    await Promise.resolve()
+    expect(updateMemo).not.toHaveBeenCalled()
+  })
 })
