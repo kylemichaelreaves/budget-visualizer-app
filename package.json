@@ -48,7 +48,7 @@
     "@tanstack/solid-query-devtools": "^5.108.0",
     "@testing-library/jest-dom": "^6.9.1",
     "@types/d3": "^7.4.3",
-    "@types/node": "^24.19.2",
+    "@types/node": "^26.6.6",
     "@vitest/coverage-v8": "4.1.9",
     "eslint": "^10.15.0",
     "eslint-config-prettier": "^10.1.8",
