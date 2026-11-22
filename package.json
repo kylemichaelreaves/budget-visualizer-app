@@ -54,7 +54,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-solid": "^0.20.0",
     "eslint-plugin-storybook": "^10.6.7",
-    "jsdom": "^29.1.1",
+    "jsdom": "^31.0.1",
     "msw": "^3.0.7",
     "msw-storybook-addon": "^3.0.3",
     "prettier": "^3.10.1",
