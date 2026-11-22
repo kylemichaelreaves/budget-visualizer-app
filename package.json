@@ -27,7 +27,7 @@
   },
   "dependencies": {
     "@kobalte/core": "^0.13.14",
-    "@solidjs/router": "^0.16.1",
+    "@solidjs/router": "^2.0.0",
     "@tailwindcss/vite": "^4.3.5",
     "@tanstack/solid-query": "^5.108.0",
     "class-variance-authority": "^0.7.1",
