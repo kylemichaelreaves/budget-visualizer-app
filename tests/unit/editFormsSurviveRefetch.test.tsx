@@ -1,6 +1,5 @@
 import { fireEvent, render, screen } from '@solidjs/testing-library'
-import { createRoot, createSignal, flush } from 'solid-js'
-import { createStore } from 'solid-js'
+import { createRoot, createSignal, flush, createStore } from 'solid-js'
 import { describe, expect, it, vi } from 'vitest'
 import type { Memo, Transaction } from '@types'
 

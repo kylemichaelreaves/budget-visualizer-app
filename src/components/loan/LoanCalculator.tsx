@@ -1,5 +1,4 @@
-import { createMemo, createSignal, For, Show } from 'solid-js'
-import { createStore } from 'solid-js'
+import { createMemo, createSignal, For, Show, createStore } from 'solid-js'
 import type { LoanFormType } from '@types'
 import LoanFormField, { type LoanFieldDef } from './LoanFormField'
 import { Button } from '@components/ui/button'

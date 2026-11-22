@@ -28,8 +28,12 @@ function CardHeader(props: JSX.HTMLAttributes<HTMLDivElement> & { class?: string
 }
 
 function CardTitle(props: JSX.HTMLAttributes<HTMLHeadingElement> & { class?: string }) {
-  const rest = omit(props, 'class')
-  return <h4 data-slot="card-title" class={cn('leading-none', props.class)} {...rest} />
+  const rest = omit(props, 'class', 'children')
+  return (
+    <h4 data-slot="card-title" class={cn('leading-none', props.class)} {...rest}>
+      {props.children}
+    </h4>
+  )
 }
 
 function CardDescription(props: JSX.HTMLAttributes<HTMLParagraphElement> & { class?: string }) {

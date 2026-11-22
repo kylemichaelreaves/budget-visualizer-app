@@ -1,5 +1,4 @@
-import { createRoot, flush } from 'solid-js'
-import { createStore } from 'solid-js'
+import { createRoot, flush, createStore } from 'solid-js'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { PendingTransaction } from '@types'
 import {
