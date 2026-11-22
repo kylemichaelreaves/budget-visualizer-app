@@ -1,4 +1,3 @@
-import type { JSX } from 'solid-js'
 import { createMemo, Show } from 'solid-js'
 import useDays from '@api/hooks/timeUnits/days/useDays'
 import useMonths from '@api/hooks/timeUnits/months/useMonths'
@@ -18,6 +17,8 @@ import ClearFilterButton from '@components/shared/ClearFilterButton'
 import { getTransactionsTableSelectedValue } from '@components/transactions/table/transactionsTableSelectedValue'
 import { isoDatePart } from '@utils/isoDatePart'
 import PeriodNavigationGroup from './PeriodNavigationGroup'
+import type { JSX } from '@solidjs/web'
+import { settledData } from '@api/helpers/settledData'
 
 export default function PeriodHeader(props: { onAddTransaction?: () => void }): JSX.Element {
   const yearsQ = useYears()
@@ -29,16 +30,16 @@ export default function PeriodHeader(props: { onAddTransaction?: () => void }): 
   const periodList = createMemo((): string[] => {
     const vm = transactionsState.viewMode
     if (vm === 'day') {
-      return (daysQ.data ?? []).map((d) => isoDatePart(String(d.day)))
+      return (settledData(daysQ) ?? []).map((d) => isoDatePart(String(d.day)))
     }
     if (vm === 'week') {
-      return (weeksQ.data ?? []).map((w) => w.week_year)
+      return (settledData(weeksQ) ?? []).map((w) => w.week_year)
     }
     if (vm === 'month') {
-      return (monthsQ.data ?? []).map((m) => m.month_year)
+      return (settledData(monthsQ) ?? []).map((m) => m.month_year)
     }
     if (vm === 'year') {
-      return (yearsQ.data ?? []).map((y) => y.year)
+      return (settledData(yearsQ) ?? []).map((y) => y.year)
     }
     return []
   })

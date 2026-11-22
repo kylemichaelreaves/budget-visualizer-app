@@ -4,6 +4,7 @@ import useBudgetCategorySummary from '@api/hooks/budgetCategories/useBudgetCateg
 import { budgetCategoryColorsFromData } from '@composables/budgetCategoryColors'
 import { createBudgetCategorySummaryTimeframeFromStore } from '@composables/budgetCategorySummaryTimeframeFromStore'
 import type { Transaction } from '@types'
+import { settledData } from '@api/helpers/settledData'
 
 export function createTransactionsTableChartSlice(flattenedData: Accessor<Transaction[]>) {
   const firstDay = createMemo(() => {
@@ -22,7 +23,7 @@ export function createTransactionsTableChartSlice(flattenedData: Accessor<Transa
   )
 
   const categoryColors = createMemo(() => {
-    const data = categorySummaryQuery.data
+    const data = settledData(categorySummaryQuery)
     return budgetCategoryColorsFromData(data)
   })
 

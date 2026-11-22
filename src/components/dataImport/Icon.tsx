@@ -1,4 +1,4 @@
-import type { JSX } from 'solid-js'
+import type { JSX } from '@solidjs/web'
 
 // Shared stroke-icon set for the CSV-import flow. Paths are 24×24, drawn with
 // currentColor so callers control hue via text-* utilities.

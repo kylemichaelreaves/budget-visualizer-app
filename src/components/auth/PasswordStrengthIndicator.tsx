@@ -1,5 +1,5 @@
 import { For, Show } from 'solid-js'
-import { Check } from 'lucide-solid'
+import { Check } from '@lucide/solid'
 import { REQUIREMENTS, SEG_COLORS, LABEL_COLORS, type Strength } from './passwordStrength'
 
 interface PasswordStrengthIndicatorProps {
@@ -23,11 +23,13 @@ export function PasswordStrengthIndicator(props: PasswordStrengthIndicatorProps)
             <For each={[1, 2, 3] as const}>
               {(s) => (
                 <div
-                  class="h-1.5 flex-1 rounded-full transition-colors duration-300"
-                  classList={{
-                    [SEG_COLORS[props.strength.level]]: s <= props.strength.score,
-                    'bg-muted': s > props.strength.score,
-                  }}
+                  class={[
+                    'h-1.5 flex-1 rounded-full transition-colors duration-300',
+                    {
+                      [SEG_COLORS[props.strength.level]]: s <= props.strength.score,
+                      'bg-muted': s > props.strength.score,
+                    },
+                  ]}
                 />
               )}
             </For>
@@ -48,18 +50,22 @@ export function PasswordStrengthIndicator(props: PasswordStrengthIndicatorProps)
           <For each={REQUIREMENTS}>
             {(req) => (
               <span
-                class="flex items-center gap-1.5 transition-colors duration-200 text-xs"
-                classList={{
-                  'text-success': props.strength.checks[req.key],
-                  'text-muted-foreground/70': !props.strength.checks[req.key],
-                }}
+                class={[
+                  'flex items-center gap-1.5 transition-colors duration-200 text-xs',
+                  {
+                    'text-success': props.strength.checks[req.key],
+                    'text-muted-foreground/70': !props.strength.checks[req.key],
+                  },
+                ]}
               >
                 <span
-                  class="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border transition-all duration-200"
-                  classList={{
-                    'border-success bg-success': props.strength.checks[req.key],
-                    'border-muted-foreground/30': !props.strength.checks[req.key],
-                  }}
+                  class={[
+                    'flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border transition-all duration-200',
+                    {
+                      'border-success bg-success': props.strength.checks[req.key],
+                      'border-muted-foreground/30': !props.strength.checks[req.key],
+                    },
+                  ]}
                 >
                   <Show when={props.strength.checks[req.key]}>
                     <Check class="h-2 w-2 text-white dark:text-black" stroke-width={3} />

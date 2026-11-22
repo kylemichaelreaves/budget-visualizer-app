@@ -1,9 +1,9 @@
-import { A, useLocation } from '@solidjs/router'
+import { useLocation } from '@solidjs/router'
 import { createMemo, For } from 'solid-js'
 import { authState } from '@stores/authStore'
 import { userDisplayInitials } from '@utils/userInitials'
 import { cn } from '@utils/cn'
-import { Lock, User } from 'lucide-solid'
+import { Lock, User } from '@lucide/solid'
 import { userDisplayName } from '@utils/userDisplayName'
 
 export type AccountSettingsSection = 'profile' | 'security'
@@ -46,7 +46,7 @@ export function AccountSettingsSidebar() {
             const Icon = item.icon
             const isOn = () => active() === item.key
             return (
-              <A
+              <a
                 href={sectionHref(item.key)}
                 class={cn(
                   'w-full flex items-center gap-3 px-4 py-3.5 text-left border-l-2 transition-all no-underline',
@@ -58,7 +58,7 @@ export function AccountSettingsSidebar() {
               >
                 <Icon class={cn('h-4 w-4 shrink-0', isOn() ? 'text-primary' : 'text-muted-foreground')} />
                 <span class={cn('text-[13px]', isOn() ? 'font-semibold' : 'font-medium')}>{item.label}</span>
-              </A>
+              </a>
             )
           }}
         </For>

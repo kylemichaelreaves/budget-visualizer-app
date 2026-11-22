@@ -1,3 +1,4 @@
+import { flush } from 'solid-js'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   clearAllFilters,
@@ -27,6 +28,7 @@ const sent = () => get.mock.lastCall!
 describe('transaction query hooks', () => {
   beforeEach(() => {
     clearAllFilters()
+    flush()
     get.mockReset()
     get.mockResolvedValue({ data: [] })
   })
@@ -40,6 +42,7 @@ describe('transaction query hooks', () => {
 
   it('useTransactionsCount scopes regular rows by the active period', async () => {
     selectMonthView('03-2026')
+    flush()
     useTransactionsCount()
     await run()
     expect(sent()[1].params).toEqual(
@@ -49,7 +52,9 @@ describe('transaction query hooks', () => {
 
   it('usePendingTransactions pages /transactions/pending by status', async () => {
     setTransactionsTableLimit(25)
+    flush()
     setSelectedStatus('pending')
+    flush()
     usePendingTransactions()
     await run()
     expect(sent()[0]).toBe('/transactions/pending')

@@ -1,4 +1,4 @@
-import type { Accessor, JSX } from 'solid-js'
+import type { Accessor } from 'solid-js'
 import { createEffect, onCleanup, Show } from 'solid-js'
 import { useElementSize } from '@composables/useElementSize'
 import * as d3 from 'd3'
@@ -23,6 +23,7 @@ import {
   moveChartTooltipToPointer,
   setChartTooltipContent,
 } from '@charts/chartTooltip'
+import type { JSX } from '@solidjs/web'
 
 type HierarchyNode = BudgetCategoryChartHierarchyNode
 
@@ -42,140 +43,146 @@ export default function BudgetCategoryTreemap(props: {
 
   const [dims, attachSizeRef] = useElementSize()
 
-  createEffect(() => {
-    const data = props.data
-    const svg = svgRef
-    const { w, h } = dims()
-    // Every path below rebuilds or clears the SVG; a cell removed under the cursor
-    // never fires `mouseleave`, so hide the tooltip first.
-    hideChartTooltip(tooltipRef)
-    if (!svg || props.isLoading || !data?.length || w < 8 || h < 8) {
-      if (svg && (props.isLoading || !data?.length)) d3.select(svg).selectAll('*').remove()
-      return
-    }
+  createEffect(
+    () => ({
+      data: props.data,
+      isLoading: props.isLoading,
+      categoryColors: props.categoryColors(),
+      ...dims(),
+    }),
+    ({ data, isLoading, categoryColors, w, h }) => {
+      const svg = svgRef
+      // Every path below rebuilds or clears the SVG; a cell removed under the cursor
+      // never fires `mouseleave`, so hide the tooltip first.
+      hideChartTooltip(tooltipRef)
+      if (!svg || isLoading || !data?.length || w < 8 || h < 8) {
+        if (svg && (isLoading || !data?.length)) d3.select(svg).selectAll('*').remove()
+        return
+      }
 
-    if (!hasChartableBudgetCategoryData(data)) {
+      if (!hasChartableBudgetCategoryData(data)) {
+        d3.select(svg).selectAll('*').remove()
+        return
+      }
+
+      const colorHelpers = chartCategoryColorsWithSummaryFallback(categoryColors, data)
+      const root = buildBudgetCategoryRoot(data)
+
+      /**
+       * `paddingTop` reserves a header strip inside every non-leaf node so we can render a label
+       * and keep the parent rect click-targetable (the Observable zoomable-treemap pattern). The
+       * value is tuned to match the 11px leaf label — 18px gives the text room without hiding
+       * thin leaves.
+       */
+      d3
+        .treemap<HierarchyNode>()
+        .size([w, h])
+        .paddingOuter(2)
+        .paddingInner(2)
+        .paddingTop(18)
+        .round(true)
+        .tile(d3.treemapSquarify)(root as d3.HierarchyRectangularNode<HierarchyNode>)
+
+      /** All real nodes (skip the synthetic root at depth 0); parents paint first so leaves layer on top. */
+      const nodes = (root.descendants() as d3.HierarchyRectangularNode<HierarchyNode>[]).filter(
+        (n) => n.depth > 0,
+      )
+
       d3.select(svg).selectAll('*').remove()
-      return
-    }
+      d3.select(svg).attr('viewBox', `0 0 ${w} ${h}`).style('width', '100%').style('height', '100%')
 
-    const colorHelpers = chartCategoryColorsWithSummaryFallback(props.categoryColors(), data)
-    const root = buildBudgetCategoryRoot(data)
+      const g = d3.select(svg).append('g')
 
-    /**
-     * `paddingTop` reserves a header strip inside every non-leaf node so we can render a label
-     * and keep the parent rect click-targetable (the Observable zoomable-treemap pattern). The
-     * value is tuned to match the 11px leaf label — 18px gives the text room without hiding
-     * thin leaves.
-     */
-    d3
-      .treemap<HierarchyNode>()
-      .size([w, h])
-      .paddingOuter(2)
-      .paddingInner(2)
-      .paddingTop(18)
-      .round(true)
-      .tile(d3.treemapSquarify)(root as d3.HierarchyRectangularNode<HierarchyNode>)
+      const cell = g
+        .selectAll('g')
+        .data(nodes)
+        .join('g')
+        .attr('transform', (d) => `translate(${d.x0},${d.y0})`)
 
-    /** All real nodes (skip the synthetic root at depth 0); parents paint first so leaves layer on top. */
-    const nodes = (root.descendants() as d3.HierarchyRectangularNode<HierarchyNode>[]).filter(
-      (n) => n.depth > 0,
-    )
+      const container = wrapRef
+      const tooltip = tooltipRef
 
-    d3.select(svg).selectAll('*').remove()
-    d3.select(svg).attr('viewBox', `0 0 ${w} ${h}`).style('width', '100%').style('height', '100%')
+      const isClickable = (d: d3.HierarchyRectangularNode<HierarchyNode>) => d.data.category_id > 0
+      const isGroup = (d: d3.HierarchyRectangularNode<HierarchyNode>) => !!d.children?.length
 
-    const g = d3.select(svg).append('g')
-
-    const cell = g
-      .selectAll('g')
-      .data(nodes)
-      .join('g')
-      .attr('transform', (d) => `translate(${d.x0},${d.y0})`)
-
-    const container = wrapRef
-    const tooltip = tooltipRef
-
-    const isClickable = (d: d3.HierarchyRectangularNode<HierarchyNode>) => d.data.category_id > 0
-    const isGroup = (d: d3.HierarchyRectangularNode<HierarchyNode>) => !!d.children?.length
-
-    cell
-      .append('rect')
-      .attr('width', (d) => Math.max(0, d.x1 - d.x0))
-      .attr('height', (d) => Math.max(0, d.y1 - d.y0))
-      .attr('rx', 2)
-      .attr('ry', 2)
-      .attr('fill', (d) => getBudgetCategoryColorForChartCell(colorHelpers, d.data))
-      // Groups are visible only as a colored header strip + outline so child leaves layered on
-      // top read clearly; leaves stay opaque.
-      .attr('fill-opacity', (d) => (isGroup(d) ? 0.25 : 0.85))
-      .attr('stroke', (d) =>
-        isGroup(d) ? getBudgetCategoryColorForChartCell(colorHelpers, d.data) : 'currentColor',
-      )
-      .attr('stroke-opacity', (d) => (isGroup(d) ? 0.9 : 0.12))
-      .attr('stroke-width', (d) => (isGroup(d) ? 1.5 : 1))
-      .style('cursor', (d) => (isClickable(d) ? 'pointer' : 'default'))
-      // eslint-disable-next-line solid/reactivity
-      .on('click', (_event, d) => {
-        if (isClickable(d)) {
-          props.onCellClick?.(d.data)
-        }
-      })
-
-    cell
-      .append('text')
-      .attr('x', 4)
-      .attr('y', (d) => (isGroup(d) ? 12 : 14))
-      .attr('fill', 'currentColor')
-      .style('font-size', (d) => (isGroup(d) ? '10px' : '11px'))
-      .style('font-weight', (d) => (isGroup(d) ? '600' : '400'))
-      .style('pointer-events', 'none')
-      .style('opacity', (d) =>
-        isGroup(d) ? (d.x1 - d.x0 > 44 ? 1 : 0) : d.x1 - d.x0 > 56 && d.y1 - d.y0 > 28 ? 1 : 0,
-      )
-      .each(function (d) {
-        const text = d3.select(this)
-        const name = d.data.name
-        const maxChars = Math.floor((d.x1 - d.x0 - 8) / 6.5)
-        text.text(
-          maxChars > 3 && name.length > maxChars ? `${name.slice(0, Math.max(3, maxChars - 1))}…` : name,
+      cell
+        .append('rect')
+        .attr('width', (d) => Math.max(0, d.x1 - d.x0))
+        .attr('height', (d) => Math.max(0, d.y1 - d.y0))
+        .attr('rx', 2)
+        .attr('ry', 2)
+        .attr('fill', (d) => getBudgetCategoryColorForChartCell(colorHelpers, d.data))
+        // Groups are visible only as a colored header strip + outline so child leaves layered on
+        // top read clearly; leaves stay opaque.
+        .attr('fill-opacity', (d) => (isGroup(d) ? 0.25 : 0.85))
+        .attr('stroke', (d) =>
+          isGroup(d) ? getBudgetCategoryColorForChartCell(colorHelpers, d.data) : 'currentColor',
         )
-      })
+        .attr('stroke-opacity', (d) => (isGroup(d) ? 0.9 : 0.12))
+        .attr('stroke-width', (d) => (isGroup(d) ? 1.5 : 1))
+        .style('cursor', (d) => (isClickable(d) ? 'pointer' : 'default'))
+        // eslint-disable-next-line solid/reactivity
+        .on('click', (_event, d) => {
+          if (isClickable(d)) {
+            props.onCellClick?.(d.data)
+          }
+        })
 
-    cell
-      .filter((d) => !isGroup(d))
-      .append('text')
-      .attr('x', 4)
-      .attr('y', 28)
-      .attr('fill', 'currentColor')
-      .style('font-size', '10px')
-      .style('opacity', (d) => (d.x1 - d.x0 > 72 && d.y1 - d.y0 > 44 ? 0.75 : 0))
-      .style('pointer-events', 'none')
-      .text((d) => formatUsd(Math.abs(d.value ?? 0)))
-
-    cell
-      .selectAll('rect')
-      .on('mouseenter', function (event: MouseEvent, d: unknown) {
-        const node = d as d3.HierarchyRectangularNode<HierarchyNode>
-        d3.select(this).attr('fill-opacity', isGroup(node) ? 0.4 : 1)
-        if (tooltip) {
-          setChartTooltipContent(
-            tooltip,
-            node.data.category_name,
-            formatUsd(Math.abs(node.value ?? node.data.total_amount_debit)),
+      cell
+        .append('text')
+        .attr('x', 4)
+        .attr('y', (d) => (isGroup(d) ? 12 : 14))
+        .attr('fill', 'currentColor')
+        .style('font-size', (d) => (isGroup(d) ? '10px' : '11px'))
+        .style('font-weight', (d) => (isGroup(d) ? '600' : '400'))
+        .style('pointer-events', 'none')
+        .style('opacity', (d) =>
+          isGroup(d) ? (d.x1 - d.x0 > 44 ? 1 : 0) : d.x1 - d.x0 > 56 && d.y1 - d.y0 > 28 ? 1 : 0,
+        )
+        .each(function (d) {
+          const text = d3.select(this)
+          const name = d.data.name
+          const maxChars = Math.floor((d.x1 - d.x0 - 8) / 6.5)
+          text.text(
+            maxChars > 3 && name.length > maxChars ? `${name.slice(0, Math.max(3, maxChars - 1))}…` : name,
           )
-          moveChartTooltipToPointer(tooltip, event, container)
-        }
-      })
-      .on('mousemove', function (event: MouseEvent) {
-        if (tooltip) moveChartTooltipToPointer(tooltip, event, container)
-      })
-      .on('mouseleave', function (_event: MouseEvent, d: unknown) {
-        const node = d as d3.HierarchyRectangularNode<HierarchyNode>
-        d3.select(this).attr('fill-opacity', isGroup(node) ? 0.25 : 0.85)
-        hideChartTooltip(tooltip)
-      })
-  })
+        })
+
+      cell
+        .filter((d) => !isGroup(d))
+        .append('text')
+        .attr('x', 4)
+        .attr('y', 28)
+        .attr('fill', 'currentColor')
+        .style('font-size', '10px')
+        .style('opacity', (d) => (d.x1 - d.x0 > 72 && d.y1 - d.y0 > 44 ? 0.75 : 0))
+        .style('pointer-events', 'none')
+        .text((d) => formatUsd(Math.abs(d.value ?? 0)))
+
+      cell
+        .selectAll('rect')
+        .on('mouseenter', function (event: MouseEvent, d: unknown) {
+          const node = d as d3.HierarchyRectangularNode<HierarchyNode>
+          d3.select(this).attr('fill-opacity', isGroup(node) ? 0.4 : 1)
+          if (tooltip) {
+            setChartTooltipContent(
+              tooltip,
+              node.data.category_name,
+              formatUsd(Math.abs(node.value ?? node.data.total_amount_debit)),
+            )
+            moveChartTooltipToPointer(tooltip, event, container)
+          }
+        })
+        .on('mousemove', function (event: MouseEvent) {
+          if (tooltip) moveChartTooltipToPointer(tooltip, event, container)
+        })
+        .on('mouseleave', function (_event: MouseEvent, d: unknown) {
+          const node = d as d3.HierarchyRectangularNode<HierarchyNode>
+          d3.select(this).attr('fill-opacity', isGroup(node) ? 0.25 : 0.85)
+          hideChartTooltip(tooltip)
+        })
+    },
+  )
 
   onCleanup(() => hideChartTooltip(tooltipRef))
 

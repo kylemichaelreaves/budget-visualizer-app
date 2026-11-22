@@ -1,4 +1,4 @@
-import type { JSX } from 'solid-js'
+import type { JSX } from '@solidjs/web'
 
 /** Tag / label icon for “Assign category”. */
 export function TransactionTagIcon(props: { class?: string }): JSX.Element {

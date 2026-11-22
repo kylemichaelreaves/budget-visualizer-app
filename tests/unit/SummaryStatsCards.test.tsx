@@ -1,3 +1,4 @@
+import { flush } from 'solid-js'
 import { render, screen } from '@solidjs/testing-library'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import SummaryStatsCards from '@components/transactions/summaries/SummaryStatsCards'
@@ -18,9 +19,11 @@ describe('SummaryStatsCards', () => {
   beforeEach(() => {
     // The cards only render while a filter is active.
     setViewMode('month')
+    flush()
   })
   afterEach(() => {
     setViewMode(null)
+    flush()
   })
 
   // #82: the total came from the server and the count from the loaded pages.
@@ -82,6 +85,7 @@ describe('SummaryStatsCards', () => {
 
   it('renders nothing without an active filter', () => {
     setViewMode(null)
+    flush()
     render(() => <SummaryStatsCards transactions={ROWS} totals={{ debitTotal: 1 }} />)
     expect(screen.queryByTestId('summary-debits-card')).toBeNull()
   })

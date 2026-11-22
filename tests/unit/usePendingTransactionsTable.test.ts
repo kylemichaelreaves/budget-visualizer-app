@@ -1,5 +1,5 @@
-import { createRoot } from 'solid-js'
-import { createStore } from 'solid-js/store'
+import { createRoot, flush } from 'solid-js'
+import { createStore } from 'solid-js'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { PendingTransaction } from '@types'
 import {
@@ -22,8 +22,14 @@ const [query, setQuery] = createStore({
   // Like the real query: each call appends the next page, and the last one ends paging.
   fetchNextPage: vi.fn(async () => {
     const n = query.data.pages.length
-    setQuery('data', 'pages', n, [row(n * 2 + 1), row(n * 2 + 2)])
-    if (n + 1 >= 3) setQuery('hasNextPage', false)
+    setQuery((s) => {
+      s.data.pages[n] = [row(n * 2 + 1), row(n * 2 + 2)]
+    })
+    flush()
+    if (n + 1 >= 3)
+      setQuery((s) => {
+        s.hasNextPage = false
+      })
   }),
 })
 vi.mock('@api/hooks/transactions/usePendingTransactions', () => ({ default: () => query }))
@@ -32,19 +38,31 @@ const { usePendingTransactionsTable } =
   await import('@components/transactions/pending/usePendingTransactionsTable')
 
 function mount() {
-  return createRoot((dispose) => ({ state: usePendingTransactionsTable(), dispose }))
+  const mounted = createRoot((dispose) => ({ state: usePendingTransactionsTable(), dispose }))
+  // Effects make their first run on the flush after mount.
+  flush()
+  return mounted
 }
 
 describe('usePendingTransactionsTable', () => {
   beforeEach(() => {
     setTransactionsTableLimit(2)
+    flush()
     updatePendingTableOffset(0)
+    flush()
     setSelectedStatus('pending')
-    setQuery('data', 'pages', [
-      [row(1), row(2)],
-      [row(3), row(4)],
-    ])
-    setQuery('hasNextPage', true)
+    flush()
+    setQuery((s) => {
+      s.data.pages = [
+        [row(1), row(2)],
+        [row(3), row(4)],
+      ]
+    })
+    flush()
+    setQuery((s) => {
+      s.hasNextPage = true
+    })
+    flush()
     query.fetchNextPage.mockClear()
   })
 
@@ -52,13 +70,15 @@ describe('usePendingTransactionsTable', () => {
     const { state, dispose } = mount()
     expect(state.paginatedData().map((r) => r.id)).toEqual([1, 2])
     updatePendingTableOffset(2)
+    flush()
     expect(state.paginatedData().map((r) => r.id)).toEqual([3, 4])
     dispose()
   })
 
   it('fetches pages until the requested page is loaded', async () => {
     const { state, dispose } = mount()
-    updatePendingTableOffset(4) // page 3, only 2 loaded
+    updatePendingTableOffset(4)
+    flush() // page 3, only 2 loaded
     await vi.waitFor(() => expect(query.data.pages).toHaveLength(3))
     expect(query.fetchNextPage).toHaveBeenCalledOnce()
     expect(state.paginatedData().map((r) => r.id)).toEqual([5, 6])
@@ -68,7 +88,9 @@ describe('usePendingTransactionsTable', () => {
   it('returns to the first page when the status changes', () => {
     const { state, dispose } = mount()
     updatePendingTableOffset(2)
+    flush()
     state.setViewMode('reviewed')
+    flush()
     expect(transactionsState.selectedStatus).toBe('reviewed')
     expect(transactionsState.pendingTableOffset).toBe(0)
     dispose()
@@ -77,10 +99,12 @@ describe('usePendingTransactionsTable', () => {
   it('opens the edit modal with the parsed row and closes it', () => {
     const { state, dispose } = mount()
     state.openModal(row(7))
+    flush()
     expect(state.modalOpen()).toBe(true)
     expect(state.pendingId()).toBe(7)
     expect(state.editTxn()).toMatchObject({ id: 7, description: 't7' })
     state.closeModal()
+    flush()
     expect(state.modalOpen()).toBe(false)
     expect(state.editTxn()).toBeNull()
     dispose()

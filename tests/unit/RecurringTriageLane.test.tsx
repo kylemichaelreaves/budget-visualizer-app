@@ -1,6 +1,6 @@
-import { createSignal } from 'solid-js'
+import { createSignal, flush } from 'solid-js'
 import { fireEvent, render, screen, waitFor, within } from '@solidjs/testing-library'
-import { MemoryRouter, Route } from '@solidjs/router'
+import MemoryRouterShell from '@mocks/MemoryRouterShell'
 import { QueryClient, QueryClientProvider } from '@tanstack/solid-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { queryKeys } from '@api/queryKeys'
@@ -78,9 +78,9 @@ function renderLane(series: RecurringSeries[], today = TODAY) {
   // A router is part of the real app; the nameless-memo hint links to the memo's page.
   const view = render(() => (
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter>
-        <Route path="*" component={() => <RecurringTriageLane series={series} today={today} />} />
-      </MemoryRouter>
+      <MemoryRouterShell>
+        <RecurringTriageLane series={series} today={today} />
+      </MemoryRouterShell>
     </QueryClientProvider>
   ))
   return { invalidate, ...view }
@@ -156,6 +156,7 @@ describe('RecurringAvatar', () => {
     expect(avatar().querySelector('img')).toBeNull()
 
     setUrl('https://bucket.example/b.png')
+    flush()
 
     expect(avatar().querySelector('img')).toHaveAttribute('src', 'https://bucket.example/b.png')
   })

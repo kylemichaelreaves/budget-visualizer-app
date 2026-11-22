@@ -1,3 +1,4 @@
+import { flush } from 'solid-js'
 import { fireEvent, render, screen } from '@solidjs/testing-library'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -26,8 +27,11 @@ const next = () => pager().querySelectorAll('button')[1]!
 describe('TransactionsTablePagination', () => {
   beforeEach(() => {
     setTransactionsTableLimit(100)
+    flush()
     updateTransactionsTableOffset(0)
+    flush()
     updatePendingTableOffset(0)
+    flush()
     countStatus.mockClear()
   })
 
@@ -49,6 +53,7 @@ describe('TransactionsTablePagination', () => {
   // The pending table used to share transactionsTableOffset with the main table.
   it('pages the pending table by pendingTableOffset, leaving the main table alone', () => {
     updateTransactionsTableOffset(100)
+    flush()
     render(() => <TransactionsTablePagination status="reviewed" />)
     expect(countStatus).toHaveBeenCalledWith('reviewed')
     fireEvent.click(next())

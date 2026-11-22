@@ -1,4 +1,3 @@
-import type { JSX } from 'solid-js'
 import { Show, createMemo } from 'solid-js'
 import { useNavigate, useParams } from '@solidjs/router'
 import { useMemoById } from '@api/hooks/memos/useMemoById'
@@ -8,6 +7,9 @@ import MemoEditForm from './MemoEditForm'
 import { Button } from '@components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 import { parsePositiveIntId } from '@utils/parsePositiveIntId'
+import type { JSX } from '@solidjs/web'
+import { settledData } from '@api/helpers/settledData'
+import { queryFlag } from '@api/helpers/queryFlag'
 
 export default function MemoEditPage(): JSX.Element {
   const params = useParams<{ memoId: string }>()
@@ -50,12 +52,12 @@ export default function MemoEditPage(): JSX.Element {
         dataTestId="memo-edit-load-error"
       />
 
-      <Show when={memoId() != null && q.isLoading}>
+      <Show when={memoId() != null && queryFlag(q, 'isLoading')}>
         <p data-testid="memo-edit-loading">Loading…</p>
       </Show>
 
       {/* Gated on data, not isFetching: a focus refetch must not remount the form and discard edits. */}
-      <Show when={memoId() != null && q.data}>
+      <Show when={memoId() != null && settledData(q)}>
         {(m) => (
           <Card>
             <CardHeader>
@@ -68,7 +70,7 @@ export default function MemoEditPage(): JSX.Element {
         )}
       </Show>
 
-      <Show when={memoId() != null && !q.isLoading && !q.data && !q.isError}>
+      <Show when={memoId() != null && !queryFlag(q, 'isLoading') && !settledData(q) && !q.isError}>
         <AlertComponent
           type="warning"
           title="Not found"

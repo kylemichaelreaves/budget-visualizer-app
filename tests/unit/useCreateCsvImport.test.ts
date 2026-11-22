@@ -1,4 +1,4 @@
-import { createRoot } from 'solid-js'
+import { createRoot, flush } from 'solid-js'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { CreateCsvImportVariables } from '@api/hooks/transactions/useCreateCsvImport'
 
@@ -114,8 +114,10 @@ describe('useCreateCsvImport', () => {
       await mutationOptions.mutationFn(vars)
       expect(progress()).toBe(0)
       reportProgress(0.25)
+      flush()
       expect(progress()).toBe(0.25)
       reportProgress(1)
+      flush()
       expect(progress()).toBe(1)
     })
 

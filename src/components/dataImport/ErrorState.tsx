@@ -1,8 +1,9 @@
-import { Show, type JSX } from 'solid-js'
+import { Show } from 'solid-js'
 import CsvGlyph from '@components/dataImport/CsvGlyph'
 import Icon from '@components/dataImport/Icon'
 import { Button } from '@components/ui/button'
 import { formatBytes } from '@utils/formatBytes'
+import type { JSX } from '@solidjs/web'
 
 export default function ErrorState(props: {
   title: string

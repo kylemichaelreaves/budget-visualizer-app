@@ -1,4 +1,3 @@
-import type { JSX } from 'solid-js'
 import { createMemo } from 'solid-js'
 import { ArrowDownCircleIcon, CheckCircleIcon, TrendingDownIcon, WarningTriangleIcon } from '@shared/icons'
 import { Card, CardContent } from '@components/ui/card'
@@ -6,6 +5,7 @@ import { formatUsdAbs } from '@utils/formatUsd'
 import type { RecurringSeries } from '@types'
 import { monthlyBurn, needsReviewCount, stoppedSavings } from './createRecurringDerivedData'
 import { todayIso } from './recurringPageUtils'
+import type { JSX } from '@solidjs/web'
 
 type Tone = 'red' | 'green' | 'amber' | 'violet'
 

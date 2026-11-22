@@ -1,5 +1,5 @@
 import { createMemo, createSignal, For, Show } from 'solid-js'
-import { createStore } from 'solid-js/store'
+import { createStore } from 'solid-js'
 import type { LoanFormType } from '@types'
 import LoanFormField, { type LoanFieldDef } from './LoanFormField'
 import { Button } from '@components/ui/button'
@@ -57,21 +57,31 @@ export default function LoanCalculator() {
   )
 
   function updateField(prop: LoanFieldKey, next: LoanFormType) {
-    setLoanForm(prop, next[prop])
-    setTouched(prop, true)
+    setLoanForm((s) => {
+      Object.assign(s, { [prop]: next[prop] })
+    })
+    setTouched((s) => {
+      s[prop] = true
+    })
     setEstimate(null)
   }
 
   function calculate() {
     // Submitting reveals every remaining error, including fields never edited.
-    setTouched({ loanAmount: true, interestRate: true, loanTerm: true, startDate: true })
+    setTouched((s) => {
+      Object.assign(s, { loanAmount: true, interestRate: true, loanTerm: true, startDate: true })
+    })
     if (!isValid()) return
     setEstimate(calculateLoanEstimate(loanForm))
   }
 
   function resetForm() {
-    setLoanForm({ ...initial })
-    setTouched({ loanAmount: false, interestRate: false, loanTerm: false, startDate: false })
+    setLoanForm((s) => {
+      Object.assign(s, { ...initial })
+    })
+    setTouched((s) => {
+      Object.assign(s, { loanAmount: false, interestRate: false, loanTerm: false, startDate: false })
+    })
     setEstimate(null)
   }
 
@@ -92,7 +102,7 @@ export default function LoanCalculator() {
       </CardHeader>
       <CardContent>
         <form
-          noValidate
+          novalidate
           onSubmit={(e) => {
             e.preventDefault()
             calculate()

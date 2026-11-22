@@ -2,16 +2,16 @@ import { render, screen, fireEvent, waitFor } from '@solidjs/testing-library'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createSignal } from 'solid-js'
 
-type MutateAsync = (vars: { file: File; contentType: string }) => Promise<unknown>
+type Mutate = (vars: { file: File; contentType: string }) => Promise<unknown>
 
-const mutateAsyncMock = vi.fn<MutateAsync>()
+const mutateMock = vi.fn<Mutate>()
 const cancelMock = vi.fn()
 const resetMock = vi.fn()
 const [progress, setProgress] = createSignal(0)
 
 vi.mock('@api/hooks/transactions/useCreateCsvImport', () => ({
   useCreateCsvImport: () => ({
-    mutation: { mutateAsync: mutateAsyncMock, reset: resetMock },
+    mutation: { mutate: mutateMock, reset: resetMock },
     progress,
     reset: resetMock,
     cancel: cancelMock,
@@ -51,7 +51,7 @@ function dropFile(file: File) {
 
 describe('DataImportPage', () => {
   beforeEach(() => {
-    mutateAsyncMock.mockReset()
+    mutateMock.mockReset()
     cancelMock.mockReset()
     resetMock.mockReset()
     setProgress(0)
@@ -67,21 +67,21 @@ describe('DataImportPage', () => {
       dropFile(makeFile('2026_05.txt', 1024, 'text/plain'))
       expect(screen.getByTestId('data-import-error-card')).toBeInTheDocument()
       expect(screen.getByText(/doesn't look like a CSV/i)).toBeInTheDocument()
-      expect(mutateAsyncMock).not.toHaveBeenCalled()
+      expect(mutateMock).not.toHaveBeenCalled()
     })
 
     it('shows too-large error for files over 10 MB', () => {
       render(() => <DataImportPage />)
       dropFile(makeFile('2026_05.csv', 10 * 1_000 * 1_000 + 1))
       expect(screen.getByText(/too large/i)).toBeInTheDocument()
-      expect(mutateAsyncMock).not.toHaveBeenCalled()
+      expect(mutateMock).not.toHaveBeenCalled()
     })
 
     it('shows bad-name error for csv files not matching YYYY_MM.csv', () => {
       render(() => <DataImportPage />)
       dropFile(makeFile('export.csv', 1024))
       expect(screen.getByText(/expected pattern/i)).toBeInTheDocument()
-      expect(mutateAsyncMock).not.toHaveBeenCalled()
+      expect(mutateMock).not.toHaveBeenCalled()
     })
 
     // #85: the empty state used to suggest names like chase_2026_04.csv, which this rejects.
@@ -89,7 +89,7 @@ describe('DataImportPage', () => {
       render(() => <DataImportPage />)
       dropFile(makeFile(name, 1024))
       expect(screen.getByText(/expected pattern/i)).toBeInTheDocument()
-      expect(mutateAsyncMock).not.toHaveBeenCalled()
+      expect(mutateMock).not.toHaveBeenCalled()
     })
 
     it('does not advertise bank detection the ingestion does not do', () => {
@@ -104,7 +104,7 @@ describe('DataImportPage', () => {
       dropFile(makeFile('2026_05.CSV', 1024))
       expect(screen.getByText(/expected pattern/i)).toBeInTheDocument()
       expect(screen.queryByText(/doesn't look like a CSV/i)).not.toBeInTheDocument()
-      expect(mutateAsyncMock).not.toHaveBeenCalled()
+      expect(mutateMock).not.toHaveBeenCalled()
     })
 
     /**
@@ -114,7 +114,7 @@ describe('DataImportPage', () => {
      * invisible without this.
      */
     it('exposes the upload bar as a labelled progressbar with value bounds', async () => {
-      mutateAsyncMock.mockImplementation(() => new Promise(() => {}))
+      mutateMock.mockImplementation(() => new Promise(() => {}))
       setProgress(0.42)
       render(() => <DataImportPage />)
       dropFile(makeFile('2026_05.csv', 1024))
@@ -135,21 +135,21 @@ describe('DataImportPage', () => {
     it.each(['application/octet-stream', 'text/plain', '', 'application/vnd.ms-excel'])(
       'uploads a valid .csv as text/csv when the browser reports %j',
       async (type) => {
-        mutateAsyncMock.mockImplementation(() => new Promise(() => {}))
+        mutateMock.mockImplementation(() => new Promise(() => {}))
         render(() => <DataImportPage />)
         const file = makeFile('2026_05.csv', 1024, type)
         dropFile(file)
         await waitFor(() => {
           expect(screen.getByTestId('data-import-uploading-card')).toBeInTheDocument()
         })
-        expect(mutateAsyncMock).toHaveBeenCalledExactlyOnceWith({ file, contentType: 'text/csv' })
+        expect(mutateMock).toHaveBeenCalledExactlyOnceWith({ file, contentType: 'text/csv' })
       },
     )
   })
 
   describe('state transitions', () => {
     it('transitions empty → uploading → success on successful upload', async () => {
-      mutateAsyncMock.mockResolvedValue(null)
+      mutateMock.mockResolvedValue(null)
       render(() => <DataImportPage />)
       dropFile(makeFile('2026_05.csv', 2048))
 
@@ -160,7 +160,7 @@ describe('DataImportPage', () => {
     })
 
     it('transitions empty → uploading → error-upload-failed when mutation rejects', async () => {
-      mutateAsyncMock.mockRejectedValue(new Error('S3 PUT failed'))
+      mutateMock.mockRejectedValue(new Error('S3 PUT failed'))
       render(() => <DataImportPage />)
       dropFile(makeFile('2026_05.csv', 2048))
 
@@ -172,7 +172,7 @@ describe('DataImportPage', () => {
 
     it('cancel during upload calls cancel() and returns to empty without showing an error', async () => {
       let rejectMutation: ((err: unknown) => void) | undefined
-      mutateAsyncMock.mockImplementation(
+      mutateMock.mockImplementation(
         () =>
           new Promise((_, reject) => {
             rejectMutation = reject
@@ -202,7 +202,7 @@ describe('DataImportPage', () => {
       // Set up two queued resolvers — first call gets reject1, second gets resolve2.
       const rejectFns: ((err: unknown) => void)[] = []
       const resolveFns: ((v: unknown) => void)[] = []
-      mutateAsyncMock.mockImplementation(
+      mutateMock.mockImplementation(
         () =>
           new Promise((resolve, reject) => {
             rejectFns.push(reject)
@@ -244,7 +244,7 @@ describe('DataImportPage', () => {
     })
 
     it('Import another from success returns to the empty state', async () => {
-      mutateAsyncMock.mockResolvedValue(null)
+      mutateMock.mockResolvedValue(null)
       render(() => <DataImportPage />)
       dropFile(makeFile('2026_05.csv', 2048))
 

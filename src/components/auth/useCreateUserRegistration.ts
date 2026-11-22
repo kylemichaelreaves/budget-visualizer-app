@@ -80,7 +80,7 @@ export function useCreateUserRegistration() {
     e.preventDefault()
     setSubmitted(true)
     if (!formBasicsOk()) return
-    createMut.mutate()
+    void createMut.mutate()
   }
 
   function clearApiErrorOnInput() {

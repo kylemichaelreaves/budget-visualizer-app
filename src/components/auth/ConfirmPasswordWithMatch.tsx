@@ -1,5 +1,5 @@
 import { Show } from 'solid-js'
-import { CheckCircle2 } from 'lucide-solid'
+import { CheckCircle2 } from '@lucide/solid'
 import { PasswordField, type PasswordFieldProps } from './PasswordField'
 
 export interface ConfirmPasswordWithMatchProps extends PasswordFieldProps {

@@ -9,9 +9,9 @@
  * `amountHistory[].date` are plain `YYYY-MM-DD` calendar strings; `dismissedAt` / `detectedAt`
  * are ISO-8601 instants.
  */
-import type { JSX } from 'solid-js'
-import { MemoryRouter, Route } from '@solidjs/router'
+import MemoryRouterShell from '@mocks/MemoryRouterShell'
 import type { RecurringAmountPoint, RecurringCadence, RecurringSeries } from '@types'
+import type { JSX } from '@solidjs/web'
 
 /** The clock pinned by the component stories. The page story uses the real one. */
 export const FIXTURE_TODAY = '2026-10-20'
@@ -334,11 +334,7 @@ export function buildRecurringFixture(today: string, scannedAt = `${today}T03:00
 export const fixture = buildRecurringFixture(FIXTURE_TODAY)
 
 function WithRouter(props: { children: JSX.Element }) {
-  return (
-    <MemoryRouter root={(r) => r.children}>
-      <Route path="/" component={() => props.children} />
-    </MemoryRouter>
-  )
+  return <MemoryRouterShell>{props.children}</MemoryRouterShell>
 }
 
 /** Decorator for stories whose components render router links (the nameless conflict card). */

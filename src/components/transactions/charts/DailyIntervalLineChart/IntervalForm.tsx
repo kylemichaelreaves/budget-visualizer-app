@@ -1,4 +1,3 @@
-import type { JSX } from 'solid-js'
 import { createEffect, createSignal } from 'solid-js'
 import AlertComponent from '@components/shared/AlertComponent'
 import { Label } from '@components/ui/label'
@@ -10,6 +9,8 @@ import {
   MAX_INTERVAL_COUNT,
   MIN_INTERVAL_COUNT,
 } from '@components/transactions/helpers/clampIntervalCount'
+import type { JSX } from '@solidjs/web'
+import { settledData } from '@api/helpers/settledData'
 
 // Must be one of the <option> values below; a value with no matching option leaves the select blank.
 const DEFAULT_UNIT = 'months'
@@ -23,13 +24,13 @@ export default function IntervalForm(props: {
 
   const computedInterval = () => `${numberInput()} ${intervalSelect()}`
 
-  createEffect(() => {
-    props.onIntervalValueChange(computedInterval())
+  createEffect(computedInterval, (interval) => {
+    props.onIntervalValueChange(interval)
   })
 
   const intervalQuery = useIsIntervalGreaterThanOldestDate(computedInterval)
 
-  const isOutOfRange = () => intervalQuery.data?.[0]?.is_out_of_range === true
+  const isOutOfRange = () => settledData(intervalQuery)?.[0]?.is_out_of_range === true
 
   const onClose = () => {
     setIntervalSelect(DEFAULT_UNIT)
@@ -52,8 +53,10 @@ export default function IntervalForm(props: {
         dataTestId="interval-form-error"
       />
       <div
-        class="flex items-center justify-end gap-2"
-        classList={{ 'opacity-50': isOutOfRange(), 'pointer-events-none': isOutOfRange() }}
+        class={[
+          'flex items-center justify-end gap-2',
+          { 'opacity-50': isOutOfRange(), 'pointer-events-none': isOutOfRange() },
+        ]}
       >
         <Label class="flex items-center gap-1.5 text-xs text-muted-foreground">
           Count

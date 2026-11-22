@@ -1,6 +1,7 @@
 import type { Accessor } from 'solid-js'
 import { useMemoById } from '@api/hooks/memos/useMemoById'
 import type { Transaction } from '@types'
+import { settledData } from '@api/helpers/settledData'
 
 /**
  * Whether a row's memo is ambiguous. The transactions endpoint returns `memo_ambiguous`
@@ -14,6 +15,6 @@ export function createRowMemoAmbiguity(row: Accessor<Transaction>): Accessor<boo
   })
   return () => {
     const flag = row().memo_ambiguous
-    return flag === undefined ? !!memoQuery.data?.ambiguous : !!flag
+    return flag === undefined ? !!settledData(memoQuery)?.ambiguous : !!flag
   }
 }

@@ -1,5 +1,5 @@
-import type { Component, JSX } from 'solid-js'
-import { Dynamic } from 'solid-js/web'
+import type { Component } from 'solid-js'
+import { Dynamic, type JSX } from '@solidjs/web'
 
 interface SuccessScreenProps {
   icon: Component<{ class?: string }>

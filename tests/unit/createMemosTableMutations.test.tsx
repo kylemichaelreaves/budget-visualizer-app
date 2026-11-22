@@ -1,9 +1,10 @@
+import { flush } from 'solid-js'
 import { QueryClient, QueryClientProvider } from '@tanstack/solid-query'
 import { renderHook } from '@solidjs/testing-library'
-import type { JSX } from 'solid-js'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError } from '@api/HttpError'
 import type { Memo, MemoUpdateInput } from '@types'
+import type { JSX } from '@solidjs/web'
 
 // #89: the memos table writes through `mutateMemo`, so its pending and error
 // state come from the mutation rather than hand-rolled signals.
@@ -54,6 +55,7 @@ describe('createMemosTableMutations', () => {
     updateMemo.mockReturnValue(new Promise(() => {}))
     const m = setup()
     m.handleAssignCategory(memo)
+    flush() // the dialog opens and the pick happens in separate events
     m.handleCategorySelect('Food')
     await vi.waitFor(() => expect(m.mutatingCategoryId()).toBe(7))
     expect(m.togglingAmbiguousId()).toBeNull()

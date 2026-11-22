@@ -1,3 +1,4 @@
+import { flush } from 'solid-js'
 import { render, screen, waitFor, fireEvent, within } from '@solidjs/testing-library'
 import { QueryClient, QueryClientProvider } from '@tanstack/solid-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -43,6 +44,7 @@ describe('RecurringPage', () => {
     // Pin "now" so staleness and relative ages are deterministic. Only Date is faked.
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(NOW)
+    flush()
   })
   afterEach(() => {
     vi.useRealTimers()

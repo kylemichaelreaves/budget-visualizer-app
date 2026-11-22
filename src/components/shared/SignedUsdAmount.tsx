@@ -1,5 +1,5 @@
-import type { JSX } from 'solid-js'
 import { formatUsdAbs } from '@utils/formatUsd'
+import type { JSX } from '@solidjs/web'
 
 export function signedUsdToneClass(variant: 'debit' | 'credit'): string {
   return variant === 'credit'

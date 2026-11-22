@@ -1,4 +1,4 @@
-import { type ParentProps, splitProps } from 'solid-js'
+import { type ParentProps, omit } from 'solid-js'
 import * as ComboboxPrimitive from '@kobalte/core/combobox'
 import { cn } from '@utils/cn'
 
@@ -19,13 +19,13 @@ const Combobox = ComboboxPrimitive.Root
 const ComboboxControl = ComboboxPrimitive.Control
 
 function ComboboxInput(props: ComboboxPrimitive.ComboboxInputProps & { class?: string }) {
-  const [local, rest] = splitProps(props, ['class'])
+  const rest = omit(props, 'class')
   return (
     <ComboboxPrimitive.Input
       data-slot="combobox-input"
       class={cn(
         'border-input placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 w-full rounded-md border bg-input-background px-3 py-1.5 text-sm text-foreground outline-none transition-[color,box-shadow] focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50',
-        local.class,
+        props.class,
       )}
       {...rest}
     />
@@ -33,13 +33,13 @@ function ComboboxInput(props: ComboboxPrimitive.ComboboxInputProps & { class?: s
 }
 
 function ComboboxTrigger(props: ComboboxPrimitive.ComboboxTriggerProps & { class?: string }) {
-  const [local, rest] = splitProps(props, ['class'])
+  const rest = omit(props, 'class')
   return (
     <ComboboxPrimitive.Trigger
       data-slot="combobox-trigger"
       class={cn(
         'absolute right-1.5 flex size-6 items-center justify-center rounded border-none bg-transparent text-muted-foreground hover:text-foreground',
-        local.class,
+        props.class,
       )}
       {...rest}
     >
@@ -87,17 +87,17 @@ type ComboboxItemProps = ParentProps<{ class?: string } & ComboboxPrimitive.Comb
  * management; `data-highlighted` is its keyboard/pointer cursor.
  */
 function ComboboxItem(props: ComboboxItemProps) {
-  const [local, rest] = splitProps(props, ['class', 'children'])
+  const rest = omit(props, 'class', 'children')
   return (
     <ComboboxPrimitive.Item
       data-slot="combobox-item"
       class={cn(
         'flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none data-[highlighted]:bg-accent data-[highlighted]:text-accent-foreground data-[disabled]:pointer-events-none data-[disabled]:opacity-50',
-        local.class,
+        props.class,
       )}
       {...rest}
     >
-      <ComboboxPrimitive.ItemLabel>{local.children}</ComboboxPrimitive.ItemLabel>
+      <ComboboxPrimitive.ItemLabel>{props.children}</ComboboxPrimitive.ItemLabel>
     </ComboboxPrimitive.Item>
   )
 }

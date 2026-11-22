@@ -1,5 +1,5 @@
 import { render, screen } from '@solidjs/testing-library'
-import { createSignal } from 'solid-js'
+import { createSignal, flush } from 'solid-js'
 import { describe, expect, it } from 'vitest'
 import type { RecurringSeries } from '@types'
 import RecurringStatCards from '@components/recurring/RecurringStatCards'
@@ -114,6 +114,7 @@ describe('RecurringStatCards', () => {
     expect(undismissed.review).toBe('1')
 
     setBefore([{ ...flagged(), dismissedAt: '2026-10-01T00:00:00.000Z' }, ...others()])
+    flush()
     expect(read()).toEqual({ ...undismissed, review: '0' })
   })
 
@@ -122,6 +123,7 @@ describe('RecurringStatCards', () => {
     render(() => <RecurringStatCards series={series()} today={TODAY} />)
     expect(value('burn')).toHaveTextContent(/^\$3\.00$/)
     setSeries([makeSeries({ monthlyNormalized: 4 }), makeSeries({ monthlyNormalized: 1 })])
+    flush()
     expect(value('burn')).toHaveTextContent(/^\$5\.00$/)
     expect(value('active')).toHaveTextContent(/^2$/)
   })

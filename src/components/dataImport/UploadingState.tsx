@@ -1,9 +1,10 @@
-import type { Accessor, JSX } from 'solid-js'
+import type { Accessor } from 'solid-js'
 import CsvGlyph from '@components/dataImport/CsvGlyph'
 import Icon from '@components/dataImport/Icon'
 import { Button } from '@components/ui/button'
 import { Progress } from '@components/ui/progress'
 import { formatBytes } from '@utils/formatBytes'
+import type { JSX } from '@solidjs/web'
 
 export default function UploadingState(props: {
   file: File

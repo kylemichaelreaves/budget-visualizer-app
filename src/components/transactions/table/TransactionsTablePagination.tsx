@@ -1,4 +1,4 @@
-import { onMount } from 'solid-js'
+import { onSettled } from 'solid-js'
 import useTransactionsCount from '@api/hooks/transactions/useTransactionsCount'
 import TablePaginationBar from '@components/shared/TablePaginationBar'
 import {
@@ -8,6 +8,7 @@ import {
   updateTransactionsTableOffset,
 } from '@stores/transactionsStore'
 import type { PendingTransactionStatus } from '@types'
+import { settledData } from '@api/helpers/settledData'
 
 /**
  * Pager for the transactions table, or — given `status` — the pending table,
@@ -21,7 +22,7 @@ export default function TransactionsTablePagination(props: { status?: PendingTra
   const setOffset = (value: number) =>
     props.status ? updatePendingTableOffset(value) : updateTransactionsTableOffset(value)
 
-  onMount(() => {
+  onSettled(() => {
     void countQuery.refetch()
     setOffset(0)
   })
@@ -29,7 +30,7 @@ export default function TransactionsTablePagination(props: { status?: PendingTra
   const currentPage = () => Math.floor(offset() / transactionsState.transactionsTableLimit) + 1
 
   const totalPages = () =>
-    Math.max(1, Math.ceil(Number(countQuery.data ?? 0) / transactionsState.transactionsTableLimit))
+    Math.max(1, Math.ceil(Number(settledData(countQuery) ?? 0) / transactionsState.transactionsTableLimit))
 
   function goPrev() {
     if (currentPage() > 1) {
@@ -56,7 +57,7 @@ export default function TransactionsTablePagination(props: { status?: PendingTra
       }}
       currentPage={currentPage()}
       totalPages={totalPages()}
-      totalCount={Number(countQuery.data ?? 0)}
+      totalCount={Number(settledData(countQuery) ?? 0)}
       onPrev={goPrev}
       onNext={goNext}
       prevDisabled={currentPage() <= 1}

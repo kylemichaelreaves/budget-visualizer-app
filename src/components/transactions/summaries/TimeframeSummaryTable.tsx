@@ -1,11 +1,10 @@
-import { A } from '@solidjs/router'
-import type { JSX } from 'solid-js'
 import { createMemo, createSignal, For, Show } from 'solid-js'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 import { BudgetCategoryPill, BudgetCategoryPlaceholder } from '@components/shared/BudgetCategoryPill'
 import TableSortIcon from '@components/shared/TableSortIcon'
 import ApiErrorAlert from '@components/shared/ApiErrorAlert'
 import { formatUsd } from '@utils/formatUsd'
+import type { JSX } from '@solidjs/web'
 
 export type TimeframeSummaryRow = {
   memo: string
@@ -206,13 +205,13 @@ function MemoCell(props: { memo: string; dataTestId: string }): JSX.Element {
         </span>
       }
     >
-      <A
+      <a
         href={`/budget-visualizer/memos/${asNum()}/summary`}
         data-testid={props.dataTestId}
         class="truncate block"
       >
         {m()}
-      </A>
+      </a>
     </Show>
   )
 }

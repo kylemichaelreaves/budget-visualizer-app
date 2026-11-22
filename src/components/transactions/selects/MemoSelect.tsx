@@ -1,9 +1,11 @@
-import type { JSX } from 'solid-js'
 import { createEffect, createMemo, createSignal } from 'solid-js'
+import { settledData } from '@api/helpers/settledData'
 import type { Memo } from '@types'
 import { useMemoSearch } from '@api/hooks/memos/useMemoSearch'
 import ApiErrorAlert from '@components/shared/ApiErrorAlert'
 import AutocompleteComponent from '@components/shared/AutocompleteComponent'
+import type { JSX } from '@solidjs/web'
+import { queryFlag } from '@api/helpers/queryFlag'
 
 const MEMO_OPT_PREFIX = 'm:'
 
@@ -59,10 +61,10 @@ export default function MemoSelect(props: {
     ((results: { value: string; label: string }[]) => void) | null
   >(null)
 
-  const memoOptions = createMemo(() => toOptions(memosQuery.data ?? []))
+  const memoOptions = createMemo(() => toOptions(settledData(memosQuery) ?? []))
 
   function applyChange(raw: string) {
-    const memos = memosQuery.data ?? []
+    const memos = settledData(memosQuery) ?? []
     const idFromOpt = parseMemoOptionValue(raw)
     if (idFromOpt != null) {
       const m = memos.find((x) => x.id === idFromOpt)
@@ -80,14 +82,15 @@ export default function MemoSelect(props: {
     props.onChange(raw, id)
   }
 
-  createEffect(() => {
-    const data = memosQuery.data
-    const cb = pendingCb()
-    if (cb && data && !memosQuery.isLoading) {
-      cb(toOptions(data))
-      setPendingCb(null)
-    }
-  })
+  createEffect(
+    () => ({ data: settledData(memosQuery), cb: pendingCb(), isLoading: queryFlag(memosQuery, 'isLoading') }),
+    ({ data, cb, isLoading }) => {
+      if (cb && data && !isLoading) {
+        cb(toOptions(data))
+        setPendingCb(null)
+      }
+    },
+  )
 
   function commitFromCurrentValue() {
     const trimmed = props.value.trim()
@@ -95,7 +98,7 @@ export default function MemoSelect(props: {
       props.onCommit?.('', undefined)
       return
     }
-    const memos = memosQuery.data ?? []
+    const memos = settledData(memosQuery) ?? []
     const id = memoIdForUniqueTypedName(memos, trimmed)
     props.onCommit?.(trimmed, id)
   }
@@ -128,7 +131,7 @@ export default function MemoSelect(props: {
           setSearchQuery(query)
           setPendingCb(() => callback)
         }}
-        loading={memosQuery.isLoading}
+        loading={queryFlag(memosQuery, 'isLoading')}
       />
     </div>
   )

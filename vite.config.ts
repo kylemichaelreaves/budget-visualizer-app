@@ -1,7 +1,7 @@
 import tailwindcss from '@tailwindcss/vite'
 import { visualizer } from 'rollup-plugin-visualizer'
 import { defineConfig, loadEnv, type Plugin } from 'vite'
-import solid from 'vite-plugin-solid'
+import solid from '@solidjs/vite-plugin'
 import { tsconfigPathAliases } from './aliases.node'
 
 const LAMBDA_DEV_URL = 'http://127.0.0.1:3000'

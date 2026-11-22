@@ -1,5 +1,4 @@
-import { A } from '@solidjs/router'
-import { AlertCircle } from 'lucide-solid'
+import { AlertCircle } from '@lucide/solid'
 import { IconHeading } from '@components/shared/IconHeading'
 
 export function MissingToken() {
@@ -12,9 +11,9 @@ export function MissingToken() {
         description={
           <>
             This page needs a <code class="text-foreground">?token=</code> parameter. Request a new link from{' '}
-            <A href="/password/reset" class="text-primary underline underline-offset-2">
+            <a href="/password/reset" class="text-primary underline underline-offset-2">
               Forgot password
-            </A>
+            </a>
             .
           </>
         }

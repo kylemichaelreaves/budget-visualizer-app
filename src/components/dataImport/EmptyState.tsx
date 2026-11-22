@@ -1,7 +1,8 @@
-import { createSignal, type JSX } from 'solid-js'
+import { createSignal } from 'solid-js'
 import { Button } from '@components/ui/button'
 import Icon from '@components/dataImport/Icon'
 import RecentImportsList from '@components/dataImport/RecentImportsList'
+import type { JSX } from '@solidjs/web'
 
 function RulePill(props: { children: JSX.Element }): JSX.Element {
   return (
@@ -30,11 +31,13 @@ export default function EmptyState(props: { onFileChosen: (file: File) => void }
         role="button"
         tabindex={0}
         aria-label="Drop a CSV file here or press Enter to browse"
-        class="flex cursor-pointer flex-col items-center rounded-2xl border-2 border-dashed bg-card px-8 pt-[52px] pb-7 text-center shadow-sm transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
-        classList={{
-          'border-brand bg-brand/5': isDragging(),
-          'border-foreground/20': !isDragging(),
-        }}
+        class={[
+          'flex cursor-pointer flex-col items-center rounded-2xl border-2 border-dashed bg-card px-8 pt-[52px] pb-7 text-center shadow-sm transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50',
+          {
+            'border-brand bg-brand/5': isDragging(),
+            'border-foreground/20': !isDragging(),
+          },
+        ]}
         onClick={openPicker}
         onKeyDown={(e) => {
           if (e.key === 'Enter' || e.key === ' ') {

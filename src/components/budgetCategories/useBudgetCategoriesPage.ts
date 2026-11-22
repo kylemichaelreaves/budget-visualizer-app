@@ -12,6 +12,7 @@ import type {
 } from '@api/budgetCategories/updateBudgetCategory'
 import { filterTree } from './budgetCategoryTreeUtils'
 import { mutationErrorMessage } from './budgetCategoriesPageUtils'
+import { settledData } from '@api/helpers/settledData'
 
 export function useBudgetCategoriesPage() {
   const q = useBudgetCategories(
@@ -42,7 +43,7 @@ export function useBudgetCategoriesPage() {
   )
 
   const tree = createMemo(() => {
-    const raw = q.data as unknown
+    const raw = settledData(q) as unknown
     const data = extractBudgetCategoriesData(raw)
     if (!data || typeof data !== 'object') return [] as CategoryNode[]
     return convertToTree(data)
@@ -57,7 +58,7 @@ export function useBudgetCategoriesPage() {
   const handleMutate = async (op: BudgetCategoryOperation): Promise<BudgetCategoryMutationResult> => {
     setError(null)
     try {
-      await mutation.mutateAsync(op)
+      await mutation.mutate(op)
       return { ok: true }
     } catch (err) {
       const message = mutationErrorMessage(op, err)

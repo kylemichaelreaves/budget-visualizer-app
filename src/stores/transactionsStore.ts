@@ -1,5 +1,4 @@
-import { batch } from 'solid-js'
-import { createStore } from 'solid-js/store'
+import { createStore } from 'solid-js'
 import type { PendingTransactionStatus, ViewMode } from '@types'
 
 export type TransactionsState = {
@@ -40,62 +39,70 @@ const initial: TransactionsState = {
 export const [transactionsState, setTransactionsState] = createStore<TransactionsState>({ ...initial })
 
 export function setMemosTableLimit(limit: number): void {
-  setTransactionsState('memosTableLimit', limit)
+  setTransactionsState((s) => {
+    s.memosTableLimit = limit
+  })
 }
 
 export function updateMemosTableOffset(offset: number): void {
-  setTransactionsState('memosTableOffset', offset)
+  setTransactionsState((s) => {
+    s.memosTableOffset = offset
+  })
 }
 
 export function setViewMode(mode: ViewMode): void {
-  setTransactionsState('viewMode', mode)
+  setTransactionsState((s) => {
+    s.viewMode = mode
+  })
 }
 
 function clearAllSelections(): void {
-  setTransactionsState({
-    selectedDay: '',
-    selectedWeek: '',
-    selectedMonth: '',
-    selectedYear: '',
-    selectedMemo: '',
-    selectedMemoId: null,
-    selectedBudgetCategory: null,
-    transactionsTableOffset: 0,
+  setTransactionsState((s) => {
+    Object.assign(s, {
+      selectedDay: '',
+      selectedWeek: '',
+      selectedMonth: '',
+      selectedYear: '',
+      selectedMemo: '',
+      selectedMemoId: null,
+      selectedBudgetCategory: null,
+      transactionsTableOffset: 0,
+    })
   })
 }
 
 export function selectDayView(day: string): void {
-  batch(() => {
-    clearAllSelections()
-    setTransactionsState({ selectedDay: day, viewMode: 'day' })
+  clearAllSelections()
+  setTransactionsState((s) => {
+    Object.assign(s, { selectedDay: day, viewMode: 'day' })
   })
 }
 
 export function selectWeekView(week: string): void {
-  batch(() => {
-    clearAllSelections()
-    setTransactionsState({ selectedWeek: week, viewMode: 'week' })
+  clearAllSelections()
+  setTransactionsState((s) => {
+    Object.assign(s, { selectedWeek: week, viewMode: 'week' })
   })
 }
 
 export function selectMonthView(month: string): void {
-  batch(() => {
-    clearAllSelections()
-    setTransactionsState({ selectedMonth: month, viewMode: 'month' })
+  clearAllSelections()
+  setTransactionsState((s) => {
+    Object.assign(s, { selectedMonth: month, viewMode: 'month' })
   })
 }
 
 export function selectYearView(year: string): void {
-  batch(() => {
-    clearAllSelections()
-    setTransactionsState({ selectedYear: year, viewMode: 'year' })
+  clearAllSelections()
+  setTransactionsState((s) => {
+    Object.assign(s, { selectedYear: year, viewMode: 'year' })
   })
 }
 
 export function selectMemoView(memo: string, memoId?: number | null): void {
-  batch(() => {
-    clearAllSelections()
-    setTransactionsState({ selectedMemo: memo, selectedMemoId: memoId ?? null, viewMode: 'memo' })
+  clearAllSelections()
+  setTransactionsState((s) => {
+    Object.assign(s, { selectedMemo: memo, selectedMemoId: memoId ?? null, viewMode: 'memo' })
   })
 }
 
@@ -106,7 +113,9 @@ export function selectMemoView(memo: string, memoId?: number | null): void {
  */
 export function syncMemoFromSummaryData(memo: string, memoId: number): void {
   if (transactionsState.viewMode === 'memo' && transactionsState.selectedMemoId === memoId) {
-    setTransactionsState('selectedMemo', memo)
+    setTransactionsState((s) => {
+      s.selectedMemo = memo
+    })
     return
   }
   selectMemoView(memo, memoId)
@@ -119,9 +128,9 @@ export function syncMemoFromSummaryData(memo: string, memoId: number): void {
  * and store→URL sync have a stable display value until `useMemoById` hydrates the real name.
  */
 export function selectMemoFilterByIdOnly(memoId: number): void {
-  batch(() => {
-    clearAllSelections()
-    setTransactionsState({
+  clearAllSelections()
+  setTransactionsState((s) => {
+    Object.assign(s, {
       selectedMemo: String(memoId),
       selectedMemoId: memoId,
       viewMode: 'memo',
@@ -130,34 +139,42 @@ export function selectMemoFilterByIdOnly(memoId: number): void {
 }
 
 export function clearAllFilters(): void {
-  batch(() => {
-    clearAllSelections()
-    setTransactionsState('viewMode', null)
+  clearAllSelections()
+  setTransactionsState((s) => {
+    s.viewMode = null
   })
 }
 
 export function applyMemoSummaryRoute(memoId: string): void {
   const n = Number(memoId)
   const valid = Number.isFinite(n) && n > 0
-  batch(() => {
-    clearAllSelections()
-    if (valid) {
-      setTransactionsState({ selectedMemo: String(n), selectedMemoId: n, viewMode: 'memo' })
-    } else {
-      setTransactionsState({ selectedMemoId: null, viewMode: null })
-    }
-  })
+  clearAllSelections()
+  if (valid) {
+    setTransactionsState((s) => {
+      Object.assign(s, { selectedMemo: String(n), selectedMemoId: n, viewMode: 'memo' })
+    })
+  } else {
+    setTransactionsState((s) => {
+      Object.assign(s, { selectedMemoId: null, viewMode: null })
+    })
+  }
 }
 
 export function setTransactionsTableLimit(limit: number): void {
-  setTransactionsState('transactionsTableLimit', limit)
+  setTransactionsState((s) => {
+    s.transactionsTableLimit = limit
+  })
 }
 export function updateTransactionsTableOffset(offset: number): void {
-  setTransactionsState('transactionsTableOffset', offset)
+  setTransactionsState((s) => {
+    s.transactionsTableOffset = offset
+  })
 }
 
 export function updatePendingTableOffset(offset: number): void {
-  setTransactionsState('pendingTableOffset', offset)
+  setTransactionsState((s) => {
+    s.pendingTableOffset = offset
+  })
 }
 
 type PendingTransactionsScrollRestore = {
@@ -200,14 +217,18 @@ export function setSelectedBudgetCategory(
   options?: { resetTablePagination?: boolean },
 ): void {
   const resetTablePagination = options?.resetTablePagination !== false
-  batch(() => {
-    setTransactionsState('selectedBudgetCategory', category)
-    if (resetTablePagination) {
-      setTransactionsState('transactionsTableOffset', 0)
-    }
+  setTransactionsState((s) => {
+    s.selectedBudgetCategory = category
   })
+  if (resetTablePagination) {
+    setTransactionsState((s) => {
+      s.transactionsTableOffset = 0
+    })
+  }
 }
 
 export function setSelectedStatus(status: PendingTransactionStatus): void {
-  setTransactionsState('selectedStatus', status)
+  setTransactionsState((s) => {
+    s.selectedStatus = status
+  })
 }

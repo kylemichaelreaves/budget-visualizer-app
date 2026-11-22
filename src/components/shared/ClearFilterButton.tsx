@@ -1,5 +1,5 @@
-import type { JSX } from 'solid-js'
 import { Button } from '@components/ui/button'
+import type { JSX } from '@solidjs/web'
 
 export default function ClearFilterButton(props: {
   onClick: () => void

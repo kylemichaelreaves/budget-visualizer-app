@@ -1,15 +1,15 @@
-import { splitProps } from 'solid-js'
+import { omit } from 'solid-js'
 import * as ProgressPrimitive from '@kobalte/core/progress'
 import { cn } from '@utils/cn'
 
 type ProgressProps = ProgressPrimitive.ProgressRootProps & { class?: string }
 
 function Progress(props: ProgressProps) {
-  const [local, rest] = splitProps(props, ['class'])
+  const rest = omit(props, 'class')
   return (
     <ProgressPrimitive.Root data-slot="progress" {...rest}>
       <ProgressPrimitive.Track
-        class={cn('bg-primary/20 relative h-2 w-full overflow-hidden rounded-full', local.class)}
+        class={cn('bg-primary/20 relative h-2 w-full overflow-hidden rounded-full', props.class)}
       >
         <ProgressPrimitive.Fill
           data-slot="progress-indicator"

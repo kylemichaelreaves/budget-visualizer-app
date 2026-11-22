@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, within } from '@solidjs/testing-library'
-import { MemoryRouter, Route } from '@solidjs/router'
+import MemoryRouterShell from '@mocks/MemoryRouterShell'
 import { describe, expect, it } from 'vitest'
 import TimeframeSummaryTable, {
   type TimeframeSummaryRow,
@@ -15,27 +15,23 @@ function renderTable(state: {
   period?: string | null
 }) {
   return render(() => (
-    <MemoryRouter
-      root={() => (
-        <TimeframeSummaryTable
-          dataTestId={ID}
-          titleVerb="Month"
-          selectedPeriod={() => (state.period === undefined ? '03-2026' : state.period)}
-          amountHeader="Amount"
-          loadingMessage="Loading month summary..."
-          memoLinkTestId="month-summary-memo-link"
-          rows={() => state.rows ?? []}
-          isError={() => state.error !== undefined}
-          error={() => state.error}
-          isLoading={() => state.isLoading ?? false}
-          isFetching={() => false}
-          showTable={() => state.showTable ?? false}
-          getCategoryColor={(name) => (name === 'Food' ? '#ff0000' : undefined)}
-        />
-      )}
-    >
-      <Route path="*" component={() => null} />
-    </MemoryRouter>
+    <MemoryRouterShell>
+      <TimeframeSummaryTable
+        dataTestId={ID}
+        titleVerb="Month"
+        selectedPeriod={() => (state.period === undefined ? '03-2026' : state.period)}
+        amountHeader="Amount"
+        loadingMessage="Loading month summary..."
+        memoLinkTestId="month-summary-memo-link"
+        rows={() => state.rows ?? []}
+        isError={() => state.error !== undefined}
+        error={() => state.error}
+        isLoading={() => state.isLoading ?? false}
+        isFetching={() => false}
+        showTable={() => state.showTable ?? false}
+        getCategoryColor={(name) => (name === 'Food' ? '#ff0000' : undefined)}
+      />
+    </MemoryRouterShell>
   ))
 }
 

@@ -1,5 +1,4 @@
-import { createMemo, createRenderEffect, on } from 'solid-js'
-import { createStore } from 'solid-js/store'
+import { createMemo, createStore, untrack } from 'solid-js'
 import useTimeframeTypeAndValue from '@composables/useTimeframeTypeAndValue'
 import mutateMemo from '@api/hooks/memos/mutateMemo'
 import type { Memo } from '@types'
@@ -8,20 +7,19 @@ import { buildMemoUpdateInput, memoToFormState, type MemoEditFormState } from '.
 export function useMemoEditForm(props: { memo: Memo; onSuccess?: () => void; dataTestId?: string }) {
   const tid = () => props.dataTestId ?? 'memo-edit-form'
 
-  const [form, setForm] = createStore<MemoEditFormState>({
-    id: 0,
-    name: '',
-    necessary: false,
-    ambiguous: false,
-    frequency: '',
-    budget_category: null,
-  })
-
-  // Seed once per memo id. A refetch hands down a new `memo` object for the same
-  // memo; re-seeding on that overwrote the user's unsaved edits. The id goes through
-  // a memo because `on` re-runs whenever its source recomputes, equal value or not.
+  // Seeded once per memo id. A refetch hands down a new `memo` object for the same
+  // memo; re-seeding on that overwrote the user's unsaved edits. A derived store
+  // re-runs its seed only when what it tracks changes, so it tracks the id (through a
+  // memo, which skips equal values) and reads the memo itself untracked. Writes
+  // through `setForm` stand until the next re-seed.
   const memoId = createMemo(() => props.memo.id)
-  createRenderEffect(on(memoId, () => setForm(memoToFormState(props.memo))))
+  const [form, setForm] = createStore<MemoEditFormState>(
+    () => {
+      memoId()
+      return untrack(() => memoToFormState(props.memo))
+    },
+    { id: 0, name: '', necessary: false, ambiguous: false, frequency: '', budget_category: null },
+  )
 
   const mutation = mutateMemo()
   const { timeFrame, selectedValue } = useTimeframeTypeAndValue()
@@ -29,7 +27,10 @@ export function useMemoEditForm(props: { memo: Memo; onSuccess?: () => void; dat
   function save() {
     const name = form.name.trim()
     if (!name) return
-    mutation.mutate(buildMemoUpdateInput(form, name), { onSuccess: () => props.onSuccess?.() })
+    void mutation.mutate(buildMemoUpdateInput(form, name)).then(
+      () => props.onSuccess?.(),
+      () => {},
+    )
   }
 
   return {

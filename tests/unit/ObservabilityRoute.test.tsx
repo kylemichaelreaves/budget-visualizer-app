@@ -1,3 +1,4 @@
+import { flush } from 'solid-js'
 import { cleanup, fireEvent, render, screen, waitFor } from '@solidjs/testing-library'
 import { QueryClient, QueryClientProvider } from '@tanstack/solid-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -32,19 +33,34 @@ describe('/budget-visualizer/observability route', () => {
   beforeEach(() => {
     fetchMock.mockReset()
     fetchMock.mockResolvedValue(fullMetrics)
-    setAuthState('isUserAuthenticated', true)
-    setAuthState('user', 'role', 'admin')
+    setAuthState((s) => {
+      s.isUserAuthenticated = true
+    })
+    flush()
+    setAuthState((s) => {
+      s.user.role = 'admin'
+    })
+    flush()
     window.history.pushState({}, '', '/budget-visualizer/observability')
   })
   afterEach(() => {
     cleanup()
-    setAuthState('isUserAuthenticated', false)
-    setAuthState('user', 'role', 'guest')
+    setAuthState((s) => {
+      s.isUserAuthenticated = false
+    })
+    flush()
+    setAuthState((s) => {
+      s.user.role = 'guest'
+    })
+    flush()
     window.history.pushState({}, '', '/')
   })
 
   it('redirects a non-admin to transactions', async () => {
-    setAuthState('user', 'role', 'user')
+    setAuthState((s) => {
+      s.user.role = 'user'
+    })
+    flush()
     renderApp()
     await waitFor(() => expect(window.location.pathname).toBe('/budget-visualizer/transactions'))
     expect(screen.queryByTestId('observability-page')).toBeNull()

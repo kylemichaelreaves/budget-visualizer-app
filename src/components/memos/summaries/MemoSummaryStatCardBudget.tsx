@@ -69,8 +69,7 @@ export default function MemoSummaryStatCardBudget(props: {
             disagree with the dropdown and send a pair the database rejects.
           */}
           <label
-            class="flex items-center gap-2 text-sm"
-            classList={{ 'cursor-not-allowed opacity-60': isDisabled() }}
+            class={['flex items-center gap-2 text-sm', { 'cursor-not-allowed opacity-60': isDisabled() }]}
           >
             <span>Recurring</span>
             <select

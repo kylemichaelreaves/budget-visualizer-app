@@ -1,4 +1,4 @@
-import type { JSX } from 'solid-js'
+import type { JSX } from '@solidjs/web'
 
 // Ingestion reads one fixed CSV layout and does no bank detection, so every
 // file gets the same glyph rather than one guessed from its name.

@@ -6,7 +6,7 @@ import { extractApiErrorMessage } from '@api/extractApiErrorMessage'
 import { requestPasswordReset } from '@api/auth/requestPasswordReset'
 import { isValidEmail } from '@utils/validateEmail'
 import { Button } from '@components/ui/button'
-import { Lock, CheckCircle2, ArrowLeft, Loader2 } from 'lucide-solid'
+import { Lock, CheckCircle2, ArrowLeft, Loader2 } from '@lucide/solid'
 import { CenteredCardLayout } from '@components/shared/CenteredCardLayout'
 import { IconHeading } from '@components/shared/IconHeading'
 import { Divider } from '@components/shared/Divider'
@@ -38,7 +38,7 @@ export default function ForgotPasswordPage() {
   function handleSubmit(e: SubmitEvent) {
     e.preventDefault()
     setTouched(true)
-    if (!isDisabled()) resetMut.mutate()
+    if (!isDisabled()) void resetMut.mutate()
   }
 
   function handleTryAgain() {

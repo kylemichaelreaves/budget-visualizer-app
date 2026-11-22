@@ -1,8 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/solid-query'
 import { renderHook } from '@solidjs/testing-library'
-import type { JSX } from 'solid-js'
 import { describe, expect, it, vi } from 'vitest'
 import { queryKeys } from '@api/queryKeys'
+import type { JSX } from '@solidjs/web'
 
 // #76: TanStack v5 awaits a hook-level `onSuccess` before it runs the callbacks passed
 // to `mutate()`. When that `onSuccess` awaited invalidation, the create dialog stayed on
@@ -34,10 +34,9 @@ describe('mutation hooks run mutate() callbacks without waiting for invalidation
     const { result } = renderHook(() => mutateCreateTransaction(), { wrapper })
     const onSuccess = vi.fn()
 
-    result.mutate(
-      { date: '2026-03-01', description: '', memo: 'WHOLEFDS', amount_debit: '-1' },
-      { onSuccess },
-    )
+    void result
+      .mutate({ date: '2026-03-01', description: '', memo: 'WHOLEFDS', amount_debit: '-1' })
+      .then(onSuccess)
 
     await vi.waitFor(() => expect(onSuccess).toHaveBeenCalled())
     expect(result.isPending).toBe(false)
@@ -49,7 +48,7 @@ describe('mutation hooks run mutate() callbacks without waiting for invalidation
     const { result } = renderHook(() => mutateMemo(), { wrapper })
     const onSuccess = vi.fn()
 
-    result.mutate({ id: 7, name: 'Groceries' }, { onSuccess })
+    void result.mutate({ id: 7, name: 'Groceries' }).then(onSuccess)
 
     await vi.waitFor(() => expect(onSuccess).toHaveBeenCalled())
     expect(result.isPending).toBe(false)
@@ -61,7 +60,7 @@ describe('mutation hooks run mutate() callbacks without waiting for invalidation
     const { result } = renderHook(() => mutatePendingTransaction(), { wrapper })
     const onSuccess = vi.fn()
 
-    result.mutate({ pendingTransactionId: 9, budgetCategory: 'Food' }, { onSuccess })
+    void result.mutate({ pendingTransactionId: 9, budgetCategory: 'Food' }).then(onSuccess)
 
     await vi.waitFor(() => expect(onSuccess).toHaveBeenCalled())
     expect(result.isPending).toBe(false)

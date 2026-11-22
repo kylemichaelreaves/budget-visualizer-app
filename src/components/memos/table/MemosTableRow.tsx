@@ -1,4 +1,3 @@
-import { A } from '@solidjs/router'
 import type { Accessor } from 'solid-js'
 import { Show } from 'solid-js'
 import type { Memo } from '@types'
@@ -20,13 +19,13 @@ export default function MemosTableRow(props: {
   return (
     <tr class="border-b border-border hover:bg-muted/50 transition-colors">
       <td class="px-3 py-2.5" data-testid={`cell-${row().id}-name`}>
-        <A
+        <a
           href={`/budget-visualizer/memos/${row().id}/summary`}
           class="text-primary hover:underline font-medium"
           data-testid={`memo-name-link-${row().id}`}
         >
           {row().name}
-        </A>
+        </a>
       </td>
 
       <td class="px-3 py-2.5 text-muted-foreground" data-testid={`cell-${row().id}-transactions_count`}>

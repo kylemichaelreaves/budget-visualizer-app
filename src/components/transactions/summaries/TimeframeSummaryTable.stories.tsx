@@ -1,15 +1,11 @@
-import { MemoryRouter, Route } from '@solidjs/router'
+import MemoryRouterShell from '@mocks/MemoryRouterShell'
 import type { Meta, StoryObj } from 'storybook-solidjs-vite'
-import type { JSX } from 'solid-js'
 import { createMemo, createSignal } from 'solid-js'
 import TimeframeSummaryTable, { type TimeframeSummaryRow } from './TimeframeSummaryTable'
+import type { JSX } from '@solidjs/web'
 
 function WithRouter(props: { children: JSX.Element }) {
-  return (
-    <MemoryRouter root={(r) => r.children}>
-      <Route path="/" component={() => props.children} />
-    </MemoryRouter>
-  )
+  return <MemoryRouterShell>{props.children}</MemoryRouterShell>
 }
 
 const sampleRows: TimeframeSummaryRow[] = [

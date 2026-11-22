@@ -1,4 +1,4 @@
-import { type ParentProps, createContext, splitProps, useContext } from 'solid-js'
+import { type ParentProps, createContext, omit, useContext } from 'solid-js'
 import * as ToggleGroupPrimitive from '@kobalte/core/toggle-group'
 import { cva, type VariantProps } from 'class-variance-authority'
 import { cn } from '@utils/cn'
@@ -58,28 +58,28 @@ type ToggleGroupMultipleProps = ParentProps<{
 type ToggleGroupProps = ToggleGroupSingleProps | ToggleGroupMultipleProps
 
 function ToggleGroup(props: ToggleGroupProps) {
-  const [local, rest] = splitProps(props, ['class', 'variant', 'size', 'children'])
-  /** Getters so reads of `local.*` happen when consumers access context (tracked). */
+  const rest = omit(props, 'class', 'variant', 'size', 'children')
+  /** Getters so reads of `props.*` happen when consumers access context (tracked). */
   const contextValue: ToggleGroupContextValue = {
     get variant() {
-      return local.variant ?? 'default'
+      return props.variant ?? 'default'
     },
     get size() {
-      return local.size ?? 'default'
+      return props.size ?? 'default'
     },
   }
   return (
     <ToggleGroupPrimitive.Root
       data-slot="toggle-group"
-      data-variant={local.variant ?? 'default'}
-      data-size={local.size ?? 'default'}
+      data-variant={props.variant ?? 'default'}
+      data-size={props.size ?? 'default'}
       class={cn(
         'group/toggle-group flex w-fit items-center rounded-md data-[variant=outline]:shadow-xs',
-        local.class,
+        props.class,
       )}
       {...rest}
     >
-      <ToggleGroupContext.Provider value={contextValue}>{local.children}</ToggleGroupContext.Provider>
+      <ToggleGroupContext value={contextValue}>{props.children}</ToggleGroupContext>
     </ToggleGroupPrimitive.Root>
   )
 }
@@ -90,25 +90,25 @@ type ToggleGroupItemProps = ToggleGroupPrimitive.ToggleGroupItemProps &
   }
 
 function ToggleGroupItem(props: ToggleGroupItemProps) {
-  const [local, rest] = splitProps(props, ['class', 'variant', 'size', 'children'])
+  const rest = omit(props, 'class', 'variant', 'size', 'children')
   const context = useContext(ToggleGroupContext)
 
   return (
     <ToggleGroupPrimitive.Item
       data-slot="toggle-group-item"
-      data-variant={local.variant ?? context.variant}
-      data-size={local.size ?? context.size}
+      data-variant={props.variant ?? context.variant}
+      data-size={props.size ?? context.size}
       class={cn(
         toggleVariants({
-          variant: local.variant ?? context.variant,
-          size: local.size ?? context.size,
+          variant: props.variant ?? context.variant,
+          size: props.size ?? context.size,
         }),
         'min-w-0 flex-1 shrink-0 rounded-none shadow-none first:rounded-l-md last:rounded-r-md focus:z-10 focus-visible:z-10 data-[variant=outline]:border-l-0 data-[variant=outline]:first:border-l',
-        local.class,
+        props.class,
       )}
       {...rest}
     >
-      {local.children}
+      {props.children}
     </ToggleGroupPrimitive.Item>
   )
 }

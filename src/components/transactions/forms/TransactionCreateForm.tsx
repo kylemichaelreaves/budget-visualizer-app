@@ -1,4 +1,3 @@
-import type { JSX } from 'solid-js'
 import { createSignal } from 'solid-js'
 import mutateCreateTransaction from '@api/hooks/transactions/mutateCreateTransaction'
 import type { NewTransaction } from '@api/transactions/createTransaction'
@@ -7,6 +6,7 @@ import { Button } from '@components/ui/button'
 import { Input } from '@components/ui/input'
 import ApiErrorAlert from '@components/shared/ApiErrorAlert'
 import { Label } from '@components/ui/label'
+import type { JSX } from '@solidjs/web'
 
 export default function TransactionCreateForm(props: { onClose?: () => void }): JSX.Element {
   const [isDebit, setIsDebit] = createSignal(true)
@@ -42,8 +42,8 @@ export default function TransactionCreateForm(props: { onClose?: () => void }): 
       memo: f.memo.trim(),
       ...(isDebit() ? { amount_debit: amount } : { amount_debit: '0', amount_credit: amount }),
     }
-    createMut.mutate(transaction, {
-      onSuccess: () => {
+    void createMut.mutate(transaction).then(
+      () => {
         setForm({
           date: '',
           description: '',
@@ -53,7 +53,8 @@ export default function TransactionCreateForm(props: { onClose?: () => void }): 
         })
         props.onClose?.()
       },
-    })
+      () => {},
+    )
   }
 
   return (

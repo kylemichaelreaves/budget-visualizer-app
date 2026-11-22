@@ -1,3 +1,4 @@
+import { flush } from 'solid-js'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { activePeriodFromStore, urlHasTimeframe } from '@composables/activePeriodFromStore'
 import { transactionQueryScopeFromStore } from '@composables/transactionQueryScopeFromStore'
@@ -12,6 +13,7 @@ import { Timeframe } from '@types'
 describe('activePeriodFromStore', () => {
   beforeEach(() => {
     clearAllFilters()
+    flush()
   })
 
   it('returns null with no period selected', () => {
@@ -20,11 +22,13 @@ describe('activePeriodFromStore', () => {
 
   it('returns null under a memo filter', () => {
     selectMemoView('Coffee', 7)
+    flush()
     expect(activePeriodFromStore()).toBeNull()
   })
 
   it('follows a store selector', () => {
     selectMonthView('03-2026')
+    flush()
     expect(activePeriodFromStore()).toEqual({ timeframe: Timeframe.Month, value: '03-2026' })
   })
 
@@ -32,29 +36,47 @@ describe('activePeriodFromStore', () => {
   // table used month (day > week > month > year) while the charts paired a Year
   // timeframe with the year value only when viewMode said so.
   it('lets viewMode pick between two set periods', () => {
-    setTransactionsState({ selectedMonth: '03-2026', selectedYear: '2026', viewMode: 'year' })
+    setTransactionsState((s) => {
+      Object.assign(s, { selectedMonth: '03-2026', selectedYear: '2026', viewMode: 'year' })
+    })
+    flush()
     expect(activePeriodFromStore()).toEqual({ timeframe: Timeframe.Year, value: '2026' })
-    setTransactionsState({ viewMode: 'month' })
+    setTransactionsState((s) => {
+      Object.assign(s, { viewMode: 'month' })
+    })
+    flush()
     expect(activePeriodFromStore()).toEqual({ timeframe: Timeframe.Month, value: '03-2026' })
   })
 
   it('falls back to the finest grain when viewMode names no period', () => {
-    setTransactionsState({ selectedWeek: '11-2026', selectedYear: '2026', viewMode: null })
+    setTransactionsState((s) => {
+      Object.assign(s, { selectedWeek: '11-2026', selectedYear: '2026', viewMode: null })
+    })
+    flush()
     expect(activePeriodFromStore()).toEqual({ timeframe: Timeframe.Week, value: '11-2026' })
   })
 
   it('falls back when viewMode names a period with no value', () => {
-    setTransactionsState({ selectedYear: '2026', viewMode: 'day' })
+    setTransactionsState((s) => {
+      Object.assign(s, { selectedYear: '2026', viewMode: 'day' })
+    })
+    flush()
     expect(activePeriodFromStore()).toEqual({ timeframe: Timeframe.Year, value: '2026' })
   })
 
   it('ignores a whitespace-only value', () => {
-    setTransactionsState({ selectedYear: '  ', viewMode: 'year' })
+    setTransactionsState((s) => {
+      Object.assign(s, { selectedYear: '  ', viewMode: 'year' })
+    })
+    flush()
     expect(activePeriodFromStore()).toBeNull()
   })
 
   it('is what the transaction query scope reads', () => {
-    setTransactionsState({ selectedMonth: '03-2026', selectedYear: '2026', viewMode: 'year' })
+    setTransactionsState((s) => {
+      Object.assign(s, { selectedMonth: '03-2026', selectedYear: '2026', viewMode: 'year' })
+    })
+    flush()
     expect(transactionQueryScopeFromStore()).toEqual({ timeFrame: Timeframe.Year, date: '2026' })
   })
 })

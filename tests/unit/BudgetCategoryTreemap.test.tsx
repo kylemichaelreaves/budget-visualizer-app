@@ -1,6 +1,6 @@
 import { fireEvent, render, screen } from '@solidjs/testing-library'
 import type * as d3 from 'd3'
-import { createSignal } from 'solid-js'
+import { createSignal, flush } from 'solid-js'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import type { BudgetCategorySummary } from '@types'
 import { budgetCategoryColorsFromData } from '@composables/budgetCategoryColors'
@@ -41,6 +41,7 @@ describe('BudgetCategoryTreemap', () => {
   it('lays out a cell per category once it has a size, and labels the period', async () => {
     renderTreemap(() => data)
     await Promise.resolve()
+    flush()
     expect(rectFor('Food')).toBeDefined()
     expect(rectFor('Groceries')).toBeDefined()
     expect(root()).toHaveTextContent('March 2026')
@@ -49,6 +50,7 @@ describe('BudgetCategoryTreemap', () => {
   it('shows the category and amount on hover and hides it on leave', async () => {
     renderTreemap(() => data)
     await Promise.resolve()
+    flush()
     fireEvent.mouseEnter(rectFor('Groceries'))
     expect(tooltip().style.opacity).toBe('1')
     expect(tooltip().querySelector('strong')!.textContent).toBe('Groceries')
@@ -61,6 +63,7 @@ describe('BudgetCategoryTreemap', () => {
   it('reports a click on a real category but not on a synthetic "Other" leaf', async () => {
     const onCellClick = renderTreemap(() => data)
     await Promise.resolve()
+    flush()
     fireEvent.click(rectFor('Groceries'))
     expect(onCellClick).toHaveBeenCalledWith(expect.objectContaining({ category_name: 'Groceries' }))
     const other = rects().find((r) =>
@@ -78,6 +81,7 @@ describe('BudgetCategoryTreemap', () => {
       data.map((d) => ({ ...d, total_amount_debit: d.parent_id === null ? 0 : d.total_amount_debit })),
     )
     await Promise.resolve()
+    flush()
     expect(rects()).toHaveLength(0)
   })
 
@@ -85,9 +89,11 @@ describe('BudgetCategoryTreemap', () => {
     const [rows, setRows] = createSignal<BudgetCategorySummary[]>(data)
     renderTreemap(rows)
     await Promise.resolve()
+    flush()
     fireEvent.mouseEnter(rectFor('Groceries'))
     expect(tooltip().style.opacity).toBe('1')
     setRows(data.slice(0, 4))
+    flush()
     expect(tooltip().style.opacity).toBe('0')
   })
 })

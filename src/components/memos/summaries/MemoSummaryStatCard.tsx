@@ -1,9 +1,10 @@
-import type { Accessor, JSX } from 'solid-js'
+import type { Accessor } from 'solid-js'
 import { Match, Show, Switch } from 'solid-js'
 import { ArrowDownCircleIcon, ArrowUpCircleIcon } from '@shared/icons'
 import { Card, CardContent } from '@components/ui/card'
 import { formatUsdAbs } from '@utils/formatUsd'
 import type { MemoSummaryCreditAggregate, MemoSummaryDebitAggregate } from './memoSummaryStatCardTypes'
+import type { JSX } from '@solidjs/web'
 
 const toneIconWrap: Record<'red' | 'green' | 'violet', string> = {
   red: 'rounded-full bg-negative-muted p-2',

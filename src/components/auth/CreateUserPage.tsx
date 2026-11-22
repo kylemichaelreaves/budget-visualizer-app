@@ -1,6 +1,6 @@
 import { Show } from 'solid-js'
 import { Button } from '@components/ui/button'
-import { User as UserIcon, UserPlus, Loader2 } from 'lucide-solid'
+import { User as UserIcon, UserPlus, Loader2 } from '@lucide/solid'
 import { CenteredCardLayout } from '@components/shared/CenteredCardLayout'
 import { IconHeading } from '@components/shared/IconHeading'
 import { Divider } from '@components/shared/Divider'

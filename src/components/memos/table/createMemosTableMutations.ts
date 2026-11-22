@@ -24,9 +24,9 @@ export function createMemosTableMutations() {
   const dismissTableMutationError = () => mutation.reset()
 
   function toggleAmbiguous(memo: Memo) {
-    mutation.mutate(
-      { id: memo.id, name: memo.name, ambiguous: !memo.ambiguous },
-      { onError: (e) => devConsole('error', 'toggleAmbiguous failed', e) },
+    void mutation.mutate({ id: memo.id, name: memo.name, ambiguous: !memo.ambiguous }).then(
+      () => {},
+      (e) => devConsole('error', 'toggleAmbiguous failed', e),
     )
   }
 
@@ -38,9 +38,9 @@ export function createMemosTableMutations() {
   function handleCategorySelect(category: string) {
     const target = categoryDialogTarget()
     if (!target) return
-    mutation.mutate(
-      { id: target.id, name: target.name, budgetCategory: category },
-      { onError: (e) => devConsole('error', 'Failed to update memo category:', e) },
+    void mutation.mutate({ id: target.id, name: target.name, budgetCategory: category }).then(
+      () => {},
+      (e) => devConsole('error', 'Failed to update memo category:', e),
     )
   }
 

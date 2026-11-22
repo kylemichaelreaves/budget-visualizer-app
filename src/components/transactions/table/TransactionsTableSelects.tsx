@@ -1,4 +1,4 @@
-import type { Accessor, JSX } from 'solid-js'
+import type { Accessor } from 'solid-js'
 import { For, Show, createMemo } from 'solid-js'
 import { formatDayLabel, formatWeekLabel, formatMonthLabel } from '@api/helpers/formatPeriodLabels'
 import useDays from '@api/hooks/timeUnits/days/useDays'
@@ -24,6 +24,8 @@ import {
 } from '@stores/transactionsStore'
 import type { DayYear, MonthYear, WeekYear, Year } from '@types'
 import { isoDatePart } from '@utils/isoDatePart'
+import type { JSX } from '@solidjs/web'
+import { settledData } from '@api/helpers/settledData'
 
 type TimeframeSelectDescriptor<T> = {
   suffix: string
@@ -86,10 +88,10 @@ export default function TransactionsTableSelects(props: Readonly<{ dataTestId?: 
   const weeksQ = useWeeks()
   const daysQ = useDays()
 
-  const yearOptions = createMemo(() => yearsQ.data ?? [])
-  const monthOptions = createMemo(() => monthsQ.data ?? [])
-  const weekOptions = createMemo(() => weeksQ.data ?? [])
-  const dayOptions = createMemo(() => daysQ.data ?? [])
+  const yearOptions = createMemo(() => settledData(yearsQ) ?? [])
+  const monthOptions = createMemo(() => settledData(monthsQ) ?? [])
+  const weekOptions = createMemo(() => settledData(weeksQ) ?? [])
+  const dayOptions = createMemo(() => settledData(daysQ) ?? [])
 
   /** Stable per instance; option lists flow through accessors so children track query updates. */
   const timeframeSelectDescriptors: TimeframeSelect[] = [

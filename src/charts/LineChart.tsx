@@ -1,8 +1,8 @@
-import type { JSX } from 'solid-js'
 import { createEffect, onCleanup } from 'solid-js'
 import type { DailyInterval, SummaryTypeBase } from '@types'
 import { useElementSize } from '@composables/useElementSize'
 import { createLineChart } from './createLineChart'
+import type { JSX } from '@solidjs/web'
 
 function removeTooltips(wrapper: HTMLElement | undefined): void {
   wrapper?.querySelectorAll('[data-slot="chart-tooltip"]').forEach((el) => el.remove())
@@ -24,21 +24,25 @@ export default function LineChart(props: {
    */
   const [size, attachSizeRef] = useElementSize()
 
-  createEffect(() => {
-    const el = svgEl
-    const summaries = props.summaries
-    const onClickSelection = props.handleOnClickSelection
-    if (!el || !summaries?.length || size().w <= 0) {
-      if (el && !summaries?.length) {
-        el.innerHTML = ''
-        removeTooltips(wrapperEl)
-      }
-      return
-    }
-    createLineChart(el, summaries, onClickSelection, {
+  createEffect(
+    () => ({
+      summaries: props.summaries,
+      onClickSelection: props.handleOnClickSelection,
       stackedDateLabels: props.stackedDateLabels,
-    })
-  })
+      width: size().w,
+    }),
+    ({ summaries, onClickSelection, stackedDateLabels, width }) => {
+      const el = svgEl
+      if (!el || !summaries?.length || width <= 0) {
+        if (el && !summaries?.length) {
+          el.innerHTML = ''
+          removeTooltips(wrapperEl)
+        }
+        return
+      }
+      createLineChart(el, summaries, onClickSelection, { stackedDateLabels })
+    },
+  )
 
   onCleanup(() => removeTooltips(wrapperEl))
 

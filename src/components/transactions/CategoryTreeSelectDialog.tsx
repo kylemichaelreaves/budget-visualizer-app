@@ -1,4 +1,3 @@
-import type { JSX } from 'solid-js'
 import { For, Show } from 'solid-js'
 import { SearchIcon } from '@shared/icons'
 import { Input } from '@components/ui/input'
@@ -6,6 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@components/ui
 import { useCategoryTreeSelectDialog } from './selects/useCategoryTreeSelectDialog'
 import CategoryTreeNodeRow from './selects/CategoryTreeNodeRow'
 import CategoryTreeSearchResultRow from './selects/CategoryTreeSearchResultRow'
+import type { JSX } from '@solidjs/web'
+import { queryFlag } from '@api/helpers/queryFlag'
 
 export default function CategoryTreeSelectDialog(props: {
   open: boolean
@@ -63,11 +64,11 @@ export default function CategoryTreeSelectDialog(props: {
         </div>
 
         <div class="px-2 pb-3 max-h-72 overflow-y-auto space-y-0.5" ref={state.setListRef}>
-          <Show when={state.q.isLoading}>
+          <Show when={queryFlag(state.q, 'isLoading')}>
             <p class="text-sm text-muted-foreground text-center py-6">Loading categories...</p>
           </Show>
 
-          <Show when={!state.q.isLoading}>
+          <Show when={!queryFlag(state.q, 'isLoading')}>
             <Show
               when={state.searchResults() === null}
               fallback={

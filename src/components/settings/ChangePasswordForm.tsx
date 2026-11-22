@@ -1,4 +1,4 @@
-import { A, useNavigate } from '@solidjs/router'
+import { useNavigate } from '@solidjs/router'
 import { createMemo, createSignal, Show } from 'solid-js'
 import { useMutation } from '@tanstack/solid-query'
 import { changePassword } from '@api/auth/changePassword'
@@ -10,7 +10,7 @@ import { ConfirmPasswordWithMatch } from '@components/auth/ConfirmPasswordWithMa
 import { createNewPasswordFields } from '@components/auth/createNewPasswordFields'
 import { ErrorCallout } from '@components/shared/ErrorCallout'
 import { Button } from '@components/ui/button'
-import { Loader2, ShieldCheck } from 'lucide-solid'
+import { Loader2, ShieldCheck } from '@lucide/solid'
 import { DEFAULT_AUTHENTICATED_ROUTE } from '@utils/authRoutes'
 
 type FocusField = 'current' | 'new' | 'confirm' | null
@@ -54,7 +54,7 @@ export function ChangePasswordForm() {
     e.preventDefault()
     setSubmitted(true)
     if (!currentPassword().trim() || !pw.isValid()) return
-    changeMut.mutate()
+    void changeMut.mutate()
   }
 
   return (
@@ -90,13 +90,13 @@ export function ChangePasswordForm() {
               testid="change-password-current-input"
               autocomplete="current-password"
             />
-            <A
+            <a
               href="/password/reset"
               class="self-start text-primary text-xs underline underline-offset-2 hover:opacity-90"
               data-testid="change-password-forgot-link"
             >
               Forgot your password?
-            </A>
+            </a>
           </div>
 
           <div class="-mx-6 border-t border-border" />

@@ -45,24 +45,21 @@ export function createTransactionsTableSplitDrawer(args?: {
     setStrayError(null)
     setSavingFor(t)
     args?.setMutatingTransactionId?.(id)
-    mutation.mutate(
-      { transaction: { id, ...change } },
-      {
-        onSuccess: () => {
-          if (savingFor() === t) setSavingFor(null)
-          // The user may have cancelled and opened another row while this was in flight.
-          if (isShowing(t)) closeSplitDrawer()
-          void invalidateAfterTransactionUpdate(queryClient, { transactionId: id }).finally(() =>
-            args?.setMutatingTransactionId?.(null),
-          )
-        },
-        onError: (err) => {
-          if (savingFor() === t) setSavingFor(null)
-          args?.setMutatingTransactionId?.(null)
-          const msg = extractApiErrorMessage(err)
-          if (isShowing(t)) setError(msg)
-          else setStrayError(msg)
-        },
+    void mutation.mutate({ transaction: { id, ...change } }).then(
+      () => {
+        if (savingFor() === t) setSavingFor(null)
+        // The user may have cancelled and opened another row while this was in flight.
+        if (isShowing(t)) closeSplitDrawer()
+        void invalidateAfterTransactionUpdate(queryClient, { transactionId: id }).finally(() =>
+          args?.setMutatingTransactionId?.(null),
+        )
+      },
+      (err) => {
+        if (savingFor() === t) setSavingFor(null)
+        args?.setMutatingTransactionId?.(null)
+        const msg = extractApiErrorMessage(err)
+        if (isShowing(t)) setError(msg)
+        else setStrayError(msg)
       },
     )
   }

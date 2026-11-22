@@ -1,8 +1,8 @@
-import type { JSX } from 'solid-js'
 import { Show } from 'solid-js'
 import { Button } from '@components/ui/button'
 import ClearFilterButton from '@components/shared/ClearFilterButton'
 import { ChevronLeftIcon, ChevronRightIcon } from '@shared/icons'
+import type { JSX } from '@solidjs/web'
 
 /**
  * Prev / Next / Clear button group for navigating periods.

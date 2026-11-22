@@ -1,4 +1,4 @@
-import { createSignal } from 'solid-js'
+import { createSignal, flush } from 'solid-js'
 import { render, screen, within } from '@solidjs/testing-library'
 import { describe, expect, it } from 'vitest'
 import type { RecurringSeries } from '@types'
@@ -205,6 +205,7 @@ describe('RecurringCategoryBreakdown', () => {
       render(() => <RecurringCategoryBreakdown series={series()} />)
       expect(rows()).toHaveLength(1)
       setSeries([inCategory('Food', 10), inCategory('Software', 30)])
+      flush()
       expect(rows()).toHaveLength(2)
       expect(headline()).toBe('$40.00')
       expect(segments()).toHaveLength(2)

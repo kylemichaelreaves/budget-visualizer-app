@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@solidjs/testing-library'
-import { createStore } from 'solid-js/store'
+import { createStore } from 'solid-js'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Categories } from '@types'
 
@@ -24,7 +24,9 @@ const { default: BudgetCategoriesTreeSelect } =
 const categories: Categories = { Food: { Groceries: {}, Restaurants: {} }, Rent: {} }
 
 function loadCategories() {
-  setQuery({ data: categories, isLoading: false, isFetching: false })
+  setQuery((s) => {
+    Object.assign(s, { data: categories, isLoading: false, isFetching: false })
+  })
 }
 
 function select() {
@@ -33,7 +35,9 @@ function select() {
 
 describe('BudgetCategoriesTreeSelect', () => {
   beforeEach(() => {
-    setQuery({ data: undefined, isLoading: true, isFetching: true })
+    setQuery((s) => {
+      Object.assign(s, { data: undefined, isLoading: true, isFetching: true })
+    })
   })
 
   it('keeps showing the selected category once options load', () => {

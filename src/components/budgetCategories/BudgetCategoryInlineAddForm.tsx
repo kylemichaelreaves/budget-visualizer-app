@@ -1,10 +1,10 @@
-import type { JSX } from 'solid-js'
 import { Show, createSignal } from 'solid-js'
 import { CheckIcon, XIcon } from '@shared/icons'
 import { budgetCategorySegmentValidationError } from './budgetCategoryTreeUtils'
 import { Button } from '@components/ui/button'
 import { Input } from '@components/ui/input'
 import type { BudgetCategoryMutationResult } from '@api/budgetCategories/updateBudgetCategory'
+import type { JSX } from '@solidjs/web'
 
 export default function BudgetCategoryInlineAddForm(props: {
   placeholder: string

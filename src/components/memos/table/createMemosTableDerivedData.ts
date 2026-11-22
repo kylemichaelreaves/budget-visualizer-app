@@ -8,6 +8,8 @@ import {
   type MemosTableSortKey,
 } from '@components/memos/table/memosTableSort'
 import { transactionsState } from '@stores/transactionsStore'
+import { settledData } from '@api/helpers/settledData'
+import { queryFlag } from '@api/helpers/queryFlag'
 
 export function createMemosTableDerivedData() {
   const [searchQuery, setSearchQuery] = createSignal('')
@@ -19,7 +21,7 @@ export function createMemosTableDerivedData() {
 
   const LIMIT = () => transactionsState.memosTableLimit
 
-  const flattenedData = createMemo(() => query.data?.pages.flat() ?? [])
+  const flattenedData = createMemo(() => settledData(query)?.pages.flat() ?? [])
 
   const filteredData = createMemo(() => {
     const q = searchQuery().toLowerCase().trim()
@@ -55,7 +57,8 @@ export function createMemosTableDerivedData() {
 
   const headerUniqueTotal = createMemo(() => {
     if (searchQuery().trim()) return totalMemos()
-    if (countQuery.data !== undefined) return countQuery.data
+    const count = settledData(countQuery)
+    if (count !== undefined) return count
     if (countQuery.isError) return flattenedData().length
     return null
   })
@@ -67,10 +70,13 @@ export function createMemosTableDerivedData() {
 
   const headerAmbiguousPartial = () => !searchQuery().trim() && query.hasNextPage
 
-  const isInitialLoading = () => query.isLoading || (query.isFetching && !query.data?.pages?.length)
+  const isInitialLoading = () =>
+    queryFlag(query, 'isLoading') || (queryFlag(query, 'isFetching') && !settledData(query)?.pages?.length)
 
   const isLoadingCondition = () =>
-    isInitialLoading() || query.isFetchingPreviousPage || (query.isFetchingNextPage && !searchQuery().trim())
+    isInitialLoading() ||
+    queryFlag(query, 'isFetchingPreviousPage') ||
+    (queryFlag(query, 'isFetchingNextPage') && !searchQuery().trim())
 
   createMemosTableInfiniteSync(query, {
     searchQuery,

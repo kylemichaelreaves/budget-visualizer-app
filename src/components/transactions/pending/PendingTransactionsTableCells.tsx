@@ -1,9 +1,8 @@
-import { A } from '@solidjs/router'
-import type { JSX } from 'solid-js'
 import { Match, Show, Switch } from 'solid-js'
 import { formatDate } from '@api/helpers/formatDate'
 import type { PendingTransaction } from '@types'
 import { formatCell, getCell } from './pendingTransactionsTableUtils'
+import type { JSX } from '@solidjs/web'
 
 export function PendingTransactionCell(props: { row: PendingTransaction; prop: string }): JSX.Element {
   return (
@@ -32,12 +31,12 @@ function PendingTxnReviewedAtCell(props: { row: PendingTransaction }): JSX.Eleme
 function PendingTxnIdCell(props: { row: PendingTransaction }): JSX.Element {
   const v = () => getCell(props.row, 'id')
   return (
-    <A
+    <a
       href={`/budget-visualizer/transactions/pending/${String(v() ?? '')}/edit`}
       data-testid={`pending-transaction-id-${v()}`}
     >
       {String(v() ?? '')}
-    </A>
+    </a>
   )
 }
 
@@ -47,9 +46,9 @@ function PendingTxnMemoNameCell(props: { row: PendingTransaction }): JSX.Element
   const isId = () => Number.isFinite(memoNum()) && String(memoNum()) === s().trim()
   return (
     <Show when={isId()} fallback={<span>{s()}</span>}>
-      <A href={`/budget-visualizer/memos/${memoNum()}/summary`} data-testid="memo-link">
+      <a href={`/budget-visualizer/memos/${memoNum()}/summary`} data-testid="memo-link">
         {s()}
-      </A>
+      </a>
     </Show>
   )
 }

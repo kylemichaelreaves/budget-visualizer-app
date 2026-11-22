@@ -1,5 +1,4 @@
 import { Show } from 'solid-js'
-import { A } from '@solidjs/router'
 import { authState } from '@stores/authStore'
 import { UserNavDropdown } from '@components/layout/UserNavDropdown'
 import { DEFAULT_AUTHENTICATED_ROUTE } from '@utils/authRoutes'
@@ -18,12 +17,12 @@ export default function NavBar() {
       style={{ height: `${NAVBAR_APP_HEIGHT_PX}px` }}
       aria-label="Main navigation"
     >
-      <A
+      <a
         href={DEFAULT_AUTHENTICATED_ROUTE}
         class="text-lg font-semibold text-foreground no-underline hover:text-brand transition-colors"
       >
         Budget Visualizer
-      </A>
+      </a>
 
       <div class="flex items-center gap-2">
         <Show

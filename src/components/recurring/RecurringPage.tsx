@@ -21,6 +21,7 @@ import {
   seriesTotals,
   todayIso,
 } from './recurringPageUtils'
+import { settledData } from '@api/helpers/settledData'
 
 /**
  * The shared destructive Alert only tints its text, on the card colour, with the default 10% border,
@@ -52,7 +53,7 @@ export default function RecurringPage() {
     queryFn: () => fetchRecurringSeries(seriesFilters),
   }))
 
-  const series = () => seriesQuery.data ?? []
+  const series = () => settledData(seriesQuery) ?? []
   const lastScanned = createMemo(() => latestDetectedAt(series()))
   const totals = createMemo(() => seriesTotals(series()))
   const isStale = () => {
@@ -142,7 +143,7 @@ export default function RecurringPage() {
             size="lg"
             data-testid="recurring-rescan"
             disabled={rescan.isPending}
-            onClick={() => rescan.mutate()}
+            onClick={() => void rescan.mutate()}
           >
             <RefreshCwIcon class={rescan.isPending ? 'size-4 animate-spin' : 'size-4'} />
             {rescan.isPending ? 'Scanning…' : 'Rescan'}
@@ -199,7 +200,7 @@ export default function RecurringPage() {
                 : 'text-muted-foreground m-0 text-xs'
             }
             data-testid="recurring-snapshot-note"
-            data-stale={isStale()}
+            data-stale={String(isStale())}
           >
             <Show when={isStale() && lastScanned()}>
               {(instant) => <>The last scan was {describeScanAge(instant(), new Date())}. </>}

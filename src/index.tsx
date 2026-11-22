@@ -1,7 +1,7 @@
 /* @refresh reload */
 import { QueryClientProvider } from '@tanstack/solid-query'
 import { Show } from 'solid-js'
-import { render } from 'solid-js/web'
+import { render } from '@solidjs/web'
 import { queryClient } from '@api/queryClient'
 import { setUnauthorizedHandler } from '@api/httpClient'
 import { hydrateAuthFromStorage, logout } from '@stores/authStore'

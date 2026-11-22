@@ -3,7 +3,7 @@ import storybook from 'eslint-plugin-storybook'
 
 import js from '@eslint/js'
 import tseslint from 'typescript-eslint'
-import solid from 'eslint-plugin-solid/configs/typescript'
+import solid from 'eslint-plugin-solid/configs/v2'
 import prettier from 'eslint-config-prettier'
 
 export default tseslint.config(

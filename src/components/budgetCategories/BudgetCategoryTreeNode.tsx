@@ -1,4 +1,3 @@
-import type { JSX } from 'solid-js'
 import { For, Show } from 'solid-js'
 import type { CategoryNode } from '@types'
 import BudgetCategoryDeleteDialog from './BudgetCategoryDeleteDialog'
@@ -12,6 +11,7 @@ import type {
   BudgetCategoryOperation,
 } from '@api/budgetCategories/updateBudgetCategory'
 import { categoryTreeTestId } from './budgetCategoryTreeUtils'
+import type { JSX } from '@solidjs/web'
 
 export default function BudgetCategoryTreeNode(props: {
   node: CategoryNode
@@ -49,10 +49,7 @@ export default function BudgetCategoryTreeNode(props: {
             />
           }
         >
-          <span
-            class="text-sm font-medium truncate flex-1 min-w-0"
-            classList={{ 'opacity-50': s.isMutating() }}
-          >
+          <span class={['text-sm font-medium truncate flex-1 min-w-0', { 'opacity-50': s.isMutating() }]}>
             {props.node.label}
           </span>
         </Show>

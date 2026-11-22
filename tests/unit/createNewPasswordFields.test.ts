@@ -1,4 +1,4 @@
-import { createRoot, createSignal } from 'solid-js'
+import { createRoot, createSignal, flush } from 'solid-js'
 import { afterEach, describe, expect, it } from 'vitest'
 import {
   CONFIRM_MISMATCH_ERROR,
@@ -28,9 +28,11 @@ describe('createNewPasswordFields', () => {
   it('hides errors until submitted', () => {
     const { f, setSubmitted } = mount()
     f.setPassword('short')
+    flush()
     expect(f.pwError()).toBeNull()
     expect(f.cfError()).toBeNull()
     setSubmitted(true)
+    flush()
     expect(f.pwError()).toBe(newPasswordError('short'))
     expect(f.cfError()).toBe(CONFIRM_REQUIRED_ERROR)
   })
@@ -38,11 +40,15 @@ describe('createNewPasswordFields', () => {
   it('reports a mismatch, then success once the pair matches', () => {
     const { f, setSubmitted } = mount()
     setSubmitted(true)
+    flush()
     f.setPassword(STRONG)
+    flush()
     f.setConfirm(`${STRONG}x`)
+    flush()
     expect(f.cfError()).toBe(CONFIRM_MISMATCH_ERROR)
     expect(f.cfSuccess()).toBe(false)
     f.setConfirm(STRONG)
+    flush()
     expect(f.cfError()).toBeNull()
     expect(f.cfSuccess()).toBe(true)
   })
@@ -53,24 +59,32 @@ describe('createNewPasswordFields', () => {
     const { f } = mount()
     expect(f.isValid()).toBe(false)
     f.setPassword(STRONG)
+    flush()
     expect(f.isValid()).toBe(false)
     f.setConfirm(STRONG)
+    flush()
     expect(f.isValid()).toBe(true)
     f.setPassword('weakpassword')
+    flush()
     f.setConfirm('weakpassword')
+    flush()
     expect(f.isValid()).toBe(false)
   })
 
   it('tracks strength and the show toggles, and reset clears them', () => {
     const { f } = mount()
     f.setPassword(STRONG)
+    flush()
     f.setConfirm(STRONG)
+    flush()
     f.toggleShowPw()
     f.toggleShowCf()
+    flush()
     expect(f.strength().score).toBeGreaterThanOrEqual(2)
     expect(f.showPw()).toBe(true)
     expect(f.showCf()).toBe(true)
     f.reset()
+    flush()
     expect([f.password(), f.confirm(), f.showPw(), f.showCf()]).toEqual(['', '', false, false])
   })
 })

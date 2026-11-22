@@ -1,5 +1,4 @@
-import { createEffect, on } from 'solid-js'
-import { createStore, reconcile } from 'solid-js/store'
+import { createEffect, createStore, reconcile } from 'solid-js'
 import type { SplitBudgetCategory } from '@types'
 import { generateId } from '@components/transactions/helpers/generateId'
 import {
@@ -36,7 +35,7 @@ export function useSplitBudgetCategoryDrawer(props: UseSplitBudgetCategoryDrawer
   const [rows, setRows] = createStore<SplitBudgetCategory[]>([])
   const local = () => rows
   const setLocal = (update: (current: SplitBudgetCategory[]) => SplitBudgetCategory[]) =>
-    setRows(reconcile(update(rows), { key: 'id' }))
+    setRows(reconcile(update(rows), 'id'))
 
   /**
    * Seed the local draft on the closed -> open edge only.
@@ -47,28 +46,26 @@ export function useSplitBudgetCategoryDrawer(props: UseSplitBudgetCategoryDrawer
    * that re-ran `initialLocalSplits` and silently discarded whatever the user
    * had typed into the open drawer.
    *
-   * `on` runs its callback untracked, so reading `props.splits` here reads the
-   * current value without subscribing to it.
+   * An effect's apply phase runs untracked, so reading `props.splits` there reads
+   * the current value without subscribing to it.
    */
   createEffect(
-    on(
-      () => props.open,
-      (isOpen, wasOpen) => {
-        if (!isOpen || wasOpen) return
-        // Copy the rows: store writes mutate the underlying objects, and these
-        // belong to the parent's form state until the user saves.
-        setLocal(() =>
-          initialLocalSplits(
-            props.splits.map((split) => ({ ...split })),
-            () => ({
-              id: generateId(),
-              budget_category_id: '',
-              amount_debit: 0,
-            }),
-          ),
-        )
-      },
-    ),
+    () => props.open,
+    (isOpen, wasOpen) => {
+      if (!isOpen || wasOpen) return
+      // Copy the rows: store writes mutate the underlying objects, and these
+      // belong to the parent's form state until the user saves.
+      setLocal(() =>
+        initialLocalSplits(
+          props.splits.map((split) => ({ ...split })),
+          () => ({
+            id: generateId(),
+            budget_category_id: '',
+            amount_debit: 0,
+          }),
+        ),
+      )
+    },
   )
 
   const totalAllocated = () => sumAllocatedAmounts(local())

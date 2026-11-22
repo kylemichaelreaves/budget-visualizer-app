@@ -1,28 +1,35 @@
+import { flush } from 'solid-js'
 import { render, screen } from '@solidjs/testing-library'
-import { MemoryRouter, Route } from '@solidjs/router'
+import MemoryRouterShell from '@mocks/MemoryRouterShell'
 import { describe, expect, it, beforeEach } from 'vitest'
 import { setAuthState } from '@stores/authStore'
 import NavBar from '@components/layout/NavBar'
 
 function renderNavBar() {
   return render(() => (
-    <MemoryRouter root={() => <NavBar />}>
-      <Route path="*" component={() => null} />
-    </MemoryRouter>
+    <MemoryRouterShell>
+      <NavBar />
+    </MemoryRouterShell>
   ))
 }
 
 describe('NavBar', () => {
   beforeEach(() => {
-    setAuthState('isUserAuthenticated', false)
-    setAuthState('user', {
-      id: 0,
-      firstName: '',
-      lastName: '',
-      username: '',
-      email: '',
-      role: 'guest',
+    setAuthState((s) => {
+      s.isUserAuthenticated = false
     })
+    flush()
+    setAuthState((s) => {
+      s.user = {
+        id: 0,
+        firstName: '',
+        lastName: '',
+        username: '',
+        email: '',
+        role: 'guest',
+      }
+    })
+    flush()
   })
 
   it('renders the brand link', () => {
@@ -36,8 +43,14 @@ describe('NavBar', () => {
   })
 
   it('shows account menu trigger when authenticated', () => {
-    setAuthState('isUserAuthenticated', true)
-    setAuthState('user', 'username', 'testuser')
+    setAuthState((s) => {
+      s.isUserAuthenticated = true
+    })
+    flush()
+    setAuthState((s) => {
+      s.user.username = 'testuser'
+    })
+    flush()
     renderNavBar()
     const trigger = screen.getByTestId('navbar-user-menu-trigger')
     expect(trigger).toBeInTheDocument()
@@ -45,17 +58,35 @@ describe('NavBar', () => {
   })
 
   it('shows admin badge for admin users', () => {
-    setAuthState('isUserAuthenticated', true)
-    setAuthState('user', 'username', 'adminuser')
-    setAuthState('user', 'role', 'admin')
+    setAuthState((s) => {
+      s.isUserAuthenticated = true
+    })
+    flush()
+    setAuthState((s) => {
+      s.user.username = 'adminuser'
+    })
+    flush()
+    setAuthState((s) => {
+      s.user.role = 'admin'
+    })
+    flush()
     renderNavBar()
     expect(screen.getByText('admin', { exact: true })).toBeInTheDocument()
   })
 
   it('does not show admin badge for non-admin users', () => {
-    setAuthState('isUserAuthenticated', true)
-    setAuthState('user', 'username', 'regularuser')
-    setAuthState('user', 'role', 'user')
+    setAuthState((s) => {
+      s.isUserAuthenticated = true
+    })
+    flush()
+    setAuthState((s) => {
+      s.user.username = 'regularuser'
+    })
+    flush()
+    setAuthState((s) => {
+      s.user.role = 'user'
+    })
+    flush()
     renderNavBar()
     expect(screen.queryByText('admin', { exact: true })).not.toBeInTheDocument()
   })

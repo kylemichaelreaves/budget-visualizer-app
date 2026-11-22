@@ -1,4 +1,3 @@
-import type { JSX } from 'solid-js'
 import { For, Show, createEffect, createMemo, createSignal } from 'solid-js'
 import { extractBudgetCategoriesData } from '@api/helpers/extractBudgetCategoriesData'
 import { convertToTree } from '@api/helpers/convertToTree'
@@ -6,6 +5,9 @@ import useBudgetCategories from '@api/hooks/budgetCategories/useBudgetCategories
 import type { CategoryNode, Timeframe } from '@types'
 import ApiErrorAlert from '@components/shared/ApiErrorAlert'
 import { Input } from '@components/ui/input'
+import type { JSX } from '@solidjs/web'
+import { settledData } from '@api/helpers/settledData'
+import { queryFlag } from '@api/helpers/queryFlag'
 
 function flattenTree(nodes: CategoryNode[], depth = 0): { value: string; label: string }[] {
   const out: { value: string; label: string }[] = []
@@ -45,7 +47,7 @@ export default function BudgetCategoriesTreeSelect(props: {
   )
 
   const treeOptions = createMemo(() => {
-    const raw = q.data as unknown
+    const raw = settledData(q) as unknown
     const categoryData = extractBudgetCategoriesData(raw)
     if (!categoryData || typeof categoryData !== 'object') return [] as { value: string; label: string }[]
     return flattenTree(convertToTree(categoryData))
@@ -71,14 +73,18 @@ export default function BudgetCategoriesTreeSelect(props: {
   // (the synthetic "(current)" one is rebuilt each time), and the `value` binding won't
   // re-run because props.value is unchanged — so re-apply it whenever the options change.
   let selectRef: HTMLSelectElement | undefined
-  createEffect(() => {
-    selectOptions()
-    const v = props.value ?? ''
-    if (selectRef) selectRef.value = v
-  })
+  createEffect(
+    () => {
+      selectOptions()
+      return props.value ?? ''
+    },
+    (v) => {
+      if (selectRef) selectRef.value = v
+    },
+  )
 
   // Not on isFetching: disabling the filter on a background refetch drops its focus.
-  const isDisabled = () => Boolean(props.disabled) || q.isLoading
+  const isDisabled = () => Boolean(props.disabled) || queryFlag(q, 'isLoading')
 
   return (
     <div data-testid={`${tid()}-root`}>
@@ -101,7 +107,7 @@ export default function BudgetCategoriesTreeSelect(props: {
         />
       </Show>
 
-      <Show when={q.isLoading}>
+      <Show when={queryFlag(q, 'isLoading')}>
         <p data-testid={`${tid()}-loading`} class="mt-1 mb-0 text-muted-foreground text-xs">
           Loading categories...
         </p>
@@ -112,7 +118,7 @@ export default function BudgetCategoriesTreeSelect(props: {
         data-testid={tid()}
         value={props.value ?? ''}
         disabled={isDisabled()}
-        aria-busy={q.isLoading || q.isFetching ? 'true' : undefined}
+        aria-busy={queryFlag(q, 'isLoading') || queryFlag(q, 'isFetching') ? 'true' : undefined}
         aria-label={props['aria-label'] ?? 'Budget category'}
         onChange={(e) => {
           const v = e.currentTarget.value

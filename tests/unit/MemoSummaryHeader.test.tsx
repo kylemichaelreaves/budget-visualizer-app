@@ -1,5 +1,5 @@
 import { render, screen } from '@solidjs/testing-library'
-import { MemoryRouter, Route } from '@solidjs/router'
+import MemoryRouterShell from '@mocks/MemoryRouterShell'
 import { describe, expect, it } from 'vitest'
 import MemoSummaryHeader from '@components/memos/summaries/MemoSummaryHeader'
 
@@ -12,21 +12,17 @@ function renderHeader(flags: {
   count?: number
 }) {
   return render(() => (
-    <MemoryRouter
-      root={() => (
-        <MemoSummaryHeader
-          memoId="42"
-          memoName={() => flags.name}
-          transactionsCount={() => flags.count}
-          isAmbiguous={() => flags.ambiguous ?? false}
-          isResolved={() => flags.resolved ?? false}
-          isRecurring={() => flags.recurring ?? false}
-          frequency={() => flags.frequency}
-        />
-      )}
-    >
-      <Route path="*" component={() => null} />
-    </MemoryRouter>
+    <MemoryRouterShell>
+      <MemoSummaryHeader
+        memoId="42"
+        memoName={() => flags.name}
+        transactionsCount={() => flags.count}
+        isAmbiguous={() => flags.ambiguous ?? false}
+        isResolved={() => flags.resolved ?? false}
+        isRecurring={() => flags.recurring ?? false}
+        frequency={() => flags.frequency}
+      />
+    </MemoryRouterShell>
   ))
 }
 

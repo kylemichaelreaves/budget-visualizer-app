@@ -1,5 +1,6 @@
-import { type JSX, splitProps } from 'solid-js'
+import { omit } from 'solid-js'
 import { cn } from '@utils/cn'
+import type { JSX } from '@solidjs/web'
 
 type SeparatorProps = JSX.HTMLAttributes<HTMLDivElement> & {
   class?: string
@@ -8,18 +9,18 @@ type SeparatorProps = JSX.HTMLAttributes<HTMLDivElement> & {
 }
 
 function Separator(props: SeparatorProps) {
-  const [local, rest] = splitProps(props, ['class', 'orientation', 'decorative'])
-  const orientation = () => local.orientation ?? 'horizontal'
+  const rest = omit(props, 'class', 'orientation', 'decorative')
+  const orientation = () => props.orientation ?? 'horizontal'
 
   return (
     <div
       data-slot="separator-root"
-      role={local.decorative ? 'none' : 'separator'}
-      aria-orientation={local.decorative ? undefined : orientation()}
+      role={props.decorative ? 'none' : 'separator'}
+      aria-orientation={props.decorative ? undefined : orientation()}
       data-orientation={orientation()}
       class={cn(
         'bg-border shrink-0 data-[orientation=horizontal]:h-px data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-px',
-        local.class,
+        props.class,
       )}
       {...rest}
     />

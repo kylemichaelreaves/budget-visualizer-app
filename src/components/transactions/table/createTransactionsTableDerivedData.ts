@@ -1,4 +1,5 @@
-import { createEffect, createMemo, createRenderEffect, on } from 'solid-js'
+import { createEffect, createMemo, createRenderEffect } from 'solid-js'
+import { settledData } from '@api/helpers/settledData'
 import { getPeriodLabel } from '@api/helpers/formatPeriodLabels'
 import useTransactionCategoryTotals from '@api/hooks/transactions/useTransactionCategoryTotals'
 import useTransactionTotals from '@api/hooks/transactions/useTransactionTotals'
@@ -15,6 +16,7 @@ import {
   maxOffsetForLoadedPages,
   rowsForPage,
 } from '@components/transactions/table/transactionsTablePageWindow'
+import { queryFlag } from '@api/helpers/queryFlag'
 
 export function createTransactionsTableDerivedData() {
   const query = useTransactions()
@@ -22,7 +24,7 @@ export function createTransactionsTableDerivedData() {
   const LIMIT = () => transactionsState.transactionsTableLimit
 
   /** Pages exactly as the server returned them, in offset order. */
-  const loadedPages = createMemo(() => query.data?.pages ?? [])
+  const loadedPages = createMemo(() => settledData(query)?.pages ?? [])
 
   const currentPage = () =>
     Math.floor(transactionsState.transactionsTableOffset / transactionsState.transactionsTableLimit) + 1
@@ -58,27 +60,26 @@ export function createTransactionsTableDerivedData() {
   const cardsVisible = () => transactionsState.viewMode !== null
   const totalsQuery = useTransactionTotals(cardsVisible)
   const categoryTotalsQuery = useTransactionCategoryTotals(cardsVisible)
-  const totals = () => totalsQuery.data
-  const categoryTotals = () => categoryTotalsQuery.data
+  const totals = () => settledData(totalsQuery)
+  const categoryTotals = () => settledData(categoryTotalsQuery)
 
-  const isInitialLoading = () => query.isLoading || (query.isFetching && !query.data?.pages?.length)
+  const isInitialLoading = () =>
+    queryFlag(query, 'isLoading') || (queryFlag(query, 'isFetching') && !settledData(query)?.pages?.length)
 
   const isLoadingCondition = () =>
-    isInitialLoading() || query.isFetchingNextPage || query.isFetchingPreviousPage
+    isInitialLoading() || queryFlag(query, 'isFetchingNextPage') || queryFlag(query, 'isFetchingPreviousPage')
 
   /**
    * The query only appends, so reaching page N means pages 1..N must be fetched.
    * Counted in pages, not rows — row counts are what let the rendered window drift
    * from the page index in the first place.
    */
-  createEffect(
-    on(currentPage, () => {
-      void fetchInfinitePagesUntilCount(query, {
-        currentCount: () => loadedPages().length,
-        requiredCount: currentPage(),
-      })
-    }),
-  )
+  createEffect(currentPage, (page) => {
+    void fetchInfinitePagesUntilCount(query, {
+      currentCount: () => loadedPages().length,
+      requiredCount: page,
+    })
+  })
 
   /**
    * Clamp pagination when the offset points past the end of the result set, and
@@ -90,30 +91,28 @@ export function createTransactionsTableDerivedData() {
    * any offset-driven DOM update, so the anchor row exists when we scrollIntoView.
    */
   createRenderEffect(
-    on(
-      () =>
-        [
-          query.isFetching,
-          loadedPages(),
-          transactionsState.transactionsTableOffset,
-          LIMIT(),
-          query.hasNextPage,
-        ] as const,
-      ([isFetching, pages, offset, limit, hasNextPage], prev) => {
-        if (!isFetching && !hasNextPage && pages.length > 0) {
-          const maxOffset = maxOffsetForLoadedPages(pages, limit)
-          if (offset > maxOffset) {
-            updateTransactionsTableOffset(maxOffset)
-          }
+    () =>
+      [
+        queryFlag(query, 'isFetching'),
+        loadedPages(),
+        transactionsState.transactionsTableOffset,
+        LIMIT(),
+        query.hasNextPage,
+      ] as const,
+    ([isFetching, pages, offset, limit, hasNextPage], prev) => {
+      if (!isFetching && !hasNextPage && pages.length > 0) {
+        const maxOffset = maxOffsetForLoadedPages(pages, limit)
+        if (offset > maxOffset) {
+          updateTransactionsTableOffset(maxOffset)
         }
-        const wasFetching = prev?.[0]
-        if (wasFetching === true && isFetching === false) {
-          queueMicrotask(() => {
-            takeAndApplyPendingTransactionsScrollRestore()
-          })
-        }
-      },
-    ),
+      }
+      const wasFetching = prev?.[0]
+      if (wasFetching === true && isFetching === false) {
+        queueMicrotask(() => {
+          takeAndApplyPendingTransactionsScrollRestore()
+        })
+      }
+    },
   )
 
   const cardTitle = () => {

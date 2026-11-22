@@ -1,5 +1,5 @@
-import { type Component, type JSX, createSignal, ErrorBoundary, onMount, Show } from 'solid-js'
-import { Dynamic } from 'solid-js/web'
+import { type Component, createSignal, Errored, onSettled, Show } from 'solid-js'
+import { Dynamic, type JSX } from '@solidjs/web'
 import { devConsole } from '@utils/devConsole'
 
 type DevtoolsProps = { initialIsOpen?: boolean }
@@ -18,7 +18,7 @@ type DevtoolsProps = { initialIsOpen?: boolean }
 export default function QueryDevtools(): JSX.Element {
   const [comp, setComp] = createSignal<Component<DevtoolsProps> | null>(null)
 
-  onMount(() => {
+  onSettled(() => {
     if (!import.meta.env.DEV) return
     void import('@tanstack/solid-query-devtools')
       .then(({ SolidQueryDevtools }) => setComp(() => SolidQueryDevtools as Component<DevtoolsProps>))
@@ -26,8 +26,8 @@ export default function QueryDevtools(): JSX.Element {
   })
 
   return (
-    <ErrorBoundary fallback={null}>
+    <Errored fallback={null}>
       <Show when={comp()}>{(C) => <Dynamic component={C()} initialIsOpen={false} />}</Show>
-    </ErrorBoundary>
+    </Errored>
   )
 }

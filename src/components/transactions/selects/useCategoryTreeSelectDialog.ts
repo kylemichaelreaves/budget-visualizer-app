@@ -1,9 +1,10 @@
-import { createEffect, createMemo, createSignal, on } from 'solid-js'
+import { createEffect, createMemo, createSignal } from 'solid-js'
 import { extractBudgetCategoriesData } from '@api/helpers/extractBudgetCategoriesData'
 import { convertToTree } from '@api/helpers/convertToTree'
 import useBudgetCategories from '@api/hooks/budgetCategories/useBudgetCategories'
 import type { CategoryNode } from '@types'
 import { flattenWithBreadcrumb, getVisibleNodes } from './categoryTreeSelectDialogUtils'
+import { settledData } from '@api/helpers/settledData'
 
 export function useCategoryTreeSelectDialog(props: {
   open: () => boolean
@@ -27,7 +28,7 @@ export function useCategoryTreeSelectDialog(props: {
   )
 
   const tree = createMemo(() => {
-    const raw = q.data as unknown
+    const raw = settledData(q) as unknown
     const categoryData = extractBudgetCategoriesData(raw)
     if (!categoryData || typeof categoryData !== 'object') return [] as CategoryNode[]
     return convertToTree(categoryData)
@@ -36,29 +37,29 @@ export function useCategoryTreeSelectDialog(props: {
   // Auto-expand top-level nodes whenever the dialog opens (handles cached data)
   let didInitExpand = false
   createEffect(
-    on(
-      () => props.open(),
-      (open) => {
-        if (open) {
-          didInitExpand = false
-          const nodes = tree()
-          if (nodes.length > 0) {
-            didInitExpand = true
-            setExpanded(new Set(nodes.map((n) => n.value)))
-          }
+    () => props.open(),
+    (open) => {
+      if (open) {
+        didInitExpand = false
+        const nodes = tree()
+        if (nodes.length > 0) {
+          didInitExpand = true
+          setExpanded(new Set(nodes.map((n) => n.value)))
         }
-      },
-    ),
+      }
+    },
   )
 
   // Auto-expand top-level nodes when tree data arrives while the dialog is already open
-  createEffect(() => {
-    const nodes = tree()
-    if (!didInitExpand && nodes.length > 0 && props.open()) {
-      didInitExpand = true
-      setExpanded(new Set(nodes.map((n) => n.value)))
-    }
-  })
+  createEffect(
+    () => ({ nodes: tree(), open: props.open() }),
+    ({ nodes, open }) => {
+      if (!didInitExpand && nodes.length > 0 && open) {
+        didInitExpand = true
+        setExpanded(new Set(nodes.map((n) => n.value)))
+      }
+    },
+  )
 
   const allFlat = createMemo(() => flattenWithBreadcrumb(tree()))
 
@@ -83,8 +84,7 @@ export function useCategoryTreeSelectDialog(props: {
     return m
   })
 
-  createEffect(() => {
-    navigableItems()
+  createEffect(navigableItems, () => {
     setHighlight(0)
   })
 

@@ -1,4 +1,3 @@
-import type { JSX } from 'solid-js'
 import { For } from 'solid-js'
 import ApiErrorAlert from '@components/shared/ApiErrorAlert'
 import BudgetCategoriesTreeSelect from '@components/transactions/selects/BudgetCategoriesTreeSelect'
@@ -8,6 +7,7 @@ import { Input } from '@components/ui/input'
 import { Label } from '@components/ui/label'
 import { MEMO_EDIT_FREQUENCY_OPTIONS } from './memoEditFormUtils'
 import { useMemoEditForm } from './useMemoEditForm'
+import type { JSX } from '@solidjs/web'
 
 export default function MemoEditForm(props: {
   memo: Memo
@@ -39,7 +39,11 @@ export default function MemoEditForm(props: {
           id="memo-name"
           data-testid={`${state.tid()}-name`}
           value={state.form.name}
-          onInput={(e) => state.setForm('name', e.currentTarget.value)}
+          onInput={(e) =>
+            state.setForm((s) => {
+              s.name = e.currentTarget.value
+            })
+          }
           required
         />
       </div>
@@ -50,7 +54,11 @@ export default function MemoEditForm(props: {
           type="checkbox"
           data-testid={`${state.tid()}-necessary`}
           checked={state.form.necessary}
-          onChange={(e) => state.setForm('necessary', e.currentTarget.checked)}
+          onChange={(e) =>
+            state.setForm((s) => {
+              s.necessary = e.currentTarget.checked
+            })
+          }
         />
         Necessary
       </Label>
@@ -61,7 +69,11 @@ export default function MemoEditForm(props: {
           type="checkbox"
           data-testid={`${state.tid()}-ambiguous`}
           checked={state.form.ambiguous}
-          onChange={(e) => state.setForm('ambiguous', e.currentTarget.checked)}
+          onChange={(e) =>
+            state.setForm((s) => {
+              s.ambiguous = e.currentTarget.checked
+            })
+          }
         />
         Ambiguous
       </Label>
@@ -74,7 +86,11 @@ export default function MemoEditForm(props: {
           id="memo-frequency"
           data-testid={`${state.tid()}-frequency`}
           value={state.form.frequency}
-          onChange={(e) => state.setForm('frequency', e.currentTarget.value as typeof state.form.frequency)}
+          onChange={(e) =>
+            state.setForm((s) => {
+              s.frequency = e.currentTarget.value as typeof state.form.frequency
+            })
+          }
           class="block w-full mt-1 rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground"
         >
           <For each={MEMO_EDIT_FREQUENCY_OPTIONS}>
@@ -88,7 +104,11 @@ export default function MemoEditForm(props: {
         <div class="mt-1">
           <BudgetCategoriesTreeSelect
             value={state.form.budget_category}
-            onChange={(v) => state.setForm('budget_category', v)}
+            onChange={(v) =>
+              state.setForm((s) => {
+                s.budget_category = v
+              })
+            }
             dataTestId={`${state.tid()}-budget-category`}
             timeframe={() => state.timeFrame()}
             date={() => state.selectedValue()}

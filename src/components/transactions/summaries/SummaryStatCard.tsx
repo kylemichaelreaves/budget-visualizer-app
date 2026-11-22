@@ -1,8 +1,8 @@
-import type { JSX } from 'solid-js'
 import { Show } from 'solid-js'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 import { SummaryCreditStatIcon, SummaryDebitStatIcon } from '@shared/icons'
 import { formatUsdAbs } from '@utils/formatUsd'
+import type { JSX } from '@solidjs/web'
 
 export type SummaryStatCardProps = {
   variant: 'debit' | 'credit'

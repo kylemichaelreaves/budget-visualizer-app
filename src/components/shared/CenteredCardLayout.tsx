@@ -1,5 +1,5 @@
-import type { JSX } from 'solid-js'
 import { Card, CardContent } from '@components/ui/card'
+import type { JSX } from '@solidjs/web'
 
 export function CenteredCardLayout(props: { children: JSX.Element }) {
   return (

@@ -1,5 +1,5 @@
-import type { JSX } from 'solid-js'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@components/ui/card'
+import type { JSX } from '@solidjs/web'
 
 export function SettingsSectionCard(props: { title: string; description?: string; children: JSX.Element }) {
   return (

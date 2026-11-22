@@ -1,4 +1,4 @@
-import { A, useSearchParams } from '@solidjs/router'
+import { useSearchParams } from '@solidjs/router'
 import { createMemo, createSignal, Show } from 'solid-js'
 import { useMutation } from '@tanstack/solid-query'
 import { mutationKeys } from '@api/queryKeys'
@@ -108,7 +108,7 @@ export default function Login() {
             onSubmit={(e) => {
               e.preventDefault()
               if (isDisabled()) return
-              loginMut.mutate()
+              void loginMut.mutate()
             }}
           >
             <EmailField
@@ -153,16 +153,16 @@ export default function Login() {
               {loginMut.isPending ? 'Signing in…' : 'Login'}
             </Button>
             <div class="flex flex-col gap-2 text-center text-sm text-muted-foreground">
-              <A
+              <a
                 href={registerHref()}
                 class="hover:underline font-medium text-foreground"
                 data-testid="login-register-link"
               >
                 Create an account
-              </A>
-              <A href="/password/reset" class="hover:underline" data-testid="login-forgot-link">
+              </a>
+              <a href="/password/reset" class="hover:underline" data-testid="login-forgot-link">
                 Forgot password?
-              </A>
+              </a>
             </div>
           </form>
         </CardContent>
