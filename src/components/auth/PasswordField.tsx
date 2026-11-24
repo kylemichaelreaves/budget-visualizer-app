@@ -18,10 +18,14 @@ export interface PasswordFieldProps {
   testid: string
   /** Defaults to `new-password` (account change + registration). Use `current-password` for the existing password. */
   autocomplete?: string
+  describedBy?: string
 }
 
 export function PasswordField(props: PasswordFieldProps) {
   const hasError = () => !!props.error
+  const errorId = () => `${props.id}-error`
+  const describedBy = () =>
+    [hasError() ? errorId() : null, props.describedBy].filter(Boolean).join(' ') || undefined
   const iconColor = () =>
     hasError()
       ? 'text-destructive'
@@ -55,6 +59,7 @@ export function PasswordField(props: PasswordFieldProps) {
           onBlur={() => props.onBlur()}
           disabled={props.disabled}
           aria-invalid={hasError() ? 'true' : undefined}
+          aria-describedby={describedBy()}
           data-testid={props.testid}
           class={[
             'w-full rounded-xl border bg-input-background px-4 py-3 pl-11 pr-11 text-foreground placeholder:text-muted-foreground/60 transition-all duration-200 outline-none disabled:cursor-not-allowed disabled:opacity-50',
@@ -88,7 +93,7 @@ export function PasswordField(props: PasswordFieldProps) {
       </div>
 
       <Show when={hasError()}>
-        <p role="alert" class="flex items-start gap-1.5 text-destructive text-[13px]">
+        <p id={errorId()} role="alert" class="flex items-start gap-1.5 text-destructive text-[13px]">
           <AlertCircle class="h-3.5 w-3.5 mt-px shrink-0" />
           {props.error}
         </p>

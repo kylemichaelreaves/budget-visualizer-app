@@ -28,23 +28,13 @@ export default function EmptyState(props: { onFileChosen: (file: File) => void }
       {/* Drop zone — brand carries upload intent only; primary CTAs stay neutral. */}
       <div
         data-testid="data-import-drop-zone"
-        role="button"
-        tabindex={0}
-        aria-label="Drop a CSV file here or press Enter to browse"
         class={[
-          'flex cursor-pointer flex-col items-center rounded-2xl border-2 border-dashed bg-card px-8 pt-[52px] pb-7 text-center shadow-sm transition-colors outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50',
+          'flex flex-col items-center rounded-2xl border-2 border-dashed bg-card px-8 pt-[52px] pb-7 text-center shadow-sm transition-colors',
           {
             'border-brand bg-brand/5': isDragging(),
             'border-foreground/20': !isDragging(),
           },
         ]}
-        onClick={openPicker}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter' || e.key === ' ') {
-            e.preventDefault()
-            openPicker()
-          }
-        }}
         onDragOver={(e) => {
           e.preventDefault()
           setIsDragging(true)
@@ -80,16 +70,7 @@ export default function EmptyState(props: { onFileChosen: (file: File) => void }
           </RulePill>
         </div>
 
-        <Button
-          type="button"
-          variant="outline"
-          data-testid="data-import-browse-button"
-          onClick={(e) => {
-            // Avoid bubbling to the drop zone's onClick (which also opens the picker).
-            e.stopPropagation()
-            openPicker()
-          }}
-        >
+        <Button type="button" variant="outline" data-testid="data-import-browse-button" onClick={openPicker}>
           <Icon name="file" size={14} stroke={1.9} />
           Browse files
         </Button>

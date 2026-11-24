@@ -1,4 +1,4 @@
-import { useLocation } from '@solidjs/router'
+import { useLocation, useNavigate } from '@solidjs/router'
 import { createMemo, For } from 'solid-js'
 import { authState } from '@stores/authStore'
 import { userDisplayInitials } from '@utils/userInitials'
@@ -26,7 +26,24 @@ export function parseAccountSection(search: string): AccountSettingsSection {
 
 export function AccountSettingsSidebar() {
   const loc = useLocation()
+  const navigate = useNavigate()
   const active = createMemo(() => parseAccountSection(loc.search))
+
+  const navigateToSection = (event: MouseEvent, section: AccountSettingsSection) => {
+    if (
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return
+    }
+
+    event.preventDefault()
+    navigate(sectionHref(section))
+  }
 
   return (
     <aside class="flex flex-col gap-2">
@@ -48,6 +65,8 @@ export function AccountSettingsSidebar() {
             return (
               <a
                 href={sectionHref(item.key)}
+                aria-current={isOn() ? 'page' : undefined}
+                onClick={(event) => navigateToSection(event, item.key)}
                 class={cn(
                   'w-full flex items-center gap-3 px-4 py-3.5 text-left border-l-2 transition-all no-underline',
                   i() > 0 && 'border-t border-border',

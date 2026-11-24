@@ -35,6 +35,8 @@ export default function MemosTableRow(props: {
       <td class="px-3 py-2.5" data-testid={`cell-${row().id}-ambiguous`}>
         <button
           type="button"
+          aria-label="Ambiguous"
+          aria-pressed={row().ambiguous ? 'true' : 'false'}
           disabled={props.togglingAmbiguousId() === row().id}
           class={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
             row().ambiguous

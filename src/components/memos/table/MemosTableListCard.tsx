@@ -38,6 +38,7 @@ export default function MemosTableListCard(props: {
             </span>
             <Input
               type="text"
+              aria-label="Search memos"
               placeholder="Search memos..."
               value={props.searchQuery()}
               onInput={(e) => props.setSearchQuery(e.currentTarget.value)}

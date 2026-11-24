@@ -25,8 +25,13 @@ export function NewPasswordWithStrength(props: NewPasswordWithStrengthProps) {
         focused={props.focused}
         disabled={props.disabled}
         testid={props.testid}
+        describedBy={props.showRequirements ? `${props.id}-requirements` : undefined}
       />
-      <PasswordStrengthIndicator strength={props.strength} showRequirements={props.showRequirements} />
+      <PasswordStrengthIndicator
+        id={`${props.id}-requirements`}
+        strength={props.strength}
+        showRequirements={props.showRequirements}
+      />
     </div>
   )
 }

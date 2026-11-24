@@ -1,4 +1,4 @@
-import { useLocation } from '@solidjs/router'
+import { useLocation, useNavigate } from '@solidjs/router'
 import { createMemo, For, Show } from 'solid-js'
 import {
   ACCOUNT_SETTINGS_NAV,
@@ -20,7 +20,24 @@ const SECTION_LABEL: Record<AccountSettingsSection, string> = {
 
 export default function AccountSettingsPage() {
   const loc = useLocation()
+  const navigate = useNavigate()
   const section = createMemo(() => parseAccountSection(loc.search))
+
+  const navigateToSection = (event: MouseEvent, target: AccountSettingsSection) => {
+    if (
+      event.defaultPrevented ||
+      event.button !== 0 ||
+      event.metaKey ||
+      event.ctrlKey ||
+      event.shiftKey ||
+      event.altKey
+    ) {
+      return
+    }
+
+    event.preventDefault()
+    navigate(sectionHref(target))
+  }
 
   return (
     <div class="max-w-5xl w-full">
@@ -47,6 +64,8 @@ export default function AccountSettingsPage() {
             return (
               <a
                 href={sectionHref(item.key)}
+                aria-current={active() ? 'page' : undefined}
+                onClick={(event) => navigateToSection(event, item.key)}
                 class={cn(
                   'flex items-center gap-1.5 px-3 py-2 rounded-full whitespace-nowrap shrink-0 border transition-all text-xs font-medium no-underline',
                   active()

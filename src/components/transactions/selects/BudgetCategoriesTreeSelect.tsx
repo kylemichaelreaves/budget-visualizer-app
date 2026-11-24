@@ -21,6 +21,7 @@ function flattenTree(nodes: CategoryNode[], depth = 0): { value: string; label: 
 }
 
 export default function BudgetCategoriesTreeSelect(props: {
+  id?: string
   value?: string | null
   onChange: (v: string | null) => void
   placeholder?: string
@@ -114,6 +115,7 @@ export default function BudgetCategoriesTreeSelect(props: {
       </Show>
 
       <select
+        id={props.id}
         ref={(el) => (selectRef = el)}
         data-testid={tid()}
         value={props.value ?? ''}

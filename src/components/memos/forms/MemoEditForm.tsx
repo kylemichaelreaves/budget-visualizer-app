@@ -100,9 +100,12 @@ export default function MemoEditForm(props: {
       </div>
 
       <div class="space-y-1">
-        <Label class="text-muted-foreground text-sm">Budget category</Label>
+        <Label for="memo-budget-category" class="text-muted-foreground text-sm">
+          Budget category
+        </Label>
         <div class="mt-1">
           <BudgetCategoriesTreeSelect
+            id="memo-budget-category"
             value={state.form.budget_category}
             onChange={(v) =>
               state.setForm((s) => {

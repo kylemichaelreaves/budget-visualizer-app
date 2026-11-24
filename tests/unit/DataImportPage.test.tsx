@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor } from '@solidjs/testing-library'
+import { render, screen, fireEvent, waitFor, within } from '@solidjs/testing-library'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createSignal } from 'solid-js'
 
@@ -90,6 +90,14 @@ describe('DataImportPage', () => {
       dropFile(makeFile(name, 1024))
       expect(screen.getByText(/expected pattern/i)).toBeInTheDocument()
       expect(mutateMock).not.toHaveBeenCalled()
+    })
+
+    it('keeps the drop target non-interactive and exposes a separate browse button', () => {
+      render(() => <DataImportPage />)
+      const dropZone = screen.getByTestId('data-import-drop-zone')
+      expect(dropZone).not.toHaveAttribute('role', 'button')
+      expect(dropZone).not.toHaveAttribute('tabindex')
+      expect(within(dropZone).getByRole('button', { name: 'Browse files' })).toBeInTheDocument()
     })
 
     it('does not advertise bank detection the ingestion does not do', () => {

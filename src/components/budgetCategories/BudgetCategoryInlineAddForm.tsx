@@ -53,6 +53,7 @@ export default function BudgetCategoryInlineAddForm(props: {
       <div class="flex items-center gap-1.5">
         <Input
           type="text"
+          aria-label={props.placeholder}
           placeholder={props.placeholder}
           value={name()}
           onInput={(e) => {

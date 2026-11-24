@@ -19,6 +19,7 @@ export default function BudgetCategoryTreeRenameEditor(props: {
       <div class="flex items-center gap-1">
         <Input
           type="text"
+          aria-label={`Rename ${props.pathValue}`}
           value={props.renameValue()}
           onInput={(e) => {
             props.onRenameValueChange(e.currentTarget.value)
