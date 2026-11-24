@@ -1,5 +1,5 @@
 import { Show } from 'solid-js'
-import { Lock, Eye, EyeOff, AlertCircle } from 'lucide-solid'
+import { Lock, Eye, EyeOff, AlertCircle } from '@lucide/solid'
 
 export interface PasswordFieldProps {
   id: string
@@ -58,16 +58,18 @@ export function PasswordField(props: PasswordFieldProps) {
           onFocus={() => props.onFocus()}
           onBlur={() => props.onBlur()}
           disabled={props.disabled}
-          aria-invalid={hasError()}
+          aria-invalid={hasError() ? 'true' : undefined}
           aria-describedby={describedBy()}
           data-testid={props.testid}
-          class="w-full rounded-xl border bg-input-background px-4 py-3 pl-11 pr-11 text-foreground placeholder:text-muted-foreground/60 transition-all duration-200 outline-none disabled:cursor-not-allowed disabled:opacity-50"
-          classList={{
-            'border-destructive ring-2 ring-destructive/20': hasError(),
-            'border-success ring-2 ring-success/20': !hasError() && !!props.success,
-            'border-primary ring-2 ring-primary/20': props.focused && !hasError() && !props.success,
-            'border-border hover:border-primary/40': !props.focused && !hasError() && !props.success,
-          }}
+          class={[
+            'w-full rounded-xl border bg-input-background px-4 py-3 pl-11 pr-11 text-foreground placeholder:text-muted-foreground/60 transition-all duration-200 outline-none disabled:cursor-not-allowed disabled:opacity-50',
+            {
+              'border-destructive ring-2 ring-destructive/20': hasError(),
+              'border-success ring-2 ring-success/20': !hasError() && !!props.success,
+              'border-primary ring-2 ring-primary/20': props.focused && !hasError() && !props.success,
+              'border-border hover:border-primary/40': !props.focused && !hasError() && !props.success,
+            },
+          ]}
         />
 
         <Show

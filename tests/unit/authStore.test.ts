@@ -1,3 +1,4 @@
+import { flush } from 'solid-js'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const rearmUnauthorizedHandler = vi.fn()
@@ -21,6 +22,7 @@ function seed(user: string | null, token: string | null) {
 
 beforeEach(() => {
   logout()
+  flush()
   localStorage.clear()
 })
 
@@ -28,6 +30,7 @@ describe('hydrateAuthFromStorage', () => {
   it('restores a valid stored session', () => {
     seed(JSON.stringify(storedUser), 'tok')
     hydrateAuthFromStorage()
+    flush()
 
     expect(authState.isUserAuthenticated).toBe(true)
     expect(authState.token).toBe('tok')
@@ -38,6 +41,7 @@ describe('hydrateAuthFromStorage', () => {
   it('drops unknown keys from the stored user', () => {
     seed(JSON.stringify({ ...storedUser, password: 'hunter2' }), 'tok')
     hydrateAuthFromStorage()
+    flush()
     expect(authState.user).not.toHaveProperty('password')
   })
 
@@ -48,6 +52,7 @@ describe('hydrateAuthFromStorage', () => {
   ])('clears both user and token for %s', (_label, raw) => {
     seed(raw, 'tok')
     hydrateAuthFromStorage()
+    flush()
 
     expect(authState.isUserAuthenticated).toBe(false)
     expect(authState.token).toBe('')
@@ -62,6 +67,7 @@ describe('hydrateAuthFromStorage', () => {
   ])('stays signed out with %s, without touching storage', (_label, user, token) => {
     seed(user, token)
     hydrateAuthFromStorage()
+    flush()
 
     expect(authState.isUserAuthenticated).toBe(false)
     expect(localStorage.getItem('user')).toBe(user)
@@ -72,6 +78,7 @@ describe('hydrateAuthFromStorage', () => {
 describe('persistSession', () => {
   it('stores the normalized user, not the raw payload', () => {
     expect(persistSession({ ...storedUser, password: 'hunter2' }, 'tok')).toBe(true)
+    flush()
 
     expect(JSON.parse(localStorage.getItem('user')!)).toEqual(storedUser)
     expect(localStorage.getItem('token')).toBe('tok')
@@ -83,6 +90,7 @@ describe('persistSession', () => {
   it('re-arms the 401 handler for the new session', () => {
     rearmUnauthorizedHandler.mockClear()
     persistSession(storedUser, 'tok')
+    flush()
     expect(rearmUnauthorizedHandler).toHaveBeenCalledOnce()
   })
 
@@ -103,7 +111,9 @@ describe('persistSession', () => {
 describe('logout', () => {
   it('clears storage and state', () => {
     persistSession(storedUser, 'tok')
+    flush()
     logout()
+    flush()
 
     expect(localStorage.getItem('user')).toBeNull()
     expect(localStorage.getItem('token')).toBeNull()

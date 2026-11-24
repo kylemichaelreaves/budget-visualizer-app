@@ -4,6 +4,7 @@ import { budgetCategoryColorsFromData } from '@composables/budgetCategoryColors'
 import type { MonthSummary, WeekSummary } from '@types'
 import { transactionsState } from '@stores/transactionsStore'
 import type { TimeframeSummaryRow } from './TimeframeSummaryTable'
+import { settledData } from '@api/helpers/settledData'
 
 export function useSummaryCategoryColorsForTransactionsTable(timeframe: 'week' | 'month') {
   const timeFrameArg = () => timeframe
@@ -11,7 +12,7 @@ export function useSummaryCategoryColorsForTransactionsTable(timeframe: 'week' |
     timeframe === 'week' ? transactionsState.selectedWeek : transactionsState.selectedMonth
   const categorySummaryQuery = useBudgetCategorySummary(timeFrameArg, dateArg)
   const colorsMemo = createMemo(() => {
-    const rows = categorySummaryQuery.data
+    const rows = settledData(categorySummaryQuery)
     return budgetCategoryColorsFromData(rows ?? [])
   })
   return colorsMemo

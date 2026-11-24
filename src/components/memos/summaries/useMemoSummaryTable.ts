@@ -1,5 +1,6 @@
 import { useParams } from '@solidjs/router'
-import { createEffect, createMemo, createSignal, on } from 'solid-js'
+import { createEffect, createMemo, createSignal } from 'solid-js'
+import { settledData } from '@api/helpers/settledData'
 import mutateMemo from '@api/hooks/memos/mutateMemo'
 import { extractApiErrorMessage } from '@api/extractApiErrorMessage'
 import { devConsole } from '@utils/devConsole'
@@ -11,6 +12,7 @@ import type { MemoPatchFields } from '@types'
 import { parseFrequencySelection, recurrenceFields } from '@components/memos/memoRecurrence'
 import { computeTotalCredits, computeTotalDebits } from './memoSummaryTableUtils'
 import { parsePositiveIntId } from '@utils/parsePositiveIntId'
+import { queryFlag } from '@api/helpers/queryFlag'
 
 export function useMemoSummaryTable() {
   const params = useParams<{ memoId: string }>()
@@ -31,21 +33,19 @@ export function useMemoSummaryTable() {
   const dismissPatchError = () => mutation.reset()
 
   createEffect(
-    on(
-      () => memoQ.data,
-      (memo) => {
-        if (memo?.name) syncMemoFromSummaryData(memo.name, memo.id)
-      },
-      { defer: true },
-    ),
+    () => settledData(memoQ),
+    (memo) => {
+      if (memo?.name) syncMemoFromSummaryData(memo.name, memo.id)
+    },
+    { defer: true },
   )
 
   const canPrev = () => txOffset() > 0
   const canNext = () => {
-    if (txQ.isLoading || txQ.isFetching) return false
-    const rows = txQ.data?.length ?? 0
+    if (queryFlag(txQ, 'isLoading') || queryFlag(txQ, 'isFetching')) return false
+    const rows = settledData(txQ)?.length ?? 0
     if (rows === 0) return false
-    const cap = summaryQ.data?.transactions_count
+    const cap = settledData(summaryQ)?.transactions_count
     if (cap != null) {
       return txOffset() + rows < cap
     }
@@ -62,8 +62,8 @@ export function useMemoSummaryTable() {
     setTxOffset(txOffset() + txLimit())
   }
 
-  const memo = () => memoQ.data
-  const memoReady = createMemo(() => !!memoQ.data)
+  const memo = () => settledData(memoQ)
+  const memoReady = createMemo(() => !!settledData(memoQ))
   const isAmbiguous = () => memo()?.ambiguous ?? false
   // Derived from the frequency rather than read from the `recurring` column:
   // the two are kept in lockstep by `recurrenceFields`, and deriving leaves no
@@ -75,15 +75,15 @@ export function useMemoSummaryTable() {
   const isResolved = () => !isAmbiguous() && !!budgetCategory()
   const invalidId = () => memoIdNum() == null
 
-  const totalCredits = createMemo(() => computeTotalCredits(summaryQ.data, txQ.data ?? []))
-  const totalDebits = createMemo(() => computeTotalDebits(summaryQ.data, txQ.data ?? []))
+  const totalCredits = createMemo(() => computeTotalCredits(settledData(summaryQ), settledData(txQ) ?? []))
+  const totalDebits = createMemo(() => computeTotalDebits(settledData(summaryQ), settledData(txQ) ?? []))
 
   function patchMemo(fields: MemoPatchFields) {
     const m = memo()
     if (!m || saving()) return
-    mutation.mutate(
-      { id: m.id, name: m.name, ...fields },
-      { onError: (e) => devConsole('error', 'patchMemo failed', e) },
+    void mutation.mutate({ id: m.id, name: m.name, ...fields }).then(
+      () => {},
+      (e) => devConsole('error', 'patchMemo failed', e),
     )
   }
 

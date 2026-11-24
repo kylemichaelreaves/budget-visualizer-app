@@ -1,3 +1,4 @@
+import { flush } from 'solid-js'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
   clearAllFilters,
@@ -50,12 +51,16 @@ async function sentFilter(hook: () => void): Promise<Record<string, unknown>> {
 describe('transactionTableScopeFromStore', () => {
   beforeEach(() => {
     clearAllFilters()
+    flush()
     setSelectedBudgetCategory(null)
+    flush()
   })
 
   it('carries period and category for a period filter', () => {
     selectMonthView('03-2026')
+    flush()
     setSelectedBudgetCategory('Food')
+    flush()
     expect(transactionTableScopeFromStore().params).toEqual({
       timeFrame: Timeframe.Month,
       date: '03-2026',
@@ -66,6 +71,7 @@ describe('transactionTableScopeFromStore', () => {
   // The old card total used the chart's period, which is a month in memo view.
   it('carries the memo and no period in memo view', () => {
     selectMemoView('Coffee', 7)
+    flush()
     expect(transactionTableScopeFromStore().params).toEqual({ memoId: 7, budgetCategory: undefined })
   })
 
@@ -75,6 +81,7 @@ describe('transactionTableScopeFromStore', () => {
       ['a memo', () => selectMemoView('Coffee', 7)],
     ])('for %s', async (_label, select) => {
       select()
+      flush()
       const table = await sentFilter(() => useTransactions())
       expect(await sentFilter(() => useTransactionTotals(() => true))).toEqual(table)
       expect(await sentFilter(() => useTransactionCategoryTotals(() => true))).toEqual(table)
@@ -82,6 +89,7 @@ describe('transactionTableScopeFromStore', () => {
 
     it('asks for the right aggregate modes', async () => {
       selectMonthView('03-2026')
+      flush()
       useTransactionTotals(() => true)
       await lastOptions.queryFn()
       expect(lastSentParams()).toEqual(expect.objectContaining({ totalAmountDebit: true }))
@@ -92,9 +100,11 @@ describe('transactionTableScopeFromStore', () => {
 
     it('keys the totals by the same filter, so a filter change refetches them', () => {
       selectMonthView('03-2026')
+      flush()
       useTransactionTotals(() => true)
       const monthKey = lastOptions.queryKey
       setSelectedBudgetCategory('Food')
+      flush()
       useTransactionTotals(() => true)
       expect(lastOptions.queryKey).not.toEqual(monthKey)
       expect(lastOptions.queryKey).toEqual(['transaction-totals', '', Timeframe.Month, '03-2026', 'Food'])

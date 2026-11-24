@@ -1,8 +1,9 @@
-import type { Accessor, JSX } from 'solid-js'
+import type { Accessor } from 'solid-js'
 import { For, Show } from 'solid-js'
 import type { CategoryNode } from '@types'
 import { CheckIcon } from '@shared/icons'
 import BudgetCategoryTreeExpandToggle from '@components/budgetCategories/BudgetCategoryTreeExpandToggle'
+import type { JSX } from '@solidjs/web'
 
 export default function CategoryTreeNodeRow(props: {
   node: CategoryNode
@@ -24,7 +25,7 @@ export default function CategoryTreeNodeRow(props: {
   return (
     <>
       <div
-        data-highlight={isHighlighted()}
+        data-highlight={String(isHighlighted())}
         style={{ 'padding-left': `${props.depth * 18 + 10}px` }}
         onMouseEnter={() => props.onHighlight(navIndex())}
         class={`w-full flex items-center gap-1 py-1.5 pr-3 rounded-md text-sm transition-colors ${

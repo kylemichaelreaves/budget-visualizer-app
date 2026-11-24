@@ -1,3 +1,4 @@
+import { flush } from 'solid-js'
 import { fireEvent, render, screen } from '@solidjs/testing-library'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { clearAllFilters, setSelectedBudgetCategory, transactionsState } from '@stores/transactionsStore'
@@ -26,7 +27,9 @@ const options = (suffix: string) =>
 describe('TransactionsTableSelects', () => {
   beforeEach(() => {
     clearAllFilters()
+    flush()
     setSelectedBudgetCategory(null)
+    flush()
   })
 
   // Each select carries its own option row type through one shared render path.
@@ -47,6 +50,7 @@ describe('TransactionsTableSelects', () => {
 
   it('shows the budget category chip and clears it', () => {
     setSelectedBudgetCategory('Food')
+    flush()
     render(() => <TransactionsTableSelects />)
     const clear = screen.getByTestId(`${tid}-budget-category-clear`)
     expect(clear.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')

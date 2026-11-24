@@ -1,12 +1,12 @@
-import type { JSX } from 'solid-js'
-import { A, useLocation, useNavigate } from '@solidjs/router'
-import { createEffect, createSignal, For, Show, Suspense } from 'solid-js'
+import { useLocation, useNavigate } from '@solidjs/router'
+import { createEffect, createSignal, For, Show, Loading } from 'solid-js'
 import TransactionCreateForm from '@components/transactions/forms/TransactionCreateForm'
 import { Button } from '@components/ui/button'
 import { Skeleton } from '@components/ui/skeleton'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@components/ui/dialog'
 import { authState } from '@stores/authStore'
 import { NAVBAR_APP_HEIGHT_PX } from '@components/layout/NavBar'
+import type { JSX } from '@solidjs/web'
 
 type MenuItem = { path: string; title: string }
 type MenuSection = { label: string; items: MenuItem[] }
@@ -47,11 +47,13 @@ export default function BudgetVisualizer(props: { children?: JSX.Element }) {
    * hardcoded `/transactions`, so a deep link to any other page sent them
    * somewhere else after signing in.
    */
-  createEffect(() => {
-    if (authState.isUserAuthenticated) return
-    const target = `${loc.pathname}${loc.search}`
-    navigate(`/login?redirect=${encodeURIComponent(target)}`, { replace: true })
-  })
+  createEffect(
+    () => (authState.isUserAuthenticated ? null : `${loc.pathname}${loc.search}`),
+    (target) => {
+      if (target === null) return
+      navigate(`/login?redirect=${encodeURIComponent(target)}`, { replace: true })
+    },
+  )
 
   /* AppLayout stacks NavBar above this section; avoid min-h-screen (100vh) or min document height
      becomes navbar + 100vh and the page scrolls even when main content is short. */
@@ -92,14 +94,16 @@ export default function BudgetVisualizer(props: { children?: JSX.Element }) {
               {(section, sectionIdx) => (
                 <>
                   <h3
-                    class="text-xs font-semibold tracking-wider text-muted-foreground uppercase px-3 pb-1"
-                    classList={{ 'pt-3': sectionIdx() > 0 }}
+                    class={[
+                      'text-xs font-semibold tracking-wider text-muted-foreground uppercase px-3 pb-1',
+                      { 'pt-3': sectionIdx() > 0 },
+                    ]}
                   >
                     {section.label}
                   </h3>
                   <For each={section.items}>
                     {(item) => (
-                      <A
+                      <a
                         href={item.path}
                         data-testid={
                           item.path === '/budget-visualizer/observability'
@@ -113,7 +117,7 @@ export default function BudgetVisualizer(props: { children?: JSX.Element }) {
                         }
                       >
                         {item.title}
-                      </A>
+                      </a>
                     )}
                   </For>
                 </>
@@ -128,9 +132,9 @@ export default function BudgetVisualizer(props: { children?: JSX.Element }) {
             <Show when={authState.isUserAuthenticated}>
               {/* Pages are lazy chunks (App.tsx). The router keeps the old page up
                   while the next one loads, so this only shows on a cold load. */}
-              <Suspense fallback={<Skeleton class="h-64 w-full" data-testid="route-loading" />}>
+              <Loading fallback={<Skeleton class="h-64 w-full" data-testid="route-loading" />}>
                 {props.children}
-              </Suspense>
+              </Loading>
             </Show>
           </main>
         </div>

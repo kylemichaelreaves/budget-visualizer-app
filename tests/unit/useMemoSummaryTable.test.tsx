@@ -1,7 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { QueryClient, QueryClientProvider } from '@tanstack/solid-query'
 import { renderHook as renderSolidHook } from '@solidjs/testing-library'
-import type { JSX } from 'solid-js'
 import { HttpError } from '@api/HttpError'
 
 const { updateMemo } = vi.hoisted(() => ({ updateMemo: vi.fn() }))
@@ -22,6 +21,7 @@ vi.mock('@stores/transactionsStore', () => ({ syncMemoFromSummaryData: vi.fn() }
 
 import { useMemoSummaryTable } from '@components/memos/summaries/useMemoSummaryTable'
 import { FREQUENCY_VALUES } from '@components/memos/memoRecurrence'
+import type { JSX } from '@solidjs/web'
 
 function renderHook() {
   const client = new QueryClient()

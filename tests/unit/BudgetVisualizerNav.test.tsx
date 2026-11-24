@@ -1,5 +1,6 @@
+import { flush } from 'solid-js'
 import { cleanup, render, screen } from '@solidjs/testing-library'
-import { MemoryRouter, Route } from '@solidjs/router'
+import MemoryRouterShell from '@mocks/MemoryRouterShell'
 import { QueryClient, QueryClientProvider } from '@tanstack/solid-query'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { authState, setAuthState } from '@stores/authStore'
@@ -8,16 +9,22 @@ import BudgetVisualizer from '@components/layout/BudgetVisualizer'
 
 describe('BudgetVisualizer sidebar', () => {
   beforeEach(() => {
-    setAuthState('isUserAuthenticated', true)
-    setAuthState('user', 'role', 'user')
+    setAuthState((s) => {
+      s.isUserAuthenticated = true
+    })
+    flush()
+    setAuthState((s) => {
+      s.user.role = 'user'
+    })
+    flush()
   })
 
   function renderNav() {
     render(() => (
       <QueryClientProvider client={new QueryClient()}>
-        <MemoryRouter root={BudgetVisualizer}>
-          <Route path="*" component={() => null} />
-        </MemoryRouter>
+        <MemoryRouterShell>
+          <BudgetVisualizer />
+        </MemoryRouterShell>
       </QueryClientProvider>
     ))
     const nav = screen.getByRole('navigation', { name: 'Sidebar navigation' })
@@ -27,9 +34,9 @@ describe('BudgetVisualizer sidebar', () => {
   it('lists Recurring directly after Memos', () => {
     render(() => (
       <QueryClientProvider client={new QueryClient()}>
-        <MemoryRouter root={BudgetVisualizer}>
-          <Route path="*" component={() => null} />
-        </MemoryRouter>
+        <MemoryRouterShell>
+          <BudgetVisualizer />
+        </MemoryRouterShell>
       </QueryClientProvider>
     ))
     const nav = screen.getByRole('navigation', { name: 'Sidebar navigation' })
@@ -42,7 +49,10 @@ describe('BudgetVisualizer sidebar', () => {
   it('shows the Admin section only to admins', () => {
     expect(renderNav().map(([title]) => title)).not.toContain('Observability')
     cleanup()
-    setAuthState('user', 'role', 'admin')
+    setAuthState((s) => {
+      s.user.role = 'admin'
+    })
+    flush()
     const links = renderNav()
     expect(links[links.length - 1]).toEqual(['Observability', '/budget-visualizer/observability'])
     expect(screen.getByTestId('sidebar-admin-observability')).toBeInTheDocument()
@@ -57,7 +67,10 @@ describe('BudgetVisualizer sidebar', () => {
       email: 'a@b.c',
     })
     expect(user).not.toBeNull()
-    setAuthState('user', user!)
+    setAuthState((s) => {
+      s.user = user!
+    })
+    flush()
     expect(authState.user.role).toBe('user')
     expect(renderNav().map(([title]) => title)).not.toContain('Observability')
   })

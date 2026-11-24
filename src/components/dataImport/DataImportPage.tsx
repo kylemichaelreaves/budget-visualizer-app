@@ -1,4 +1,4 @@
-import { createSignal, Match, Switch, type JSX } from 'solid-js'
+import { createSignal, Match, Switch } from 'solid-js'
 import { extractApiErrorMessage } from '@api/extractApiErrorMessage'
 import { useCreateCsvImport } from '@api/hooks/transactions/useCreateCsvImport'
 import EmptyState from '@components/dataImport/EmptyState'
@@ -6,6 +6,7 @@ import ErrorState from '@components/dataImport/ErrorState'
 import SuccessState from '@components/dataImport/SuccessState'
 import UploadingState from '@components/dataImport/UploadingState'
 import { isValidImportFilename } from '@components/dataImport/helpers/isValidImportFilename'
+import type { JSX } from '@solidjs/web'
 
 const MAX_FILE_BYTES = 10 * 1_000 * 1_000
 
@@ -51,7 +52,7 @@ export default function DataImportPage(): JSX.Element {
     const uploadId = ++activeUploadId
     setView({ kind: 'uploading', file })
     try {
-      await mutation.mutateAsync({ file, contentType: UPLOAD_CONTENT_TYPE })
+      await mutation.mutate({ file, contentType: UPLOAD_CONTENT_TYPE })
       if (uploadId !== activeUploadId) return
       setView({ kind: 'success', filename: file.name })
     } catch (err) {

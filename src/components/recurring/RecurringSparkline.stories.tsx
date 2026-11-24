@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from 'storybook-solidjs-vite'
-import type { JSX } from 'solid-js'
 import type { RecurringAmountPoint } from '@types'
 import RecurringSparkline from './RecurringSparkline'
 import { monthlyHistory } from './recurringStoryFixtures'
+import type { JSX } from '@solidjs/web'
 
 const LAST_CHARGE = '2026-10-15'
 

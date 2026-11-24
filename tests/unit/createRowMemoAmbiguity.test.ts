@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { createRoot, createSignal } from 'solid-js'
+import { createRoot, createSignal, flush } from 'solid-js'
 import type { Memo, Transaction } from '@types'
 
 let memoId!: () => number | null
@@ -70,9 +70,12 @@ describe('createRowMemoAmbiguity', () => {
     const [r, setR] = createSignal(row({ memo_id: 7 }))
     memoData = memo(false)
     const isAmbiguous = createRoot(() => createRowMemoAmbiguity(r))
+    flush()
     expect(memoId()).toBe(7)
     setR(row({ memo_id: 7, memo_ambiguous: true }))
+    flush()
     expect(memoId()).toBeNull()
     expect(isAmbiguous()).toBe(true)
   })
+  flush()
 })

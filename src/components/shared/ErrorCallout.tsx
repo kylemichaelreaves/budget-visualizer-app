@@ -1,4 +1,4 @@
-import { AlertCircle } from 'lucide-solid'
+import { AlertCircle } from '@lucide/solid'
 
 interface ErrorCalloutProps {
   title: string

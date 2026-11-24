@@ -1,8 +1,8 @@
-import type { JSX } from 'solid-js'
 import { Show } from 'solid-js'
 import { Badge } from '@components/ui/badge'
 import { TransactionTagIcon } from '@shared/icons/TransactionTagIcon'
 import { cn } from '@utils/cn'
+import type { JSX } from '@solidjs/web'
 
 const defaultPillBadgeClass = 'text-xs hover:bg-accent transition-colors'
 

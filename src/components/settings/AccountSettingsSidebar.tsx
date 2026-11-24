@@ -3,7 +3,7 @@ import { createMemo, For } from 'solid-js'
 import { authState } from '@stores/authStore'
 import { userDisplayInitials } from '@utils/userInitials'
 import { cn } from '@utils/cn'
-import { Lock, User } from 'lucide-solid'
+import { Lock, User } from '@lucide/solid'
 import { userDisplayName } from '@utils/userDisplayName'
 
 export type AccountSettingsSection = 'profile' | 'security'

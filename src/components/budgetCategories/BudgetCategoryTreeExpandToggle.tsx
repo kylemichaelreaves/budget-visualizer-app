@@ -1,8 +1,8 @@
-import type { JSX } from 'solid-js'
 import { Show } from 'solid-js'
 import { ChevronDownIcon, ChevronRightIcon, DotIcon } from '@shared/icons'
 import { cn } from '@utils/cn'
 import { categoryTreeTestId } from './budgetCategoryTreeUtils'
+import type { JSX } from '@solidjs/web'
 
 export default function BudgetCategoryTreeExpandToggle(props: {
   pathValue: string

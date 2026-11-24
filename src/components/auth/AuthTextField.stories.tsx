@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from 'storybook-solidjs-vite'
 import { createSignal } from 'solid-js'
-import { User } from 'lucide-solid'
+import { User } from '@lucide/solid'
 import { createJSXDecorator } from 'storybook-solidjs-vite'
 import { AuthTextField, type AuthTextFieldProps } from './AuthTextField'
 

@@ -1,5 +1,4 @@
-import { createMemo, For, type JSX, Show } from 'solid-js'
-import { A } from '@solidjs/router'
+import { createMemo, For, Show } from 'solid-js'
 import { useMutation, useQueryClient } from '@tanstack/solid-query'
 import { updateRecurringSeries } from '@api/recurring/updateRecurringSeries'
 import mutateMemo from '@api/hooks/memos/mutateMemo'
@@ -26,6 +25,7 @@ import {
 } from './createRecurringDerivedData'
 import RecurringAvatar from './RecurringAvatar'
 import { lastTwo } from '@utils/lastTwo'
+import type { JSX } from '@solidjs/web'
 
 type LaneState = Exclude<TriageState, null>
 
@@ -144,7 +144,7 @@ function TriageCard(props: { series: RecurringSeries; state: LaneState }) {
     // `updateMemo` refuses a nameless memo; the button is disabled, this keeps the guard honest.
     if (!memoName()) return
     dismiss.reset()
-    memo.mutate({
+    void memo.mutate({
       id: props.series.memoId,
       name: props.series.memoName as string,
       recurring: true,
@@ -153,7 +153,7 @@ function TriageCard(props: { series: RecurringSeries; state: LaneState }) {
   }
   const dismissSeries = () => {
     memo.reset()
-    dismiss.mutate()
+    void dismiss.mutate()
   }
 
   return (
@@ -200,13 +200,13 @@ function TriageCard(props: { series: RecurringSeries; state: LaneState }) {
           <Show when={!memoName()}>
             <p class="text-muted-foreground m-0 text-xs" data-testid="recurring-triage-needs-name">
               This memo has no name, so it cannot be updated here.{' '}
-              <A
+              <a
                 href={`/budget-visualizer/memos/${props.series.memoId}/edit`}
                 class="text-primary underline underline-offset-2"
                 data-testid="recurring-triage-name-link"
               >
                 Name it on its memo page
-              </A>{' '}
+              </a>{' '}
               first.
             </p>
           </Show>

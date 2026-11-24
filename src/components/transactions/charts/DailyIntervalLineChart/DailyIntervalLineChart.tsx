@@ -1,4 +1,3 @@
-import type { JSX } from 'solid-js'
 import { createEffect, createMemo, createSignal, Show } from 'solid-js'
 import { localIsoDate } from '@utils/localIsoDate'
 import { isoDatePart } from '@utils/isoDatePart'
@@ -11,6 +10,9 @@ import LineChartSkeleton from '@charts/LineChartSkeleton'
 import ApiErrorAlert from '@components/shared/ApiErrorAlert'
 import { selectDayView, transactionsState } from '@stores/transactionsStore'
 import IntervalForm from './IntervalForm'
+import type { JSX } from '@solidjs/web'
+import { settledData } from '@api/helpers/settledData'
+import { queryFlag } from '@api/helpers/queryFlag'
 
 export default function DailyIntervalLineChart(props: {
   dataTestId?: string
@@ -21,9 +23,12 @@ export default function DailyIntervalLineChart(props: {
   const [everHadFilter, setEverHadFilter] = createSignal(false)
 
   // Track whether a filter was ever active (side-effect free — done in a separate effect)
-  createEffect(() => {
-    if (transactionsState.viewMode) setEverHadFilter(true)
-  })
+  createEffect(
+    () => !!transactionsState.viewMode,
+    (hasFilter) => {
+      if (hasFilter) setEverHadFilter(true)
+    },
+  )
 
   const selectedValue = createMemo((): string | null => {
     if (transactionsState.selectedDay) {
@@ -92,16 +97,21 @@ export default function DailyIntervalLineChart(props: {
         <IntervalForm dataTestId={`${id()}-form`} onIntervalValueChange={setIntervalValue} />
       </Show>
       <Show
-        when={chartQuery.data && chartQuery.data.length > 0}
+        when={(settledData(chartQuery)?.length ?? 0) > 0}
         fallback={
-          <Show when={chartQuery.isLoading || (chartQuery.isFetching && !chartQuery.data?.length)}>
+          <Show
+            when={
+              queryFlag(chartQuery, 'isLoading') ||
+              (queryFlag(chartQuery, 'isFetching') && !settledData(chartQuery)?.length)
+            }
+          >
             <LineChartSkeleton class="p-4" dataTestId={`${id()}-skeleton`} />
           </Show>
         }
       >
         <div>
           <LineChart
-            summaries={chartQuery.data!}
+            summaries={settledData(chartQuery)!}
             handleOnClickSelection={handleOnDayClicked}
             dataTestId={`${id()}-line-chart`}
           />

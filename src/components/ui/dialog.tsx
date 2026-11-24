@@ -1,14 +1,15 @@
-import { type JSX, type ParentProps, splitProps } from 'solid-js'
+import { type ParentProps, omit } from 'solid-js'
 import * as DialogPrimitive from '@kobalte/core/dialog'
 import { cn } from '@utils/cn'
+import type { JSX } from '@solidjs/web'
 
 function Dialog(props: DialogPrimitive.DialogRootProps) {
   return <DialogPrimitive.Root data-slot="dialog" {...props} />
 }
 
 function DialogTrigger(props: DialogPrimitive.DialogTriggerProps & { class?: string }) {
-  const [local, rest] = splitProps(props, ['class'])
-  return <DialogPrimitive.Trigger data-slot="dialog-trigger" class={local.class} {...rest} />
+  const rest = omit(props, 'class')
+  return <DialogPrimitive.Trigger data-slot="dialog-trigger" class={props.class} {...rest} />
 }
 
 function DialogPortal(props: DialogPrimitive.DialogPortalProps) {
@@ -16,20 +17,23 @@ function DialogPortal(props: DialogPrimitive.DialogPortalProps) {
 }
 
 function DialogClose(props: DialogPrimitive.DialogCloseButtonProps & { class?: string }) {
-  const [local, rest] = splitProps(props, ['class'])
-  return <DialogPrimitive.CloseButton data-slot="dialog-close" class={local.class} {...rest} />
+  const rest = omit(props, 'class')
+  return <DialogPrimitive.CloseButton data-slot="dialog-close" class={props.class} {...rest} />
 }
 
-type DialogOverlayProps = DialogPrimitive.DialogOverlayProps & { class?: string }
+type DialogOverlayProps = DialogPrimitive.DialogOverlayProps & {
+  class?: string
+  onClick?: (e: MouseEvent) => void
+}
 
 function DialogOverlay(props: DialogOverlayProps) {
-  const [local, rest] = splitProps(props, ['class'])
+  const rest = omit(props, 'class')
   return (
     <DialogPrimitive.Overlay
       data-slot="dialog-overlay"
       class={cn(
         'data-[expanded]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[expanded]:fade-in-0 fixed inset-0 z-50 bg-black/50',
-        local.class,
+        props.class,
       )}
       {...rest}
     />
@@ -40,20 +44,47 @@ type DialogContentProps = ParentProps<
   { class?: string } & Omit<DialogPrimitive.DialogContentProps, 'children'>
 >
 
+/**
+ * Escape and outside clicks close the dialog here as well as in Kobalte.
+ *
+ * Kobalte 2.0.0-alpha.5's `DismissableLayer` registers itself in the layer stack
+ * from an `onSettled` that runs before its element ref is committed under Solid
+ * 2, so a dialog never becomes the top-most layer and Kobalte ignores both
+ * Escape and outside pointer-downs. Closing through the dialog context is
+ * idempotent, so this stays correct once Kobalte fixes it upstream, and can then
+ * be removed.
+ */
+function useDialogDismissFallback() {
+  const context = DialogPrimitive.useDialogContext()
+  const onKeyDown = (e: KeyboardEvent) => {
+    if (e.key !== 'Escape' || e.defaultPrevented) return
+    // An open combobox or listbox inside the dialog takes Escape for itself.
+    if ((e.target as Element | null)?.closest('[aria-expanded="true"]')) return
+    e.preventDefault()
+    context.close()
+  }
+  const onOverlayClick = (e: MouseEvent) => {
+    if (e.target === e.currentTarget) context.close()
+  }
+  return { onKeyDown, onOverlayClick }
+}
+
 function DialogContent(props: DialogContentProps) {
-  const [local, rest] = splitProps(props, ['class', 'children'])
+  const rest = omit(props, 'class', 'children')
+  const dismiss = useDialogDismissFallback()
   return (
     <DialogPortal>
-      <DialogOverlay />
+      <DialogOverlay onClick={dismiss.onOverlayClick} />
       <DialogPrimitive.Content
         data-slot="dialog-content"
         class={cn(
           'bg-background data-[expanded]:animate-in data-[closed]:animate-out data-[closed]:fade-out-0 data-[expanded]:fade-in-0 data-[closed]:zoom-out-95 data-[expanded]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg',
-          local.class,
+          props.class,
         )}
+        onKeyDown={dismiss.onKeyDown}
         {...rest}
       >
-        {local.children}
+        {props.children}
         <DialogPrimitive.CloseButton
           data-slot="dialog-close"
           class="ring-offset-background focus:ring-ring data-[expanded]:bg-accent data-[expanded]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-none disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
@@ -80,22 +111,22 @@ function DialogContent(props: DialogContentProps) {
 }
 
 function DialogHeader(props: JSX.HTMLAttributes<HTMLDivElement> & { class?: string }) {
-  const [local, rest] = splitProps(props, ['class'])
+  const rest = omit(props, 'class')
   return (
     <div
       data-slot="dialog-header"
-      class={cn('flex flex-col gap-2 text-center sm:text-left', local.class)}
+      class={cn('flex flex-col gap-2 text-center sm:text-left', props.class)}
       {...rest}
     />
   )
 }
 
 function DialogFooter(props: JSX.HTMLAttributes<HTMLDivElement> & { class?: string }) {
-  const [local, rest] = splitProps(props, ['class'])
+  const rest = omit(props, 'class')
   return (
     <div
       data-slot="dialog-footer"
-      class={cn('flex flex-col-reverse gap-2 sm:flex-row sm:justify-end', local.class)}
+      class={cn('flex flex-col-reverse gap-2 sm:flex-row sm:justify-end', props.class)}
       {...rest}
     />
   )
@@ -104,11 +135,11 @@ function DialogFooter(props: JSX.HTMLAttributes<HTMLDivElement> & { class?: stri
 type DialogTitleProps = DialogPrimitive.DialogTitleProps & { class?: string }
 
 function DialogTitle(props: DialogTitleProps) {
-  const [local, rest] = splitProps(props, ['class'])
+  const rest = omit(props, 'class')
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
-      class={cn('text-lg leading-none font-semibold', local.class)}
+      class={cn('text-lg leading-none font-semibold', props.class)}
       {...rest}
     />
   )
@@ -117,11 +148,11 @@ function DialogTitle(props: DialogTitleProps) {
 type DialogDescriptionProps = DialogPrimitive.DialogDescriptionProps & { class?: string }
 
 function DialogDescription(props: DialogDescriptionProps) {
-  const [local, rest] = splitProps(props, ['class'])
+  const rest = omit(props, 'class')
   return (
     <DialogPrimitive.Description
       data-slot="dialog-description"
-      class={cn('text-muted-foreground text-sm', local.class)}
+      class={cn('text-muted-foreground text-sm', props.class)}
       {...rest}
     />
   )

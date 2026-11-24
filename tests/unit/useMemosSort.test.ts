@@ -1,4 +1,4 @@
-import { createRoot, createSignal } from 'solid-js'
+import { createRoot, createSignal, flush } from 'solid-js'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Memo } from '@types'
 import { compareMemos } from '@components/memos/table/memosTableSort'
@@ -29,6 +29,7 @@ describe('useMemos sort', () => {
   // #83: sorting only reordered the pages already loaded.
   it('asks the server to sort before paging', async () => {
     createRoot(() => useMemos(() => ({ key: 'total_amount_debit', dir: 'desc' })))
+    flush()
     await options().queryFn({ pageParam: 100 })
     expect(fetchMemos).toHaveBeenCalledExactlyOnceWith({
       limit: 100,
@@ -37,12 +38,15 @@ describe('useMemos sort', () => {
       sortDir: 'desc',
     })
   })
+  flush()
 
   it('sends no sort params without a sort', async () => {
     createRoot(() => useMemos())
+    flush()
     await options().queryFn({ pageParam: 0 })
     expect(fetchMemos).toHaveBeenCalledExactlyOnceWith({ limit: 100, offset: 0 })
   })
+  flush()
 
   // A new key starts a fresh infinite query, so pages from another order never mix.
   it('keys the pages by the sort', () => {
@@ -51,10 +55,13 @@ describe('useMemos sort', () => {
       dir: 'asc',
     })
     createRoot(() => useMemos(sort))
+    flush()
     expect(options().queryKey).toEqual(['memos', 100, null, 'asc'])
     setSort({ key: 'name', dir: 'desc' })
+    flush()
     expect(options().queryKey).toEqual(['memos', 100, 'name', 'desc'])
   })
+  flush()
 })
 
 describe('compareMemos', () => {

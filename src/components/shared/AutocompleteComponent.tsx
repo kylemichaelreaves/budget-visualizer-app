@@ -1,4 +1,3 @@
-import type { JSX } from 'solid-js'
 import { createMemo, createSignal, onCleanup, Show } from 'solid-js'
 import {
   Combobox,
@@ -8,6 +7,7 @@ import {
   ComboboxItem,
   ComboboxTrigger,
 } from '@components/ui/combobox'
+import type { JSX } from '@solidjs/web'
 
 export type AutocompleteOption = { value: string; label: string }
 

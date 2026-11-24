@@ -1,4 +1,3 @@
-import { A } from '@solidjs/router'
 import { createMemo, Show } from 'solid-js'
 import { formatDate } from '@api/helpers/formatDate'
 import type { Transaction } from '@types'
@@ -28,13 +27,13 @@ export default function MemoSummaryTransactionRow(props: { row: Transaction }) {
           when={props.row.id != null}
           fallback={<p class="text-sm font-medium truncate m-0">{props.row.description}</p>}
         >
-          <A
+          <a
             href={`/budget-visualizer/transactions/${props.row.id}/edit`}
             class="text-sm font-medium truncate block hover:underline"
             data-testid={`memo-summary-tx-edit-${props.row.id}`}
           >
             {props.row.description}
-          </A>
+          </a>
         </Show>
         <p class="text-xs text-muted-foreground m-0">{formatDate(String(props.row.date ?? ''))}</p>
       </div>

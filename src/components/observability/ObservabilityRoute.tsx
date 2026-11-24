@@ -1,6 +1,6 @@
-import { Navigate } from '@solidjs/router'
 import { Show } from 'solid-js'
 import { authState } from '@stores/authStore'
+import Redirect from '@components/shared/Redirect'
 import ObservabilityPage from '@components/observability/ObservabilityPage'
 
 /**
@@ -11,7 +11,7 @@ export default function ObservabilityRoute() {
   return (
     <Show
       when={authState.user.role === 'admin'}
-      fallback={<Navigate href="/budget-visualizer/transactions" />}
+      fallback={<Redirect href="/budget-visualizer/transactions" />}
     >
       <ObservabilityPage />
     </Show>

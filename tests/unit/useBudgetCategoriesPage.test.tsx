@@ -1,11 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/solid-query'
 import { renderHook } from '@solidjs/testing-library'
-import type { JSX } from 'solid-js'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError } from '@api/HttpError'
 import { queryKeys } from '@api/queryKeys'
 import { BUDGET_CATEGORY_PATH_DELIMITER } from '@api/helpers/convertToTree'
 import type { BudgetCategoryOperation } from '@api/budgetCategories/updateBudgetCategory'
+import type { JSX } from '@solidjs/web'
 
 // #75: rename, move and delete cascade into memos and transactions on the backend,
 // so they must invalidate those views too. An add changes only the category list.

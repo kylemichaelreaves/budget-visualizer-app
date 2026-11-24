@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@solidjs/testing-library'
+import { render, screen, fireEvent, waitFor } from '@solidjs/testing-library'
 import { describe, expect, it, vi } from 'vitest'
 import { createSignal } from 'solid-js'
 import type { BudgetCategoryState } from '@types'
@@ -185,12 +185,12 @@ describe('BudgetCategoryFormField', () => {
       expect(value()).toEqual(savedSplits)
     })
 
-    it('Escape restores the saved splits', () => {
+    it('Escape restores the saved splits', async () => {
       const value = renderControlled(savedSplits)
       fireEvent.click(screen.getByRole('button', { name: /edit splits/i }))
       fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
       expect(value()).toEqual(savedSplits)
-      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+      await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument())
     })
 
     it('Cancel after ticking Split restores the previous single category', () => {

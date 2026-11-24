@@ -1,4 +1,3 @@
-import type { JSX } from 'solid-js'
 import { Show, createMemo } from 'solid-js'
 import { useParams } from '@solidjs/router'
 import usePendingTransaction from '@api/hooks/transactions/usePendingTransaction'
@@ -11,6 +10,9 @@ import { Button } from '@components/ui/button'
 import { Card, CardContent } from '@components/ui/card'
 import { parsePositiveIntId } from '@utils/parsePositiveIntId'
 import { parsePendingTransactionData } from '../helpers/parsePendingTransactionData'
+import type { JSX } from '@solidjs/web'
+import { settledData } from '@api/helpers/settledData'
+import { queryFlag } from '@api/helpers/queryFlag'
 
 function isPendingRow(obj: unknown): obj is PendingTransaction {
   return typeof obj === 'object' && obj !== null && 'transaction_data' in obj && 'status' in obj
@@ -33,17 +35,17 @@ export default function TransactionEditPage(): JSX.Element {
 
   // Initial load only. A background refetch (focus, reconnect, invalidation) must not
   // unmount the form — that discarded whatever the user had typed.
-  const loading = () => (isPending() ? pendingQ.isLoading : txnQ.isLoading)
+  const loading = () => (isPending() ? queryFlag(pendingQ, 'isLoading') : queryFlag(txnQ, 'isLoading'))
   const error = () => (isPending() ? pendingQ.error : txnQ.error)
   const isError = () => (isPending() ? pendingQ.isError : txnQ.isError)
 
   const transaction = createMemo((): Transaction | null => {
     if (isPending()) {
-      const data = pendingQ.data
+      const data = settledData(pendingQ)
       if (!data) return null
       return parsePendingTransactionData(data)
     }
-    const data = txnQ.data
+    const data = settledData(txnQ)
     if (!data) return null
     if (isPendingRow(data)) {
       return parsePendingTransactionData(data)

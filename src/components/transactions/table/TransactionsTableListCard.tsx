@@ -1,10 +1,11 @@
-import type { Accessor, JSX } from 'solid-js'
+import type { Accessor } from 'solid-js'
 import { For, Show } from 'solid-js'
 import type { Transaction } from '@types'
 import type { BudgetCategoryColorHelpers } from '@composables/budgetCategoryColors'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 import { Skeleton } from '@components/ui/skeleton'
 import TransactionsTableRow from '@components/transactions/table/TransactionsTableRow'
+import type { JSX } from '@solidjs/web'
 
 export default function TransactionsTableListCard(props: {
   cardTitle: Accessor<string>

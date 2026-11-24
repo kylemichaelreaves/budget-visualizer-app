@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@components/ui/dropdown-menu'
-import { ChevronDown, LogOut, Settings } from 'lucide-solid'
+import { ChevronDown, LogOut, Settings } from '@lucide/solid'
 
 export function UserNavDropdown() {
   const navigate = useNavigate()

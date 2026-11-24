@@ -1,6 +1,6 @@
-import type { JSX } from 'solid-js'
 import { For } from 'solid-js'
 import { Skeleton } from '@components/ui/skeleton'
+import type { JSX } from '@solidjs/web'
 
 /** Placeholder sized like a `LineChart`: the plot area over a row of axis labels. */
 export default function LineChartSkeleton(props: { dataTestId?: string; class?: string }): JSX.Element {

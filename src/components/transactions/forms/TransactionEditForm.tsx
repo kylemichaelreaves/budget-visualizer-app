@@ -1,6 +1,4 @@
-import type { JSX } from 'solid-js'
-import { batch } from 'solid-js'
-import { reconcile } from 'solid-js/store'
+import { reconcile } from 'solid-js'
 import MemoSelect from '@components/transactions/selects/MemoSelect'
 import BudgetCategoryFormField from './BudgetCategoryFormField'
 import ApiErrorAlert from '@components/shared/ApiErrorAlert'
@@ -10,6 +8,7 @@ import { Label } from '@components/ui/label'
 import type { Transaction } from '@types'
 import { isNonZeroAmount } from '@components/transactions/helpers/isNonZeroAmount'
 import { useTransactionEditForm } from './useTransactionEditForm'
+import type { JSX } from '@solidjs/web'
 
 export default function TransactionEditForm(props: {
   transaction: Transaction
@@ -42,7 +41,11 @@ export default function TransactionEditForm(props: {
           id={`field-${state.tid()}-date`}
           type="date"
           value={state.tx.date?.slice(0, 10) ?? ''}
-          onInput={(e) => state.setTx('date', e.currentTarget.value)}
+          onInput={(e) =>
+            state.setTx((s) => {
+              s.date = e.currentTarget.value
+            })
+          }
         />
       </Field>
       <Field label="Amount Debit" test={`${state.tid()}-amount_debit`}>
@@ -50,7 +53,11 @@ export default function TransactionEditForm(props: {
           id={`field-${state.tid()}-amount_debit`}
           value={state.tx.amount_debit}
           disabled={isNonZeroAmount(state.tx.amount_credit)}
-          onInput={(e) => state.setTx('amount_debit', e.currentTarget.value)}
+          onInput={(e) =>
+            state.setTx((s) => {
+              s.amount_debit = e.currentTarget.value
+            })
+          }
         />
       </Field>
       <Field label="Amount Credit" test={`${state.tid()}-amount_credit`}>
@@ -58,23 +65,31 @@ export default function TransactionEditForm(props: {
           id={`field-${state.tid()}-amount_credit`}
           value={state.tx.amount_credit}
           disabled={isNonZeroAmount(state.tx.amount_debit)}
-          onInput={(e) => state.setTx('amount_credit', e.currentTarget.value)}
+          onInput={(e) =>
+            state.setTx((s) => {
+              s.amount_credit = e.currentTarget.value
+            })
+          }
         />
       </Field>
       <Field label="Description" test={`${state.tid()}-description`}>
         <Input
           id={`field-${state.tid()}-description`}
           value={state.tx.description}
-          onInput={(e) => state.setTx('description', e.currentTarget.value)}
+          onInput={(e) =>
+            state.setTx((s) => {
+              s.description = e.currentTarget.value
+            })
+          }
         />
       </Field>
       <Field label="Memo" test={`${state.tid()}-memo`} hasInput={false}>
         <MemoSelect
           value={state.tx.memo}
           onChange={(v, memoId) =>
-            batch(() => {
-              state.setTx('memo', v)
-              state.setTx('memo_id', memoId ?? null)
+            state.setTx((s) => {
+              s.memo = v
+              s.memo_id = memoId ?? null
             })
           }
           dataTestId={`${state.tid()}-memo-select`}
@@ -84,7 +99,11 @@ export default function TransactionEditForm(props: {
         <Input
           id={`field-${state.tid()}-balance`}
           value={state.tx.balance ?? ''}
-          onInput={(e) => state.setTx('balance', e.currentTarget.value)}
+          onInput={(e) =>
+            state.setTx((s) => {
+              s.balance = e.currentTarget.value
+            })
+          }
         />
       </Field>
       <Field label="Check Number" test={`${state.tid()}-check_number`}>
@@ -92,7 +111,11 @@ export default function TransactionEditForm(props: {
           id={`field-${state.tid()}-check_number`}
           value={state.tx.check_number ?? ''}
           disabled={state.tx.description !== 'CHECK'}
-          onInput={(e) => state.setTx('check_number', e.currentTarget.value)}
+          onInput={(e) =>
+            state.setTx((s) => {
+              s.check_number = e.currentTarget.value
+            })
+          }
         />
       </Field>
       <Field label="Budget Category" test={`${state.tid()}-budget_category`} hasInput={false}>
@@ -108,7 +131,11 @@ export default function TransactionEditForm(props: {
         <Input
           id={`field-${state.tid()}-fees`}
           value={state.tx.fees ?? ''}
-          onInput={(e) => state.setTx('fees', e.currentTarget.value)}
+          onInput={(e) =>
+            state.setTx((s) => {
+              s.fees = e.currentTarget.value
+            })
+          }
         />
       </Field>
       <Button

@@ -1,4 +1,3 @@
-import type { JSX } from 'solid-js'
 import { Button } from '@components/ui/button'
 import {
   Dialog,
@@ -8,6 +7,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@components/ui/dialog'
+import type { JSX } from '@solidjs/web'
 
 /**
  * Confirms a category delete. The backend removes the whole subtree and sets

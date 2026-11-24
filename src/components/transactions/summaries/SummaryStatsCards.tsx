@@ -1,10 +1,10 @@
-import type { JSX } from 'solid-js'
 import { createMemo, Show } from 'solid-js'
 import type { TransactionTotals } from '@api/transactions/normalizeTransactionTotals'
 import { transactionsState } from '@stores/transactionsStore'
 import SummaryCreditsCard from './SummaryCreditsCard'
 import SummaryDebitsCard from './SummaryDebitsCard'
 import SummaryCategoriesCard from './SummaryCategoriesCard'
+import type { JSX } from '@solidjs/web'
 
 type TransactionRow = Record<string, unknown>
 

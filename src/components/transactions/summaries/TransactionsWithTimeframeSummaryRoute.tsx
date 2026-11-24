@@ -6,14 +6,15 @@ import TransactionsTable from '../table/TransactionsTable'
 /** Handles `/transactions/weeks/:week/summary` and `/transactions/months/:month/summary`. */
 export default function TransactionsWithTimeframeSummaryRoute() {
   const params = useParams<{ week?: string; month?: string }>()
-  createEffect(() => {
-    const w = params.week
-    const m = params.month
-    if (w != null && w !== '') {
-      selectWeekView(w)
-    } else if (m != null && m !== '') {
-      selectMonthView(m)
-    }
-  })
+  createEffect(
+    () => ({ w: params.week, m: params.month }),
+    ({ w, m }) => {
+      if (w != null && w !== '') {
+        selectWeekView(w)
+      } else if (m != null && m !== '') {
+        selectMonthView(m)
+      }
+    },
+  )
   return <TransactionsTable />
 }

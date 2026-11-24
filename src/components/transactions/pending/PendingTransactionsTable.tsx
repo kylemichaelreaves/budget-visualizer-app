@@ -1,4 +1,3 @@
-import type { JSX } from 'solid-js'
 import { For, Show } from 'solid-js'
 import ApiErrorAlert from '@components/shared/ApiErrorAlert'
 import TableSkeleton from '@components/shared/TableSkeleton'
@@ -9,6 +8,7 @@ import { Button } from '@components/ui/button'
 import { PendingTransactionCell } from './PendingTransactionsTableCells'
 import { transactionColumns } from './pendingTransactionsTableUtils'
 import { usePendingTransactionsTable } from './usePendingTransactionsTable'
+import type { JSX } from '@solidjs/web'
 
 export default function PendingTransactionsTable(): JSX.Element {
   const state = usePendingTransactionsTable()
@@ -33,7 +33,7 @@ export default function PendingTransactionsTable(): JSX.Element {
             variant={state.viewMode() === 'pending' ? 'default' : 'outline'}
             size="sm"
             type="button"
-            aria-pressed={state.viewMode() === 'pending'}
+            aria-pressed={state.viewMode() === 'pending' ? 'true' : 'false'}
             onClick={() => state.setViewMode('pending')}
           >
             <Badge variant={state.viewMode() === 'pending' ? 'default' : 'secondary'}>Pending</Badge>
@@ -42,7 +42,7 @@ export default function PendingTransactionsTable(): JSX.Element {
             variant={state.viewMode() === 'reviewed' ? 'default' : 'outline'}
             size="sm"
             type="button"
-            aria-pressed={state.viewMode() === 'reviewed'}
+            aria-pressed={state.viewMode() === 'reviewed' ? 'true' : 'false'}
             onClick={() => state.setViewMode('reviewed')}
           >
             <Badge variant={state.viewMode() === 'reviewed' ? 'default' : 'secondary'}>Reviewed</Badge>

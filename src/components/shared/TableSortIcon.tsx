@@ -1,6 +1,6 @@
-import type { JSX } from 'solid-js'
 import { Show } from 'solid-js'
 import { ChevronDownIcon, ChevronUpDownIcon, ChevronUpIcon } from '@shared/icons'
+import type { JSX } from '@solidjs/web'
 
 export type TableSortDir = 'asc' | 'desc'
 

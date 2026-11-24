@@ -1,4 +1,4 @@
-import { MemoryRouter, Route } from '@solidjs/router'
+import MemoryRouterShell from '@mocks/MemoryRouterShell'
 import { render, screen } from '@solidjs/testing-library'
 import { describe, expect, it, vi } from 'vitest'
 import type { Memo, Transaction } from '@types'
@@ -43,21 +43,17 @@ function renderRow(row: Transaction, opts: { memo?: Memo; openSplitDrawer?: (r: 
   if (opts.memo) memoById.set(opts.memo.id, opts.memo)
   const openSplitDrawer = opts.openSplitDrawer ?? vi.fn()
   render(() => (
-    <MemoryRouter
-      root={() => (
-        <ul>
-          <TransactionsTableRow
-            row={row}
-            categoryColors={() => categoryColors}
-            mutatingTransactionId={() => null}
-            openCategoryDialog={vi.fn()}
-            openSplitDrawer={openSplitDrawer}
-          />
-        </ul>
-      )}
-    >
-      <Route path="*" component={() => null} />
-    </MemoryRouter>
+    <MemoryRouterShell>
+      <ul>
+        <TransactionsTableRow
+          row={row}
+          categoryColors={() => categoryColors}
+          mutatingTransactionId={() => null}
+          openCategoryDialog={vi.fn()}
+          openSplitDrawer={openSplitDrawer}
+        />
+      </ul>
+    </MemoryRouterShell>
   ))
   return { openSplitDrawer }
 }

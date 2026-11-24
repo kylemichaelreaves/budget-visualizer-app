@@ -1,6 +1,6 @@
 import { render, screen } from '@solidjs/testing-library'
 import { describe, expect, it } from 'vitest'
-import { User } from 'lucide-solid'
+import { User } from '@lucide/solid'
 import { PasswordField } from '@components/auth/PasswordField'
 import { AuthTextField } from '@components/auth/AuthTextField'
 import { NewPasswordWithStrength } from '@components/auth/NewPasswordWithStrength'

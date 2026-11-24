@@ -1,8 +1,9 @@
 import type { Accessor } from 'solid-js'
-import { onMount } from 'solid-js'
+import { onSettled } from 'solid-js'
 import useMemosCount from '@api/hooks/memos/useMemosCount'
 import TablePaginationBar from '@components/shared/TablePaginationBar'
 import { setMemosTableLimit, transactionsState, updateMemosTableOffset } from '@stores/transactionsStore'
+import { settledData } from '@api/helpers/settledData'
 
 export default function MemosTablePagination(
   props: {
@@ -12,7 +13,7 @@ export default function MemosTablePagination(
 ) {
   const countQuery = useMemosCount()
 
-  onMount(() => {
+  onSettled(() => {
     void countQuery.refetch()
     updateMemosTableOffset(0)
   })
@@ -23,7 +24,7 @@ export default function MemosTablePagination(
   const effectiveTotal = () => {
     const override = props.clientFilteredTotal?.()
     if (override !== undefined) return override
-    return Number(countQuery.data ?? 0)
+    return Number(settledData(countQuery) ?? 0)
   }
 
   const totalPages = () => Math.max(1, Math.ceil(effectiveTotal() / transactionsState.memosTableLimit))

@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@solidjs/testing-library'
+import { render, screen, fireEvent, waitFor } from '@solidjs/testing-library'
 import { describe, expect, it, vi } from 'vitest'
 import AutocompleteComponent from '@components/shared/AutocompleteComponent'
 
@@ -134,12 +134,12 @@ describe('AutocompleteComponent', () => {
     expect(onChange).toHaveBeenCalledWith('apple') // first option
   })
 
-  it('closes dropdown on Escape key', () => {
+  it('closes dropdown on Escape key', async () => {
     render(() => <AutocompleteComponent value="" onChange={() => {}} options={options} placeholder="Fruit" />)
     const input = screen.getByPlaceholderText('Fruit')
     fireEvent.focus(input)
     expect(screen.getByRole('listbox')).toBeInTheDocument()
     fireEvent.keyDown(input, { key: 'Escape' })
-    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+    await waitFor(() => expect(screen.queryByRole('listbox')).not.toBeInTheDocument())
   })
 })

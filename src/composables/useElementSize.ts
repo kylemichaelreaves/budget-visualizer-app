@@ -7,7 +7,13 @@ export type ElementSize = { w: number; h: number }
  * Call the returned ref setter from a `ref` callback whenever the element mounts or updates.
  */
 export function useElementSize() {
-  const [dims, setDims] = createSignal<ElementSize>({ w: 0, h: 0 })
+  // Compared by value: the mount-time measurement usually repeats the size the
+  // observer already reported, and a fresh object would redraw every chart that
+  // tracks it (hiding any tooltip under the cursor).
+  const [dims, setDims] = createSignal<ElementSize>(
+    { w: 0, h: 0 },
+    { equals: (a, b) => a.w === b.w && a.h === b.h },
+  )
   let detach: (() => void) | undefined
   /** Bumped on detach and each new attach so stale microtasks / callbacks ignore prior elements. */
   let attachGeneration = 0

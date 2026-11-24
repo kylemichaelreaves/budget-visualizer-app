@@ -5,8 +5,11 @@ import MemoSummaryTable from './MemoSummaryTable'
 
 export default function MemoSummaryPage() {
   const params = useParams<{ memoId: string }>()
-  createEffect(() => {
-    applyMemoSummaryRoute(params.memoId)
-  })
+  createEffect(
+    () => params.memoId,
+    (memoId) => {
+      applyMemoSummaryRoute(memoId)
+    },
+  )
   return <MemoSummaryTable />
 }

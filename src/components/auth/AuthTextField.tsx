@@ -1,6 +1,7 @@
 import { Show, type Component } from 'solid-js'
-import { Dynamic } from 'solid-js/web'
-import { AlertCircle } from 'lucide-solid'
+import { Dynamic } from '@solidjs/web'
+import { AlertCircle } from '@lucide/solid'
+import { cn } from '@utils/cn'
 
 export interface AuthTextFieldProps {
   id: string
@@ -14,7 +15,7 @@ export interface AuthTextFieldProps {
   focused: boolean
   hasError: boolean
   errorMessage: string | null
-  icon: Component<{ class?: string; classList?: Record<string, boolean> }>
+  icon: Component<{ class?: string }>
   autocomplete?: string
   inputType?: 'text' | 'email'
   testid?: string
@@ -36,12 +37,14 @@ export function AuthTextField(props: AuthTextFieldProps) {
       <div class="relative">
         <Dynamic
           component={props.icon}
-          class="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none transition-colors duration-200"
-          classList={{
-            'text-destructive': props.hasError,
-            'text-primary': props.focused && !props.hasError,
-            'text-muted-foreground': !props.focused && !props.hasError,
-          }}
+          class={cn(
+            'absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 pointer-events-none transition-colors duration-200',
+            {
+              'text-destructive': props.hasError,
+              'text-primary': props.focused && !props.hasError,
+              'text-muted-foreground': !props.focused && !props.hasError,
+            },
+          )}
         />
         <input
           id={props.id}
@@ -53,15 +56,17 @@ export function AuthTextField(props: AuthTextFieldProps) {
           onFocus={() => props.onFocus()}
           onBlur={() => props.onBlur()}
           disabled={props.disabled}
-          aria-invalid={props.hasError}
+          aria-invalid={props.hasError ? 'true' : undefined}
           aria-describedby={props.hasError && props.errorMessage ? errorId() : undefined}
           data-testid={props.testid}
-          class="w-full rounded-xl border bg-input-background px-4 py-3 pl-11 text-foreground placeholder:text-muted-foreground/60 transition-all duration-200 outline-none disabled:cursor-not-allowed disabled:opacity-50"
-          classList={{
-            'border-destructive ring-2 ring-destructive/20': props.hasError,
-            'border-primary ring-2 ring-primary/20': props.focused && !props.hasError,
-            'border-border hover:border-primary/40': !props.focused && !props.hasError,
-          }}
+          class={[
+            'w-full rounded-xl border bg-input-background px-4 py-3 pl-11 text-foreground placeholder:text-muted-foreground/60 transition-all duration-200 outline-none disabled:cursor-not-allowed disabled:opacity-50',
+            {
+              'border-destructive ring-2 ring-destructive/20': props.hasError,
+              'border-primary ring-2 ring-primary/20': props.focused && !props.hasError,
+              'border-border hover:border-primary/40': !props.focused && !props.hasError,
+            },
+          ]}
         />
         <Show when={props.hasError}>
           <AlertCircle class="absolute right-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-destructive pointer-events-none" />

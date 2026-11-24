@@ -1,5 +1,5 @@
 import type { Accessor } from 'solid-js'
-import { createEffect, on, onCleanup } from 'solid-js'
+import { createEffect } from 'solid-js'
 import type { MemosTableSortDir, MemosTableSortKey } from '@components/memos/table/memosTableSort'
 import {
   MEMOS_SEARCH_PREFETCH_DEBOUNCE_MS,
@@ -40,34 +40,31 @@ export function createMemosTableInfiniteSync(
   }
 
   createEffect(
-    on(
-      () => opts.searchQuery().trim(),
-      (q) => {
-        let cancelled = false
-        let debounceId: ReturnType<typeof setTimeout> | undefined
-        onCleanup(() => {
-          cancelled = true
-          if (debounceId !== undefined) clearTimeout(debounceId)
-        })
-        if (!q) return
-        debounceId = setTimeout(() => {
-          debounceId = undefined
-          if (cancelled) return
-          void (async () => {
-            try {
-              let pages = 0
-              while (!cancelled && query.hasNextPage && pages < MEMOS_SEARCH_PREFETCH_MAX_PAGES) {
-                if (opts.searchQuery().trim() !== q) return
-                await enqueueFetchNextPage()
-                pages += 1
-              }
-            } catch (e) {
-              devConsole('error', 'MemosTable search prefetch failed', e)
+    () => opts.searchQuery().trim(),
+    (q) => {
+      if (!q) return
+      let cancelled = false
+      let debounceId: ReturnType<typeof setTimeout> | undefined = setTimeout(() => {
+        debounceId = undefined
+        if (cancelled) return
+        void (async () => {
+          try {
+            let pages = 0
+            while (!cancelled && query.hasNextPage && pages < MEMOS_SEARCH_PREFETCH_MAX_PAGES) {
+              if (opts.searchQuery().trim() !== q) return
+              await enqueueFetchNextPage()
+              pages += 1
             }
-          })()
-        }, MEMOS_SEARCH_PREFETCH_DEBOUNCE_MS)
-      },
-    ),
+          } catch (e) {
+            devConsole('error', 'MemosTable search prefetch failed', e)
+          }
+        })()
+      }, MEMOS_SEARCH_PREFETCH_DEBOUNCE_MS)
+      return () => {
+        cancelled = true
+        if (debounceId !== undefined) clearTimeout(debounceId)
+      }
+    },
   )
 
   async function loadMorePagesIfNeeded() {
@@ -101,21 +98,17 @@ export function createMemosTableInfiniteSync(
   }
 
   createEffect(
-    on(
-      () => [opts.currentPage(), opts.searchQuery()] as const,
-      () => {
-        void loadMorePagesIfNeeded()
-      },
-    ),
+    () => [opts.currentPage(), opts.searchQuery()] as const,
+    () => {
+      void loadMorePagesIfNeeded()
+    },
   )
 
   createEffect(
-    on(
-      () => [opts.searchQuery(), opts.sortKey(), opts.sortDir()] as const,
-      () => {
-        updateMemosTableOffset(0)
-      },
-      { defer: true },
-    ),
+    () => [opts.searchQuery(), opts.sortKey(), opts.sortDir()] as const,
+    () => {
+      updateMemosTableOffset(0)
+    },
+    { defer: true },
   )
 }

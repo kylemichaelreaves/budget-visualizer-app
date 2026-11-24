@@ -62,7 +62,7 @@ function ConfidenceMeter(props: { confidence: number }) {
         height={METER_HEIGHT}
         aria-hidden="true"
         data-testid="recurring-table-confidence-meter"
-        data-weak={weak()}
+        data-weak={String(weak())}
         class={`block shrink-0 overflow-hidden rounded-full ${weak() ? 'text-caution' : 'text-primary'}`}
       >
         <rect
@@ -96,7 +96,7 @@ function SeriesRow(props: { series: () => RecurringSeries }) {
     <TableRow
       data-testid={`recurring-table-row-${s().id}`}
       data-status={s().status}
-      data-dismissed={dismissed()}
+      data-dismissed={String(dismissed())}
       class={stopped() ? 'opacity-60' : undefined}
     >
       <TableCell data-testid="recurring-table-memo">

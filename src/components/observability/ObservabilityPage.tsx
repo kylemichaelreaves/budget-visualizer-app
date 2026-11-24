@@ -7,6 +7,7 @@ import RangeToggle from '@components/observability/RangeToggle'
 import InfrastructureTab from '@components/observability/infrastructure/InfrastructureTab'
 import { parseObservabilityRange } from '@components/observability/helpers/observabilityRange'
 import { formatUpdatedAgo } from '@components/observability/helpers/formatUpdatedAgo'
+import { queryFlag } from '@api/helpers/queryFlag'
 
 export default function ObservabilityPage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -40,7 +41,7 @@ export default function ObservabilityPage() {
             variant="outline"
             size="sm"
             data-testid="observability-refresh"
-            disabled={query.isFetching}
+            disabled={queryFlag(query, 'isFetching')}
             onClick={() => void query.refetch()}
           >
             Refresh

@@ -42,31 +42,34 @@ describe('BudgetCategoryTreeNode delete', () => {
     )
   })
 
-  it('deletes the subtree once confirmed', () => {
+  it('deletes the subtree once confirmed', async () => {
     const onMutate = renderNode()
     fireEvent.click(screen.getByRole('button', { name: 'Delete Food' }))
     fireEvent.click(screen.getByTestId('budget-category-delete-confirm'))
 
     expect(onMutate).toHaveBeenCalledExactlyOnceWith({ operation: 'delete', path: ['Food'] })
-    expect(screen.queryByTestId('budget-category-delete-dialog')).not.toBeInTheDocument()
+    // Kobalte 2 unmounts a closed dialog through its presence primitive, a tick later.
+    await waitFor(() => expect(screen.queryByTestId('budget-category-delete-dialog')).not.toBeInTheDocument())
   })
 
-  it('does nothing when cancelled', () => {
+  it('does nothing when cancelled', async () => {
     const onMutate = renderNode()
     fireEvent.click(screen.getByRole('button', { name: 'Delete Food' }))
     fireEvent.click(screen.getByTestId('budget-category-delete-cancel'))
 
     expect(onMutate).not.toHaveBeenCalled()
-    expect(screen.queryByTestId('budget-category-delete-dialog')).not.toBeInTheDocument()
+    // Kobalte 2 unmounts a closed dialog through its presence primitive, a tick later.
+    await waitFor(() => expect(screen.queryByTestId('budget-category-delete-dialog')).not.toBeInTheDocument())
   })
 
-  it('does nothing on Escape', () => {
+  it('does nothing on Escape', async () => {
     const onMutate = renderNode()
     fireEvent.click(screen.getByRole('button', { name: 'Delete Food' }))
     fireEvent.keyDown(screen.getByRole('dialog'), { key: 'Escape' })
 
     expect(onMutate).not.toHaveBeenCalled()
-    expect(screen.queryByTestId('budget-category-delete-dialog')).not.toBeInTheDocument()
+    // Kobalte 2 unmounts a closed dialog through its presence primitive, a tick later.
+    await waitFor(() => expect(screen.queryByTestId('budget-category-delete-dialog')).not.toBeInTheDocument())
   })
 
   it('confirms a leaf delete without mentioning subcategories', () => {

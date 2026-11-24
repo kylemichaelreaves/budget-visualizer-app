@@ -1,6 +1,6 @@
-import type { JSX } from 'solid-js'
 import { Show } from 'solid-js'
 import { CheckIcon } from '@shared/icons'
+import type { JSX } from '@solidjs/web'
 
 export default function CategoryTreeSearchResultRow(props: {
   label: string
@@ -16,7 +16,7 @@ export default function CategoryTreeSearchResultRow(props: {
       aria-current={props.selected ? 'true' : undefined}
       onClick={() => props.onSelect()}
       onMouseEnter={() => props.onHighlight()}
-      data-highlight={props.highlighted}
+      data-highlight={String(props.highlighted)}
       class={`w-full text-left px-3 py-1.5 rounded-md text-sm transition-colors ${
         props.highlighted
           ? 'bg-accent text-accent-foreground'

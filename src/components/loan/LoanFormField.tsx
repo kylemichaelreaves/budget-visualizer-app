@@ -1,9 +1,9 @@
-import type { JSX } from 'solid-js'
 import { Show, createMemo } from 'solid-js'
 import type { LoanFormType } from '@types'
 import { Input } from '@components/ui/input'
 import { Label } from '@components/ui/label'
 import { formatLoanDateInput, parseLoanDateInput } from './helpers/loanDateInput'
+import type { JSX } from '@solidjs/web'
 
 export type LoanFieldDef = {
   label: string
@@ -67,7 +67,7 @@ export default function LoanFormField(props: {
           placeholder={props.field.placeholder}
           value={Number(value()) || ''}
           {...numProps()}
-          aria-invalid={props.error ? true : undefined}
+          aria-invalid={props.error ? 'true' : undefined}
           aria-describedby={props.error ? errorId() : undefined}
           onInput={(e) => {
             const n = Number(e.currentTarget.value)
@@ -84,7 +84,7 @@ export default function LoanFormField(props: {
           type="date"
           placeholder={props.field.placeholder}
           value={iso()}
-          aria-invalid={props.error ? true : undefined}
+          aria-invalid={props.error ? 'true' : undefined}
           aria-describedby={props.error ? errorId() : undefined}
           onInput={(e) => {
             const next = { ...props.model, [props.field.prop]: parseLoanDateInput(e.currentTarget.value) }

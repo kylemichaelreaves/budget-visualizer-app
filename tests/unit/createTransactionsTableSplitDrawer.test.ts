@@ -1,10 +1,25 @@
-import { createRoot } from 'solid-js'
+import { createRoot, flush } from 'solid-js'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Transaction } from '@types'
 
-type Callbacks = { onSuccess: () => void; onError: (err: unknown) => void }
+type Settle = { onSuccess: () => Promise<void>; onError: (err: unknown) => Promise<void> }
 
-const mutate = vi.fn<(vars: unknown, cbs: Callbacks) => void>()
+/** `mutate` returns a promise; each call's settle functions resolve or reject it, then flush. */
+const settles: Settle[] = []
+const mutate = vi.fn<(vars: unknown) => Promise<unknown>>(
+  () =>
+    new Promise((resolve, reject) => {
+      const settled = async () => {
+        await Promise.resolve()
+        await Promise.resolve()
+        flush()
+      }
+      settles.push({
+        onSuccess: () => (resolve(undefined), settled()),
+        onError: (err) => (reject(err), settled()),
+      })
+    }),
+)
 const invalidateAfterTransactionUpdate = vi.fn(async () => undefined)
 
 vi.mock('@tanstack/solid-query', () => ({ useQueryClient: () => ({}) }))
@@ -28,7 +43,8 @@ function setup() {
     dispose = d
     return createTransactionsTableSplitDrawer({ setMutatingTransactionId })
   })
-  const callbacks = () => mutate.mock.calls.at(-1)![1]
+  flush()
+  const callbacks = () => settles.at(-1)!
   return { split, setMutatingTransactionId, callbacks, dispose }
 }
 
@@ -37,28 +53,30 @@ function setup() {
 describe('createTransactionsTableSplitDrawer', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    settles.length = 0
   })
 
-  it('keeps the drawer open and marks the row as saving while the PATCH is in flight', () => {
+  it('keeps the drawer open and marks the row as saving while the PATCH is in flight', async () => {
     const { split, setMutatingTransactionId, dispose } = setup()
     split.openSplitDrawer(row)
+    flush()
     split.handleSubmit(splits)
+    flush()
 
-    expect(mutate).toHaveBeenCalledWith(
-      { transaction: { id: 7, budget_category: splits, is_split: true } },
-      expect.any(Object),
-    )
+    expect(mutate).toHaveBeenCalledWith({ transaction: { id: 7, budget_category: splits, is_split: true } })
     expect(split.open()).toBe(true)
     expect(split.saving()).toBe(true)
     expect(setMutatingTransactionId).toHaveBeenLastCalledWith(7)
     dispose()
   })
 
-  it('keeps the drawer open with the error after a failed save', () => {
+  it('keeps the drawer open with the error after a failed save', async () => {
     const { split, setMutatingTransactionId, callbacks, dispose } = setup()
     split.openSplitDrawer(row)
+    flush()
     split.handleSubmit(splits)
-    callbacks().onError(new Error('Request failed with status code 500'))
+    flush()
+    await callbacks().onError(new Error('Request failed with status code 500'))
 
     expect(split.open()).toBe(true)
     expect(split.target()).toBe(row)
@@ -72,12 +90,11 @@ describe('createTransactionsTableSplitDrawer', () => {
   it('closes the drawer and refreshes after a successful save', async () => {
     const { split, setMutatingTransactionId, callbacks, dispose } = setup()
     split.openSplitDrawer(row)
+    flush()
     split.handleClear()
-    expect(mutate).toHaveBeenCalledWith(
-      { transaction: { id: 7, budget_category: null, is_split: false } },
-      expect.any(Object),
-    )
-    callbacks().onSuccess()
+    flush()
+    expect(mutate).toHaveBeenCalledWith({ transaction: { id: 7, budget_category: null, is_split: false } })
+    await callbacks().onSuccess()
 
     expect(split.open()).toBe(false)
     expect(split.target()).toBeNull()
@@ -86,31 +103,39 @@ describe('createTransactionsTableSplitDrawer', () => {
     dispose()
   })
 
-  it('reports a failure on the table, not in another row’s drawer, if the user moved on', () => {
+  it('reports a failure on the table, not in another row’s drawer, if the user moved on', async () => {
     const { split, callbacks, dispose } = setup()
     split.openSplitDrawer(row)
+    flush()
     split.handleSubmit(splits)
+    flush()
     const pending = callbacks()
     split.closeSplitDrawer()
+    flush()
     split.openSplitDrawer(other)
+    flush()
     expect(split.saving()).toBe(false)
 
-    pending.onError(new Error('boom'))
+    await pending.onError(new Error('boom'))
     expect(split.error()).toBeNull()
     expect(split.strayError()).toBe('boom')
     expect(split.target()).toBe(other)
     dispose()
   })
 
-  it('does not close a different row’s drawer when an earlier save succeeds', () => {
+  it('does not close a different row’s drawer when an earlier save succeeds', async () => {
     const { split, callbacks, dispose } = setup()
     split.openSplitDrawer(row)
+    flush()
     split.handleSubmit(splits)
+    flush()
     const pending = callbacks()
     split.closeSplitDrawer()
+    flush()
     split.openSplitDrawer(other)
+    flush()
 
-    pending.onSuccess()
+    await pending.onSuccess()
     expect(split.open()).toBe(true)
     expect(split.target()).toBe(other)
     dispose()

@@ -1,6 +1,6 @@
-import type { JSX } from 'solid-js'
 import { Show } from 'solid-js'
 import { Alert, AlertTitle, AlertDescription } from '@components/ui/alert'
+import type { JSX } from '@solidjs/web'
 
 export type AlertType = 'success' | 'warning' | 'info' | 'error'
 

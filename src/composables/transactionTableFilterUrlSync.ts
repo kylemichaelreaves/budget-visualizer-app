@@ -1,4 +1,5 @@
-import { batch, createEffect, on } from 'solid-js'
+import { createEffect } from 'solid-js'
+import { settledData } from '@api/helpers/settledData'
 import { useLocation, useNavigate } from '@solidjs/router'
 import { useMemoById } from '@api/hooks/memos/useMemoById'
 import { PERIOD_URL_PARAMS, activePeriodFromStore, urlHasTimeframe } from '@composables/activePeriodFromStore'
@@ -123,12 +124,10 @@ export function useTransactionTableFilterUrlSync(): void {
   }
 
   createEffect(
-    on(
-      () => [loc.search, loc.pathname] as const,
-      () => {
-        applyUrlParamsToStore()
-      },
-    ),
+    () => [loc.search, loc.pathname] as const,
+    () => {
+      applyUrlParamsToStore()
+    },
   )
 
   const urlHasTimeframeParam = () => urlHasTimeframe(new URLSearchParams(loc.search))
@@ -144,54 +143,56 @@ export function useTransactionTableFilterUrlSync(): void {
    * Select a memo without losing the URL's `budgetCategory`. Both memo selectors
    * clear every selection, the category included, and they run after the URL→store
    * pass already applied it — so `?memoId=5&budgetCategory=Food` lost its category,
-   * and the store→URL effect then wrote it out of the URL as well. Batched so that
-   * effect sees only the final state.
+   * and the store→URL effect then wrote it out of the URL as well. Both writes land in
+   * the same flush, so that effect sees only the final state.
    */
   function selectMemoKeepingUrlCategory(select: () => void) {
-    batch(() => {
-      select()
-      setSelectedBudgetCategory(budgetCategoryFromUrl())
-    })
+    select()
+    setSelectedBudgetCategory(budgetCategoryFromUrl())
   }
 
   /** Set `selectedMemoId` immediately so memo-scoped queries match the URL before `useMemoById` resolves the name. */
   createEffect(
-    on(
-      () => [memoIdFromUrl(), loc.search] as const,
-      () => {
-        if (urlHasTimeframeParam()) return
-        const id = memoIdFromUrl()
-        if (id == null) return
-        if (transactionsState.selectedMemoId === id && transactionsState.viewMode === 'memo') return
-        selectMemoKeepingUrlCategory(() => selectMemoFilterByIdOnly(id))
-      },
-    ),
+    () => [memoIdFromUrl(), loc.search] as const,
+    () => {
+      if (urlHasTimeframeParam()) return
+      const id = memoIdFromUrl()
+      if (id == null) return
+      if (transactionsState.selectedMemoId === id && transactionsState.viewMode === 'memo') return
+      selectMemoKeepingUrlCategory(() => selectMemoFilterByIdOnly(id))
+    },
   )
 
   const memoFromUrl = useMemoById({ memoId: () => memoIdFromUrl() })
 
   /** Do not override day/week/month/year selection when both memoId and a timeframe appear in the URL. */
   createEffect(
-    on(
-      () => memoFromUrl.data,
-      (memo) => {
-        if (urlHasTimeframeParam()) return
-        if (memo?.name) {
-          if (
-            transactionsState.viewMode === 'memo' &&
-            transactionsState.selectedMemoId === memo.id &&
-            transactionsState.selectedMemo === memo.name
-          ) {
-            return
-          }
-          selectMemoKeepingUrlCategory(() => selectMemoView(memo.name, memo.id))
+    () => settledData(memoFromUrl),
+    (memo) => {
+      if (urlHasTimeframeParam()) return
+      if (memo?.name) {
+        if (
+          transactionsState.viewMode === 'memo' &&
+          transactionsState.selectedMemoId === memo.id &&
+          transactionsState.selectedMemo === memo.name
+        ) {
+          return
         }
-      },
-      { defer: true },
-    ),
+        selectMemoKeepingUrlCategory(() => selectMemoView(memo.name, memo.id))
+      }
+    },
+    { defer: true },
   )
 
   function syncUrlFromStore() {
+    console.log(
+      JSON.stringify({
+        vm: transactionsState.viewMode,
+        y: transactionsState.selectedYear,
+        search: loc.search,
+        hydratingFromUrl,
+      }),
+    )
     if (hydratingFromUrl) return
     const sp = new URLSearchParams(loc.search)
     for (const key of TRANSACTION_TABLE_FILTER_URL_PARAMS) sp.delete(key)
@@ -224,19 +225,19 @@ export function useTransactionTableFilterUrlSync(): void {
   }
 
   createEffect(
-    on(
-      () => [
-        transactionsState.selectedDay,
-        transactionsState.selectedWeek,
-        transactionsState.selectedMonth,
-        transactionsState.selectedYear,
-        transactionsState.selectedMemoId,
-        transactionsState.selectedMemo,
-        transactionsState.viewMode,
-        transactionsState.selectedBudgetCategory,
-      ],
-      () => syncUrlFromStore(),
-      { defer: true },
-    ),
+    () => [
+      transactionsState.selectedDay,
+      transactionsState.selectedWeek,
+      transactionsState.selectedMonth,
+      transactionsState.selectedYear,
+      transactionsState.selectedMemoId,
+      transactionsState.selectedMemo,
+      transactionsState.viewMode,
+      transactionsState.selectedBudgetCategory,
+    ],
+    () => {
+      syncUrlFromStore()
+    },
+    { defer: true },
   )
 }

@@ -5,7 +5,7 @@ import { mutationKeys } from '@api/queryKeys'
 import { extractApiErrorMessage } from '@api/extractApiErrorMessage'
 import { confirmPasswordReset } from '@api/auth/confirmPasswordReset'
 import { Button } from '@components/ui/button'
-import { Lock, ShieldCheck, Loader2 } from 'lucide-solid'
+import { Lock, ShieldCheck, Loader2 } from '@lucide/solid'
 import { MissingToken } from './MissingToken'
 import { CenteredCardLayout } from '@components/shared/CenteredCardLayout'
 import { IconHeading } from '@components/shared/IconHeading'
@@ -49,7 +49,7 @@ export default function ResetPasswordPage() {
     e.preventDefault()
     setSubmitted(true)
     if (!pw.isValid()) return
-    resetMut.mutate()
+    void resetMut.mutate()
   }
 
   return (

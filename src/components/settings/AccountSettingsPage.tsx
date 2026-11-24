@@ -1,4 +1,4 @@
-import { A, useLocation, useNavigate } from '@solidjs/router'
+import { useLocation, useNavigate } from '@solidjs/router'
 import { createMemo, For, Show } from 'solid-js'
 import {
   ACCOUNT_SETTINGS_NAV,
@@ -10,7 +10,7 @@ import {
 import { ProfileSection } from '@components/settings/ProfileSection'
 import { SecuritySection } from '@components/settings/SecuritySection'
 import { cn } from '@utils/cn'
-import { ChevronLeft } from 'lucide-solid'
+import { ChevronLeft } from '@lucide/solid'
 import { DEFAULT_AUTHENTICATED_ROUTE } from '@utils/authRoutes'
 
 const SECTION_LABEL: Record<AccountSettingsSection, string> = {
@@ -42,13 +42,13 @@ export default function AccountSettingsPage() {
   return (
     <div class="max-w-5xl w-full">
       <div class="flex flex-col gap-2 mb-6">
-        <A
+        <a
           href={DEFAULT_AUTHENTICATED_ROUTE}
           class="flex items-center gap-1.5 text-muted-foreground hover:text-foreground transition-colors text-sm no-underline w-fit group"
         >
           <ChevronLeft class="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
           Back
-        </A>
+        </a>
         <div class="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
           <span class="text-foreground font-semibold">Account settings</span>
           <span aria-hidden="true">/</span>

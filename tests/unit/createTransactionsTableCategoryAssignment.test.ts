@@ -1,10 +1,26 @@
-import { createRoot } from 'solid-js'
+import { createRoot, flush } from 'solid-js'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { HttpError } from '@api/HttpError'
 import type { Transaction } from '@types'
 
-type Callbacks = { onSuccess: () => void; onError: (err: unknown) => void }
-const mutate = vi.fn<(vars: unknown, cbs: Callbacks) => void>()
+type Settle = { onSuccess: () => Promise<void>; onError: (err: unknown) => Promise<void> }
+
+/** `mutate` returns a promise; each call's settle functions resolve or reject it, then flush. */
+const settles: Settle[] = []
+const mutate = vi.fn<(vars: unknown) => Promise<unknown>>(
+  () =>
+    new Promise((resolve, reject) => {
+      const settled = async () => {
+        await Promise.resolve()
+        await Promise.resolve()
+        flush()
+      }
+      settles.push({
+        onSuccess: () => (resolve(undefined), settled()),
+        onError: (err) => (reject(err), settled()),
+      })
+    }),
+)
 vi.mock('@api/hooks/transactions/mutateTransaction', () => ({ default: () => ({ mutate }) }))
 vi.mock('@tanstack/solid-query', () => ({ useQueryClient: () => ({}) }))
 const invalidateAfterTransactionUpdate = vi.fn<() => Promise<void>>()
@@ -16,16 +32,17 @@ const { createTransactionsTableCategoryAssignment } =
 const row = { id: 42, budget_category: null } as unknown as Transaction
 
 function setup() {
-  return createRoot(() => {
-    const a = createTransactionsTableCategoryAssignment()
-    a.openCategoryDialog(row)
-    a.handleCategorySelect('Food')
-    return { a, cbs: mutate.mock.calls.at(-1)![1] }
-  })
+  const a = createRoot(() => createTransactionsTableCategoryAssignment())
+  a.openCategoryDialog(row)
+  flush()
+  a.handleCategorySelect('Food')
+  flush()
+  return { a, cbs: settles.at(-1)! }
 }
 
 beforeEach(() => {
-  mutate.mockReset()
+  mutate.mockClear()
+  settles.length = 0
   invalidateAfterTransactionUpdate.mockReset()
 })
 
@@ -34,24 +51,21 @@ describe('createTransactionsTableCategoryAssignment', () => {
     let settle!: () => void
     invalidateAfterTransactionUpdate.mockReturnValue(new Promise<void>((r) => (settle = r)))
     const { a, cbs } = setup()
-    expect(mutate).toHaveBeenCalledWith(
-      { transaction: { id: 42, budget_category: 'Food' } },
-      expect.anything(),
-    )
+    expect(mutate).toHaveBeenCalledWith({ transaction: { id: 42, budget_category: 'Food' } })
     expect(a.mutatingTransactionId()).toBe(42)
 
-    cbs.onSuccess()
-    await Promise.resolve()
+    await cbs.onSuccess()
     expect(a.mutatingTransactionId()).toBe(42)
 
     settle()
     await vi.waitFor(() => expect(a.mutatingTransactionId()).toBeNull())
   })
 
-  it("reopens the dialog with the server's message on failure", () => {
+  it("reopens the dialog with the server's message on failure", async () => {
     const { a, cbs } = setup()
     a.setCategoryDialogOpen(false)
-    cbs.onError(
+    flush()
+    await cbs.onError(
       new HttpError({ method: 'GET', url: '/x', status: 422, data: { message: 'Unknown budget category' } }),
     )
     expect(a.categoryAssignError()).toBe('Unknown budget category')

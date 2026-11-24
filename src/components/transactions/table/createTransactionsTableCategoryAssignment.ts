@@ -25,22 +25,17 @@ export function createTransactionsTableCategoryAssignment() {
     if (!target || target.id == null) return
     setCategoryAssignError(null)
     setMutatingTransactionId(target.id)
-    mutation.mutate(
-      { transaction: { id: target.id, budget_category: category } },
-      {
-        // TanStack does not await a `mutate()` callback, so chain rather than `async`:
-        // the row stays marked until the refetch lands, even if the refetch fails.
-        onSuccess: () => {
-          void invalidateAfterTransactionUpdate(queryClient, { transactionId: target.id }).finally(() => {
-            setMutatingTransactionId(null)
-            setCategoryAssignError(null)
-          })
-        },
-        onError: (err) => {
+    void mutation.mutate({ transaction: { id: target.id, budget_category: category } }).then(
+      () => {
+        void invalidateAfterTransactionUpdate(queryClient, { transactionId: target.id }).finally(() => {
           setMutatingTransactionId(null)
-          setCategoryAssignError(extractApiErrorMessage(err))
-          setCategoryDialogOpen(true)
-        },
+          setCategoryAssignError(null)
+        })
+      },
+      (err) => {
+        setMutatingTransactionId(null)
+        setCategoryAssignError(extractApiErrorMessage(err))
+        setCategoryDialogOpen(true)
       },
     )
   }

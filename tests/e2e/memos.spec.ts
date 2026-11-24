@@ -28,19 +28,26 @@ test.describe('Memos list', () => {
     await memosPage.goto()
     await expect(memosPage.table).toBeVisible({ timeout: 30_000 })
     const sortButton = memosPage.page.getByRole('button', { name: 'Sort by Memo' })
-    await sortButton.click()
     const firstLink = memosPage.table.locator('[data-testid^="memo-name-link-"]').first()
-    const firstBefore = await firstLink.getAttribute('data-testid')
+    const sortedResponse = (dir: 'asc' | 'desc') =>
+      memosPage.page.waitForResponse(
+        (r) => r.url().includes('/memos?') && new URL(r.url()).searchParams.get('sortDir') === dir,
+      )
 
+    // A sort re-queries the server, and the new order commits together with that
+    // response (a Solid 2 transition), so wait for it rather than reading the row
+    // straight after the click.
+    const ascending = sortedResponse('asc')
     await sortButton.click()
-    const firstAfter = await memosPage.table
-      .locator('[data-testid^="memo-name-link-"]')
-      .first()
-      .getAttribute('data-testid')
-
+    await ascending
+    const firstBefore = await firstLink.getAttribute('data-testid')
     expect(firstBefore).toBeTruthy()
-    expect(firstAfter).toBeTruthy()
-    expect(firstBefore).not.toBe(firstAfter)
+
+    const descending = sortedResponse('desc')
+    await sortButton.click()
+    await descending
+    await expect(firstLink).not.toHaveAttribute('data-testid', firstBefore!)
+    expect(await firstLink.getAttribute('data-testid')).toBeTruthy()
   })
 
   // #83: the sort must cover every memo, not just the pages already loaded, so it

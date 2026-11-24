@@ -1,4 +1,3 @@
-import { A } from '@solidjs/router'
 import type { Accessor } from 'solid-js'
 import { Show } from 'solid-js'
 import { formatDate } from '@api/helpers/formatDate'
@@ -26,13 +25,13 @@ export default function TransactionsTableRowPrimaryColumn(props: {
 
       <div class="min-w-0">
         <p class="font-medium truncate">
-          <A
+          <a
             href={`/budget-visualizer/transactions/${row().id}/edit`}
             class="hover:underline"
             data-testid={`transaction-link-${row().id}`}
           >
             {row().description || `Transaction #${row().transaction_number}`}
-          </A>
+          </a>
         </p>
         <p class="text-sm text-muted-foreground truncate">
           <Show
@@ -46,13 +45,13 @@ export default function TransactionsTableRowPrimaryColumn(props: {
               ) : null
             }
           >
-            <A
+            <a
               href={`/budget-visualizer/memos/${row().memo_id}/summary`}
               class="hover:underline"
               data-testid={`memo-link-${row().memo_id}`}
             >
               {String(row().memo)}
-            </A>
+            </a>
             <Show when={props.isMemoAmbiguous()}>
               <span
                 class="inline-block ml-1 text-caution align-[-2px]"

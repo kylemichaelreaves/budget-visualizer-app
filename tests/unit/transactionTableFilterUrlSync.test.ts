@@ -1,5 +1,4 @@
-import { createRoot } from 'solid-js'
-import { createStore } from 'solid-js/store'
+import { createRoot, createStore, flush } from 'solid-js'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Memo } from '@types'
 
@@ -10,7 +9,10 @@ import type { Memo } from '@types'
 const [loc, setLoc] = createStore({ pathname: '/budget-visualizer/transactions', search: '' })
 const navigate = vi.fn((to: string) => {
   const url = new URL(to, 'http://app.test')
-  setLoc({ pathname: url.pathname, search: url.search })
+  setLoc((s) => {
+    Object.assign(s, { pathname: url.pathname, search: url.search })
+  })
+  flush()
 })
 vi.mock('@solidjs/router', () => ({ useLocation: () => loc, useNavigate: () => navigate }))
 
@@ -26,19 +28,25 @@ let dispose: (() => void) | undefined
 /** Mount the hook at `path` (pathname plus optional query). */
 function mountAt(path: string) {
   const url = new URL(path, 'http://app.test')
-  setLoc({ pathname: url.pathname, search: url.search })
+  setLoc((s) => {
+    Object.assign(s, { pathname: url.pathname, search: url.search })
+  })
+  flush()
   navigate.mockClear()
   createRoot((d) => {
     dispose = d
     useTransactionTableFilterUrlSync()
   })
+  flush()
 }
 
 const search = () => new URLSearchParams(loc.search)
 
 beforeEach(() => {
   store.clearAllFilters()
-  setMemoQuery({ data: undefined })
+  setMemoQuery((s) => {
+    Object.assign(s, { data: undefined })
+  })
 })
 
 afterEach(() => dispose?.())
@@ -72,7 +80,12 @@ describe('URL → store', () => {
     expect(transactionsState.viewMode).toBe('memo')
     expect(transactionsState.selectedMemoId).toBe(12)
 
-    setMemoQuery({ data: { id: 12, name: 'WHOLEFDS', recurring: false, necessary: false, ambiguous: false } })
+    setMemoQuery((s) => {
+      Object.assign(s, {
+        data: { id: 12, name: 'WHOLEFDS', recurring: false, necessary: false, ambiguous: false },
+      })
+    })
+    flush()
     expect(transactionsState.selectedMemo).toBe('WHOLEFDS')
     expect(search().get('memoId')).toBe('12')
   })
@@ -85,6 +98,7 @@ describe('URL → store', () => {
 
   it.each(['abc', '0', '-3', '1.5', ''])('strips an invalid memoId (%j) and clears filters', (raw) => {
     store.selectMonthView('01-2026')
+    flush()
     mountAt(`/budget-visualizer/transactions?memoId=${raw}`)
     expect(search().has('memoId')).toBe(false)
     expect(transactionsState.viewMode).toBeNull()
@@ -105,14 +119,20 @@ describe('URL → store', () => {
 
   it('clears filters when navigating to the bare route', () => {
     mountAt('/budget-visualizer/transactions?month=03-2026')
-    setLoc({ search: '' })
+    setLoc((s) => {
+      Object.assign(s, { search: '' })
+    })
+    flush()
     expect(transactionsState.viewMode).toBeNull()
     expect(transactionsState.selectedMonth).toBe('')
   })
 
   it('follows back/forward between periods', () => {
     mountAt('/budget-visualizer/transactions?month=03-2026')
-    setLoc({ search: '?month=04-2026' })
+    setLoc((s) => {
+      Object.assign(s, { search: '?month=04-2026' })
+    })
+    flush()
     expect(transactionsState.selectedMonth).toBe('04-2026')
   })
 
@@ -130,7 +150,10 @@ describe('URL → store', () => {
 
     it('keeps the category after the memo name loads', () => {
       mountAt('/budget-visualizer/transactions?memoId=12&budgetCategory=Food')
-      setMemoQuery({ data: memo12 })
+      setMemoQuery((s) => {
+        Object.assign(s, { data: memo12 })
+      })
+      flush()
       expect(transactionsState.selectedMemo).toBe('WHOLEFDS')
       expect(transactionsState.selectedBudgetCategory).toBe('Food')
       expect(search().get('memoId')).toBe('12')
@@ -139,21 +162,31 @@ describe('URL → store', () => {
 
     it('does not rewrite the URL while restoring it', () => {
       mountAt('/budget-visualizer/transactions?memoId=12&budgetCategory=Food')
-      setMemoQuery({ data: memo12 })
+      setMemoQuery((s) => {
+        Object.assign(s, { data: memo12 })
+      })
+      flush()
       expect(navigate).not.toHaveBeenCalled()
     })
 
     it('still follows a category change made in the UI', () => {
       mountAt('/budget-visualizer/transactions?memoId=12&budgetCategory=Food')
-      setMemoQuery({ data: memo12 })
+      setMemoQuery((s) => {
+        Object.assign(s, { data: memo12 })
+      })
+      flush()
       store.setSelectedBudgetCategory('Gas')
+      flush()
       expect(search().get('budgetCategory')).toBe('Gas')
       expect(transactionsState.selectedMemoId).toBe(12)
     })
 
     it('leaves the category unset when the link has none', () => {
       mountAt('/budget-visualizer/transactions?memoId=12')
-      setMemoQuery({ data: memo12 })
+      setMemoQuery((s) => {
+        Object.assign(s, { data: memo12 })
+      })
+      flush()
       expect(transactionsState.selectedBudgetCategory).toBeNull()
       expect(search().has('budgetCategory')).toBe(false)
     })
@@ -164,6 +197,7 @@ describe('store → URL', () => {
   it('writes the active period with replace', () => {
     mountAt('/budget-visualizer/transactions')
     store.selectWeekView('09-2026')
+    flush()
     expect(loc.search).toBe('?week=09-2026')
     expect(navigate).toHaveBeenLastCalledWith('/budget-visualizer/transactions?week=09-2026', {
       replace: true,
@@ -173,13 +207,16 @@ describe('store → URL', () => {
   it('replaces the previous filter rather than accumulating', () => {
     mountAt('/budget-visualizer/transactions?month=03-2026')
     store.selectYearView('2026')
+    flush()
     expect(loc.search).toBe('?year=2026')
   })
 
   it('writes memoId for an id-scoped memo and budgetCategory next to it', () => {
     mountAt('/budget-visualizer/transactions')
     store.selectMemoView('WHOLEFDS', 12)
+    flush()
     store.setSelectedBudgetCategory('Food')
+    flush()
     expect(search().get('memoId')).toBe('12')
     expect(search().get('budgetCategory')).toBe('Food')
     expect(search().has('memoName')).toBe(false)
@@ -188,12 +225,14 @@ describe('store → URL', () => {
   it('writes memoName when the memo has no id', () => {
     mountAt('/budget-visualizer/transactions')
     store.selectMemoView('WHOLEFDS', null)
+    flush()
     expect(search().get('memoName')).toBe('WHOLEFDS')
   })
 
   it('keeps unrelated query params', () => {
     mountAt('/budget-visualizer/transactions?tab=list')
     store.selectMonthView('03-2026')
+    flush()
     expect(search().get('tab')).toBe('list')
     expect(search().get('month')).toBe('03-2026')
   })
@@ -201,6 +240,7 @@ describe('store → URL', () => {
   it('moves filters off a month/week summary route back to the transactions list', () => {
     mountAt('/budget-visualizer/transactions/months/03-2026/summary')
     store.selectWeekView('09-2026')
+    flush()
     expect(loc.pathname).toBe('/budget-visualizer/transactions')
     expect(loc.search).toBe('?week=09-2026')
   })

@@ -1,4 +1,4 @@
-import type { JSX } from 'solid-js'
+import type { JSX } from '@solidjs/web'
 
 export default function MemoSummaryCheckboxRow(props: {
   label: string
@@ -10,11 +10,13 @@ export default function MemoSummaryCheckboxRow(props: {
 }) {
   return (
     <label
-      class="flex items-center gap-2 text-sm"
-      classList={{
-        'cursor-pointer': !props.disabled,
-        'cursor-not-allowed opacity-60': props.disabled,
-      }}
+      class={[
+        'flex items-center gap-2 text-sm',
+        {
+          'cursor-pointer': !props.disabled,
+          'cursor-not-allowed opacity-60': props.disabled,
+        },
+      ]}
     >
       <input
         type="checkbox"

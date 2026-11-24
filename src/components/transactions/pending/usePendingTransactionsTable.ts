@@ -1,10 +1,12 @@
-import { createEffect, createMemo, createSignal, on } from 'solid-js'
+import { createEffect, createMemo, createSignal } from 'solid-js'
 import usePendingTransactions from '@api/hooks/transactions/usePendingTransactions'
 import { fetchInfinitePagesUntilCount } from '@composables/infiniteQueryPagePrefetch'
 import { rowsForPage } from '@components/transactions/table/transactionsTablePageWindow'
 import { setSelectedStatus, transactionsState, updatePendingTableOffset } from '@stores/transactionsStore'
 import type { PendingTransaction, PendingTransactionStatus, Transaction } from '@types'
 import { parseRow } from './pendingTransactionsTableUtils'
+import { settledData } from '@api/helpers/settledData'
+import { queryFlag } from '@api/helpers/queryFlag'
 
 export function usePendingTransactionsTable() {
   const query = usePendingTransactions()
@@ -18,21 +20,20 @@ export function usePendingTransactionsTable() {
   }
 
   createEffect(
-    on(
-      () => transactionsState.selectedStatus,
-      () => {
-        updatePendingTableOffset(0)
-      },
-    ),
+    () => transactionsState.selectedStatus,
+    () => {
+      updatePendingTableOffset(0)
+    },
   )
 
   // Same rule as the transactions table: a background refetch keeps the rows on screen.
-  const isInitialLoading = () => query.isLoading || (query.isFetching && !query.data?.pages?.length)
+  const isInitialLoading = () =>
+    queryFlag(query, 'isLoading') || (queryFlag(query, 'isFetching') && !settledData(query)?.pages?.length)
   const isLoadingCondition = () =>
-    isInitialLoading() || query.isFetchingNextPage || query.isFetchingPreviousPage
+    isInitialLoading() || queryFlag(query, 'isFetchingNextPage') || queryFlag(query, 'isFetchingPreviousPage')
 
   /** Pages exactly as the server returned them, in offset order. */
-  const loadedPages = createMemo(() => query.data?.pages ?? [])
+  const loadedPages = createMemo(() => settledData(query)?.pages ?? [])
 
   const LIMIT = () => transactionsState.transactionsTableLimit
 
@@ -44,14 +45,12 @@ export function usePendingTransactionsTable() {
   const paginatedData = createMemo(() => rowsForPage(loadedPages(), currentPage()))
 
   // The query only appends, so reaching page N means fetching pages 1..N.
-  createEffect(
-    on(currentPage, () => {
-      void fetchInfinitePagesUntilCount(query, {
-        currentCount: () => loadedPages().length,
-        requiredCount: currentPage(),
-      })
-    }),
-  )
+  createEffect(currentPage, (page) => {
+    void fetchInfinitePagesUntilCount(query, {
+      currentCount: () => loadedPages().length,
+      requiredCount: page,
+    })
+  })
 
   const isPaginationDisabled = () =>
     Boolean(

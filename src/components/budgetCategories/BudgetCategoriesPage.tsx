@@ -1,4 +1,3 @@
-import type { JSX } from 'solid-js'
 import { For, Show } from 'solid-js'
 import useBudgetCategorySummary from '@api/hooks/budgetCategories/useBudgetCategorySummary'
 import AlertComponent from '@components/shared/AlertComponent'
@@ -14,6 +13,9 @@ import BudgetCategoryInlineAddForm from './BudgetCategoryInlineAddForm'
 import BudgetCategoryTreeNode from './BudgetCategoryTreeNode'
 import { FolderTreeIcon, PlusIcon, RefreshCwIcon } from '@shared/icons'
 import { useBudgetCategoriesPage } from './useBudgetCategoriesPage'
+import type { JSX } from '@solidjs/web'
+import { settledData } from '@api/helpers/settledData'
+import { queryFlag } from '@api/helpers/queryFlag'
 
 export default function BudgetCategoriesPage(): JSX.Element {
   const state = useBudgetCategoriesPage()
@@ -22,10 +24,10 @@ export default function BudgetCategoriesPage(): JSX.Element {
     () => chartTimeFrame(),
     () => chartDate(),
   )
-  const spendRows = () => categorySpendQuery.data ?? []
+  const spendRows = () => settledData(categorySpendQuery) ?? []
   const hasSpendForSunburst = () =>
     spendRows().some((r) => r.parent_id === null && Math.abs(r.total_amount_debit) > 0)
-  const isChartPending = () => categorySpendQuery.isLoading
+  const isChartPending = () => queryFlag(categorySpendQuery, 'isLoading')
   // TanStack keeps stale data on error — gate on !isError so the error banner
   // doesn't render alongside a chart built from the previous successful fetch.
   const showChart = () => !categorySpendQuery.isError && (isChartPending() || hasSpendForSunburst())
@@ -115,7 +117,7 @@ export default function BudgetCategoriesPage(): JSX.Element {
                 variant="outline"
                 size="sm"
                 onClick={state.refreshCategories}
-                disabled={state.q.isLoading || state.q.isFetching}
+                disabled={queryFlag(state.q, 'isLoading') || queryFlag(state.q, 'isFetching')}
                 data-testid="budget-categories-refresh"
               >
                 <RefreshCwIcon class="size-3.5" />
@@ -142,13 +144,13 @@ export default function BudgetCategoriesPage(): JSX.Element {
               placeholder="Filter by name or path..."
               value={state.filter()}
               onInput={(e) => state.setFilter(e.currentTarget.value)}
-              disabled={state.q.isLoading || state.q.isFetching}
+              disabled={queryFlag(state.q, 'isLoading') || queryFlag(state.q, 'isFetching')}
               aria-label="Filter categories"
               data-testid="budget-categories-filter"
             />
           </div>
 
-          <Show when={state.q.isLoading}>
+          <Show when={queryFlag(state.q, 'isLoading')}>
             <p class="text-muted-foreground text-sm py-4 text-center" data-testid="budget-categories-loading">
               Loading categories...
             </p>
@@ -165,7 +167,7 @@ export default function BudgetCategoriesPage(): JSX.Element {
             </div>
           </Show>
 
-          <Show when={!state.q.isLoading && state.visibleTree().length === 0}>
+          <Show when={!queryFlag(state.q, 'isLoading') && state.visibleTree().length === 0}>
             <p class="text-muted-foreground text-sm py-4 text-center" data-testid="budget-categories-empty">
               {state.tree().length === 0
                 ? 'No categories yet. Click "Add Category" to create one.'
@@ -173,7 +175,7 @@ export default function BudgetCategoriesPage(): JSX.Element {
             </p>
           </Show>
 
-          <Show when={!state.q.isLoading && state.visibleTree().length > 0}>
+          <Show when={!queryFlag(state.q, 'isLoading') && state.visibleTree().length > 0}>
             <ul class="m-0 p-0">
               <For each={state.visibleTree()}>
                 {(node: CategoryNode) => (

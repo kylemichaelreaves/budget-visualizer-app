@@ -1,5 +1,4 @@
-import { batch, createEffect, createMemo, on, untrack } from 'solid-js'
-import { createStore, unwrap } from 'solid-js/store'
+import { createMemo, createStore, snapshot, untrack } from 'solid-js'
 import { useQueryClient } from '@tanstack/solid-query'
 import { invalidateAfterTransactionUpdate } from '@api/queryInvalidation'
 import type { BudgetCategoryState, Transaction, TransactionPatch } from '@types'
@@ -17,28 +16,25 @@ export function useTransactionEditForm(props: {
   const queryClient = useQueryClient()
   const tid = () => props.dataTestId ?? 'transaction-edit-form'
 
-  const [tx, setTx] = createStore<Transaction>(untrack(() => ({ ...props.transaction })))
-  const [budgetState, setBudgetState] = createStore<BudgetCategoryState>(
-    untrack(() => initBudgetState(props.transaction)),
-  )
-
-  // Re-seed only when the form is pointed at a different transaction. A refetch of
-  // the same one hands down a new object, and re-seeding on that discarded edits.
-  // Pending rows key on the pending id: their parsed transaction_data may have no id.
-  // The key is a memo because `on` re-runs whenever its source recomputes, equal or not.
+  // Seeded once per entity. A refetch of the same transaction hands down a new
+  // object, and re-seeding on that discarded edits. Pending rows key on the pending
+  // id: their parsed transaction_data may have no id. The derived stores track only
+  // that key (a memo, so equal values don't re-run them) and read the transaction
+  // untracked; writes through the setters stand until the key changes.
   const entityKey = createMemo(() => `${props.pendingTransactionId ?? ''}:${props.transaction.id ?? ''}`)
-  createEffect(
-    on(
-      entityKey,
-      () => {
-        const p = props.transaction
-        batch(() => {
-          setTx(p)
-          setBudgetState(initBudgetState(p))
-        })
-      },
-      { defer: true },
-    ),
+  const [tx, setTx] = createStore<Transaction>(
+    () => {
+      entityKey()
+      return untrack(() => ({ ...props.transaction }))
+    },
+    untrack(() => ({ ...props.transaction })),
+  )
+  const [budgetState, setBudgetState] = createStore<BudgetCategoryState>(
+    () => {
+      entityKey()
+      return untrack(() => initBudgetState(props.transaction))
+    },
+    untrack(() => initBudgetState(props.transaction)),
   )
 
   const transactionAmount = createMemo(() => {
@@ -56,31 +52,25 @@ export function useTransactionEditForm(props: {
     if (props.isPending && props.pendingTransactionId != null) {
       // The pending endpoint takes a single category name and nothing else.
       if (typeof budgetCategory !== 'string' || !budgetCategory.trim()) return
-      pendMut.mutate(
-        { pendingTransactionId: props.pendingTransactionId, budgetCategory },
-        {
-          onSuccess: () => {
-            props.onClose()
-          },
-        },
+      void pendMut.mutate({ pendingTransactionId: props.pendingTransactionId, budgetCategory }).then(
+        () => props.onClose(),
+        () => {},
       )
     } else {
       const id = tx.id
       if (id == null) return
       const patch: TransactionPatch = {
-        ...unwrap(tx),
+        ...snapshot(tx),
         id,
         budget_category: budgetCategory,
         is_split: budgetState.mode === 'split',
       }
-      regMut.mutate(
-        { transaction: patch },
-        {
-          onSuccess: () => {
-            void invalidateAfterTransactionUpdate(queryClient, { transactionId: id })
-            props.onClose()
-          },
+      void regMut.mutate({ transaction: patch }).then(
+        () => {
+          void invalidateAfterTransactionUpdate(queryClient, { transactionId: id })
+          props.onClose()
         },
+        () => {},
       )
     }
   }

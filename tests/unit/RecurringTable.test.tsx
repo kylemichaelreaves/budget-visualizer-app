@@ -1,4 +1,4 @@
-import { createSignal } from 'solid-js'
+import { createSignal, flush } from 'solid-js'
 import { render, screen, within } from '@solidjs/testing-library'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RecurringAmountPoint, RecurringSeries } from '@types'
@@ -114,6 +114,7 @@ describe('RecurringTable', () => {
     render(() => <RecurringTable series={list()} />)
     const rowA = row(a)
     setList([{ ...a, status: 'stopped' as const }, { ...b }])
+    flush()
     expect(screen.getAllByTestId('recurring-table-row-name').map((el) => el.textContent)).toEqual([
       'Bravo',
       'Alpha',
@@ -337,6 +338,7 @@ describe('RecurringTable', () => {
       const rowB = row(b)
       // A refetch: structurally the same data, brand-new objects, one price changed.
       setList([{ ...a }, { ...b, latestAmount: 99 }])
+      flush()
 
       expect(row(a)).toBe(rowA)
       expect(row(b)).toBe(rowB)
@@ -352,6 +354,7 @@ describe('RecurringTable', () => {
       const rowB = row(b)
 
       setList([{ ...b }, { ...c }])
+      flush()
       expect(screen.queryByTestId(`recurring-table-row-${a.id}`)).toBeNull()
       expect(row(b)).toBe(rowB)
       expect(row(c)).toBeInTheDocument()

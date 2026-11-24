@@ -1,7 +1,7 @@
-import type { JSX } from 'solid-js'
-import { createEffect, createSignal, on } from 'solid-js'
+import { createSignal } from 'solid-js'
 import MemoSelect from '@components/transactions/selects/MemoSelect'
 import { clearAllFilters, selectMemoView, transactionsState } from '@stores/transactionsStore'
+import type { JSX } from '@solidjs/web'
 
 export default function TransactionMemoFilterField(props: { dataTestId: string }): JSX.Element {
   /** Bumps when URL/store memo filter changes so we can sync the input without applying partial typing to the store. */
@@ -11,13 +11,12 @@ export default function TransactionMemoFilterField(props: { dataTestId: string }
   const committedMemoDisplay = () =>
     transactionsState.viewMode === 'memo' ? transactionsState.selectedMemo : ''
 
-  const [draft, setDraft] = createSignal(committedMemoDisplay())
-
-  createEffect(
-    on(storeMemoKey, () => {
-      setDraft(committedMemoDisplay())
-    }),
-  )
+  // A writable derived signal: typing writes the draft, and any change to the
+  // store's memo filter re-derives it from the committed value.
+  const [draft, setDraft] = createSignal(() => {
+    storeMemoKey()
+    return committedMemoDisplay()
+  })
 
   return (
     <label class="flex flex-col gap-1 text-muted-foreground text-xs min-w-[160px] flex-[2_1_200px]">

@@ -1,7 +1,8 @@
-import { createSignal, type JSX } from 'solid-js'
+import { createSignal } from 'solid-js'
 import { Button } from '@components/ui/button'
 import Icon from '@components/dataImport/Icon'
 import RecentImportsList from '@components/dataImport/RecentImportsList'
+import type { JSX } from '@solidjs/web'
 
 function RulePill(props: { children: JSX.Element }): JSX.Element {
   return (
@@ -27,11 +28,13 @@ export default function EmptyState(props: { onFileChosen: (file: File) => void }
       {/* Drop zone — brand carries upload intent only; primary CTAs stay neutral. */}
       <div
         data-testid="data-import-drop-zone"
-        class="flex flex-col items-center rounded-2xl border-2 border-dashed bg-card px-8 pt-[52px] pb-7 text-center shadow-sm transition-colors"
-        classList={{
-          'border-brand bg-brand/5': isDragging(),
-          'border-foreground/20': !isDragging(),
-        }}
+        class={[
+          'flex flex-col items-center rounded-2xl border-2 border-dashed bg-card px-8 pt-[52px] pb-7 text-center shadow-sm transition-colors',
+          {
+            'border-brand bg-brand/5': isDragging(),
+            'border-foreground/20': !isDragging(),
+          },
+        ]}
         onDragOver={(e) => {
           e.preventDefault()
           setIsDragging(true)

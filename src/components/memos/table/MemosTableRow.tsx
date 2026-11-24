@@ -1,4 +1,3 @@
-import { A } from '@solidjs/router'
 import type { Accessor } from 'solid-js'
 import { Show } from 'solid-js'
 import type { Memo } from '@types'
@@ -20,13 +19,13 @@ export default function MemosTableRow(props: {
   return (
     <tr class="border-b border-border hover:bg-muted/50 transition-colors">
       <td class="px-3 py-2.5" data-testid={`cell-${row().id}-name`}>
-        <A
+        <a
           href={`/budget-visualizer/memos/${row().id}/summary`}
           class="text-primary hover:underline font-medium"
           data-testid={`memo-name-link-${row().id}`}
         >
           {row().name}
-        </A>
+        </a>
       </td>
 
       <td class="px-3 py-2.5 text-muted-foreground" data-testid={`cell-${row().id}-transactions_count`}>
@@ -37,7 +36,7 @@ export default function MemosTableRow(props: {
         <button
           type="button"
           aria-label="Ambiguous"
-          aria-pressed={row().ambiguous}
+          aria-pressed={row().ambiguous ? 'true' : 'false'}
           disabled={props.togglingAmbiguousId() === row().id}
           class={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-medium cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
             row().ambiguous

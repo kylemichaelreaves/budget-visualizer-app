@@ -31,6 +31,17 @@ updates:
         applies-to: version-updates
         patterns: ['vitest', '@vitest/*']
         update-types: [major]
+      # solid-js and @solidjs/web are one runtime, and the router, compiler plugin and
+      # testing library are released against it, so they move as one PR at any update type.
+      solid:
+        applies-to: version-updates
+        patterns: ['solid-js', '@solidjs/*']
+      # The devtools peer-depend on the exact adapter line (^6.0.0-rc.N), so a solo bump of
+      # either fails install. Both are on the 6.0 prerelease line, pinned exactly; Dependabot
+      # proposes the next RC and then 6.0.0. @kobalte/core (2.0 alpha) is pinned the same way.
+      tanstack-solid-query:
+        applies-to: version-updates
+        patterns: ['@tanstack/solid-query', '@tanstack/solid-query-devtools']
       bun-minor-and-patch:
         applies-to: version-updates
         update-types: [minor, patch]

@@ -1,6 +1,5 @@
 import { fireEvent, render, screen } from '@solidjs/testing-library'
-import { createRoot, createSignal } from 'solid-js'
-import { createStore } from 'solid-js/store'
+import { createRoot, createSignal, flush, createStore } from 'solid-js'
 import { describe, expect, it, vi } from 'vitest'
 import type { Memo, Transaction } from '@types'
 
@@ -53,15 +52,22 @@ describe('useMemoEditForm', () => {
       }),
       dispose,
     }))
-    state.setForm('name', 'Groceries (edited)')
+    flush()
+    state.setForm((f) => {
+      f.name = 'Groceries (edited)'
+    })
+    flush()
 
     setM(memo(7, 'Groceries'))
+    flush()
     expect(state.form.name).toBe('Groceries (edited)')
 
     setM(memo(8, 'Rent'))
+    flush()
     expect(state.form.name).toBe('Rent')
     dispose()
   })
+  flush()
 })
 
 describe('useTransactionEditForm', () => {
@@ -76,29 +82,45 @@ describe('useTransactionEditForm', () => {
       }),
       dispose,
     }))
-    state.setTx('description', 'edited')
+    flush()
+    state.setTx((tx) => {
+      tx.description = 'edited'
+    })
+    flush()
 
     setT(txn(100, 'POS PURCHASE'))
+    flush()
     expect(state.tx.description).toBe('edited')
 
     setT(txn(101, 'COFFEE SHOP'))
+    flush()
     expect(state.tx.description).toBe('COFFEE SHOP')
     dispose()
   })
+  flush()
 })
 
 describe('MemoEditPage', () => {
   it('keeps the form mounted, with its edits, through a background refetch', () => {
-    setMemoQuery({ data: memo(7, 'Groceries'), isLoading: false, isFetching: false })
+    setMemoQuery((s) => {
+      Object.assign(s, { data: memo(7, 'Groceries'), isLoading: false, isFetching: false })
+    })
+    flush()
     render(() => <MemoEditPage />)
 
     const name = screen.getByTestId('memo-edit-form-name') as HTMLInputElement
     fireEvent.input(name, { target: { value: 'Groceries (edited)' } })
 
     // Window-focus refetch: fetching flips on, then resolves with a fresh object.
-    setMemoQuery({ isFetching: true })
+    setMemoQuery((s) => {
+      Object.assign(s, { isFetching: true })
+    })
+    flush()
     expect(screen.queryByTestId('memo-edit-loading')).not.toBeInTheDocument()
-    setMemoQuery({ data: memo(7, 'Groceries'), isFetching: false })
+    setMemoQuery((s) => {
+      Object.assign(s, { data: memo(7, 'Groceries'), isFetching: false })
+    })
+    flush()
 
     expect(screen.getByTestId('memo-edit-form-name')).toBe(name)
     expect(name.value).toBe('Groceries (edited)')

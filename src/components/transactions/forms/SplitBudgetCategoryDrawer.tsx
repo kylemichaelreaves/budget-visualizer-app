@@ -1,4 +1,3 @@
-import type { JSX } from 'solid-js'
 import { For, Show } from 'solid-js'
 import type { SplitBudgetCategory, Timeframe } from '@types'
 import BudgetCategoriesTreeSelect from '@components/transactions/selects/BudgetCategoriesTreeSelect'
@@ -9,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@components/ui
 import SignedUsdAmount from '@components/shared/SignedUsdAmount'
 import { useSplitBudgetCategoryDrawer } from './useSplitBudgetCategoryDrawer'
 import { formatUsd, formatUsdAbs } from '@utils/formatUsd'
+import type { JSX } from '@solidjs/web'
 
 export default function SplitBudgetCategoryDrawer(props: {
   open: boolean

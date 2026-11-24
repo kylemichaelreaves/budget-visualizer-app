@@ -1,4 +1,3 @@
-import type { JSX } from 'solid-js'
 import { For } from 'solid-js'
 import ApiErrorAlert from '@components/shared/ApiErrorAlert'
 import {
@@ -8,6 +7,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@components/ui/pagination'
+import type { JSX } from '@solidjs/web'
 
 export default function TablePaginationBar(props: {
   dataTestId: string

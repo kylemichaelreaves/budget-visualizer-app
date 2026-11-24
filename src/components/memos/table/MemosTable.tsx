@@ -1,4 +1,3 @@
-import type { JSX } from 'solid-js'
 import { createMemo } from 'solid-js'
 import useBudgetCategorySummary from '@api/hooks/budgetCategories/useBudgetCategorySummary'
 import { budgetCategoryColorsFromData } from '@composables/budgetCategoryColors'
@@ -10,6 +9,8 @@ import MemosTableAlerts from '@components/memos/table/MemosTableAlerts'
 import MemosTableListCard from '@components/memos/table/MemosTableListCard'
 import MemosTablePageIntro from '@components/memos/table/MemosTablePageIntro'
 import MemosTablePagination from '@components/memos/table/MemosTablePagination'
+import type { JSX } from '@solidjs/web'
+import { settledData } from '@api/helpers/settledData'
 
 export default function MemosTable(): JSX.Element {
   const data = createMemosTableDerivedData()
@@ -20,7 +21,7 @@ export default function MemosTable(): JSX.Element {
     () => chartTimeFrame(),
     () => chartDate(),
   )
-  const categoryColors = createMemo(() => budgetCategoryColorsFromData(categorySummaryQuery.data))
+  const categoryColors = createMemo(() => budgetCategoryColorsFromData(settledData(categorySummaryQuery)))
 
   const searchIsActive = () => !!data.searchQuery().trim()
 

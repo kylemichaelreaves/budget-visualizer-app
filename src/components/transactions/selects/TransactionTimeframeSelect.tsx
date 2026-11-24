@@ -1,6 +1,7 @@
-import type { Accessor, JSX } from 'solid-js'
+import type { Accessor } from 'solid-js'
 import { For, Show, createEffect } from 'solid-js'
 import { transactionsState } from '@stores/transactionsStore'
+import type { JSX } from '@solidjs/web'
 
 const selectBase = 'p-2 pr-8 rounded border bg-background text-foreground appearance-none'
 const activeBorder = 'border-brand'
@@ -68,11 +69,15 @@ export default function TransactionTimeframeSelect<T>(
 
   const valueOnSelect = () => props.selectValue?.() ?? props.selectedValue()
 
-  createEffect(() => {
-    props.options()
-    const v = valueOnSelect()
-    if (selectRef) selectRef.value = v
-  })
+  createEffect(
+    () => {
+      props.options()
+      return valueOnSelect()
+    },
+    (v) => {
+      if (selectRef) selectRef.value = v
+    },
+  )
 
   return (
     <label class="flex flex-col gap-1 text-muted-foreground text-xs min-w-[120px] flex-[1_1_140px]">

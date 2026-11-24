@@ -1,4 +1,3 @@
-import { A } from '@solidjs/router'
 import type { Accessor } from 'solid-js'
 import { Show } from 'solid-js'
 import { Badge } from '@components/ui/badge'
@@ -16,25 +15,25 @@ export default function MemoSummaryHeader(props: {
   return (
     <header class="mb-6">
       <div class="flex items-center gap-3 flex-wrap">
-        <A
+        <a
           href="/budget-visualizer/memos"
           class="inline-flex items-center justify-center rounded-md border border-input bg-background p-1.5 hover:bg-accent hover:text-accent-foreground transition-colors"
           data-testid="memo-summary-back-to-list"
         >
           <ChevronLeftIcon class="size-5" />
-        </A>
+        </a>
 
         <h1 class="text-2xl font-bold m-0 flex-1" data-testid="memo-summary-title">
           {props.memoName() ?? `Memo ${props.memoId}`}
         </h1>
 
-        <A
+        <a
           href={`/budget-visualizer/memos/${props.memoId}/edit`}
           class="text-sm font-medium text-primary hover:underline shrink-0"
           data-testid="memo-summary-edit-link"
         >
           Edit memo
-        </A>
+        </a>
 
         <div class="flex items-center gap-2 flex-wrap">
           <Show when={props.isAmbiguous()}>

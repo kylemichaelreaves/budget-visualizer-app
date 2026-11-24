@@ -1,4 +1,4 @@
-import { createRoot, createSignal } from 'solid-js'
+import { createRoot, createSignal, flush } from 'solid-js'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { createBudgetCategorySummaryTimeframeFromStore } from '@composables/budgetCategorySummaryTimeframeFromStore'
 import {
@@ -28,6 +28,7 @@ const scope = (r: Resolved) => ({ timeFrame: r.chartTimeFrame(), date: r.chartDa
 describe('createBudgetCategorySummaryTimeframeFromStore', () => {
   beforeEach(() => {
     clearAllFilters()
+    flush()
   })
 
   afterEach(() => {
@@ -46,16 +47,20 @@ describe('createBudgetCategorySummaryTimeframeFromStore', () => {
   ])('pairs the %s filter with its own value', (_name, select, timeFrame, date) => {
     const r = mount()
     select()
+    flush()
     expect(scope(r)).toEqual({ timeFrame, date })
   })
 
   it('follows the store when the filter changes after mount', () => {
     const r = mount()
     selectMonthView('03-2026')
+    flush()
     expect(scope(r)).toEqual({ timeFrame: Timeframe.Month, date: '03-2026' })
     selectDayView('2026-03-14')
+    flush()
     expect(scope(r)).toEqual({ timeFrame: Timeframe.Day, date: '2026-03-14' })
     selectYearView('2025')
+    flush()
     expect(scope(r)).toEqual({ timeFrame: Timeframe.Year, date: '2025' })
   })
 
@@ -76,6 +81,7 @@ describe('createBudgetCategorySummaryTimeframeFromStore', () => {
     const r = mount(firstDay)
     expect(r.chartDate()).toBe('10-2026')
     setFirstDay('2024-06-15')
+    flush()
     expect(r.chartDate()).toBe('06-2024')
   })
 
@@ -91,6 +97,7 @@ describe('createBudgetCategorySummaryTimeframeFromStore', () => {
     vi.useFakeTimers({ now: new Date(2026, 9, 30, 12) })
     const r = mount()
     selectMemoView('Coffee', 7)
+    flush()
     expect(scope(r)).toEqual({ timeFrame: Timeframe.Month, date: '10-2026' })
   })
 
@@ -98,15 +105,22 @@ describe('createBudgetCategorySummaryTimeframeFromStore', () => {
   // to Year (year before month) while the date resolved to the month value.
   it('never pairs a timeframe with another period’s value', () => {
     const r = mount()
-    setTransactionsState({ selectedMonth: '03-2026', selectedYear: '2026', viewMode: null })
+    setTransactionsState((s) => {
+      Object.assign(s, { selectedMonth: '03-2026', selectedYear: '2026', viewMode: null })
+    })
+    flush()
     expect(scope(r)).toEqual({ timeFrame: Timeframe.Month, date: '03-2026' })
-    setTransactionsState({ viewMode: 'year' })
+    setTransactionsState((s) => {
+      Object.assign(s, { viewMode: 'year' })
+    })
+    flush()
     expect(scope(r)).toEqual({ timeFrame: Timeframe.Year, date: '2026' })
   })
 
   it('prefers a selected month over firstDay for the default month', () => {
     const r = mount(() => '2024-06-15')
     selectMonthView('03-2026')
+    flush()
     expect(r.defaultMonthForCharts()).toBe('03-2026')
   })
 })

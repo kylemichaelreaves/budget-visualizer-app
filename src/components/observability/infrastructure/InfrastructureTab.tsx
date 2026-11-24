@@ -7,6 +7,7 @@ import LambdaTable from './LambdaTable'
 import IngestionCard from './IngestionCard'
 import RdsCard from './RdsCard'
 import { formatUpdatedAgo } from '@components/observability/helpers/formatUpdatedAgo'
+import { settledData } from '@api/helpers/settledData'
 
 const isForbidden = (error: unknown) => error instanceof HttpError && error.status === 403
 
@@ -14,7 +15,7 @@ const isForbidden = (error: unknown) => error instanceof HttpError && error.stat
 export default function InfrastructureTab(props: { query: ReturnType<typeof useObservabilityMetrics> }) {
   return (
     <Switch>
-      <Match when={props.query.data}>
+      <Match when={settledData(props.query)}>
         {(data) => (
           <div class="flex flex-col gap-4">
             <Show when={props.query.isError}>

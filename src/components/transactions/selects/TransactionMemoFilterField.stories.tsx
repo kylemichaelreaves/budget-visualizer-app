@@ -1,12 +1,13 @@
-import { children, onMount, type JSX } from 'solid-js'
+import { children, onSettled } from 'solid-js'
 import type { Meta, StoryObj } from 'storybook-solidjs-vite'
 import { storybookMemoSearchHandlers } from '@mocks/storybookMemoSearchHandlers'
 import { clearAllFilters } from '@stores/transactionsStore'
 import TransactionMemoFilterField from './TransactionMemoFilterField'
+import type { JSX } from '@solidjs/web'
 
 function ClearMemoFilterDecorator(props: { children: JSX.Element }) {
   const resolved = children(() => props.children)
-  onMount(() => {
+  onSettled(() => {
     clearAllFilters()
   })
   return <>{resolved()}</>

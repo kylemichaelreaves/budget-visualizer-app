@@ -1,3 +1,4 @@
+import { flush } from 'solid-js'
 import { fireEvent, render, screen, within } from '@solidjs/testing-library'
 import { QueryClient, QueryClientProvider } from '@tanstack/solid-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -10,7 +11,10 @@ vi.mock('@solidjs/router', async () => (await import('../setup/mockRouter')).moc
 const { default: AccountSettingsPage } = await import('@components/settings/AccountSettingsPage')
 
 function setUser(user: { firstName: string; lastName: string; username: string; email: string }) {
-  setAuthState('user', { id: 1, role: 'user', ...user })
+  setAuthState((s) => {
+    s.user = { id: 1, role: 'user', ...user }
+  })
+  flush()
 }
 
 function renderPage() {

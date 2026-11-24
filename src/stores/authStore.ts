@@ -1,4 +1,4 @@
-import { createStore } from 'solid-js/store'
+import { createStore } from 'solid-js'
 import { httpClient, rearmUnauthorizedHandler } from '@api/httpClient'
 import { SESSION_TOKEN_KEY, SESSION_USER_KEY } from '@api/sessionStorageKeys'
 import { normalizeUserFromApi } from '@api/users/normalizeUserFromApi'
@@ -59,9 +59,15 @@ export function hydrateAuthFromStorage(): void {
     return
   }
 
-  setAuthState('user', user)
-  setAuthState('token', token)
-  setAuthState('isUserAuthenticated', true)
+  setAuthState((s) => {
+    s.user = user
+  })
+  setAuthState((s) => {
+    s.token = token
+  })
+  setAuthState((s) => {
+    s.isUserAuthenticated = true
+  })
 }
 
 /** `user` is whatever the API sent — `unknown`, narrowed by `persistSession`. */
@@ -88,16 +94,28 @@ export function persistSession(rawUser: unknown, token: string): boolean {
 
   localStorage.setItem(SESSION_USER_KEY, JSON.stringify(user))
   localStorage.setItem(SESSION_TOKEN_KEY, token)
-  setAuthState('user', user)
-  setAuthState('token', token)
-  setAuthState('isUserAuthenticated', true)
+  setAuthState((s) => {
+    s.user = user
+  })
+  setAuthState((s) => {
+    s.token = token
+  })
+  setAuthState((s) => {
+    s.isUserAuthenticated = true
+  })
   rearmUnauthorizedHandler()
   return true
 }
 
 export function logout(): void {
   clearStoredSession()
-  setAuthState('token', '')
-  setAuthState('isUserAuthenticated', false)
-  setAuthState('user', { ...emptyUser })
+  setAuthState((s) => {
+    s.token = ''
+  })
+  setAuthState((s) => {
+    s.isUserAuthenticated = false
+  })
+  setAuthState((s) => {
+    s.user = { ...emptyUser }
+  })
 }

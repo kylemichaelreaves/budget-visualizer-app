@@ -1,4 +1,3 @@
-import type { JSX } from 'solid-js'
 import { createMemo, createSignal, Show } from 'solid-js'
 import useTimeframeTypeAndValue from '@composables/useTimeframeTypeAndValue'
 import type { BudgetCategoryState, SplitBudgetCategory } from '@types'
@@ -9,6 +8,7 @@ import { Label } from '@components/ui/label'
 import { generateId } from '@components/transactions/helpers/generateId'
 import { formatUsd } from '@utils/formatUsd'
 import { cloneBudgetState } from './transactionEditFormUtils'
+import type { JSX } from '@solidjs/web'
 
 export default function BudgetCategoryFormField(props: {
   modelValue: BudgetCategoryState

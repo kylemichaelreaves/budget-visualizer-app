@@ -1,7 +1,7 @@
-import type { JSX } from 'solid-js'
 import { For, Show } from 'solid-js'
 import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
 import { formatUsd } from '@utils/formatUsd'
+import type { JSX } from '@solidjs/web'
 
 export default function SummaryCategoriesCard(props: { categories: [string, number][] }): JSX.Element {
   return (

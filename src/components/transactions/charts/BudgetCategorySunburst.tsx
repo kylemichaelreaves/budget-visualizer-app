@@ -1,4 +1,3 @@
-import type { JSX } from 'solid-js'
 import { createEffect, createMemo, createSignal, For, onCleanup, Show } from 'solid-js'
 import type { BudgetCategorySummary } from '@types'
 import { budgetCategoryColorsFromData } from '@composables/budgetCategoryColors'
@@ -14,6 +13,7 @@ import {
 } from './mountBudgetCategorySunburst'
 import { hasChartableBudgetCategoryData } from './budgetCategoryChartHierarchy'
 import { CHART_TOOLTIP_CLASS, hideChartTooltip } from '@charts/chartTooltip'
+import type { JSX } from '@solidjs/web'
 
 export default function BudgetCategorySunburst(props: {
   data: BudgetCategorySummary[]
@@ -34,38 +34,41 @@ export default function BudgetCategorySunburst(props: {
 
   const colorHelpers = createMemo(() => budgetCategoryColorsFromData(props.data))
 
-  createEffect(() => {
-    const data = props.data
-    const svg = svgRef
-
-    const resetOverlayState = () => {
-      setBreadcrumb([])
-      setCenterName('Total')
-      setCenterValue(0)
-    }
-
-    if (!svg || props.isLoading || !data?.length || !hasChartableBudgetCategoryData(data)) {
-      if (svg) svg.innerHTML = ''
-      hideChartTooltip(tooltipRef)
-      navigation = undefined
-      resetOverlayState()
-      return
-    }
-
-    mountBudgetCategorySunburstChart({
-      svg,
-      data,
+  createEffect(
+    () => ({
+      data: props.data,
+      isLoading: props.isLoading,
       colorHelpers: colorHelpers(),
-      tooltipEl: tooltipRef,
-      setCenterName,
-      setCenterValue,
-      setBreadcrumb,
       onSliceClick: props.onSliceClick,
-      setNavigation: (api) => {
-        navigation = api
-      },
-    })
-  })
+    }),
+    ({ data, isLoading, colorHelpers, onSliceClick }) => {
+      const svg = svgRef
+
+      if (!svg || isLoading || !data?.length || !hasChartableBudgetCategoryData(data)) {
+        if (svg) svg.innerHTML = ''
+        hideChartTooltip(tooltipRef)
+        navigation = undefined
+        setBreadcrumb([])
+        setCenterName('Total')
+        setCenterValue(0)
+        return
+      }
+
+      mountBudgetCategorySunburstChart({
+        svg,
+        data,
+        colorHelpers,
+        tooltipEl: tooltipRef,
+        setCenterName,
+        setCenterValue,
+        setBreadcrumb,
+        onSliceClick,
+        setNavigation: (api) => {
+          navigation = api
+        },
+      })
+    },
+  )
 
   onCleanup(() => hideChartTooltip(tooltipRef))
 

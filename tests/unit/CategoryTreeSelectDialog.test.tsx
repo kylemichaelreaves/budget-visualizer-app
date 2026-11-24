@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@solidjs/testing-library'
-import { createStore } from 'solid-js/store'
+import { createStore } from 'solid-js'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Categories } from '@types'
 
@@ -33,7 +33,9 @@ function renderDialog(props: { title?: string; subtitle?: string; onSelect?: (v:
 
 describe('CategoryTreeSelectDialog', () => {
   beforeEach(() => {
-    setQuery({ data: undefined, isLoading: true, isFetching: true })
+    setQuery((s) => {
+      Object.assign(s, { data: undefined, isLoading: true, isFetching: true })
+    })
   })
 
   it('shows the default title and a loading message', () => {
@@ -51,14 +53,18 @@ describe('CategoryTreeSelectDialog', () => {
   })
 
   it('lists the category tree once loaded', () => {
-    setQuery({ data: categories, isLoading: false, isFetching: false })
+    setQuery((s) => {
+      Object.assign(s, { data: categories, isLoading: false, isFetching: false })
+    })
     renderDialog()
     expect(screen.getByText('Food')).toBeInTheDocument()
     expect(screen.getByText('Rent')).toBeInTheDocument()
   })
 
   it('filters by search and reports when nothing matches', () => {
-    setQuery({ data: categories, isLoading: false, isFetching: false })
+    setQuery((s) => {
+      Object.assign(s, { data: categories, isLoading: false, isFetching: false })
+    })
     const onSelect = vi.fn()
     renderDialog({ onSelect })
     const search = screen.getByTestId('category-tree-search')

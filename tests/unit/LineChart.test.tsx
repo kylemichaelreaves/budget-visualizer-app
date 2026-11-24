@@ -1,5 +1,5 @@
 import { render, screen } from '@solidjs/testing-library'
-import { createSignal } from 'solid-js'
+import { createSignal, flush } from 'solid-js'
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest'
 import type { SummaryTypeBase } from '@types'
 import LineChart from '@charts/LineChart'
@@ -39,6 +39,7 @@ describe('LineChart', () => {
     render(() => <LineChart summaries={data()} handleOnClickSelection={vi.fn()} />)
     await Promise.resolve()
     setData([])
+    flush()
     expect(svg().innerHTML).toBe('')
     expect(tooltips()).toHaveLength(0)
   })

@@ -68,9 +68,11 @@ Use **`git commit --no-verify`** only when a hook is misbehaving in the agent en
 
 ## Tech stack
 
-- **SolidJS** (NOT React) — use `createSignal`, `createMemo`, `createEffect`, `For`, `Show`, etc.
-- **@tanstack/solid-query** for data fetching
-- **@kobalte/core** for UI primitives (Dialog, etc.)
+- **SolidJS 2** (NOT React, and NOT Solid 1) — `solid-js` for reactivity and control flow, `@solidjs/web` for `render`, `Portal`, `Dynamic` and the `JSX` types. `jsxImportSource` is `@solidjs/web`. The bundled primer is `node_modules/solid-js/skills/solid-2.0/SKILL.md`; read it before writing Solid code here.
+- **@solidjs/router 2** — routes are a config object passed to `createRouter` in `App.tsx`; there is no `<Router>`/`<Route>` JSX, no `<A>` and no `<Navigate>`. Links are plain `<a href>` (the router intercepts them). Redirect on render with `@components/shared/Redirect`. Unit tests and stories that need router context wrap the component in `MemoryRouterShell` (`@mocks/MemoryRouterShell`).
+- **@tanstack/solid-query 6 (prerelease)** for data fetching — see "Reading queries" below
+- **@kobalte/core 2 (alpha)** for UI primitives (Dialog, etc.), wrapped in `components/ui/`. Its dialogs don't register as dismissable layers under Solid 2, so `ui/dialog.tsx` closes on Escape and overlay click itself (`useDialogDismissFallback`); drop that once Kobalte fixes it.
+- **@lucide/solid** for icons. Icon `class` is a plain string, so build conditional classes with `cn()`.
 - **D3** for charts (`charts/createLineChart.ts`, and `BudgetCategorySunburst.tsx` / `mountBudgetCategorySunburst.ts` and `BudgetCategoryTreemap.tsx` under `components/transactions/charts/`)
 - **Tailwind CSS** via `@tailwindcss/vite`
 
@@ -82,9 +84,15 @@ Path aliases live in `tsconfig.paths.json` with `./`-relative targets and no `ba
 
 ## SolidJS gotchas
 
-- Never call `setSignal()` inside `createMemo` — use `createEffect` for side effects
-- `<select>` elements don't re-apply `value` when async `<option>` elements load — use a `createEffect` watching the options to re-set `ref.value`
-- Props are reactive getters in SolidJS — `props.value` inside `createMemo` tracks automatically via JSX transform
+- **`createEffect(compute, apply)` always takes two functions.** Reactive reads go in `compute`, side effects in `apply` (which runs untracked). Effects don't compare: `apply` re-runs whenever `compute` does, so put a memo in `compute` to skip equal values. `apply` must return a cleanup function or nothing. Give it a block body: a concise arrow that returns a setter's value (`(v) => setX(v)`) is an invalid cleanup, and the error halts every reactive update on the page.
+- **No writes in owned scopes.** Writing a signal or store inside a memo, an effect's `compute`, a render effect, or a component body throws in dev (`REACTIVE_WRITE_IN_OWNED_SCOPE`). Write from event handlers, an effect's `apply`, or `onSettled`. For form state seeded from props once per entity, use a derived store, `createStore(() => { key(); return untrack(seed) }, initial)` (see `useMemoEditForm`), or a writable derived signal, `createSignal(() => …)` (see `TransactionMemoFilterField`).
+- **Reads lag writes.** After `setX(1)`, `x()` still returns the old value until the microtask flush. Code that writes then reads in the same handler sees the old value. Tests call `flush()` from `solid-js` before asserting; `fireEvent` already flushes, via the `eventWrapper` in `tests/setup/vitest-setup.ts`.
+- **Stores take draft setters only:** `setStore((s) => { s.field = v })`. The path form (`setStore('field', v)`) and the object-merge form are gone; `Object.assign(s, {...})` inside the draft replaces the merge.
+- **Renames:** `splitProps` → `omit`, `mergeProps` → `merge`, `onMount` → `onSettled`, `<Suspense>` → `<Loading>`, `<ErrorBoundary>` → `<Errored>`, `unwrap` → `snapshot`, `<Ctx.Provider value>` → `<Ctx value>`. `batch` and `on()` are gone (writes batch per microtask; put the source in the effect's `compute`).
+- **`class` replaces `classList`:** `class={['base', { active: isActive() }]}` on native elements.
+- **Attributes are attributes.** `data-x={false}` removes the attribute instead of writing `"false"`, so use `String(flag)` where CSS or a selector matches `"true"`/`"false"`. Enumerated `aria-*` values take strings (`aria-pressed={on ? 'true' : 'false'}`), and attribute names are lowercase (`novalidate`, `tabindex`).
+- `<select>` elements don't re-apply `value` when async `<option>` elements load — use a `createEffect` whose `compute` reads the options and the value, and whose `apply` re-sets `ref.value`
+- Props are reactive getters — read `props.value` in JSX, a memo or an effect's `compute`, never destructure it. A read at the top of a component body doesn't update (dev warns `STRICT_READ_UNTRACKED`)
 
 ## Component file conventions (single-file components)
 
@@ -114,10 +122,16 @@ Convention, not a lint gate — there is no clean Solid-native rule to enforce i
   - `invalidateAfterPendingTransactionApprove(queryClient, { pendingTransactionId })` — create scope + that pending row
   - `invalidateAfterMemoMutation(queryClient)` — create scope + memo, every transaction detail, recurring. The backend cascades a memo's category into its transactions.
   - `invalidateAfterBudgetCategoryMutation(queryClient)` — memo scope + category list. Use it for rename, move and delete, which cascade into memos and transactions. An add only needs `budgetCategories.all`.
-- **Do not** `await` or return invalidation from a hook-level `onSuccess` — TanStack Query v5 waits for it before running `mutate()`-level callbacks, which blocks closing a dialog or navigating (`history.back()`, `navigate`). Either `void` it inside the hook (`mutateCreateTransaction`, `mutateMemo`, `mutatePendingTransaction`) or call the helper at the call site without awaiting (`mutateTransaction`).
-  - The opt-in exception is a caller with no dialog or navigation that shows the saved value straight from the query: `mutateMemo({ awaitInvalidation: true })` (memos table, memo summary page) and `mutateBudgetCategory` (categories tree, which closes its editor on `mutateAsync`). There the pending state should cover the refetch, or the control flashes the old value.
+- **`mutate()` returns a promise and takes no per-call callbacks** (solid-query 6; `mutateAsync` is gone). Put call-site settle logic after it: `void m.mutate(vars).then(onDone, (err) => …)`. Always pass a rejection handler, even `() => {}`: a bare `.then(onDone)` turns a failed mutation into an unhandled rejection. Inside an `async` handler, `await m.mutate(vars)` in a `try`.
+- **Do not** `await` or return invalidation from a hook-level `onSuccess` — the promise `mutate()` returns waits for it, which blocks closing a dialog or navigating (`history.back()`, `navigate`). Either `void` it inside the hook (`mutateCreateTransaction`, `mutateMemo`, `mutatePendingTransaction`) or call the helper at the call site without awaiting (`mutateTransaction`).
+  - The opt-in exception is a caller with no dialog or navigation that shows the saved value straight from the query: `mutateMemo({ awaitInvalidation: true })` (memos table, memo summary page) and `mutateBudgetCategory` (categories tree, which closes its editor once `mutate()` resolves). There the pending state should cover the refetch, or the control flashes the old value.
 - **Writes go through a `useMutation` hook** with a `mutationKeys` entry, never a raw `httpClient` call plus hand-rolled saving/error signals. Read `isPending` / `error` / `variables` off the mutation; when several writes can be in flight at once (one per tree node), read them with `useMutationState` filtered by the mutation key, since `variables` only holds the latest call.
 - Don't use store-level caches that short-circuit `queryFn` — let TanStack manage caching
+
+## Reading queries (solid-query 6)
+
+- **Read `data` through `settledData(q)`** (`@api/helpers/settledData`), never `q.data`. In v6 `data` is an async read: pending, it suspends into the nearest `<Loading>`; disabled with nothing cached, it suspends forever; errored with no data, it throws to `<Errored>`. This app renders those states inline, so `settledData` returns `undefined` for them. It reads through `latest()`, so a refetch doesn't hold the store write that triggered it in a transition (that's what left the transactions filters impossible to clear).
+- **Read fetch-state flags through `queryFlag(q, 'isLoading')`** (`@api/helpers/queryFlag`), and the same for `isFetching`, `isRefetching`, `isFetchingNextPage` and `isFetchingPreviousPage`. On a disabled query those flags probe `data` and suspend forever; `queryFlag` answers `false` from `isEnabled` first. `isPending`, `isError`, `isSuccess`, `status`, `fetchStatus` and `hasNextPage` are plain reads.
 
 ## Retry policy
 
@@ -125,12 +139,12 @@ Set in `@api/queryClient` defaults; don't override per-call without a stated rea
 
 - **Mutations never auto-retry** (`retry: false`). Every mutation here is a non-idempotent POST/PATCH, so a replay duplicates the write — a second transaction row, a second reset email, or a password change retried with a now-stale `currentPassword` that reports failure after succeeding. If a specific endpoint becomes genuinely idempotent, opt that one mutation back in and say why.
 - **Queries retry only when a retry could work** — see `shouldRetryQuery`: transport failures (no response) and 5xx, capped at `MAX_QUERY_RETRIES`. Never 4xx, never cancellations, never errors thrown by our own `queryFn`.
-- For loading states during mutations, only show skeleton on initial load (`!query.data?.pages?.length`), not on background refetches — this preserves scroll position
+- For loading states during mutations, only show skeleton on initial load (`!settledData(query)?.pages?.length`), not on background refetches — this preserves scroll position
 
 ## Utilities
 
 - **API errors**: render a failed query or mutation with `ApiErrorAlert` (`error={q.isError && q.error}`, a `title` naming what failed). For a string, use `extractApiErrorMessage`. Never use `(err as Error).name` / `.message`: a 4xx then reads "HttpError" / "Request failed with status code 409" and drops the server's `message`.
-- **Promises**: `no-floating-promises` (src + tests) and `no-misused-promises` (src) are on. Mark intentional fire-and-forget with `void`, including `onClick={() => void q.refetch()}`. Don't make a `mutate()`-level callback `async`, because TanStack doesn't await it. Chain with `void p.finally(...)` instead.
+- **Promises**: `no-floating-promises` (src + tests) and `no-misused-promises` (src) are on. Mark intentional fire-and-forget with `void`, including `onClick={() => void q.refetch()}`. Inside a `.then` callback after `mutate()`, chain further promises with `void p.finally(...)` rather than making the callback `async`.
 - **Currency formatting**: use `formatUsd`, `formatUsdOrDash`, or `formatUsdAbs` from `@utils/formatUsd` — do not create local `Intl.NumberFormat` instances
 - **Budget category path delimiter**: use `BUDGET_CATEGORY_PATH_DELIMITER` from `@api/helpers/convertToTree` (not hardcoded `' - '`)
 
@@ -139,7 +153,7 @@ Set in `@api/queryClient` defaults; don't override per-call without a stated rea
 - The session bearer token lives in `localStorage`, so treat anything that could execute script on this origin as able to steal it. Don't add inline `<script>`, and don't log a login/session response — `devConsole` is dev-only but a token in a console transcript is still a token.
 - **`User` carries no credential fields.** It is JSON-serialized into `localStorage` by `persistSession`, so a `password` on it would mean a password at rest in the browser. Password input belongs in local form signals (see `CreateUserInput`, `changePassword`).
 - A `User` may only enter `authState` through **`normalizeUserFromApi`**, in both directions: API responses are `unknown`, and stored JSON is attacker-controlled if anything else on the origin can write it. Never `JSON.parse(raw) as User`. `persistSession` returns `false` when the payload is unusable — handle it, don't ignore it.
-- Route guards must be **reactive** (`createEffect` on `authState.isUserAuthenticated`), not `onMount`, and authenticated child routes should be wrapped in a `<Show>` on the same condition — otherwise they mount and fire their queries before the redirect lands, producing a burst of 401s that races the interceptor's own redirect.
+- Route guards must be **reactive** (a `createEffect` whose `compute` reads `authState.isUserAuthenticated`), not a one-shot `onSettled`, and authenticated child routes should be wrapped in a `<Show>` on the same condition — otherwise they mount and fire their queries before the redirect lands, producing a burst of 401s that races the interceptor's own redirect.
 
 ## Content Security Policy
 

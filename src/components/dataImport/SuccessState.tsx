@@ -1,8 +1,8 @@
-import type { JSX } from 'solid-js'
 import { useNavigate } from '@solidjs/router'
 import { Button } from '@components/ui/button'
 import Icon from '@components/dataImport/Icon'
 import { DEFAULT_AUTHENTICATED_ROUTE } from '@utils/authRoutes'
+import type { JSX } from '@solidjs/web'
 
 export default function SuccessState(props: { filename: string; onImportAnother: () => void }): JSX.Element {
   const navigate = useNavigate()

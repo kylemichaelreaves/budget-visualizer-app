@@ -1,4 +1,4 @@
-import { Lock, AlertCircle, ShieldCheck } from 'lucide-solid'
+import { Lock, AlertCircle, ShieldCheck } from '@lucide/solid'
 import { createJSXDecorator } from 'storybook-solidjs-vite'
 import { IconHeading } from './IconHeading'
 

@@ -1,4 +1,3 @@
-import type { JSX } from 'solid-js'
 import { Show } from 'solid-js'
 import AlertComponent from '@components/shared/AlertComponent'
 import ApiErrorAlert from '@components/shared/ApiErrorAlert'
@@ -7,6 +6,9 @@ import MemoSummaryHeader from './MemoSummaryHeader'
 import MemoSummaryStatCards from './MemoSummaryStatCards'
 import MemoSummaryTransactionsCard from './MemoSummaryTransactionsCard'
 import { useMemoSummaryTable } from './useMemoSummaryTable'
+import type { JSX } from '@solidjs/web'
+import { settledData } from '@api/helpers/settledData'
+import { queryFlag } from '@api/helpers/queryFlag'
 
 export default function MemoSummaryTable(): JSX.Element {
   const state = useMemoSummaryTable()
@@ -38,7 +40,7 @@ export default function MemoSummaryTable(): JSX.Element {
         <MemoSummaryHeader
           memoId={state.params.memoId}
           memoName={() => state.memo()?.name}
-          transactionsCount={() => state.summaryQ.data?.transactions_count}
+          transactionsCount={() => settledData(state.summaryQ)?.transactions_count}
           isAmbiguous={state.isAmbiguous}
           isResolved={state.isResolved}
           isRecurring={state.isRecurring}
@@ -84,10 +86,10 @@ export default function MemoSummaryTable(): JSX.Element {
         <MemoSummaryTransactionsCard
           txIsError={() => state.txQ.isError}
           txError={() => state.txQ.error}
-          txIsLoading={() => state.txQ.isLoading}
-          txIsFetching={() => state.txQ.isFetching}
-          txRows={() => state.txQ.data}
-          summaryTransactionsCount={() => state.summaryQ.data?.transactions_count}
+          txIsLoading={() => queryFlag(state.txQ, 'isLoading')}
+          txIsFetching={() => queryFlag(state.txQ, 'isFetching')}
+          txRows={() => settledData(state.txQ)}
+          summaryTransactionsCount={() => settledData(state.summaryQ)?.transactions_count}
           txLimit={state.txLimit}
           setTxLimit={state.setTxLimit}
           txOffset={state.txOffset}

@@ -1,4 +1,4 @@
-import type { Accessor, JSX } from 'solid-js'
+import type { Accessor } from 'solid-js'
 import { createEffect, createSignal, Show } from 'solid-js'
 import type { BudgetCategoryColorHelpers } from '@composables/budgetCategoryColors'
 import useBudgetCategorySummary from '@api/hooks/budgetCategories/useBudgetCategorySummary'
@@ -9,6 +9,9 @@ import type { Timeframe } from '@types'
 import ApiErrorAlert from '@components/shared/ApiErrorAlert'
 import { setSelectedBudgetCategory } from '@stores/transactionsStore'
 import BudgetCategoryTreemap from './BudgetCategoryTreemap'
+import type { JSX } from '@solidjs/web'
+import { settledData } from '@api/helpers/settledData'
+import { queryFlag } from '@api/helpers/queryFlag'
 
 export default function BudgetCategorySummaries(props: {
   timeFrame: Timeframe
@@ -24,16 +27,20 @@ export default function BudgetCategorySummaries(props: {
   )
   const [selectedCategory, setSelectedCategory] = createSignal('')
 
-  const rows = () => summaryQuery.data ?? []
+  const rows = () => settledData(summaryQuery) ?? []
 
-  createEffect(() => {
-    const list = rows()
-    const top = list.find((r) => r.parent_id === null && Math.abs(r.total_amount_debit) > 0)
-    const name = top?.full_path || top?.budget_category || top?.category_name || ''
-    if (name && !selectedCategory()) {
-      setSelectedCategory(name)
-    }
-  })
+  createEffect(
+    () => {
+      const top = rows().find((r) => r.parent_id === null && Math.abs(r.total_amount_debit) > 0)
+      return {
+        name: top?.full_path || top?.budget_category || top?.category_name || '',
+        selected: selectedCategory(),
+      }
+    },
+    ({ name, selected }) => {
+      if (name && !selected) setSelectedCategory(name)
+    },
+  )
 
   const historicalQuery = useHistoricalSummaryForBudgetCategory(
     selectedCategory,
@@ -63,7 +70,7 @@ export default function BudgetCategorySummaries(props: {
           <BudgetCategoryTreemap
             data={rows()}
             categoryColors={props.categoryColors}
-            isLoading={summaryQuery.isLoading}
+            isLoading={queryFlag(summaryQuery, 'isLoading')}
             timeFrame={props.timeFrame}
             date={props.date()}
             dataTestId={`${id()}-treemap`}
@@ -84,11 +91,12 @@ export default function BudgetCategorySummaries(props: {
             dataTestId={`${id()}-historical-error`}
           />
           <Show
-            when={historicalQuery.data && historicalQuery.data.length > 0}
+            when={(settledData(historicalQuery)?.length ?? 0) > 0}
             fallback={
               <Show
                 when={
-                  historicalQuery.isLoading || (historicalQuery.isFetching && !historicalQuery.data?.length)
+                  queryFlag(historicalQuery, 'isLoading') ||
+                  (queryFlag(historicalQuery, 'isFetching') && !settledData(historicalQuery)?.length)
                 }
               >
                 <LineChartSkeleton class="pt-2" dataTestId={`${id()}-historical-skeleton`} />
@@ -97,7 +105,7 @@ export default function BudgetCategorySummaries(props: {
           >
             <div>
               <LineChart
-                summaries={historicalQuery.data ?? []}
+                summaries={settledData(historicalQuery) ?? []}
                 handleOnClickSelection={() => undefined}
                 dataTestId={`${id()}-historical-line`}
                 stackedDateLabels

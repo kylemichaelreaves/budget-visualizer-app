@@ -1,4 +1,3 @@
-import type { JSX } from 'solid-js'
 import { createMemo } from 'solid-js'
 import useWeekSummary from '@api/hooks/timeUnits/weeks/useWeekSummary'
 import TimeframeSummaryTable from './TimeframeSummaryTable'
@@ -7,12 +6,15 @@ import {
   mapWeekSummaryQueryRows,
   useSummaryCategoryColorsForTransactionsTable,
 } from './timeframeSummaryTableBridge'
+import type { JSX } from '@solidjs/web'
+import { settledData } from '@api/helpers/settledData'
+import { queryFlag } from '@api/helpers/queryFlag'
 
 export default function WeekSummaryTable(props: { dataTestId?: string }): JSX.Element | null {
   const q = useWeekSummary()
   const id = () => props.dataTestId ?? 'week-summary-table'
   const categoryColors = useSummaryCategoryColorsForTransactionsTable('week')
-  const rows = createMemo(() => mapWeekSummaryQueryRows(q.data))
+  const rows = createMemo(() => mapWeekSummaryQueryRows(settledData(q)))
 
   return (
     <TimeframeSummaryTable
@@ -25,9 +27,9 @@ export default function WeekSummaryTable(props: { dataTestId?: string }): JSX.El
       rows={rows}
       isError={() => q.isError}
       error={() => q.error}
-      isLoading={() => q.isLoading}
-      isFetching={() => q.isFetching}
-      showTable={() => q.data != null}
+      isLoading={() => queryFlag(q, 'isLoading')}
+      isFetching={() => queryFlag(q, 'isFetching')}
+      showTable={() => settledData(q) != null}
       getCategoryColor={(name) => categoryColors().getColorByName(name)}
     />
   )

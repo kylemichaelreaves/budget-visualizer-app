@@ -1,10 +1,9 @@
-import { A } from '@solidjs/router'
-import { ArrowLeft } from 'lucide-solid'
+import { ArrowLeft } from '@lucide/solid'
 
 export function BackToLoginLink(props: { class?: string }) {
   return (
     <div class="flex justify-center">
-      <A
+      <a
         href="/login"
         class={
           props.class ??
@@ -13,7 +12,7 @@ export function BackToLoginLink(props: { class?: string }) {
       >
         <ArrowLeft class="h-3.5 w-3.5" />
         Back to login
-      </A>
+      </a>
     </div>
   )
 }

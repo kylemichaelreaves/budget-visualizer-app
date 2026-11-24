@@ -1,7 +1,9 @@
-import { Navigate, Route, Router } from '@solidjs/router'
-import { type JSX, lazy, Suspense } from 'solid-js'
+import { createRouter } from '@solidjs/router'
+import { lazy, Loading } from 'solid-js'
 import BudgetVisualizer from '@components/layout/BudgetVisualizer'
 import NavBar from '@components/layout/NavBar'
+import Redirect from '@components/shared/Redirect'
+import type { JSX } from '@solidjs/web'
 
 // Each page is its own chunk, fetched on first visit, so the login screen doesn't
 // download the charts, d3 and every other page. The shell (NavBar, BudgetVisualizer)
@@ -35,37 +37,45 @@ function AppLayout(props: { children?: JSX.Element }) {
       {/* Covers the public pages (login, register, password reset). Authenticated
           pages suspend inside BudgetVisualizer's own boundary, so the sidebar
           stays up while a page chunk loads. */}
-      <Suspense>{props.children}</Suspense>
+      <Loading>{props.children}</Loading>
     </>
   )
 }
 
+const toTransactions = () => <Redirect href="/budget-visualizer/transactions" />
+
+const Router = createRouter({
+  routes: [
+    { path: '/login', component: Login },
+    { path: '/register', component: CreateUserPage },
+    { path: '/password/reset', component: ForgotPasswordPage },
+    { path: '/password/confirm', component: ResetPasswordPage },
+    { path: '/', component: toTransactions },
+    {
+      path: '/budget-visualizer',
+      component: BudgetVisualizer,
+      children: [
+        { path: '/', component: toTransactions },
+        { path: '/transactions', component: TransactionsTable },
+        { path: '/transactions/months/:month/summary', component: TransactionsWithTimeframeSummaryRoute },
+        { path: '/transactions/weeks/:week/summary', component: TransactionsWithTimeframeSummaryRoute },
+        { path: '/transactions/pending', component: PendingTransactionsTable },
+        { path: '/transactions/pending/:pendingTransactionId/edit', component: TransactionEditPage },
+        { path: '/transactions/:transactionId/edit', component: TransactionEditPage },
+        { path: '/memos', component: MemosTable },
+        { path: '/memos/:memoId/summary', component: MemoSummaryPage },
+        { path: '/memos/:memoId/edit', component: MemoEditPage },
+        { path: '/recurring', component: RecurringPage },
+        { path: '/budget-categories', component: BudgetCategoriesPage },
+        { path: '/transactions/csv', component: DataImportPage },
+        { path: '/loan-calculator', component: LoanCalculator },
+        { path: '/account', component: AccountSettingsPage },
+        { path: '/observability', component: ObservabilityRoute },
+      ],
+    },
+  ],
+})
+
 export default function App() {
-  return (
-    <Router root={AppLayout}>
-      <Route path="/login" component={Login} />
-      <Route path="/register" component={CreateUserPage} />
-      <Route path="/password/reset" component={ForgotPasswordPage} />
-      <Route path="/password/confirm" component={ResetPasswordPage} />
-      <Route path="/" component={() => <Navigate href="/budget-visualizer/transactions" />} />
-      <Route path="/budget-visualizer" component={BudgetVisualizer}>
-        <Route path="/" component={() => <Navigate href="/budget-visualizer/transactions" />} />
-        <Route path="/transactions" component={TransactionsTable} />
-        <Route path="/transactions/months/:month/summary" component={TransactionsWithTimeframeSummaryRoute} />
-        <Route path="/transactions/weeks/:week/summary" component={TransactionsWithTimeframeSummaryRoute} />
-        <Route path="/transactions/pending" component={PendingTransactionsTable} />
-        <Route path="/transactions/pending/:pendingTransactionId/edit" component={TransactionEditPage} />
-        <Route path="/transactions/:transactionId/edit" component={TransactionEditPage} />
-        <Route path="/memos" component={MemosTable} />
-        <Route path="/memos/:memoId/summary" component={MemoSummaryPage} />
-        <Route path="/memos/:memoId/edit" component={MemoEditPage} />
-        <Route path="/recurring" component={RecurringPage} />
-        <Route path="/budget-categories" component={BudgetCategoriesPage} />
-        <Route path="/transactions/csv" component={DataImportPage} />
-        <Route path="/loan-calculator" component={LoanCalculator} />
-        <Route path="/account" component={AccountSettingsPage} />
-        <Route path="/observability" component={ObservabilityRoute} />
-      </Route>
-    </Router>
-  )
+  return <Router>{(props) => <AppLayout>{props.children}</AppLayout>}</Router>
 }

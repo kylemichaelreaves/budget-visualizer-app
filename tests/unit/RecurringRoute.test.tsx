@@ -1,3 +1,4 @@
+import { flush } from 'solid-js'
 import { render, screen } from '@solidjs/testing-library'
 import { QueryClient, QueryClientProvider } from '@tanstack/solid-query'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -14,11 +15,17 @@ const { default: App } = await import('../../src/App')
 
 describe('/budget-visualizer/recurring route', () => {
   beforeEach(() => {
-    setAuthState('isUserAuthenticated', true)
+    setAuthState((s) => {
+      s.isUserAuthenticated = true
+    })
+    flush()
     window.history.pushState({}, '', '/budget-visualizer/recurring')
   })
   afterEach(() => {
-    setAuthState('isUserAuthenticated', false)
+    setAuthState((s) => {
+      s.isUserAuthenticated = false
+    })
+    flush()
     window.history.pushState({}, '', '/')
   })
 

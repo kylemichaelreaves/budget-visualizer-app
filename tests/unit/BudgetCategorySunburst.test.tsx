@@ -1,5 +1,5 @@
 import { fireEvent, render, screen } from '@solidjs/testing-library'
-import { createSignal } from 'solid-js'
+import { createSignal, flush } from 'solid-js'
 import { describe, expect, it, vi } from 'vitest'
 import type { BudgetCategorySummary } from '@types'
 import BudgetCategorySunburst from '@components/transactions/charts/BudgetCategorySunburst'
@@ -74,6 +74,7 @@ describe('BudgetCategorySunburst', () => {
     fireEvent.mouseEnter(arcFor('Housing'))
     expect(tooltip().style.opacity).toBe('1')
     setRows([])
+    flush()
     expect(tooltip().style.opacity).toBe('0')
   })
 })

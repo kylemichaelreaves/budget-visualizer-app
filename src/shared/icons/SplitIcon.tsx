@@ -1,4 +1,4 @@
-import type { JSX } from 'solid-js'
+import type { JSX } from '@solidjs/web'
 
 /** Matches lucide-react's SplitSquareHorizontal icon — a square divided vertically. */
 export function SplitIcon(props: { class?: string }): JSX.Element {

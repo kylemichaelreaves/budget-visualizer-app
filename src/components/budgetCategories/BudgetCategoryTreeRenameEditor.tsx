@@ -1,9 +1,9 @@
-import type { JSX } from 'solid-js'
 import { Show } from 'solid-js'
 import { Button } from '@components/ui/button'
 import { Input } from '@components/ui/input'
 import { CheckIcon, XIcon } from '@shared/icons'
 import { categoryTreeTestId } from './budgetCategoryTreeUtils'
+import type { JSX } from '@solidjs/web'
 
 export default function BudgetCategoryTreeRenameEditor(props: {
   pathValue: string
