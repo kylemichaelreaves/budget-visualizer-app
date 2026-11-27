@@ -34,7 +34,7 @@
     "clsx": "^2.1.1",
     "d3": "^7.9.2",
     "lucide-solid": "^1.75.0",
-    "solid-js": "^1.9.13",
+    "solid-js": "^2.0.3",
     "tailwind-merge": "^3.7.0",
     "tailwindcss": "^4.3.5"
   },
