@@ -124,8 +124,6 @@ export const queryKeys = {
 /** TanStack mutation keys (devtools / dedupe); not used for cache invalidation prefixes. */
 export const mutationKeys = {
   login: ['login'] as const,
-  passwordResetRequest: ['password-reset-request'] as const,
-  passwordResetConfirm: ['password-reset-confirm'] as const,
   passwordChange: ['password-change'] as const,
   createTransaction: ['create-transaction'] as const,
   createCsvImport: ['create-csv-import'] as const,

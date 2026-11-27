@@ -1,4 +1,4 @@
-import { A, useNavigate } from '@solidjs/router'
+import { useNavigate } from '@solidjs/router'
 import { createMemo, createSignal, Show } from 'solid-js'
 import { useMutation } from '@tanstack/solid-query'
 import { changePassword } from '@api/auth/changePassword'
@@ -90,13 +90,6 @@ export function ChangePasswordForm() {
               testid="change-password-current-input"
               autocomplete="current-password"
             />
-            <A
-              href="/password/reset"
-              class="self-start text-primary text-xs underline underline-offset-2 hover:opacity-90"
-              data-testid="change-password-forgot-link"
-            >
-              Forgot your password?
-            </A>
           </div>
 
           <div class="-mx-6 border-t border-border" />

@@ -7,9 +7,7 @@ import NavBar from '@components/layout/NavBar'
 // download the charts, d3 and every other page. The shell (NavBar, BudgetVisualizer)
 // stays in the entry chunk because every authenticated route renders it.
 const CreateUserPage = lazy(() => import('@components/auth/CreateUserPage'))
-const ForgotPasswordPage = lazy(() => import('@components/auth/ForgotPasswordPage'))
 const Login = lazy(() => import('@components/auth/Login'))
-const ResetPasswordPage = lazy(() => import('@components/auth/ResetPasswordPage'))
 const LoanCalculator = lazy(() => import('@components/loan/LoanCalculator'))
 const MemoEditPage = lazy(() => import('@components/memos/forms/MemoEditPage'))
 const MemoSummaryPage = lazy(() => import('@components/memos/summaries/MemoSummaryPage'))
@@ -32,7 +30,7 @@ function AppLayout(props: { children?: JSX.Element }) {
   return (
     <>
       <NavBar />
-      {/* Covers the public pages (login, register, password reset). Authenticated
+      {/* Covers the public pages (login, register). Authenticated
           pages suspend inside BudgetVisualizer's own boundary, so the sidebar
           stays up while a page chunk loads. */}
       <Suspense>{props.children}</Suspense>
@@ -45,8 +43,6 @@ export default function App() {
     <Router root={AppLayout}>
       <Route path="/login" component={Login} />
       <Route path="/register" component={CreateUserPage} />
-      <Route path="/password/reset" component={ForgotPasswordPage} />
-      <Route path="/password/confirm" component={ResetPasswordPage} />
       <Route path="/" component={() => <Navigate href="/budget-visualizer/transactions" />} />
       <Route path="/budget-visualizer" component={BudgetVisualizer}>
         <Route path="/" component={() => <Navigate href="/budget-visualizer/transactions" />} />

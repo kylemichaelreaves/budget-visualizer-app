@@ -8,10 +8,8 @@ import type {
 } from '@playwright/test'
 import { E2E_AUTH_TOKEN, E2E_AUTH_USER } from './auth-storage'
 import { installApiMocks, type ApiMocks } from './install-api-mocks'
-import { ForgotPasswordPage } from '../pages/ForgotPasswordPage'
 import { LoginPage } from '../pages/LoginPage'
 import { RegisterPage } from '../pages/RegisterPage'
-import { ResetPasswordPage } from '../pages/ResetPasswordPage'
 import { AccountSettingsPage } from '../pages/AccountSettingsPage'
 import { SidebarNav } from '../pages/SidebarNav'
 import { TransactionsPage } from '../pages/TransactionsPage'
@@ -34,8 +32,6 @@ import { ObservabilityPage } from '../pages/ObservabilityPage'
 type Fixtures = {
   loginPage: LoginPage
   registerPage: RegisterPage
-  forgotPasswordPage: ForgotPasswordPage
-  resetPasswordPage: ResetPasswordPage
   accountSettingsPage: AccountSettingsPage
   navbar: NavBar
   sidebar: SidebarNav
@@ -74,12 +70,6 @@ const pageObjectFixtures: PlaywrightFixtures<
   },
   registerPage: async ({ page }, use) => {
     await use(new RegisterPage(page))
-  },
-  forgotPasswordPage: async ({ page }, use) => {
-    await use(new ForgotPasswordPage(page))
-  },
-  resetPasswordPage: async ({ page }, use) => {
-    await use(new ResetPasswordPage(page))
   },
   accountSettingsPage: async ({ page }, use) => {
     await use(new AccountSettingsPage(page))

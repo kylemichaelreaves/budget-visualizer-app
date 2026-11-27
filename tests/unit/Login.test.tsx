@@ -53,16 +53,9 @@ describe('Login', () => {
   })
 
   describe('banners from the query string', () => {
-    it('shows neither banner by default', () => {
+    it('shows no banner by default', () => {
       renderLogin()
-      expect(screen.queryByTestId('login-reset-success')).toBeNull()
       expect(screen.queryByTestId('login-registered-success')).toBeNull()
-    })
-
-    it('confirms a password reset', () => {
-      routerState.searchParams = { resetSuccess: '1' }
-      renderLogin()
-      expect(screen.getByTestId('login-reset-success')).toHaveTextContent('Password updated')
     })
 
     it('confirms a new registration', () => {
