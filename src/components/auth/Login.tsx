@@ -29,7 +29,6 @@ export default function Login() {
 
   const registerHref = createMemo(() => buildAuthHref('/register', searchParams.redirect))
 
-  const resetSuccess = createMemo(() => searchParams.resetSuccess === '1')
   const registered = createMemo(() => searchParams.registered === '1')
 
   const emailTrimmed = () => email().trim()
@@ -77,12 +76,6 @@ export default function Login() {
           <CardTitle class="text-xl">Sign in</CardTitle>
         </CardHeader>
         <CardContent>
-          <Show when={resetSuccess()}>
-            <Alert class="mb-4" data-testid="login-reset-success">
-              <AlertTitle>Password updated</AlertTitle>
-              <AlertDescription>Sign in with your new password.</AlertDescription>
-            </Alert>
-          </Show>
           <Show when={registered()}>
             <Alert class="mb-4" data-testid="login-registered-success">
               <AlertTitle>Account created</AlertTitle>
@@ -159,9 +152,6 @@ export default function Login() {
                 data-testid="login-register-link"
               >
                 Create an account
-              </A>
-              <A href="/password/reset" class="hover:underline" data-testid="login-forgot-link">
-                Forgot password?
               </A>
             </div>
           </form>

@@ -7,7 +7,6 @@ export class AccountSettingsPage {
   readonly confirmPasswordInput: Locator
   readonly submitButton: Locator
   readonly errorAlert: Locator
-  readonly forgotLink: Locator
   readonly changeAgainButton: Locator
   readonly doneButton: Locator
 
@@ -18,7 +17,6 @@ export class AccountSettingsPage {
     this.confirmPasswordInput = page.getByTestId('change-password-confirm-input')
     this.submitButton = page.getByTestId('change-password-submit')
     this.errorAlert = page.getByTestId('change-password-error')
-    this.forgotLink = page.getByTestId('change-password-forgot-link')
     this.changeAgainButton = page.getByTestId('change-password-change-again')
     this.doneButton = page.getByTestId('change-password-done')
   }

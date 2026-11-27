@@ -163,9 +163,4 @@ describe('ChangePasswordForm', () => {
     fireEvent.click(screen.getAllByRole('button', { name: 'Hide password' })[0]!)
     expect(current().type).toBe('password')
   })
-
-  it('links to the forgot-password flow', () => {
-    renderForm()
-    expect(screen.getByTestId('change-password-forgot-link')).toHaveAttribute('href', '/password/reset')
-  })
 })

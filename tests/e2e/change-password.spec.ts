@@ -20,13 +20,12 @@ const okHandler = async (route: Route) => {
 const STRONG_PASSWORD = 'Passw0rd1!'
 
 test.describe('Change password (account → security)', () => {
-  test('renders the form with all inputs and a forgot-password link', async ({ accountSettingsPage }) => {
+  test('renders the form with all inputs', async ({ accountSettingsPage }) => {
     await accountSettingsPage.gotoSecurity()
     await expect(accountSettingsPage.currentPasswordInput).toBeVisible()
     await expect(accountSettingsPage.newPasswordInput).toBeVisible()
     await expect(accountSettingsPage.confirmPasswordInput).toBeVisible()
     await expect(accountSettingsPage.submitButton).toBeVisible()
-    await expect(accountSettingsPage.forgotLink).toBeVisible()
   })
 
   test('submitting with empty current password shows the current-password error', async ({
@@ -116,11 +115,5 @@ test.describe('Change password (account → security)', () => {
     await accountSettingsPage.submit('wrong-pw', STRONG_PASSWORD)
     await expect(accountSettingsPage.errorAlert).toBeVisible({ timeout: 5_000 })
     await expect(accountSettingsPage.errorAlert).toContainText(/current password is incorrect/i)
-  })
-
-  test('forgot-password link navigates to the reset flow', async ({ page, accountSettingsPage }) => {
-    await accountSettingsPage.gotoSecurity()
-    await accountSettingsPage.forgotLink.click()
-    await expect(page).toHaveURL(/\/password\/reset$/, { timeout: 5_000 })
   })
 })
